@@ -107,10 +107,9 @@ public class HttpAuthManagerImpl implements HttpAuthManager {
 			return 0;
 		}
 
-		String scheme = httpAuthorizationHeader.getScheme();
-
 		if (!StringUtil.equalsIgnoreCase(
-				scheme, HttpAuthorizationHeader.SCHEME_BASIC)) {
+				httpAuthorizationHeader.getScheme(),
+				HttpAuthorizationHeader.SCHEME_BASIC)) {
 
 			return 0;
 		}
@@ -129,10 +128,9 @@ public class HttpAuthManagerImpl implements HttpAuthManager {
 			return 0;
 		}
 
-		String scheme = httpAuthorizationHeader.getScheme();
-
 		if (!StringUtil.equalsIgnoreCase(
-				scheme, HttpAuthorizationHeader.SCHEME_DIGEST)) {
+				httpAuthorizationHeader.getScheme(),
+				HttpAuthorizationHeader.SCHEME_DIGEST)) {
 
 			return 0;
 		}
@@ -328,11 +326,9 @@ public class HttpAuthManagerImpl implements HttpAuthManager {
 			return userId;
 		}
 
-		long companyId = PortalInstances.getCompanyId(httpServletRequest);
-
 		userId = UserLocalServiceUtil.authenticateForDigest(
-			companyId, username, realm, nonce, httpServletRequest.getMethod(),
-			uri, response);
+			PortalInstances.getCompanyId(httpServletRequest), username, realm,
+			nonce, httpServletRequest.getMethod(), uri, response);
 
 		return userId;
 	}

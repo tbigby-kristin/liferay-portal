@@ -12,7 +12,7 @@ definition {
 	}
 
 	macro addCP {
-		DMNavigator.gotoAddDocumentType(dmDocumentTypeName = "${dmDocumentTypeName}");
+		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "${dmDocumentTypeName}");
 
 		var key_dmDocumentTitle = "${dmDocumentTitle}";
 
@@ -30,6 +30,14 @@ definition {
 					locator1 = "TextInput#FILE",
 					value1 = "${dmDocumentFile}");
 			}
+		}
+
+		if (isSet(customFieldText)) {
+			Panel.expandPanel(panel = "Custom Fields");
+
+			Type(
+				locator1 = "TextInput#CUSTOM_FIELD",
+				value1 = "${customFieldText}");
 		}
 
 		if (isSet(tagNameList)) {
@@ -65,7 +73,7 @@ definition {
 	}
 
 	macro addDMShortcutCP {
-		DMNavigator.gotoAddDocumentType(dmDocumentTypeName = "Shortcut");
+		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "Shortcut");
 
 		Click(locator1 = "DocumentsAndMediaAddShortcut#SELECT_SITE_BUTTON");
 
@@ -144,6 +152,22 @@ definition {
 				value1 = "${booleanField}");
 		}
 
+		if (isSet(webcontentField)) {
+			AssertClick(
+				key_fieldName = "WebContent",
+				locator1 = "Button#SELECT_CONTENT",
+				value1 = "Select");
+
+			SelectFrame(locator1 = "IFrame#DIALOG");
+
+			AssertClick(
+				key_webContentTitle = "${webcontentField}",
+				locator1 = "Link#WEB_CONTENT_ARTICLE",
+				value1 = "${webcontentField}");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
 		AssertClick(
 			locator1 = "Button#PUBLISH",
 			value1 = "Publish");
@@ -151,16 +175,8 @@ definition {
 		Alert.viewSuccessMessage();
 	}
 
-	macro addGoogleApp {
-		Portlet.clickPortletPlusIconPG(portletName = "Documents and Media");
-
-		var key_menuItem = "${dmGoogleApp}";
-
-		MenuItem.click(menuItem = "${dmGoogleApp}");
-	}
-
 	macro addMultipleCP {
-		DMNavigator.gotoAddDocumentType(dmDocumentTypeName = "Multiple Files Upload");
+		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "Multiple Files Upload");
 
 		if (isSet(dmDocumentFileList)) {
 			for (var dmDocumentFile : list "${dmDocumentFileList}") {
@@ -394,7 +410,7 @@ definition {
 	}
 
 	macro addWithWorkflowCP {
-		DMNavigator.gotoAddDocumentType(dmDocumentTypeName = "${dmDocumentTypeName}");
+		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "${dmDocumentTypeName}");
 
 		DMDocument.editDocument(
 			dmDocumentDescription = "${dmDocumentDescription}",
@@ -464,6 +480,12 @@ definition {
 		Check(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_CHECKBOX");
 	}
 
+	macro checkDocumentCheckboxPG {
+		var key_listEntry = "${dmDocumentTitle}";
+
+		Check(locator1 = "LexiconList#LIST_ENTRY_CHECKBOX");
+	}
+
 	macro checkinCP {
 		if ("${dmRepositoryName}" == "true") {
 			AssertTextEquals.assertPartialText(
@@ -477,6 +499,38 @@ definition {
 		}
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Checkin");
+
+		if (IsElementPresent(locator1 = "Radio#MAJOR_VERSION")) {
+			if ("${revision}" == "Major") {
+				Click(locator1 = "Radio#MAJOR_VERSION");
+			}
+			else if ("${revision}" == "Minor") {
+				Click(locator1 = "Radio#MINOR_VERSION");
+			}
+			else if ("${revision}" == "Current") {
+				Click(locator1 = "Radio#CURRENT_VERSION");
+			}
+
+			if (isSet(changeLog)) {
+				Type(
+					locator1 = "TextArea#CHANGE_LOG",
+					value1 = "${changeLog}");
+			}
+
+			Click(locator1 = "Button#SAVE");
+		}
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro checkinManagementBar {
+		var key_dmDocumentTitle = "${dmDocumentTitle}";
+
+		Check(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_CHECKBOX");
+
+		Click(locator1 = "Icon#VERTICAL_ELLIPSIS_BUTTON");
+
+		MenuItem.click(menuItem = "Checkin");
 
 		if (IsElementPresent(locator1 = "Radio#MAJOR_VERSION")) {
 			if ("${revision}" == "Major") {
@@ -884,7 +938,7 @@ definition {
 
 		KeyPress(
 			locator1 = "DocumentsAndMedia#EDIT_TAGS_FIELD",
-			value1 = ",");
+			value1 = "\RETURN");
 
 		Button.clickSave();
 
@@ -898,7 +952,7 @@ definition {
 
 		SelectFrame(locator1 = "DocumentsAndMedia#CONFIGURATION_IFRAME");
 
-		WaitForElementPresent(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
+		AssertElementPresent.pauseAssertVisible(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
 
 		Check(locator1 = "Checkbox#SHOW_ACTIONS_CHECKBOX");
 
@@ -928,7 +982,7 @@ definition {
 		DMDocument.expandInfo();
 
 		var portalURL = PropsUtil.get("portal.url");
-		var dmLatestVersionURL = selenium.getAttribute("//input[contains(@class,'lfr-input-resource')]@value");
+		var dmLatestVersionURL = selenium.getAttribute("//input[contains(@id,'urlInput')]@value");
 		var dmDocumentURL = StringUtil.extractLast("${dmLatestVersionURL}", "${portalURL}");
 
 		echo("## * Document URL: ${dmDocumentURL}");
@@ -1143,15 +1197,22 @@ definition {
 	macro sharePG {
 		IFrame.selectModalFrame();
 
-		Type(
-			locator1 = "DocumentsAndMediaShare#INVITE_TO_COLLABORATE_INPUT",
-			value1 = "${userEmailAddress}");
+		if (isSet(noAutocomplete)) {
+			Type.sendKeys(
+				locator1 = "Sharing#MODAL_INVITE_TO_COLLABORATE_INPUT",
+				value1 = "${userEmailAddress},");
+		}
+		else {
+			Type.sendKeys(
+				locator1 = "Sharing#MODAL_INVITE_TO_COLLABORATE_INPUT",
+				value1 = "${userEmailAddress}");
 
-		Click(locator1 = "DocumentsAndMediaShare#INVITE_TO_COLLABORATE_DROPDOWN");
+			Click(locator1 = "Sharing#MODAL_INVITE_TO_COLLABORATE_DROPDOWN");
 
-		var key_userName = "${userName}";
+			var key_userName = "${userName}";
 
-		AssertElementPresent(locator1 = "DocumentsAndMediaShare#INVITE_TO_COLLABORATE_TAG");
+			AssertElementPresent(locator1 = "Sharing#MODAL_INVITE_TO_COLLABORATE_TAG");
+		}
 
 		if (isSet(shareable)) {
 			FormFields.enableCheckbox(fieldName = "shareable");
@@ -1187,10 +1248,10 @@ definition {
 		IFrame.selectModalFrame();
 
 		Type(
-			locator1 = "DocumentsAndMediaShare#INVITE_TO_COLLABORATE_INPUT",
+			locator1 = "Sharing#MODAL_INVITE_TO_COLLABORATE_INPUT",
 			value1 = "${userEmailAddress}");
 
-		AssertElementNotPresent(locator1 = "DocumentsAndMediaShare#INVITE_TO_COLLABORATE_DROPDOWN");
+		AssertElementNotPresent(locator1 = "Sharing#MODAL_INVITE_TO_COLLABORATE_DROPDOWN");
 	}
 
 	macro tearDownCP {
@@ -1202,11 +1263,9 @@ definition {
 			portlet = "Documents and Media");
 
 		if (IsElementNotPresent(locator1 = "Message#EMPTY_INFO")) {
-			Check(locator1 = "DocumentsAndMedia#TOOLBAR_SELECT_ALL_CHECKBOX");
+			Click(locator1 = "DocumentsAndMedia#TOOLBAR_SELECT_ALL_CHECKBOX");
 
-			AssertClick.waitForDMHomeAssertTextEqualsClick(
-				locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS",
-				value1 = "Actions");
+			Click(locator1 = "DocumentsAndMedia#TOOLBAR_ACTIONS");
 
 			MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
 
@@ -1353,6 +1412,21 @@ definition {
 				locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_SIZE",
 				value1 = "${dmDocumentSize}");
 		}
+
+		if (isSet(customFieldName)) {
+			AssertTextEquals(
+				locator1 = "DocumentsAndMediaDocument#CUSTOM_FIELD_NAME",
+				value1 = "${customFieldName}");
+
+			AssertTextEquals(
+				locator1 = "DocumentsAndMediaDocument#CUSTOM_FIELD_VALUE",
+				value1 = "${customFieldValue}");
+
+		}
+
+		if (isSet(locationFieldName)) {
+			DMDocument.viewLocation(dmFolderName = "${dmFolderName}");
+		}
 	}
 
 	macro viewCPStatus {
@@ -1462,6 +1536,24 @@ definition {
 		AssertTextEquals(
 			locator1 = "Button#SUBSCRIBE",
 			value1 = "Subscribe");
+	}
+
+	macro viewDocumentNoCustomFieldCP {
+		var key_dmDocumentTitle = "${dmDocumentTitle}";
+
+		AssertTextEquals(
+			locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_TITLE",
+			value1 = "${dmDocumentTitle}");
+
+		DMDocument.expandInfo();
+
+		AssertTextNotPresent(
+			locator1 = "DocumentsAndMediaDocument#CUSTOM_FIELD_NAME",
+			value1 = "${customFieldName}");
+
+		AssertTextNotPresent(
+			locator1 = "DocumentsAndMediaDocument#CUSTOM_FIELD_VALUE",
+			value1 = "${customFieldValue}");
 	}
 
 	macro viewDocumentTitleCmdPG {
@@ -1619,6 +1711,18 @@ definition {
 		AssertVisible(locator1 = "DocumentsAndMedia#ICON_DOCUMENT_ICON_LOCKED");
 	}
 
+	macro viewLocation {
+		var key_dmFolderName = "${dmFolderName}";
+
+		AssertElementPresent(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_LOCATION");
+
+		Click(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_LOCATION");
+
+		AssertTextEquals(
+			locator1 = "DocumentsAndMedia#BREADCRUMB_FOLDER_NAME",
+			value1 = "${dmFolderName}");
+	}
+
 	macro viewMovedToFolderCP {
 		var key_dmDocumentTitle = "${dmDocumentTitle}";
 		var key_dmFolderName = "${dmFolderName}";
@@ -1714,6 +1818,8 @@ definition {
 		}
 
 		if (isSet(dmDocumentDescription)) {
+			var key_dmDocumentDescription = "${dmDocumentDescription}";
+
 			ScrollWebElementIntoView(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_DESCRIPTION");
 
 			AssertTextEquals(
@@ -1739,6 +1845,10 @@ definition {
 			AssertTextEquals(
 				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_CATEGORIES",
 				value1 = "${categoryName}");
+		}
+
+		if (isSet(locationFieldName)) {
+			DMDocument.viewLocation(dmFolderName = "${dmFolderName}");
 		}
 	}
 
@@ -1906,6 +2016,24 @@ definition {
 		AssertTextEquals(
 			locator1 = "DocumentsAndMedia#SEARCH_TITLE",
 			value1 = "${dmDocumentTitle}");
+	}
+
+	macro viewStagingDetailsManagementBar {
+		var key_dmDocumentTitle = "${dmDocumentTitle}";
+
+		Check(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_CHECKBOX");
+
+		Click(locator1 = "Icon#VERTICAL_ELLIPSIS_BUTTON");
+
+		MenuItem.viewPresent(menuItem = "Download");
+
+		MenuItem.viewPresent(menuItem = "Edit Tags");
+
+		MenuItem.viewPresent(menuItem = "Move");
+
+		MenuItem.viewPresent(menuItem = "Checkout");
+
+		MenuItem.viewPresent(menuItem = "Move to Recycle Bin");
 	}
 
 	macro viewStagingDetailsPG {

@@ -25,8 +25,8 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
@@ -108,6 +108,10 @@ public class SearchPermissionCheckerImpl implements SearchPermissionChecker {
 			if (relatedEntry) {
 				long classNameId = GetterUtil.getLong(
 					document.get(Field.CLASS_NAME_ID));
+
+				if (classNameId == 0) {
+					return;
+				}
 
 				className = portal.getClassName(classNameId);
 

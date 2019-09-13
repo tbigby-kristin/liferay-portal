@@ -195,8 +195,14 @@ public class JspServlet extends HttpServlet {
 				"JspCompiler");
 		defaults.put("compilerSourceVM", "1.8");
 		defaults.put("compilerTargetVM", "1.8");
-		defaults.put("development", "false");
+		defaults.put(
+			"development",
+			String.valueOf(PropsValues.WORK_DIR_OVERRIDE_ENABLED));
 		defaults.put("httpMethods", "GET,POST,HEAD");
+		defaults.put(
+			"jspCompilerClassName",
+			"com.liferay.portal.osgi.web.servlet.jsp.compiler.internal." +
+				"CompilerWrapper");
 		defaults.put("keepgenerated", "false");
 		defaults.put("logVerbosityLevel", "NONE");
 		defaults.put("saveBytecode", "true");

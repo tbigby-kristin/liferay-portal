@@ -19,15 +19,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class JournalArticleResourceSoap implements Serializable {
 
 	public static JournalArticleResourceSoap toSoapModel(
@@ -35,6 +32,7 @@ public class JournalArticleResourceSoap implements Serializable {
 
 		JournalArticleResourceSoap soapModel = new JournalArticleResourceSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setResourcePrimKey(model.getResourcePrimKey());
 		soapModel.setGroupId(model.getGroupId());
@@ -102,6 +100,14 @@ public class JournalArticleResourceSoap implements Serializable {
 		setResourcePrimKey(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public String getUuid() {
 		return _uuid;
 	}
@@ -142,6 +148,7 @@ public class JournalArticleResourceSoap implements Serializable {
 		_articleId = articleId;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _resourcePrimKey;
 	private long _groupId;

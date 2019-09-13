@@ -71,6 +71,22 @@ String clientSecret = (oAuth2Application == null) ? "" : oAuth2Application.getCl
 						<liferay-ui:message arguments="<%= HtmlUtil.escape(((OAuth2ApplicationRedirectURISchemeException)errorException).getMessage()) %>" key="redirect-uri-x-scheme-is-invalid" />
 					</liferay-ui:error>
 
+					<liferay-ui:error exception="<%= OAuth2ApplicationClientCredentialUserIdException.class %>">
+
+						<%
+						OAuth2ApplicationClientCredentialUserIdException oAuth2ApplicationClientCredentialUserIdException = ((OAuth2ApplicationClientCredentialUserIdException)errorException);
+						%>
+
+						<c:choose>
+							<c:when test="<%= Validator.isNotNull(oAuth2ApplicationClientCredentialUserIdException.getClientCredentialUserScreenName()) %>">
+								<liferay-ui:message arguments="<%= oAuth2ApplicationClientCredentialUserIdException.getClientCredentialUserScreenName() %>" key="this-operation-cannot-be-performed-because-you-cannot-impersonate-x" />
+							</c:when>
+							<c:otherwise>
+								<liferay-ui:message arguments="<%= oAuth2ApplicationClientCredentialUserIdException.getClientCredentialUserId() %>" key="this-operation-cannot-be-performed-because-you-cannot-impersonate-x" />
+							</c:otherwise>
+						</c:choose>
+					</liferay-ui:error>
+
 					<aui:model-context bean="<%= oAuth2Application %>" model="<%= OAuth2Application.class %>" />
 
 					<c:if test="<%= oAuth2Application != null %>">
@@ -209,23 +225,20 @@ String clientSecret = (oAuth2Application == null) ? "" : oAuth2Application.getCl
 	</div>
 </div>
 
-<aui:script use="aui-io-request,aui-modal,liferay-form,node,node-event-simulate">
+<aui:script use="aui-modal,liferay-form,node,node-event-simulate">
 	<portlet:namespace />generateRandomSecret = function() {
-		var io = A.io.request(
+		Liferay.Util.fetch(
 			'<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/admin/generate_random_secret" />',
 			{
-				dataType: 'string',
-				on: {
-					complete: function(event, id, obj) {
-						var responseText = obj.responseText;
-
-						var newClientSecretField = A.one('#<portlet:namespace />newClientSecret');
-
-						<portlet:namespace />updateComponent(newClientSecretField, responseText);
-					}
-				}
+				method: 'POST'
 			}
-		);
+		).then(function(response) {
+			return response.text();
+		}).then(function(response) {
+			var newClientSecretField = A.one('#<portlet:namespace />newClientSecret');
+
+			<portlet:namespace />updateComponent(newClientSecretField, response);
+		});
 	}
 
 	<portlet:namespace />getSelectedClientProfile = function() {

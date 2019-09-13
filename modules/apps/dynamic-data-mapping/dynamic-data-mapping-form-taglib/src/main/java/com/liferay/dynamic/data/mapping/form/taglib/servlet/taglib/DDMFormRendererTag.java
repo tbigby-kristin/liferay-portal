@@ -209,9 +209,8 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 	protected Locale getLocale(
 		HttpServletRequest httpServletRequest, DDMForm ddmForm) {
 
-		String languageId = LanguageUtil.getLanguageId(httpServletRequest);
-
-		Locale locale = LocaleUtil.fromLanguageId(languageId);
+		Locale locale = LocaleUtil.fromLanguageId(
+			LanguageUtil.getLanguageId(httpServletRequest));
 
 		if (ddmForm == null) {
 			return locale;
@@ -270,10 +269,8 @@ public class DDMFormRendererTag extends BaseDDMFormRendererTag {
 	protected String getSubmitLabel(
 		DDMFormInstance ddmFormInstance, Locale locale) {
 
-		ThemeDisplay themeDisplay = getThemeDisplay();
-
 		boolean workflowEnabled = hasWorkflowEnabled(
-			ddmFormInstance, themeDisplay);
+			ddmFormInstance, getThemeDisplay());
 
 		ResourceBundle resourceBundle = getResourceBundle(locale);
 

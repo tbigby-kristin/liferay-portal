@@ -129,7 +129,9 @@ definition {
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Approve");
 
-		Alert.viewSuccessMessage();
+		Workflow.confirmWorkflowAction();
+
+		Pause(locator1 = "1000");
 
 		Workflow.viewCompletedTask(
 			ddlDataDefinitionName = "${ddlDataDefinitionName}",
@@ -235,7 +237,7 @@ definition {
 	}
 
 	macro configureWCWorkflowViaFolderInfo {
-		Click(locator1 = "Icon#INFO");
+		Click.pauseClickAt(locator1 = "Icon#INFO");
 
 		Click(locator1 = "Icon#VERTICAL_ELLIPSIS_BUTTON");
 
@@ -348,7 +350,11 @@ definition {
 	macro gotoPreviewEdit {
 		Click(locator1 = "WorkflowSubmissionsTask#PREVIEW_EDIT");
 
-		SelectFrame(locator1 = "IFrame#EDIT_ASSET");
+		var editAsset = "IFrame#EDIT_ASSET";
+
+		if (IsElementPresent(locator1 = "${editAsset}")) {
+			SelectFrame(locator1 = "${editAsset}");
+		}
 	}
 
 	macro gotoPreviewView {
@@ -445,7 +451,9 @@ definition {
 				value1 = "${workflowActivityComment}");
 		}
 
-		Alert.viewSuccessMessage();
+		Workflow.confirmWorkflowAction();
+
+		Pause(locator1 = "1000");
 
 		Workflow.viewCompletedTask(
 			ddlDataDefinitionName = "${ddlDataDefinitionName}",
@@ -469,7 +477,9 @@ definition {
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Reject");
 
-		Alert.viewSuccessMessage();
+		Workflow.confirmWorkflowAction();
+
+		Pause(locator1 = "1000");
 
 		Workflow.viewCompletedTask(
 			ddlDataDefinitionName = "${ddlDataDefinitionName}",
@@ -695,7 +705,9 @@ definition {
 				value1 = "${workflowActivityComment}");
 		}
 
-		Alert.viewSuccessMessage();
+		Workflow.confirmWorkflowAction();
+
+		Pause(locator1 = "1000");
 
 		Workflow.viewTaskAssignedToMyRoles(
 			ddlDataDefinitionName = "${ddlDataDefinitionName}",
@@ -1094,7 +1106,7 @@ definition {
 
 		var key_workflowAssetTitle = "${workflowAssetTitle}";
 
-		AssertClick(
+		AssertClick.assertPartialTextClickAt(
 			locator1 = "MyWorkflowTasks#TABLE_GENERIC_ASSET_TITLE",
 			value1 = "${workflowAssetTitle}");
 
@@ -1155,7 +1167,7 @@ definition {
 		var key_workflowAssetTitle = "${workflowAssetTitle}";
 		var key_workflowTask = "${workflowTask}";
 
-		AssertClick(
+		AssertClick.assertPartialTextClickAt(
 			locator1 = "MyWorkflowTasks#ASSIGNED_TO_MY_ROLES_TABLE_ASSET_TITLE",
 			value1 = "${workflowAssetTitle}");
 

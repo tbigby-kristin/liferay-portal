@@ -44,6 +44,8 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 
 		<%
 		JournalFolder folder = folders.get(0);
+
+		request.setAttribute("info_panel.jsp-folder", folder);
 		%>
 
 		<div class="sidebar-header">
@@ -99,13 +101,7 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 		<%
 		JournalArticle article = articles.get(0);
 
-		long classPK = JournalArticleAssetRenderer.getClassPK(article);
-
-		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(JournalArticle.class.getName(), classPK);
-
-		DDMStructure ddmStructure = article.getDDMStructure();
-
-		DDMTemplate ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(scopeGroupId, PortalUtil.getClassNameId(DDMStructure.class), article.getDDMTemplateKey(), true);
+		request.setAttribute("info_panel.jsp-entry", article);
 		%>
 
 		<div class="sidebar-header">
@@ -121,13 +117,15 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 				</li>
 			</ul>
 
-			<p class="h4 pt-2"><%= HtmlUtil.escape(assetEntry.getTitle(locale)) %></p>
+			<p class="h4 pt-2"><%= HtmlUtil.escape(article.getTitle(locale)) %></p>
 
-			<c:if test="<%= ddmStructure != null %>">
-				<p class="h6 text-default">
-					<%= HtmlUtil.escape(ddmStructure.getName(locale)) %>
-				</p>
-			</c:if>
+			<%
+			DDMStructure ddmStructure = article.getDDMStructure();
+			%>
+
+			<p class="h6 text-default">
+				<%= HtmlUtil.escape(ddmStructure.getName(locale)) %>
+			</p>
 		</div>
 
 		<clay:navigation-bar
@@ -159,18 +157,27 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 				<%= HtmlUtil.escape(article.getTitle(locale)) %>
 			</p>
 
-			<c:if test="<%= ddmTemplate != null %>">
-				<p class="h5"><liferay-ui:message key="template" /></p>
+			<%
+			DDMTemplate ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(scopeGroupId, PortalUtil.getClassNameId(DDMStructure.class), article.getDDMTemplateKey(), true);
+			%>
 
-				<p>
-					<%= HtmlUtil.escape(ddmTemplate.getName(locale)) %>
-				</p>
-			</c:if>
+			<p class="h5"><liferay-ui:message key="template" /></p>
+
+			<p>
+				<c:choose>
+					<c:when test="<%= ddmTemplate != null %>">
+						<%= HtmlUtil.escape(ddmTemplate.getName(locale)) %>
+					</c:when>
+					<c:otherwise>
+						<liferay-ui:message key="no-template" />
+					</c:otherwise>
+				</c:choose>
+			</p>
 
 			<div class="lfr-asset-tags">
 				<liferay-asset:asset-tags-summary
 					className="<%= JournalArticle.class.getName() %>"
-					classPK="<%= classPK %>"
+					classPK="<%= JournalArticleAssetRenderer.getClassPK(article) %>"
 					message="tags"
 				/>
 			</div>
@@ -183,15 +190,13 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 
 			<p class="h5"><liferay-ui:message key="priority" /></p>
 
+			<%
+			AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(JournalArticle.class.getName(), JournalArticleAssetRenderer.getClassPK(article));
+			%>
+
 			<p>
 				<%= assetEntry.getPriority() %>
 			</p>
-
-			<%
-			Date expirationDate = article.getExpirationDate();
-
-			Date reviewDate = article.getReviewDate();
-			%>
 
 			<c:if test="<%= article.getDisplayDate() != null %>">
 				<p class="h5"><liferay-ui:message key="display-date" /></p>
@@ -202,6 +207,10 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 			</c:if>
 
 			<p class="h5"><liferay-ui:message key="expiration-date" /></p>
+
+			<%
+			Date expirationDate = article.getExpirationDate();
+			%>
 
 			<p>
 				<c:choose>
@@ -215,6 +224,10 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 			</p>
 
 			<p class="h5"><liferay-ui:message key="review-date" /></p>
+
+			<%
+			Date reviewDate = article.getReviewDate();
+			%>
 
 			<p>
 				<c:choose>
@@ -243,14 +256,8 @@ if (ListUtil.isEmpty(folders) && ListUtil.isEmpty(articles)) {
 	</c:otherwise>
 </c:choose>
 
-<%
-Map<String, Object> context = new HashMap<>();
-
-context.put("trashEnabled", trashHelper.isTrashEnabled(scopeGroupId));
-%>
-
 <liferay-frontend:component
 	componentId="<%= JournalWebConstants.JOURNAL_INFO_PANEL_ELEMENTS_DEFAULT_EVENT_HANDLER %>"
-	context="<%= context %>"
+	context="<%= journalDisplayContext.getComponentContext() %>"
 	module="js/ElementsDefaultEventHandler.es"
 />

@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class StringMethodsCheck extends BaseFileCheck {
 
 	@Override
-	public boolean isPortalCheck() {
+	public boolean isLiferaySourceCheck() {
 		return true;
 	}
 
@@ -42,6 +42,8 @@ public class StringMethodsCheck extends BaseFileCheck {
 		_checkInefficientStringMethods(
 			fileName, content, "(?<!StringUtil)\\.equalsIgnoreCase\\(",
 			"equalsIgnoreCase");
+		_checkInefficientStringMethods(
+			fileName, content, "\\WString\\.join\\(", "merge");
 
 		return content;
 	}

@@ -56,10 +56,9 @@ public class PortletPreferencesServiceImpl
 		long ownerId = portletItemId;
 		int ownerType = PortletKeys.PREFS_OWNER_TYPE_ARCHIVED;
 		long plid = 0;
-		String portletId = portletItem.getPortletId();
 
 		portletPreferencesLocalService.deletePortletPreferences(
-			ownerId, ownerType, plid, portletId);
+			ownerId, ownerType, plid, portletItem.getPortletId());
 
 		portletItemLocalService.deletePortletItem(portletItemId);
 	}
@@ -70,11 +69,10 @@ public class PortletPreferencesServiceImpl
 			javax.portlet.PortletPreferences jxPortletPreferences)
 		throws PortalException {
 
-		PortletItem portletItem = portletItemLocalService.getPortletItem(
-			portletItemId);
-
 		restoreArchivedPreferences(
-			groupId, layout, portletId, portletItem, jxPortletPreferences);
+			groupId, layout, portletId,
+			portletItemLocalService.getPortletItem(portletItemId),
+			jxPortletPreferences);
 	}
 
 	@Override

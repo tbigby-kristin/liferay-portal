@@ -32,12 +32,12 @@
 <!--NAVIGATION-->
 <tr>
 	<td>NAVIGATION_DISPLAY_SETTINGS</td>
-	<td>//ul[contains(@class,'lfr-nav nav')]//a[contains(.,'Display Settings')]</td>
+	<td>//ul[contains(@class,'nav nav-underline')]//a[contains(.,'Display Settings')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>NAVIGATION_USER_RSS</td>
-	<td>//ul[contains(@class,'lfr-nav nav')]//a[contains(.,'RSS')]</td>
+	<td>//ul[contains(@class,'nav')]//a[contains(.,'RSS')]</td>
 	<td></td>
 </tr>
 <tr>

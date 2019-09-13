@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.rmi.RemoteException;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the SOAP utility for the
  * <code>AssetEntryServiceUtil</code> service
@@ -61,7 +59,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetEntryServiceHttp
  * @generated
  */
-@ProviderType
 public class AssetEntryServiceSoap {
 
 	public static com.liferay.asset.kernel.model.AssetEntrySoap fetchEntry(
@@ -160,6 +157,24 @@ public class AssetEntryServiceSoap {
 		try {
 			com.liferay.asset.kernel.model.AssetEntry returnValue =
 				AssetEntryServiceUtil.getEntry(entryId);
+
+			return com.liferay.asset.kernel.model.AssetEntrySoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.asset.kernel.model.AssetEntrySoap getEntry(
+			String className, long classPK)
+		throws RemoteException {
+
+		try {
+			com.liferay.asset.kernel.model.AssetEntry returnValue =
+				AssetEntryServiceUtil.getEntry(className, classPK);
 
 			return com.liferay.asset.kernel.model.AssetEntrySoap.toSoapModel(
 				returnValue);

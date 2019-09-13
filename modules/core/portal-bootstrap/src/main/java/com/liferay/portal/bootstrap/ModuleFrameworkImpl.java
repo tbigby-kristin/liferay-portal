@@ -14,6 +14,7 @@
 
 package com.liferay.portal.bootstrap;
 
+import com.liferay.petra.io.BigEndianCodec;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -49,8 +50,14 @@ import com.liferay.registry.internal.RegistryImpl;
 import com.liferay.registry.internal.ServiceTrackerMapFactoryImpl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -71,6 +78,7 @@ import java.security.ProtectionDomain;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Dictionary;
@@ -78,13 +86,11 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -93,6 +99,7 @@ import java.util.concurrent.Future;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -100,17 +107,20 @@ import javax.servlet.ServletContext;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.Constants;
 import org.osgi.framework.FrameworkEvent;
 import org.osgi.framework.FrameworkListener;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.SynchronousBundleListener;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.osgi.framework.startlevel.BundleStartLevel;
 import org.osgi.framework.startlevel.FrameworkStartLevel;
 import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleWiring;
 import org.osgi.framework.wiring.FrameworkWiring;
 
 import org.springframework.beans.factory.BeanIsAbstractException;
@@ -390,9 +400,9 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 		_setUpPrerequisiteFrameworkServices(_framework.getBundleContext());
 
-		Set<Bundle> initialBundles = _setUpInitialBundles();
+		Bundle fileInstallBundle = _setUpInitialBundles();
 
-		_startDynamicBundles(initialBundles);
+		_startDynamicBundles(fileInstallBundle);
 
 		if (_log.isInfoEnabled()) {
 			_log.info(
@@ -792,6 +802,27 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		return properties;
 	}
 
+	private long _calculateChecksum(File file) {
+		CRC32 crc32 = new CRC32();
+
+		String fileName = file.getName();
+
+		crc32.update(fileName.getBytes());
+
+		_calculateChecksum(file.lastModified(), crc32);
+		_calculateChecksum(file.length(), crc32);
+
+		return crc32.getValue();
+	}
+
+	private void _calculateChecksum(long l, CRC32 crc) {
+		for (int i = 0; i < 8; i++) {
+			crc.update((int)(l & 0xFF));
+
+			l >>= 8;
+		}
+	}
+
 	private void _checkPermission() throws PrincipalException {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
@@ -844,12 +875,17 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 					}
 
 					try (ZipFile zipFile = new ZipFile(file)) {
-						if ((zipFile.getEntry(
-								"liferay-marketplace.properties") != null) ||
-							(zipFile.getEntry(
-								"WEB-INF/liferay-plugin-package.properties") !=
-									null)) {
+						ZipEntry zipEntry = zipFile.getEntry(
+							"liferay-marketplace.properties");
 
+						if (zipEntry != null) {
+							return FileVisitResult.CONTINUE;
+						}
+
+						zipEntry = zipFile.getEntry(
+							"WEB-INF/liferay-plugin-package.properties");
+
+						if (zipEntry != null) {
 							return FileVisitResult.CONTINUE;
 						}
 
@@ -874,11 +910,11 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			});
 	}
 
-	private Map<String, Bundle> _deployStaticBundlesFromFile(
+	private Set<Bundle> _deployStaticBundlesFromFile(
 			File file, Set<String> overrideStaticFileNames)
 		throws IOException {
 
-		Map<String, Bundle> bundles = new HashMap<>();
+		Set<Bundle> bundles = new HashSet<>();
 
 		String path = _getLPKGLocation(file);
 
@@ -951,7 +987,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 						location, inputStream);
 
 					if (bundle != null) {
-						bundles.put(location, bundle);
+						bundles.add(bundle);
 					}
 				}
 			}
@@ -1112,6 +1148,102 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			PropsValues.MODULE_FRAMEWORK_MARKETPLACE_DIR + "/override");
 	}
 
+	private void _installBundlesFromDir(
+			String dirPath, Map<String, Long> checksums)
+		throws IOException {
+
+		BundleContext bundleContext = _framework.getBundleContext();
+
+		File dir = new File(dirPath);
+
+		for (File file :
+				dir.listFiles((folder, name) -> name.endsWith(".jar"))) {
+
+			URI uri = file.toURI();
+
+			uri = uri.normalize();
+
+			String location = uri.toString();
+
+			if (bundleContext.getBundle(location) != null) {
+				continue;
+			}
+
+			try (InputStream inputStream = new FileInputStream(file)) {
+				Bundle bundle = bundleContext.installBundle(
+					location, inputStream);
+
+				checksums.put(
+					bundle.getBundleId() + _CHECKSUM_SUFFIX,
+					_calculateChecksum(file));
+
+				if ((bundle.getState() != Bundle.INSTALLED) &&
+					(bundle.getState() != Bundle.RESOLVED)) {
+
+					// Defense for bundle blacklist auto uninstall
+
+					continue;
+				}
+
+				BundleStartLevel bundleStartLevel = bundle.adapt(
+					BundleStartLevel.class);
+
+				bundleStartLevel.setStartLevel(
+					PropsValues.MODULE_FRAMEWORK_DYNAMIC_INSTALL_START_LEVEL);
+
+				if (!_isFragmentBundle(bundle)) {
+					bundle.start();
+				}
+			}
+			catch (BundleException be) {
+				_log.error("Unable to install bundle at " + location, be);
+			}
+		}
+	}
+
+	private void _installConfigs(ClassLoader classLoader) throws Exception {
+		BundleContext bundleContext = _framework.getBundleContext();
+
+		Class<?> configInstallerClass = classLoader.loadClass(
+			"org.apache.felix.fileinstall.internal.ConfigInstaller");
+
+		Method method = configInstallerClass.getDeclaredMethod(
+			"install", File.class);
+
+		Constructor<?> constructor =
+			configInstallerClass.getDeclaredConstructor(
+				BundleContext.class,
+				classLoader.loadClass("org.osgi.service.cm.ConfigurationAdmin"),
+				classLoader.loadClass(
+					"org.apache.felix.fileinstall.internal.FileInstall"));
+
+		constructor.setAccessible(true);
+
+		Object configInstaller = constructor.newInstance(
+			bundleContext,
+			bundleContext.getService(
+				bundleContext.getServiceReference(
+					"org.osgi.service.cm.ConfigurationAdmin")),
+			null);
+
+		File dir = new File(PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR);
+
+		for (File file : dir.listFiles()) {
+			method.invoke(configInstaller, file);
+		}
+	}
+
+	private Map<String, Long> _installDynamicBundles() throws IOException {
+		Map<String, Long> checksums = new HashMap<>();
+
+		_installBundlesFromDir(
+			PropsValues.MODULE_FRAMEWORK_PORTAL_DIR, checksums);
+		_installBundlesFromDir(
+			PropsValues.MODULE_FRAMEWORK_MODULES_DIR, checksums);
+
+		return checksums;
+	}
+
 	private Bundle _installInitialBundle(
 		String location, InputStream inputStream) {
 
@@ -1266,6 +1398,23 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			configurableApplicationContext, serviceRegistrations);
 	}
 
+	private void _registerDynamicBundles(
+			Map<String, Long> checksums, BundleContext bundleContext)
+		throws Exception {
+
+		byte[] data = new byte[8];
+
+		for (Map.Entry<String, Long> entry : checksums.entrySet()) {
+			File file = bundleContext.getDataFile(entry.getKey());
+
+			try (OutputStream outputStream = new FileOutputStream(file)) {
+				BigEndianCodec.putLong(data, 0, entry.getValue());
+
+				outputStream.write(data);
+			}
+		}
+	}
+
 	private ServiceRegistration<?> _registerService(
 		BundleContext bundleContext, String beanName, Object bean) {
 
@@ -1314,7 +1463,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		}
 	}
 
-	private Set<Bundle> _setUpInitialBundles() throws Exception {
+	private Bundle _setUpInitialBundles() throws Exception {
 		if (_log.isInfoEnabled()) {
 			_log.info("Starting initial bundles");
 		}
@@ -1330,7 +1479,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		bundleContext.registerService(
 			ThrowableCollector.class, throwableCollector, dictionary);
 
-		final Map<String, Bundle> bundles = new LinkedHashMap<>();
+		Set<Bundle> bundles = new HashSet<>();
 
 		final List<Path> jarPaths = new ArrayList<>();
 
@@ -1402,7 +1551,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 							uri.getScheme(), uri.getAuthority(), uri.getPath(),
 							null, uri.getFragment())))) {
 
-				bundles.put(bundle.getLocation(), bundle);
+				bundles.add(bundle);
 
 				continue;
 			}
@@ -1437,7 +1586,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 				Bundle bundle = _installInitialBundle(location, inputStream);
 
 				if (bundle != null) {
-					bundles.put(location, bundle);
+					bundles.add(bundle);
 
 					overrideStaticFileNames.add(
 						uriString.substring(
@@ -1454,7 +1603,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			File file = new File(deployDir + StringPool.SLASH + staticFileName);
 
 			if (file.exists()) {
-				bundles.putAll(
+				bundles.addAll(
 					_deployStaticBundlesFromFile(
 						file, overrideStaticFileNames));
 			}
@@ -1492,13 +1641,20 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			}
 		}
 
-		for (Bundle bundle : bundles.values()) {
+		Bundle fileInstallBundle = null;
+
+		for (Bundle bundle : bundles) {
 			if (!_isFragmentBundle(bundle)) {
+				if (Objects.equals(
+						bundle.getSymbolicName(),
+						"org.apache.felix.fileinstall")) {
+
+					fileInstallBundle = bundle;
+				}
+
 				bundle.stop();
 			}
 		}
-
-		Bundle[] initialBundles = bundleContext.getBundles();
 
 		FrameworkStartLevel frameworkStartLevel = _framework.adapt(
 			FrameworkStartLevel.class);
@@ -1526,7 +1682,13 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		FrameworkWiring frameworkWiring = _framework.adapt(
 			FrameworkWiring.class);
 
-		frameworkWiring.resolveBundles(bundles.values());
+		frameworkWiring.resolveBundles(bundles);
+
+		_startConfigurationBundles(bundles);
+
+		BundleWiring bundleWiring = fileInstallBundle.adapt(BundleWiring.class);
+
+		_installConfigs(bundleWiring.getClassLoader());
 
 		if (PropsValues.MODULE_FRAMEWORK_CONCURRENT_STARTUP_ENABLED) {
 			Runtime runtime = Runtime.getRuntime();
@@ -1539,19 +1701,16 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 
 			List<Future<Void>> futures = new ArrayList<>(bundles.size());
 
-			for (final Bundle bundle : bundles.values()) {
-				if (!_isFragmentBundle(bundle)) {
+			for (Bundle bundle : bundles) {
+				if (!_isFragmentBundle(bundle) &&
+					(bundle != fileInstallBundle)) {
+
 					futures.add(
 						executorService.submit(
-							new Callable<Void>() {
+							() -> {
+								bundle.start();
 
-								@Override
-								public Void call() throws BundleException {
-									bundle.start();
-
-									return null;
-								}
-
+								return null;
 							}));
 				}
 			}
@@ -1571,8 +1730,10 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			}
 		}
 		else {
-			for (Bundle bundle : bundles.values()) {
-				if (!_isFragmentBundle(bundle)) {
+			for (Bundle bundle : bundles) {
+				if (!_isFragmentBundle(bundle) &&
+					(bundle != fileInstallBundle)) {
+
 					bundle.start();
 				}
 			}
@@ -1596,7 +1757,7 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			_log.info("Started initial bundles");
 		}
 
-		return new HashSet<>(Arrays.asList(initialBundles));
+		return fileInstallBundle;
 	}
 
 	private void _setUpPrerequisiteFrameworkServices(
@@ -1624,35 +1785,32 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		}
 	}
 
-	private void _startDynamicBundles(Set<Bundle> installedBundles)
+	private void _startConfigurationBundles(Collection<Bundle> bundles)
+		throws BundleException {
+
+		Iterator<Bundle> iterator = bundles.iterator();
+
+		while (iterator.hasNext()) {
+			Bundle bundle = iterator.next();
+
+			if (_configurationBundleSymbolicNames.contains(
+					bundle.getSymbolicName())) {
+
+				bundle.start();
+
+				iterator.remove();
+			}
+		}
+	}
+
+	private void _startDynamicBundles(Bundle fileInstallBundle)
 		throws Exception {
 
 		if (_log.isInfoEnabled()) {
 			_log.info("Starting dynamic bundles");
 		}
 
-		Bundle fileInstallBundle = null;
-
-		for (Bundle bundle : installedBundles) {
-			if (Objects.equals(
-					bundle.getSymbolicName(), "org.apache.felix.fileinstall")) {
-
-				fileInstallBundle = bundle;
-
-				break;
-			}
-		}
-
-		if (fileInstallBundle == null) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to find the Apache Felix File Install bundle to " +
-						"synchronize the starting of dynamic bundles");
-			}
-		}
-		else {
-			fileInstallBundle.stop(Bundle.STOP_TRANSIENT);
-		}
+		Map<String, Long> dynamicBundleChecksums = _installDynamicBundles();
 
 		FrameworkStartLevel frameworkStartLevel = _framework.adapt(
 			FrameworkStartLevel.class);
@@ -1677,51 +1835,42 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 			ReflectionUtil.throwException(frameworkEvent.getThrowable());
 		}
 
-		BundleContext bundleContext = _framework.getBundleContext();
+		if (dynamicBundleChecksums.isEmpty()) {
+			fileInstallBundle.start();
+		}
+		else {
+			SynchronousBundleListener synchronousBundleListener = event -> {
+				if (event.getType() != BundleEvent.STARTING) {
+					return;
+				}
 
-		for (Bundle bundle : bundleContext.getBundles()) {
-			if (installedBundles.contains(bundle) ||
-				((bundle.getState() != Bundle.INSTALLED) &&
-				 (bundle.getState() != Bundle.RESOLVED))) {
+				Bundle currentBundle = event.getBundle();
 
-				continue;
-			}
-
-			BundleRevision bundleRevision = bundle.adapt(BundleRevision.class);
-
-			if ((bundleRevision.getTypes() & BundleRevision.TYPE_FRAGMENT) !=
-					0) {
-
-				continue;
-			}
-
-			BundleStartLevel bundleStartLevel = bundle.adapt(
-				BundleStartLevel.class);
-
-			if (bundleStartLevel.getStartLevel() ==
-					PropsValues.MODULE_FRAMEWORK_DYNAMIC_INSTALL_START_LEVEL) {
+				if (currentBundle != fileInstallBundle) {
+					return;
+				}
 
 				try {
-					bundle.start();
+					_registerDynamicBundles(
+						dynamicBundleChecksums,
+						currentBundle.getBundleContext());
 				}
-				catch (BundleException be) {
-					String message = be.getMessage();
-
-					if (message.endsWith(
-							"Bundle was filtered by a resolver hook.\n")) {
-
-						continue;
-					}
-
+				catch (Exception e) {
 					_log.error(
-						"Unable to start bundle " + bundle.getSymbolicName(),
-						be);
+						"Unable to register dynamic bundle checksums", e);
 				}
-			}
-		}
+			};
 
-		if (fileInstallBundle != null) {
-			fileInstallBundle.start(Bundle.START_TRANSIENT);
+			BundleContext bundleContext = _framework.getBundleContext();
+
+			bundleContext.addBundleListener(synchronousBundleListener);
+
+			try {
+				fileInstallBundle.start();
+			}
+			finally {
+				bundleContext.removeBundleListener(synchronousBundleListener);
+			}
 		}
 
 		if (_log.isInfoEnabled()) {
@@ -1786,8 +1935,14 @@ public class ModuleFrameworkImpl implements ModuleFramework {
 		}
 	}
 
+	private static final String _CHECKSUM_SUFFIX = ".checksum";
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		ModuleFrameworkImpl.class);
+
+	private static final List<String> _configurationBundleSymbolicNames =
+		Arrays.asList(
+			PropsValues.MODULE_FRAMEWORK_CONFIGURATION_BUNDLE_SYMBOLIC_NAMES);
 
 	private Framework _framework;
 	private final Map

@@ -1,8 +1,10 @@
 {
 	"dependencies": {
-		"clay-button": "2.15.1",
-		"clay-multi-select": "2.15.1",
-		"clay-radio": "2.15.1",
+		"clay-button": "2.18.1",
+		"clay-multi-select": "2.18.1",
+		"clay-radio": "2.18.1",
+		"clipboard": "2.0.4",
+		"frontend-js-web": "*",
 		"metal-component": "2.16.8",
 		"metal-soy": "2.16.8",
 		"metal-state": "2.16.8"
@@ -10,8 +12,8 @@
 	"name": "document-library-web",
 	"scripts": {
 		"build": "liferay-npm-scripts build",
-		"checkFormat": "liferay-npm-scripts lint",
-		"format": "liferay-npm-scripts format"
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
 	},
 	"version": "5.0.0"
 }

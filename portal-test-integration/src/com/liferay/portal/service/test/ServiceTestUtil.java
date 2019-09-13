@@ -85,6 +85,10 @@ public class ServiceTestUtil {
 
 	public static final int THREAD_COUNT = 10;
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static void initMainServletServices() {
 
 		// Upgrade
@@ -158,6 +162,10 @@ public class ServiceTestUtil {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static void initServices() {
 
 		// Thread locals
@@ -174,6 +182,10 @@ public class ServiceTestUtil {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static void initStaticServices() {
 
 		// Indexers
@@ -272,10 +284,18 @@ public class ServiceTestUtil {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static Date newDate() throws Exception {
 		return new Date();
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static Date newDate(int month, int day, int year) throws Exception {
 		Calendar calendar = new GregorianCalendar();
 

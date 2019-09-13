@@ -30,7 +30,14 @@ String rowHREF = (String)objArray[1];
 	userId="<%= statsUser.getUserId() %>"
 >
 	<div class="blogger-post-count">
-		<span><liferay-ui:message key="posts" />:</span> <%= statsUser.getEntryCount() %>
+		<c:choose>
+			<c:when test="<%= statsUser.getEntryCount() == 1 %>">
+				<span><liferay-ui:message key="post" />:</span> <%= statsUser.getEntryCount() %>
+			</c:when>
+			<c:otherwise>
+				<span><liferay-ui:message key="posts" />:</span> <%= statsUser.getEntryCount() %>
+			</c:otherwise>
+		</c:choose>
 	</div>
 
 	<div class="blogger-stars">

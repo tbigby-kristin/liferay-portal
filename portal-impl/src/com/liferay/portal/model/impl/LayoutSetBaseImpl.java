@@ -14,12 +14,8 @@
 
 package com.liferay.portal.model.impl;
 
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
-
-import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * The extended model base implementation for the LayoutSet service. Represents a row in the &quot;LayoutSet&quot; database table, with each column mapped to a property of this class.
@@ -33,11 +29,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutSet
  * @generated
  */
-@ProviderType
 public abstract class LayoutSetBaseImpl
 	extends LayoutSetModelImpl implements LayoutSet {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a layout set model instance should use the <code>LayoutSet</code> interface instead.
@@ -48,12 +43,7 @@ public abstract class LayoutSetBaseImpl
 			LayoutSetLocalServiceUtil.addLayoutSet(this);
 		}
 		else {
-			try {
-				LayoutSetLocalServiceUtil.updateLayoutSet(this);
-			}
-			catch (PortalException pe) {
-				throw new SystemException(pe);
-			}
+			LayoutSetLocalServiceUtil.updateLayoutSet(this);
 		}
 	}
 

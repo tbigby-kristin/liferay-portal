@@ -820,8 +820,7 @@ public class DirectoryWatcher extends Thread implements BundleListener
             // /tmp/foo and /tmp//foo differently.
             String location = bundle.getLocation();
             String path = null;
-            if (location != null &&
-                    !location.equals(Constants.SYSTEM_BUNDLE_LOCATION)) {
+            if (location != null && location.contains(watchedDirPath)) {
                 URI uri;
                 try {
                     uri = new URI(bundle.getLocation()).normalize();
@@ -1265,6 +1264,13 @@ public class DirectoryWatcher extends Thread implements BundleListener
                 log(Logger.LOG_INFO, "Started bundle: " + bundle.getLocation(), null);
                 return true;
             }
+			catch (IllegalStateException ise) {
+				if (bundle.getState() == Bundle.UNINSTALLED) {
+					return true;
+				}
+
+				throw ise;
+			}
             catch (BundleException e)
             {
                 // Don't log this as an error, instead we start the bundle repeatedly.

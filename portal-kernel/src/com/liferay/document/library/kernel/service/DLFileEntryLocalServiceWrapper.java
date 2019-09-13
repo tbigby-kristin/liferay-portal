@@ -16,8 +16,6 @@ package com.liferay.document.library.kernel.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link DLFileEntryLocalService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLFileEntryLocalService
  * @generated
  */
-@ProviderType
 public class DLFileEntryLocalServiceWrapper
 	implements DLFileEntryLocalService,
 			   ServiceWrapper<DLFileEntryLocalService> {
@@ -1254,6 +1251,22 @@ public class DLFileEntryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_dlFileEntryLocalService.updateSmallImage(smallImageId, largeImageId);
+	}
+
+	@Override
+	public com.liferay.document.library.kernel.model.DLFileEntry updateStatus(
+			long userId,
+			com.liferay.document.library.kernel.model.DLFileEntry dlFileEntry,
+			com.liferay.document.library.kernel.model.DLFileVersion
+				dlFileVersion,
+			int status,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext,
+			java.util.Map<String, java.io.Serializable> workflowContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlFileEntryLocalService.updateStatus(
+			userId, dlFileEntry, dlFileVersion, status, serviceContext,
+			workflowContext);
 	}
 
 	@Override

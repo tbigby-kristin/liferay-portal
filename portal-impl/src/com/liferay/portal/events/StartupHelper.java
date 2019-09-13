@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.patcher.PatcherUtil;
+import com.liferay.portal.kernel.service.ReleaseLocalServiceUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
@@ -28,6 +29,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.upgrade.PortalUpgradeProcess;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.verify.VerifyException;
 import com.liferay.portal.verify.VerifyProcessUtil;
@@ -156,11 +158,50 @@ public class StartupHelper {
 		}
 	}
 
+	public void verifyProcess(boolean verified) throws VerifyException {
+		_verified = VerifyProcessUtil.verifyProcess(_upgraded, verified);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #verifyProcess(boolean)}
+	 */
+	@Deprecated
 	public void verifyProcess(boolean newBuildNumber, boolean verified)
 		throws VerifyException {
 
-		_verified = VerifyProcessUtil.verifyProcess(
-			_upgraded, newBuildNumber, verified);
+		verifyProcess(verified);
+	}
+
+	public void verifyRequiredSchemaVersion() throws Exception {
+		ReleaseLocalServiceUtil.getBuildNumberOrCreate();
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Check the portal's required schema version");
+		}
+
+		if (!PortalUpgradeProcess.isInRequiredSchemaVersion(
+				DataAccess.getConnection())) {
+
+			String msg =
+				"You must first upgrade the portal to the required schema " +
+					"version " +
+						PortalUpgradeProcess.getRequiredSchemaVersion();
+
+			System.out.println(msg);
+
+			throw new RuntimeException(msg);
+		}
+
+		if (!PortalUpgradeProcess.isInLatestSchemaVersion(
+				DataAccess.getConnection())) {
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Execute the upgrade tool first if you need to upgrade " +
+						"the portal to the latest schema version");
+			}
+		}
 	}
 
 	protected String[] getUpgradeProcessClassNames(String key) {

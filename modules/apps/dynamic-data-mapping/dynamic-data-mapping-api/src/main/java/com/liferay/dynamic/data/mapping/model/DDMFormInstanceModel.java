@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.LocalizedModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 
@@ -40,10 +41,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface DDMFormInstanceModel
-	extends BaseModel<DDMFormInstance>, LocalizedModel, ShardedModel,
+	extends BaseModel<DDMFormInstance>, LocalizedModel, MVCCModel, ShardedModel,
 			StagedGroupedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ddm form instance model instance should use the {@link DDMFormInstance} interface instead.
@@ -62,6 +63,22 @@ public interface DDMFormInstanceModel
 	 * @param primaryKey the primary key of this ddm form instance
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this ddm form instance.
+	 *
+	 * @return the mvcc version of this ddm form instance
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this ddm form instance.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm form instance
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this ddm form instance.

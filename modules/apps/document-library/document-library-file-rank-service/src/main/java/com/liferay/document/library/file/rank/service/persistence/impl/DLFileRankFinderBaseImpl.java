@@ -55,7 +55,7 @@ public abstract class DLFileRankFinderBaseImpl
 
 	@Override
 	@Reference(
-		target = DLPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = DLPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -85,5 +85,14 @@ public abstract class DLFileRankFinderBaseImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLFileRankFinderBaseImpl.class);
+
+	static {
+		try {
+			Class.forName(DLPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

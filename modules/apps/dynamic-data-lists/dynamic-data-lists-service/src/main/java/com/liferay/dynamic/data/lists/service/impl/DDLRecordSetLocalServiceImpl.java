@@ -27,11 +27,9 @@ import com.liferay.dynamic.data.lists.service.base.DDLRecordSetLocalServiceBaseI
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerDeserializeResponse;
-import com.liferay.dynamic.data.mapping.io.DDMFormValuesDeserializerTracker;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerSerializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerSerializeResponse;
-import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerTracker;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLink;
@@ -49,6 +47,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.Indexable;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -105,6 +105,7 @@ public class DDLRecordSetLocalServiceImpl
 	 * @return the record set
 	 * @throws PortalException if a portal exception occurred
 	 */
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDLRecordSet addRecordSet(
 			long userId, long groupId, long ddmStructureId, String recordSetKey,
@@ -163,10 +164,8 @@ public class DDLRecordSetLocalServiceImpl
 
 		// Record set version
 
-		long ddmStructureVersionId = getDDMStructureVersionId(ddmStructureId);
-
 		addRecordSetVersion(
-			ddmStructureVersionId, user, recordSet,
+			getDDMStructureVersionId(ddmStructureId), user, recordSet,
 			DDLRecordSetConstants.VERSION_DEFAULT, serviceContext);
 
 		// Dynamic data mapping structure link
@@ -242,6 +241,18 @@ public class DDLRecordSetLocalServiceImpl
 			recordSet.getRecordSetId(), groupPermissions, guestPermissions);
 	}
 
+	@Override
+	public void deleteDDMStructureRecordSets(long ddmStructureId)
+		throws PortalException {
+
+		List<DDLRecordSet> ddlRecordSets = getDDMStructureRecordSets(
+			ddmStructureId);
+
+		for (DDLRecordSet ddlRecordSet : ddlRecordSets) {
+			deleteRecordSet(ddlRecordSet);
+		}
+	}
+
 	/**
 	 * Deletes the record set and its resources.
 	 *
@@ -257,7 +268,7 @@ public class DDLRecordSetLocalServiceImpl
 
 		// Record set
 
-		ddlRecordSetPersistence.remove(recordSet);
+		super.deleteDDLRecordSet(recordSet);
 
 		// Resources
 
@@ -362,6 +373,11 @@ public class DDLRecordSetLocalServiceImpl
 	@Override
 	public DDLRecordSet fetchRecordSet(long groupId, String recordSetKey) {
 		return ddlRecordSetPersistence.fetchByG_R(groupId, recordSetKey);
+	}
+
+	@Override
+	public List<DDLRecordSet> getDDMStructureRecordSets(long ddmStructureId) {
+		return ddlRecordSetPersistence.findByDDMStructureId(ddmStructureId);
 	}
 
 	/**
@@ -695,6 +711,7 @@ public class DDLRecordSetLocalServiceImpl
 	 * @return the record set
 	 * @throws PortalException if a portal exception occurred
 	 */
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDLRecordSet updateRecordSet(
 			long recordSetId, long ddmStructureId, Map<Locale, String> nameMap,
@@ -779,17 +796,13 @@ public class DDLRecordSetLocalServiceImpl
 	}
 
 	protected DDMFormValues deserialize(String content, DDMForm ddmForm) {
-		DDMFormValuesDeserializer ddmFormValuesDeserializer =
-			ddmFormValuesDeserializerTracker.getDDMFormValuesDeserializer(
-				"json");
-
 		DDMFormValuesDeserializerDeserializeRequest.Builder builder =
 			DDMFormValuesDeserializerDeserializeRequest.Builder.newBuilder(
 				content, ddmForm);
 
 		DDMFormValuesDeserializerDeserializeResponse
 			ddmFormValuesDeserializerDeserializeResponse =
-				ddmFormValuesDeserializer.deserialize(builder.build());
+				_jsonDDMFormValuesDeserializer.deserialize(builder.build());
 
 		return ddmFormValuesDeserializerDeserializeResponse.getDDMFormValues();
 	}
@@ -920,16 +933,13 @@ public class DDLRecordSetLocalServiceImpl
 	}
 
 	protected String serialize(DDMFormValues ddmFormValues) {
-		DDMFormValuesSerializer ddmFormValuesSerializer =
-			ddmFormValuesSerializerTracker.getDDMFormValuesSerializer("json");
-
 		DDMFormValuesSerializerSerializeRequest.Builder builder =
 			DDMFormValuesSerializerSerializeRequest.Builder.newBuilder(
 				ddmFormValues);
 
 		DDMFormValuesSerializerSerializeResponse
 			ddmFormValuesSerializerSerializeResponse =
-				ddmFormValuesSerializer.serialize(builder.build());
+				_jsonDDMFormValuesSerializer.serialize(builder.build());
 
 		return ddmFormValuesSerializerSerializeResponse.getContent();
 	}
@@ -1005,12 +1015,6 @@ public class DDLRecordSetLocalServiceImpl
 	}
 
 	@Reference
-	protected DDMFormValuesDeserializerTracker ddmFormValuesDeserializerTracker;
-
-	@Reference
-	protected DDMFormValuesSerializerTracker ddmFormValuesSerializerTracker;
-
-	@Reference
 	protected DDMFormValuesValidator ddmFormValuesValidator;
 
 	@Reference
@@ -1027,5 +1031,11 @@ public class DDLRecordSetLocalServiceImpl
 
 	@Reference
 	private DDLRecordSetVersionLocalService _ddlRecordSetVersionLocalService;
+
+	@Reference(target = "(ddm.form.values.deserializer.type=json)")
+	private DDMFormValuesDeserializer _jsonDDMFormValuesDeserializer;
+
+	@Reference(target = "(ddm.form.values.serializer.type=json)")
+	private DDMFormValuesSerializer _jsonDDMFormValuesSerializer;
 
 }

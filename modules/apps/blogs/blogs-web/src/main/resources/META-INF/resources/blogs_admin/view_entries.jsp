@@ -17,6 +17,9 @@
 <%@ include file="/blogs_admin/init.jsp" %>
 
 <%
+long assetCategoryId = ParamUtil.getLong(request, "categoryId");
+String assetTagName = ParamUtil.getString(request, "tag");
+
 BlogEntriesDisplayContext blogEntriesDisplayContext = (BlogEntriesDisplayContext)request.getAttribute(BlogsWebKeys.BLOG_ENTRIES_DISPLAY_CONTEXT);
 
 String displayStyle = blogEntriesDisplayContext.getDisplayStyle();
@@ -30,6 +33,7 @@ BlogEntriesManagementToolbarDisplayContext blogEntriesManagementToolbarDisplayCo
 <clay:management-toolbar
 	displayContext="<%= blogEntriesManagementToolbarDisplayContext %>"
 	searchContainerId="blogEntries"
+	supportsBulkActions="<%= true %>"
 />
 
 <portlet:actionURL name="/blogs/edit_entry" var="restoreTrashEntriesURL">
@@ -45,11 +49,14 @@ BlogEntriesManagementToolbarDisplayContext blogEntriesManagementToolbarDisplayCo
 		<aui:input name="<%= Constants.CMD %>" type="hidden" />
 		<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 		<aui:input name="deleteEntryIds" type="hidden" />
+		<aui:input name="selectAll" type="hidden" value="<%= false %>" />
 
-		<liferay-asset:categorization-filter
-			assetType="entries"
-			portletURL="<%= portletURL %>"
-		/>
+		<c:if test="<%= (assetCategoryId != 0) || Validator.isNotNull(assetTagName) %>">
+			<liferay-asset:categorization-filter
+				assetType="entries"
+				portletURL="<%= portletURL %>"
+			/>
+		</c:if>
 
 		<liferay-ui:search-container
 			id="blogEntries"

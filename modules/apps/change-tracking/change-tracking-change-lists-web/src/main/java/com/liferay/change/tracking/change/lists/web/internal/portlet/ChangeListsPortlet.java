@@ -14,23 +14,35 @@
 
 package com.liferay.change.tracking.change.lists.web.internal.portlet;
 
-import com.liferay.change.tracking.configuration.CTPortalConfiguration;
+import com.liferay.change.tracking.change.lists.web.internal.constants.CTWebConstants;
+import com.liferay.change.tracking.change.lists.web.internal.display.context.ChangeListsDisplayContext;
+import com.liferay.change.tracking.configuration.CTConfiguration;
 import com.liferay.change.tracking.constants.CTPortletKeys;
+import com.liferay.change.tracking.engine.CTEngineManager;
+import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.change.tracking.service.CTEntryLocalService;
+import com.liferay.change.tracking.service.CTPreferencesLocalService;
+import com.liferay.change.tracking.service.CTProcessLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.security.permission.UserBag;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 
 import java.io.IOException;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import javax.portlet.Portlet;
 import javax.portlet.PortletException;
@@ -41,14 +53,13 @@ import javax.portlet.RenderResponse;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Máté Thurzó
  */
 @Component(
-	configurationPid = "com.liferay.change.tracking.configuration.CTPortalConfiguration",
+	configurationPid = "com.liferay.change.tracking.configuration.CTConfiguration",
 	configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=false",
@@ -67,8 +78,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CTPortletKeys.CHANGE_LISTS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator"
 	},
 	service = Portlet.class
 )
@@ -83,27 +93,42 @@ public class ChangeListsPortlet extends MVCPortlet {
 			checkPermissions(renderRequest);
 		}
 		catch (Exception e) {
-			throw new PortletException(
-				"Unable to check permissions: " + e.getMessage(), e);
+			throw new PortletException(e);
 		}
 
-		boolean production = ParamUtil.getBoolean(renderRequest, "production");
-
-		if (production) {
+		if (ParamUtil.getBoolean(renderRequest, "production")) {
 			SessionMessages.add(
 				renderRequest,
 				_portal.getPortletId(renderRequest) +
 					"checkoutProductionSuccess");
 		}
 
+		ChangeListsDisplayContext changeListsDisplayContext =
+			new ChangeListsDisplayContext(
+				_classNameLocalService, _ctCollectionLocalService,
+				_ctEntryLocalService, _ctEngineManager,
+				_ctPreferencesLocalService, _ctProcessLocalService,
+				_portal.getHttpServletRequest(renderRequest), renderRequest,
+				renderResponse, _resourceActions, _userLocalService);
+
+		renderRequest.setAttribute(
+			CTWebConstants.CHANGE_LISTS_DISPLAY_CONTEXT,
+			changeListsDisplayContext);
+
 		super.render(renderRequest, renderResponse);
 	}
 
 	@Activate
-	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_ctPortalConfiguration = ConfigurableUtil.createConfigurable(
-			CTPortalConfiguration.class, properties);
+		Set<String> administratorRoleNames = new HashSet<>();
+
+		CTConfiguration ctConfiguration = ConfigurableUtil.createConfigurable(
+			CTConfiguration.class, properties);
+
+		Collections.addAll(
+			administratorRoleNames, ctConfiguration.administratorRoleNames());
+
+		_administratorRoleNames = administratorRoleNames;
 	}
 
 	@Override
@@ -117,13 +142,10 @@ public class ChangeListsPortlet extends MVCPortlet {
 			return;
 		}
 
-		String[] administratorRoleNames =
-			_ctPortalConfiguration.administratorRoleNames();
-
 		UserBag userBag = permissionChecker.getUserBag();
 
 		for (Role role : userBag.getRoles()) {
-			if (ArrayUtil.contains(administratorRoleNames, role.getName())) {
+			if (_administratorRoleNames.contains(role.getName())) {
 				return;
 			}
 		}
@@ -134,9 +156,33 @@ public class ChangeListsPortlet extends MVCPortlet {
 				permissionChecker.getUserId(), getClass().getSimpleName()));
 	}
 
-	private CTPortalConfiguration _ctPortalConfiguration;
+	private Set<String> _administratorRoleNames;
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private CTCollectionLocalService _ctCollectionLocalService;
+
+	@Reference
+	private CTEngineManager _ctEngineManager;
+
+	@Reference
+	private CTEntryLocalService _ctEntryLocalService;
+
+	@Reference
+	private CTPreferencesLocalService _ctPreferencesLocalService;
+
+	@Reference
+	private CTProcessLocalService _ctProcessLocalService;
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private ResourceActions _resourceActions;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

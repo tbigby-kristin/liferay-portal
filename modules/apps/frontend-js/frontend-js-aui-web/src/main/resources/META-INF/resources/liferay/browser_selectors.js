@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 YUI.add(
 	'liferay-browser-selectors',
 	function(A) {
@@ -9,12 +23,9 @@ YUI.add(
 			var count = 0;
 
 			return parseFloat(
-				str.replace(
-					REGEX_VERSION_DOT,
-					function() {
-						return (count++ == 1) ? '' : '.';
-					}
-				)
+				str.replace(REGEX_VERSION_DOT, function() {
+					return count++ == 1 ? '' : '.';
+				})
 			);
 		};
 
@@ -51,7 +62,7 @@ YUI.add(
 
 		var CONFIG = A.config;
 
-		var	DOC = CONFIG.doc;
+		var DOC = CONFIG.doc;
 
 		var userAgent = nav.userAgent;
 
@@ -74,12 +85,12 @@ YUI.add(
 			safari: 0
 		};
 
-		UAX.mac = (OS == 'macintosh');
-		UAX.rhino = (OS == 'rhino');
-		UAX.win = (OS == 'windows');
+		UAX.mac = OS == 'macintosh';
+		UAX.rhino = OS == 'rhino';
+		UAX.win = OS == 'windows';
 
 		var BrowserSelectors = {
-			getSelectors: function() {
+			getSelectors() {
 				// The methods in this if block only run once across all instances
 
 				if (!UA.selectors) {
@@ -88,7 +99,10 @@ YUI.add(
 					}
 
 					if (UA.ie) {
-						UAX.aol = getVersion(/America Online Browser ([^\s]*);/, userAgent);
+						UAX.aol = getVersion(
+							/America Online Browser ([^\s]*);/,
+							userAgent
+						);
 
 						var docMode = DOC.documentMode;
 
@@ -96,19 +110,31 @@ YUI.add(
 							UA.browser = UA.ie;
 							UA.ie = docMode;
 						}
-					}
-					else if (UA.gecko) {
-						UAX.netscape = getVersion(/(Netscape|Navigator)\/([^\s]*)/, userAgent);
+					} else if (UA.gecko) {
+						UAX.netscape = getVersion(
+							/(Netscape|Navigator)\/([^\s]*)/,
+							userAgent
+						);
 						UAX.flock = getVersion(/Flock\/([^\s]*)/, userAgent);
 						UAX.camino = getVersion(/Camino\/([^\s]*)/, userAgent);
-						UAX.firefox = getVersion(/Firefox\/([^\s]*)/, userAgent);
-					}
-					else if (UA.webkit) {
-						UAX.safari = getVersion(/Version\/([^\s]*) Safari/, userAgent);
-					}
-					else {
-						UAX.icab = getVersion(/iCab(?:\/|\s)?([^\s]*)/, userAgent);
-						UAX.konqueror = getVersion(/Konqueror\/([^\s]*)/, userAgent);
+						UAX.firefox = getVersion(
+							/Firefox\/([^\s]*)/,
+							userAgent
+						);
+					} else if (UA.webkit) {
+						UAX.safari = getVersion(
+							/Version\/([^\s]*) Safari/,
+							userAgent
+						);
+					} else {
+						UAX.icab = getVersion(
+							/iCab(?:\/|\s)?([^\s]*)/,
+							userAgent
+						);
+						UAX.konqueror = getVersion(
+							/Konqueror\/([^\s]*)/,
+							userAgent
+						);
 					}
 
 					if (!UAX.win && !UAX.mac) {
@@ -118,8 +144,7 @@ YUI.add(
 						if (linux) {
 							UA.os = 'linux';
 							UAX.linux = linux;
-						}
-						else if (sun) {
+						} else if (sun) {
 							UA.os = 'sun';
 							UAX.sun = sun;
 						}
@@ -155,16 +180,22 @@ YUI.add(
 							versionMajor = parseInt(version, 10);
 							uaVersionMajor = browser + versionMajor;
 
-							uaVersionMinor = (browser + version);
+							uaVersionMinor = browser + version;
 
 							if (String(version).indexOf('.') > -1) {
-								uaVersionMinor = uaVersionMinor.replace(/\.(\d).*/, '-$1');
-							}
-							else {
+								uaVersionMinor = uaVersionMinor.replace(
+									/\.(\d).*/,
+									'-$1'
+								);
+							} else {
 								uaVersionMinor += '-0';
 							}
 
-							browserList.push(browser, uaVersionMajor, uaVersionMinor);
+							browserList.push(
+								browser,
+								uaVersionMajor,
+								uaVersionMinor
+							);
 
 							versionObj.string = browser + '';
 							versionObj.major = versionMajor;
@@ -177,30 +208,23 @@ YUI.add(
 
 					if (UA.ie) {
 						UA.renderer = 'trident';
-					}
-					else if (UA.edge) {
-						UA.renderer = 'edgeHTML'
-					}
-					else if (UA.gecko) {
+					} else if (UA.edge) {
+						UA.renderer = 'edgeHTML';
+					} else if (UA.gecko) {
 						UA.renderer = 'gecko';
-					}
-					else if (UA.webkit) {
+					} else if (UA.webkit) {
 						UA.renderer = 'webkit';
-					}
-					else if (UA.opera) {
+					} else if (UA.opera) {
 						UA.renderer = 'presto';
 					}
 
 					A.UA = UA;
 
 					/*
-					* Browser selectors
-					*/
+					 * Browser selectors
+					 */
 
-					var selectors = [
-						UA.renderer,
-						'js'
-					].concat(browserList);
+					var selectors = [UA.renderer, 'js'].concat(browserList);
 
 					var osSelector = MAP_OS_SELECTORS[UA.os] || UA.os;
 
@@ -223,7 +247,13 @@ YUI.add(
 					var svg;
 					var vml;
 
-					vml = !(svg = !!(CONFIG.win.SVGAngle || DOC.implementation.hasFeature('http://www.w3.org/TR/SVG11/feature#BasicStructure', '1.1')));
+					vml = !(svg = !!(
+						CONFIG.win.SVGAngle ||
+						DOC.implementation.hasFeature(
+							'http://www.w3.org/TR/SVG11/feature#BasicStructure',
+							'1.1'
+						)
+					));
 
 					if (vml) {
 						var behaviorObj;
@@ -235,7 +265,9 @@ YUI.add(
 
 						behaviorObj.style.behavior = 'url(#default#VML)';
 
-						if (!(behaviorObj && typeof behaviorObj.adj == 'object')) {
+						if (
+							!(behaviorObj && typeof behaviorObj.adj == 'object')
+						) {
 							vml = false;
 						}
 
@@ -252,7 +284,7 @@ YUI.add(
 				return UA.selectors;
 			},
 
-			run: function() {
+			run() {
 				var documentElement = DOC.documentElement;
 
 				var selectors = this.getSelectors();
@@ -263,7 +295,10 @@ YUI.add(
 					selectors += ' ' + UA.dir;
 				}
 
-				if (documentElement.className.indexOf(YUI3_JS_ENABLED) === -1 && selectors.indexOf(YUI3_JS_ENABLED) === -1) {
+				if (
+					documentElement.className.indexOf(YUI3_JS_ENABLED) === -1 &&
+					selectors.indexOf(YUI3_JS_ENABLED) === -1
+				) {
 					selectors += ' ' + YUI3_JS_ENABLED;
 				}
 

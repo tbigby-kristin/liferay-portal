@@ -14,9 +14,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
-
-import graphql.annotations.annotationTypes.GraphQLField;
-import graphql.annotations.annotationTypes.GraphQLName;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -33,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.constraints.DecimalMax;
+import javax.validation.constraints.DecimalMin;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -88,6 +89,7 @@ public class ${schemaName} <#if dtoParentClassName?has_content>extends ${dtoPare
 	<#assign enumSchemas = freeMarkerTool.getDTOEnumSchemas(openAPIYAML, schema) />
 
 	<#list enumSchemas?keys as enumName>
+		@GraphQLName("${enumName}")
 		public static enum ${enumName} {
 
 			<#list enumSchemas[enumName].enumValues as enumValue>
@@ -135,6 +137,13 @@ public class ${schemaName} <#if dtoParentClassName?has_content>extends ${dtoPare
 			propertySchema = freeMarkerTool.getDTOPropertySchema(propertyName, schema)
 			propertyType = properties[propertyName]
 		/>
+
+		<#if propertySchema.maximum??>
+			@DecimalMax("${propertySchema.maximum}")
+		</#if>
+		<#if propertySchema.minimum??>
+			@DecimalMin("${propertySchema.minimum}")
+		</#if>
 
 		@Schema(
 			<#if propertySchema.description??>
@@ -188,6 +197,9 @@ public class ${schemaName} <#if dtoParentClassName?has_content>extends ${dtoPare
 			}
 		}
 
+		<#if propertySchema.deprecated>
+			@Deprecated
+		</#if>
 		@GraphQLField
 		@JsonProperty(
 			<#if propertySchema.readOnly>

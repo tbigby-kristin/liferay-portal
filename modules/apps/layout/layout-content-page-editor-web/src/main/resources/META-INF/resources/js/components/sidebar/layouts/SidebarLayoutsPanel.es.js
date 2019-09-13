@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import {Config} from 'metal-state';
 import Soy from 'metal-soy';
@@ -16,7 +30,6 @@ import templates from './SidebarLayoutsPanel.soy';
  * SidebarLayoutsPanel
  */
 class SidebarLayoutsPanel extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -42,14 +55,12 @@ class SidebarLayoutsPanel extends Component {
 	_handleDragLayout(eventData) {
 		const {hoveredRowBorder, hoveredRowId} = eventData;
 
-		this.store.dispatch(
-			{
-				dropTargetBorder: hoveredRowBorder,
-				dropTargetItemId: hoveredRowId,
-				dropTargetItemType: FRAGMENTS_EDITOR_ITEM_TYPES.row,
-				type: UPDATE_DROP_TARGET
-			}
-		);
+		this.store.dispatch({
+			dropTargetBorder: hoveredRowBorder,
+			dropTargetItemId: hoveredRowId,
+			dropTargetItemType: FRAGMENTS_EDITOR_ITEM_TYPES.row,
+			type: UPDATE_DROP_TARGET
+		});
 	}
 
 	/**
@@ -62,22 +73,18 @@ class SidebarLayoutsPanel extends Component {
 	_handleDropLayout(eventData) {
 		const layoutColumns = this._layouts[eventData.layoutIndex].columns;
 
-		this.store.dispatch(
-			{
+		this.store
+			.dispatch({
 				layoutColumns,
 				type: ADD_ROW
-			}
-		).dispatch(
-			{
+			})
+			.dispatch({
 				type: CLEAR_DROP_TARGET
-			}
-		);
+			});
 
-		requestAnimationFrame(
-			() => {
-				this._initializeSidebarLayoutsDragDrop();
-			}
-		);
+		requestAnimationFrame(() => {
+			this._initializeSidebarLayoutsDragDrop();
+		});
 	}
 
 	/**
@@ -87,11 +94,9 @@ class SidebarLayoutsPanel extends Component {
 	 * @review
 	 */
 	_handleLeaveLayoutTarget() {
-		this.store.dispatch(
-			{
-				type: CLEAR_DROP_TARGET
-			}
-		);
+		this.store.dispatch({
+			type: CLEAR_DROP_TARGET
+		});
 	}
 
 	/**
@@ -121,7 +126,6 @@ class SidebarLayoutsPanel extends Component {
 			this._handleLeaveLayoutTarget.bind(this)
 		);
 	}
-
 }
 
 /**
@@ -131,17 +135,6 @@ class SidebarLayoutsPanel extends Component {
  * @type {!Object}
  */
 SidebarLayoutsPanel.STATE = {
-
-	/**
-	 * Store instance
-	 * @default undefined
-	 * @instance
-	 * @memberOf SidebarLayoutsPanel
-	 * @review
-	 * @type {Store}
-	 */
-	store: Config.instanceOf(Store),
-
 	/**
 	 * List of layouts to be shown
 	 * @default []
@@ -151,51 +144,29 @@ SidebarLayoutsPanel.STATE = {
 	 * @type {Array}
 	 */
 	_layouts: Config.arrayOf(
-		Config.shapeOf(
-			{
-				columns: Config.arrayOf(Config.string())
-			}
-		)
-	).value(
-		[
-			{
-				columns: ['12']
-			},
-			{
-				columns: [
-					'6',
-					'6'
-				]
-			},
-			{
-				columns: [
-					'8',
-					'4'
-				]
-			},
-			{
-				columns: [
-					'4',
-					'8'
-				]
-			},
-			{
-				columns: [
-					'4',
-					'4',
-					'4'
-				]
-			},
-			{
-				columns: [
-					'3',
-					'3',
-					'3',
-					'3'
-				]
-			}
-		]
-	),
+		Config.shapeOf({
+			columns: Config.arrayOf(Config.string())
+		})
+	).value([
+		{
+			columns: ['12']
+		},
+		{
+			columns: ['6', '6']
+		},
+		{
+			columns: ['8', '4']
+		},
+		{
+			columns: ['4', '8']
+		},
+		{
+			columns: ['4', '4', '4']
+		},
+		{
+			columns: ['3', '3', '3', '3']
+		}
+	]),
 
 	/**
 	 * Internal SidebarLayoutsDragDrop instance
@@ -205,7 +176,17 @@ SidebarLayoutsPanel.STATE = {
 	 * @review
 	 * @type {object|null}
 	 */
-	_sidebarLayoutsDragDrop: Config.internal().value(null)
+	_sidebarLayoutsDragDrop: Config.internal().value(null),
+
+	/**
+	 * Store instance
+	 * @default undefined
+	 * @instance
+	 * @memberOf SidebarLayoutsPanel
+	 * @review
+	 * @type {Store}
+	 */
+	store: Config.instanceOf(Store)
 };
 
 Soy.register(SidebarLayoutsPanel, templates);

@@ -38,7 +38,7 @@ public abstract class BackgroundTaskFinderBaseImpl
 
 	@Override
 	@Reference(
-		target = BackgroundTaskPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = BackgroundTaskPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -65,5 +65,14 @@ public abstract class BackgroundTaskFinderBaseImpl
 
 	@Reference
 	protected BackgroundTaskPersistence backgroundTaskPersistence;
+
+	static {
+		try {
+			Class.forName(BackgroundTaskPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

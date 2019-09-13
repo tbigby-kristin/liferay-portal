@@ -17,11 +17,11 @@ package com.liferay.data.engine.rest.client.serdes.v1_0;
 import com.liferay.data.engine.rest.client.dto.v1_0.DataRecordCollection;
 import com.liferay.data.engine.rest.client.json.BaseJSONParser;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.Generated;
 
@@ -65,6 +65,21 @@ public class DataRecordCollectionSerDes {
 			sb.append(dataRecordCollection.getDataDefinitionId());
 		}
 
+		if (dataRecordCollection.getDataRecordCollectionKey() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dataRecordCollectionKey\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				_escape(dataRecordCollection.getDataRecordCollectionKey()));
+
+			sb.append("\"");
+		}
+
 		if (dataRecordCollection.getDescription() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -95,6 +110,16 @@ public class DataRecordCollectionSerDes {
 			sb.append(_toJSON(dataRecordCollection.getName()));
 		}
 
+		if (dataRecordCollection.getSiteId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"siteId\": ");
+
+			sb.append(dataRecordCollection.getSiteId());
+		}
+
 		sb.append("}");
 
 		return sb.toString();
@@ -114,7 +139,7 @@ public class DataRecordCollectionSerDes {
 			return null;
 		}
 
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> map = new TreeMap<>();
 
 		if (dataRecordCollection.getDataDefinitionId() == null) {
 			map.put("dataDefinitionId", null);
@@ -123,6 +148,16 @@ public class DataRecordCollectionSerDes {
 			map.put(
 				"dataDefinitionId",
 				String.valueOf(dataRecordCollection.getDataDefinitionId()));
+		}
+
+		if (dataRecordCollection.getDataRecordCollectionKey() == null) {
+			map.put("dataRecordCollectionKey", null);
+		}
+		else {
+			map.put(
+				"dataRecordCollectionKey",
+				String.valueOf(
+					dataRecordCollection.getDataRecordCollectionKey()));
 		}
 
 		if (dataRecordCollection.getDescription() == null) {
@@ -148,7 +183,80 @@ public class DataRecordCollectionSerDes {
 			map.put("name", String.valueOf(dataRecordCollection.getName()));
 		}
 
+		if (dataRecordCollection.getSiteId() == null) {
+			map.put("siteId", null);
+		}
+		else {
+			map.put("siteId", String.valueOf(dataRecordCollection.getSiteId()));
+		}
+
 		return map;
+	}
+
+	public static class DataRecordCollectionJSONParser
+		extends BaseJSONParser<DataRecordCollection> {
+
+		@Override
+		protected DataRecordCollection createDTO() {
+			return new DataRecordCollection();
+		}
+
+		@Override
+		protected DataRecordCollection[] createDTOArray(int size) {
+			return new DataRecordCollection[size];
+		}
+
+		@Override
+		protected void setField(
+			DataRecordCollection dataRecordCollection,
+			String jsonParserFieldName, Object jsonParserFieldValue) {
+
+			if (Objects.equals(jsonParserFieldName, "dataDefinitionId")) {
+				if (jsonParserFieldValue != null) {
+					dataRecordCollection.setDataDefinitionId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "dataRecordCollectionKey")) {
+
+				if (jsonParserFieldValue != null) {
+					dataRecordCollection.setDataRecordCollectionKey(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "description")) {
+				if (jsonParserFieldValue != null) {
+					dataRecordCollection.setDescription(
+						(Map)DataRecordCollectionSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "id")) {
+				if (jsonParserFieldValue != null) {
+					dataRecordCollection.setId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "name")) {
+				if (jsonParserFieldValue != null) {
+					dataRecordCollection.setName(
+						(Map)DataRecordCollectionSerDes.toMap(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "siteId")) {
+				if (jsonParserFieldValue != null) {
+					dataRecordCollection.setSiteId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else {
+				throw new IllegalArgumentException(
+					"Unsupported field name " + jsonParserFieldName);
+			}
+		}
+
 	}
 
 	private static String _escape(Object object) {
@@ -174,9 +282,36 @@ public class DataRecordCollectionSerDes {
 			sb.append("\"");
 			sb.append(entry.getKey());
 			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
+
+			Object value = entry.getValue();
+
+			Class<?> valueClass = value.getClass();
+
+			if (value instanceof Map) {
+				sb.append(_toJSON((Map)value));
+			}
+			else if (valueClass.isArray()) {
+				Object[] values = (Object[])value;
+
+				sb.append("[");
+
+				for (int i = 0; i < values.length; i++) {
+					sb.append("\"");
+					sb.append(_escape(values[i]));
+					sb.append("\"");
+
+					if ((i + 1) < values.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else {
+				sb.append("\"");
+				sb.append(_escape(entry.getValue()));
+				sb.append("\"");
+			}
 
 			if (iterator.hasNext()) {
 				sb.append(",");
@@ -186,58 +321,6 @@ public class DataRecordCollectionSerDes {
 		sb.append("}");
 
 		return sb.toString();
-	}
-
-	private static class DataRecordCollectionJSONParser
-		extends BaseJSONParser<DataRecordCollection> {
-
-		@Override
-		protected DataRecordCollection createDTO() {
-			return new DataRecordCollection();
-		}
-
-		@Override
-		protected DataRecordCollection[] createDTOArray(int size) {
-			return new DataRecordCollection[size];
-		}
-
-		@Override
-		protected void setField(
-			DataRecordCollection dataRecordCollection,
-			String jsonParserFieldName, Object jsonParserFieldValue) {
-
-			if (Objects.equals(jsonParserFieldName, "dataDefinitionId")) {
-				if (jsonParserFieldValue != null) {
-					dataRecordCollection.setDataDefinitionId(
-						Long.valueOf((String)jsonParserFieldValue));
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "description")) {
-				if (jsonParserFieldValue != null) {
-					dataRecordCollection.setDescription(
-						(Map)DataRecordCollectionSerDes.toMap(
-							(String)jsonParserFieldValue));
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "id")) {
-				if (jsonParserFieldValue != null) {
-					dataRecordCollection.setId(
-						Long.valueOf((String)jsonParserFieldValue));
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "name")) {
-				if (jsonParserFieldValue != null) {
-					dataRecordCollection.setName(
-						(Map)DataRecordCollectionSerDes.toMap(
-							(String)jsonParserFieldValue));
-				}
-			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
-			}
-		}
-
 	}
 
 }

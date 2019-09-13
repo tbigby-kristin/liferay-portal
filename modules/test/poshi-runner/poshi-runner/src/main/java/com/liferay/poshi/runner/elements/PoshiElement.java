@@ -98,9 +98,7 @@ public abstract class PoshiElement
 		int poshiScriptLineNumber = PoshiNode.super.getPoshiScriptLineNumber();
 
 		if (!includeAnnotation) {
-			String poshiScript = getPoshiScript();
-
-			String blockName = getBlockName(poshiScript);
+			String blockName = getBlockName(getPoshiScript());
 
 			poshiScriptLineNumber += StringUtil.count(blockName, "\n");
 		}
@@ -185,15 +183,13 @@ public abstract class PoshiElement
 
 		generatedPoshiScript = generatedPoshiScript.replaceAll("\\s+", "");
 
-		if (elements().size() == 0) {
-			if (!originalPoshiScript.equals(generatedPoshiScript)) {
-				PoshiScriptParserException pspe =
-					new PoshiScriptParserException(
-						PoshiScriptParserException.TRANSLATION_LOSS_MESSAGE,
-						this);
+		if ((elements().size() == 0) &&
+			!originalPoshiScript.equals(generatedPoshiScript)) {
 
-				throw pspe;
-			}
+			PoshiScriptParserException pspe = new PoshiScriptParserException(
+				PoshiScriptParserException.TRANSLATION_LOSS_MESSAGE, this);
+
+			throw pspe;
 		}
 
 		if (originalPoshiScript.length() != generatedPoshiScript.length()) {
@@ -298,14 +294,13 @@ public abstract class PoshiElement
 
 			String poshiScriptSnippet = poshiNode.toPoshiScript();
 
-			if ((previousPoshiNode == null) ||
-				((previousPoshiNode instanceof VarPoshiElement) &&
-				 (poshiNode instanceof VarPoshiElement))) {
+			if (((previousPoshiNode == null) ||
+				 ((previousPoshiNode instanceof VarPoshiElement) &&
+				  (poshiNode instanceof VarPoshiElement))) &&
+				poshiScriptSnippet.startsWith("\n\n")) {
 
-				if (poshiScriptSnippet.startsWith("\n\n")) {
-					poshiScriptSnippet = poshiScriptSnippet.replaceFirst(
-						"\n\n", "\n");
-				}
+				poshiScriptSnippet = poshiScriptSnippet.replaceFirst(
+					"\n\n", "\n");
 			}
 
 			sb.append(padPoshiScriptSnippet(poshiScriptSnippet));
@@ -365,12 +360,10 @@ public abstract class PoshiElement
 		StringBuilder sb = new StringBuilder();
 
 		for (char c : poshiScriptBlock.toCharArray()) {
-			if (c == '{') {
-				if (isBalancedPoshiScript(sb.toString())) {
-					String blockName = sb.toString();
+			if ((c == '{') && isBalancedPoshiScript(sb.toString())) {
+				String blockName = sb.toString();
 
-					return blockName.trim();
-				}
+				return blockName.trim();
 			}
 
 			sb.append(c);
@@ -530,16 +523,16 @@ public abstract class PoshiElement
 		for (int i = 0; i < chars.length; i++) {
 			char c = chars[i];
 
-			if (tokenIndices.contains(i)) {
-				if (isBalancedPoshiScript(sb.toString())) {
-					nestedConditions.add(sb.toString());
+			if (tokenIndices.contains(i) &&
+				isBalancedPoshiScript(sb.toString())) {
 
-					sb.setLength(0);
+				nestedConditions.add(sb.toString());
 
-					i++;
+				sb.setLength(0);
 
-					continue;
-				}
+				i++;
+
+				continue;
 			}
 
 			if (i == (chars.length - 1)) {
@@ -665,27 +658,25 @@ public abstract class PoshiElement
 			}
 
 			if (isBalancedPoshiScript(poshiScriptSnippet)) {
-				if (splitElseBlocks) {
-					if (isValidPoshiScriptBlock(
-							ElseIfPoshiElement.blockNamePattern,
-							poshiScriptSnippet) ||
-						isValidPoshiScriptBlock(
-							ElsePoshiElement.blockNamePattern,
-							poshiScriptSnippet)) {
+				if (splitElseBlocks &&
+					(isValidPoshiScriptBlock(
+						ElseIfPoshiElement.blockNamePattern,
+						poshiScriptSnippet) ||
+					 isValidPoshiScriptBlock(
+						 ElsePoshiElement.blockNamePattern,
+						 poshiScriptSnippet))) {
 
-						int lastIndex = poshiScriptSnippets.size() - 1;
+					int lastIndex = poshiScriptSnippets.size() - 1;
 
-						String lastPoshiScriptSnippet = poshiScriptSnippets.get(
-							lastIndex);
+					String lastPoshiScriptSnippet = poshiScriptSnippets.get(
+						lastIndex);
 
-						poshiScriptSnippets.set(
-							lastIndex,
-							lastPoshiScriptSnippet + poshiScriptSnippet);
+					poshiScriptSnippets.set(
+						lastIndex, lastPoshiScriptSnippet + poshiScriptSnippet);
 
-						sb.setLength(0);
+					sb.setLength(0);
 
-						continue;
-					}
+					continue;
 				}
 
 				poshiScriptSnippets.add(poshiScriptSnippet);
@@ -950,10 +941,8 @@ public abstract class PoshiElement
 
 			sb.append(line);
 
-			if (trimmedLine.startsWith("/*")) {
-				if (!stack.contains("/*")) {
-					stack.push("/*");
-				}
+			if (trimmedLine.startsWith("/*") && !stack.contains("/*")) {
+				stack.push("/*");
 			}
 
 			if ((StringUtil.count(trimmedLine, "'''") % 2) == 1) {
@@ -965,10 +954,8 @@ public abstract class PoshiElement
 				}
 			}
 
-			if (trimmedLine.endsWith("*/")) {
-				if (stackPeek.equals("/*")) {
-					stack.pop();
-				}
+			if (trimmedLine.endsWith("*/") && stackPeek.equals("/*")) {
+				stack.pop();
 			}
 		}
 

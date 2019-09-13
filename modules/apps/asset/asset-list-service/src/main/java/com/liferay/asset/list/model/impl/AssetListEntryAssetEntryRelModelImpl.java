@@ -47,8 +47,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the AssetListEntryAssetEntryRel service. Represents a row in the &quot;AssetListEntryAssetEntryRel&quot; database table, with each column mapped to a property of this class.
  *
@@ -60,12 +58,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetListEntryAssetEntryRelImpl
  * @generated
  */
-@ProviderType
 public class AssetListEntryAssetEntryRelModelImpl
 	extends BaseModelImpl<AssetListEntryAssetEntryRel>
 	implements AssetListEntryAssetEntryRelModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a asset list entry asset entry rel model instance should use the <code>AssetListEntryAssetEntryRel</code> interface instead.
@@ -622,7 +619,12 @@ public class AssetListEntryAssetEntryRelModelImpl
 	@Override
 	public AssetListEntryAssetEntryRel toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, AssetListEntryAssetEntryRel>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -900,9 +902,15 @@ public class AssetListEntryAssetEntryRelModelImpl
 		return sb.toString();
 	}
 
-	private static final Function
-		<InvocationHandler, AssetListEntryAssetEntryRel>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function
+			<InvocationHandler, AssetListEntryAssetEntryRel>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 

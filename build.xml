@@ -203,6 +203,13 @@ message.
 					<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
 					<arg value="-Dbuild.profile=${build.profile}" />
 				</gradle-execute>
+
+				<if>
+					<available file="${project.dir}/modules/test/arquillian-extension-junit-bridge-test" type="dir" />
+					<then>
+						<gradle-execute dir="${project.dir}/modules" task=":test:arquillian-extension-junit-bridge-test:clean" />
+					</then>
+				</if>
 			</sequential>
 
 			<delete failonerror="false" includeemptydirs="true">
@@ -306,10 +313,7 @@ message.
 		<setup-sdk />
 
 		<if>
-			<or>
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-				<equals arg1="${app.server.type}" arg2="websphere" />
-			</or>
+			<equals arg1="${app.server.type}" arg2="websphere" />
 			<then>
 				<delete file="${app.server.portal.war.name}" />
 			</then>
@@ -364,28 +368,6 @@ message.
 		<mkdir dir="${app.server.work.dir}" />
 
 		<if>
-			<and>
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-				<not>
-					<available file="${app.server.portal.dir}" type="dir" />
-				</not>
-			</and>
-			<then>
-				<move
-					file="${app.server.portal.war.name}"
-					tofile="${app.server.portal.war.name}-tmp"
-				/>
-
-				<mkdir dir="${app.server.portal.dir}" />
-
-				<unzip
-					dest="${app.server.portal.dir}"
-					src="${app.server.portal.war.name}-tmp"
-				/>
-			</then>
-		</if>
-
-		<if>
 			<equals arg1="${app.server.type}" arg2="websphere" />
 			<then>
 				<replace
@@ -431,12 +413,27 @@ message.
 						</gradle-execute>
 					</then>
 					<else>
-						<gradle-execute dir="${project.dir}/modules/private" task="deploy">
+						<gradle-execute dir="${project.dir}/modules/private" failonerror="false" outputproperty="private.modules.project.paths" task="printProjectPath">
+							<arg value="--quiet" />
 							<arg value="-Dbuild.exclude.dirs=${build.exclude.dirs}" />
 							<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
 							<arg value="-Dbuild.profile=${build.profile}" />
 							<env key="WAS_HOME" value="${app.server.websphere.dir}" />
 						</gradle-execute>
+
+						<if>
+							<not>
+								<equals arg1="${private.modules.project.paths}" arg2="" />
+							</not>
+							<then>
+								<gradle-execute checktask="true" dir="${project.dir}/modules/private" task="deploy">
+									<arg value="-Dbuild.exclude.dirs=${build.exclude.dirs}" />
+									<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
+									<arg value="-Dbuild.profile=${build.profile}" />
+									<env key="WAS_HOME" value="${app.server.websphere.dir}" />
+								</gradle-execute>
+							</then>
+						</if>
 
 						<if>
 							<and>
@@ -529,91 +526,7 @@ message.
 			</else>
 		</if>
 
-		<if>
-			<equals arg1="${jsp.precompile.modules}" arg2="on" />
-			<then>
-				<if>
-					<equals arg1="${jsp.precompile.parallel}" arg2="on" />
-					<then>
-						<if>
-							<or>
-								<not>
-									<available file="${project.dir}/modules/private" type="dir" />
-								</not>
-								<not>
-									<isset property="env.JENKINS_HOME" />
-								</not>
-							</or>
-							<then>
-								<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-									<arg value="--parallel" />
-									<arg value="-Dbuild.exclude.dirs=${build.exclude.dirs}" />
-									<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
-									<arg value="-Dbuild.profile=${build.profile}" />
-								</gradle-execute>
-							</then>
-							<else>
-								<gradle-execute dir="${project.dir}/modules/private" task="compileJSP">
-									<arg value="-Dbuild.exclude.dirs=${build.exclude.dirs}" />
-									<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
-									<arg value="-Dbuild.profile=${build.profile}" />
-								</gradle-execute>
-
-								<if>
-									<and>
-										<isset property="build.exclude.dirs" />
-										<not>
-											<equals arg1="${build.exclude.dirs}" arg2="" />
-										</not>
-									</and>
-									<then>
-										<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-											<arg value="--parallel" />
-											<arg value="-Dbuild.exclude.dirs=private,${build.exclude.dirs}" />
-											<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
-											<arg value="-Dbuild.profile=${build.profile}" />
-										</gradle-execute>
-									</then>
-									<else>
-										<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-											<arg value="--parallel" />
-											<arg value="-Dbuild.exclude.dirs=private" />
-											<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
-											<arg value="-Dbuild.profile=${build.profile}" />
-										</gradle-execute>
-									</else>
-								</if>
-							</else>
-						</if>
-					</then>
-					<else>
-						<gradle-execute dir="${project.dir}/modules" task="compileJSP">
-							<arg value="-Dbuild.exclude.dirs=${build.exclude.dirs}" />
-							<arg value="-Dbuild.include.dirs=${build.include.dirs}" />
-							<arg value="-Dbuild.profile=${build.profile}" />
-						</gradle-execute>
-					</else>
-				</if>
-			</then>
-		</if>
-
 		<stopwatch action="elapsed" name="modules.stopwatch" />
-
-		<if>
-			<and>
-				<available file="${app.server.portal.dir}" type="dir" />
-				<available file="${app.server.portal.war.name}-tmp" type="file" />
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-			</and>
-			<then>
-				<delete dir="${app.server.portal.dir}" />
-
-				<move
-					file="${app.server.portal.war.name}-tmp"
-					tofile="${app.server.portal.war.name}"
-				/>
-			</then>
-		</if>
 
 		<if>
 			<equals arg1="${app.server.type}" arg2="websphere" />
@@ -682,7 +595,7 @@ message.
 				>
 					<fileset
 						dir="lib/portal"
-						includes="asm-analysis.jar,asm-commons.jar,asm-tree.jar,asm-util.jar,asm.jar,aspectj-rt.jar,aspectj-weaver.jar,c3p0.jar,cglib-nodep.jar,com.liferay.portal.slim.runtime.jar,commons-beanutils.jar,commons-chain.jar,commons-codec.jar,commons-collections.jar,commons-compress.jar,commons-configuration.jar,commons-dbcp.jar,commons-digester.jar,commons-discovery.jar,commons-fileupload.jar,commons-httpclient.jar,commons-io.jar,commons-lang.jar,commons-logging.jar,commons-math.jar,commons-pool.jar,commons-validator.jar,concurrent.jar,dom4j.jar,easyconf.jar,hibernate-commons-annotations.jar,hibernate-core.jar,hikaricp.jar,httpclient.jar,httpcore.jar,httpmime.jar,jabsorb.jar,jakarta-regexp.jar,javassist.jar,jaxb-impl.jar,jaxen.jar,jcl-over-slf4j.jar,jdom.jar,jna.jar,jodconverter.jar,jodd-bean.jar,jodd-core.jar,json-java.jar,jsr107cache.jar,kxml2.jar,liferay-icu4j.jar,log4j.jar,log4j-extras.jar,mchange-commons-java.jar,netty-all.jar,portal-impl.jar,rome.jar,saaj-api.jar,saaj-impl.jar,serializer.jar,slf4j-api.jar,spring-aop.jar,spring-aspects.jar,spring-beans.jar,spring-context.jar,spring-context-support.jar,spring-core.jar,spring-expression.jar,spring-jdbc.jar,spring-jms.jar,spring-orm.jar,spring-oxm.jar,spring-tx.jar,spring-web.jar,spring-webmvc.jar,stax.jar,stax-ex.jar,streambuffer.jar,stringtemplate.jar,tika-core.jar,tika-parsers.jar,tomcat-jdbc.jar,tomcat-juli.jar,util-java.jar,util-slf4j.jar,util-taglib.jar,wstx.jar,xalan.jar,xbean.jar,xbean-spring.jar,xercesImpl.jar,xml-apis.jar,xmlsec.jar,xmpcore.jar,xpp3.jar,xstream.jar,xz.jar"
+						includes="asm-analysis.jar,asm-commons.jar,asm-tree.jar,asm-util.jar,asm.jar,aspectj-rt.jar,aspectj-weaver.jar,c3p0.jar,cglib-nodep.jar,com.liferay.portal.slim.runtime.jar,commons-beanutils.jar,commons-chain.jar,commons-codec.jar,commons-collections.jar,commons-compress.jar,commons-configuration.jar,commons-dbcp.jar,commons-digester.jar,commons-discovery.jar,commons-fileupload.jar,commons-httpclient.jar,commons-io.jar,commons-lang.jar,commons-logging.jar,commons-math.jar,commons-pool.jar,commons-validator.jar,concurrent.jar,dom4j.jar,hibernate-commons-annotations.jar,hibernate-core.jar,hikaricp.jar,httpclient.jar,httpcore.jar,httpmime.jar,jabsorb.jar,jakarta-regexp.jar,javassist.jar,jaxb-impl.jar,jaxen.jar,jcl-over-slf4j.jar,jdom.jar,jna.jar,jodconverter.jar,jodd-bean.jar,jodd-core.jar,json-java.jar,jsr107cache.jar,kxml2.jar,liferay-icu4j.jar,log4j.jar,log4j-extras.jar,mchange-commons-java.jar,netty-all.jar,portal-impl.jar,rome.jar,saaj-api.jar,saaj-impl.jar,serializer.jar,slf4j-api.jar,spring-aop.jar,spring-aspects.jar,spring-beans.jar,spring-context.jar,spring-context-support.jar,spring-core.jar,spring-expression.jar,spring-jdbc.jar,spring-jms.jar,spring-orm.jar,spring-oxm.jar,spring-tx.jar,spring-web.jar,spring-webmvc.jar,stax.jar,stax-ex.jar,streambuffer.jar,stringtemplate.jar,tika-core.jar,tika-parsers.jar,tomcat-jdbc.jar,tomcat-juli.jar,util-java.jar,util-slf4j.jar,util-taglib.jar,wstx.jar,xalan.jar,xbean.jar,xbean-spring.jar,xercesImpl.jar,xml-apis.jar,xmlsec.jar,xmpcore.jar,xpp3.jar,xstream.jar,xz.jar"
 					/>
 				</copy>
 			</then>
@@ -696,48 +609,6 @@ message.
 					/>
 				</copy>
 			</else>
-		</if>
-
-		<if>
-			<equals arg1="${app.server.type}" arg2="jetty" />
-			<then>
-				<copy
-					todir="${app.server.lib.global.dir}"
-				>
-					<fileset
-						dir="lib/development"
-						includes="activation.jar,jta.jar,mail.jar,persistence.jar"
-					/>
-				</copy>
-			</then>
-		</if>
-
-		<if>
-			<equals arg1="${app.server.type}" arg2="jonas" />
-			<then>
-				<delete>
-					<fileset
-						dir="${app.server.lib.portal.dir}"
-						includes="equinox.jar,osgi.core.jar,xalan.jar,xercesImpl.jar,xml-apis.jar"
-					/>
-				</delete>
-			</then>
-		</if>
-
-		<if>
-			<equals arg1="${app.server.type}" arg2="resin" />
-			<then>
-				<ant dir="support-resin" inheritAll="false" target="deploy" />
-
-				<copy
-					todir="${app.server.lib.global.dir}"
-				>
-					<fileset
-						dir="lib/development"
-						includes="saxpath.jar"
-					/>
-				</copy>
-			</then>
 		</if>
 
 		<if>
@@ -801,10 +672,7 @@ message.
 		</if>
 
 		<if>
-			<or>
-				<equals arg1="${app.server.type}" arg2="glassfish" />
-				<equals arg1="${app.server.type}" arg2="websphere" />
-			</or>
+			<equals arg1="${app.server.type}" arg2="websphere" />
 			<then>
 				<tstamp>
 					<format pattern="yyyyMMddkkmmssSSS" property="tstamp.value" />
@@ -1288,10 +1156,6 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 		<echo>The "start" target is now deprecated. Please use the "compile" target instead.</echo>
 	</target>
 
-	<target name="test-integration">
-		<ant antfile="build-test.xml" inheritAll="false" target="test-integration" />
-	</target>
-
 	<target name="test-package">
 		<ant antfile="build-test.xml" inheritAll="false" target="test-package" />
 	</target>
@@ -1315,23 +1179,6 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 						<copy
 							file="tools/servers/jboss/modules/module.xml"
 							tofile="${app.server.lib.global.dir}/module.xml"
-						/>
-					</then>
-				</if>
-			</then>
-		</if>
-
-		<if>
-			<equals arg1="${app.server.type}" arg2="jetty" />
-			<then>
-				<if>
-					<not>
-						<available file="${app.server.dir}/contexts/root.xml" />
-					</not>
-					<then>
-						<copy
-							file="tools/servers/jetty/contexts/root.xml"
-							tofile="${app.server.dir}/contexts/root.xml"
 						/>
 					</then>
 				</if>
@@ -1459,15 +1306,18 @@ print AdminControl.invoke(appManager, 'startApplication', 'liferay-portal')
 	</target>
 
 	<target name="update-binaries-cache">
-		<sync-dir
-			dir="${project.dir}/.gradle/caches/modules-2/files-2.1"
-			toDir="${build.binaries.cache.dir}/.gradle/caches/modules-2/files-2.1"
-		/>
+		<copy
+			overwrite="false"
+			todir="${build.binaries.cache.dir}/.gradle/caches/modules-2/files-2.1"
+		>
+			<fileset
+				dir="${project.dir}/.gradle/caches/modules-2/files-2.1"
+			/>
+		</copy>
 
-		<sync-dir
-			dir="${project.dir}/modules/node_modules_cache"
-			toDir="${build.binaries.cache.dir}/.yarn/offline-cache"
-		/>
+		<gradle-execute dir="${project.dir}/modules" task="updateYarnBinariesCache">
+			<arg value="--build-file=${project.dir}/modules/util.gradle" />
+		</gradle-execute>
 	</target>
 
 	<target name="update-gradle-cache">

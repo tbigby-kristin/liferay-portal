@@ -27,21 +27,25 @@ definition {
 
 		Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
 
-		MenuItem.click(menuItem = "Edit in ${dmGoogleApp}");
+		MenuItem.click(menuItem = "Edit in ${dmDocumentTypeName}");
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
 
 		AssertElementPresent(
-			key_text = "Save and Return to Liferay",
+			key_text = "Save and Return to ${siteName}",
 			locator1 = "Button#ANY");
 	}
 
 	macro saveAndExit {
-		var key_text = "Save and Return to Liferay";
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		var key_text = "Save and Return to ${siteName}";
 
 		AssertElementPresent(locator1 = "Button#ANY");
 
 		AssertClick(
 			locator1 = "Button#ANY",
-			value1 = "Save and Return to Liferay");
+			value1 = "Save and Return to ${siteName}");
 
 		Navigator.openURL();
 	}

@@ -72,6 +72,20 @@ public class SetupWizardUtil {
 		return LocaleUtil.toLanguageId(defaultLocale);
 	}
 
+	public static String getDefaultTimeZoneId() {
+		try {
+			Company company = CompanyLocalServiceUtil.getCompanyById(
+				PortalInstances.getDefaultCompanyId());
+
+			User defaultUser = company.getDefaultUser();
+
+			return defaultUser.getTimeZoneId();
+		}
+		catch (Exception e) {
+			return PropsValues.COMPANY_DEFAULT_TIME_ZONE;
+		}
+	}
+
 	public static boolean isDefaultDatabase(
 		HttpServletRequest httpServletRequest) {
 
@@ -124,8 +138,11 @@ public class SetupWizardUtil {
 			return;
 		}
 
+		String timeZoneId = ParamUtil.getString(
+			httpServletRequest, "companyTimeZoneId", getDefaultTimeZoneId());
+
 		CompanyLocalServiceUtil.updateDisplay(
-			PortalInstances.getDefaultCompanyId(), languageId, StringPool.UTC);
+			PortalInstances.getDefaultCompanyId(), languageId, timeZoneId);
 
 		HttpSession session = httpServletRequest.getSession();
 
@@ -198,9 +215,7 @@ public class SetupWizardUtil {
 		UnicodeProperties unicodeProperties) {
 
 		for (Map.Entry<String, String> entry : unicodeProperties.entrySet()) {
-			String value = entry.getValue();
-
-			if (Validator.isNull(value)) {
+			if (Validator.isNull(entry.getValue())) {
 				unicodeProperties.setProperty(entry.getKey(), _NULL_HOLDER);
 			}
 		}
@@ -387,12 +402,17 @@ public class SetupWizardUtil {
 
 		unicodeProperties.put(PropsKeys.COMPANY_DEFAULT_LOCALE, languageId);
 
+		String timeZoneId = ParamUtil.getString(
+			httpServletRequest, "companyTimeZoneId", getDefaultTimeZoneId());
+
+		unicodeProperties.put(PropsKeys.COMPANY_DEFAULT_TIME_ZONE, timeZoneId);
+
 		String companyName = ParamUtil.getString(
 			httpServletRequest, "companyName",
 			PropsValues.COMPANY_DEFAULT_NAME);
 
 		SetupWizardSampleDataUtil.updateCompany(
-			company, companyName, languageId);
+			company, companyName, languageId, timeZoneId);
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(

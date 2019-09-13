@@ -17,11 +17,11 @@ package com.liferay.headless.admin.user.client.serdes.v1_0;
 import com.liferay.headless.admin.user.client.dto.v1_0.Geo;
 import com.liferay.headless.admin.user.client.json.BaseJSONParser;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import javax.annotation.Generated;
 
@@ -89,7 +89,7 @@ public class GeoSerDes {
 			return null;
 		}
 
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> map = new TreeMap<>();
 
 		if (geo.getLatitude() == null) {
 			map.put("latitude", null);
@@ -106,6 +106,42 @@ public class GeoSerDes {
 		}
 
 		return map;
+	}
+
+	public static class GeoJSONParser extends BaseJSONParser<Geo> {
+
+		@Override
+		protected Geo createDTO() {
+			return new Geo();
+		}
+
+		@Override
+		protected Geo[] createDTOArray(int size) {
+			return new Geo[size];
+		}
+
+		@Override
+		protected void setField(
+			Geo geo, String jsonParserFieldName, Object jsonParserFieldValue) {
+
+			if (Objects.equals(jsonParserFieldName, "latitude")) {
+				if (jsonParserFieldValue != null) {
+					geo.setLatitude(
+						Double.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "longitude")) {
+				if (jsonParserFieldValue != null) {
+					geo.setLongitude(
+						Double.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else {
+				throw new IllegalArgumentException(
+					"Unsupported field name " + jsonParserFieldName);
+			}
+		}
+
 	}
 
 	private static String _escape(Object object) {
@@ -131,9 +167,36 @@ public class GeoSerDes {
 			sb.append("\"");
 			sb.append(entry.getKey());
 			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
+
+			Object value = entry.getValue();
+
+			Class<?> valueClass = value.getClass();
+
+			if (value instanceof Map) {
+				sb.append(_toJSON((Map)value));
+			}
+			else if (valueClass.isArray()) {
+				Object[] values = (Object[])value;
+
+				sb.append("[");
+
+				for (int i = 0; i < values.length; i++) {
+					sb.append("\"");
+					sb.append(_escape(values[i]));
+					sb.append("\"");
+
+					if ((i + 1) < values.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else {
+				sb.append("\"");
+				sb.append(_escape(entry.getValue()));
+				sb.append("\"");
+			}
 
 			if (iterator.hasNext()) {
 				sb.append(",");
@@ -143,40 +206,6 @@ public class GeoSerDes {
 		sb.append("}");
 
 		return sb.toString();
-	}
-
-	private static class GeoJSONParser extends BaseJSONParser<Geo> {
-
-		@Override
-		protected Geo createDTO() {
-			return new Geo();
-		}
-
-		@Override
-		protected Geo[] createDTOArray(int size) {
-			return new Geo[size];
-		}
-
-		@Override
-		protected void setField(
-			Geo geo, String jsonParserFieldName, Object jsonParserFieldValue) {
-
-			if (Objects.equals(jsonParserFieldName, "latitude")) {
-				if (jsonParserFieldValue != null) {
-					geo.setLatitude((Double)jsonParserFieldValue);
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "longitude")) {
-				if (jsonParserFieldValue != null) {
-					geo.setLongitude((Double)jsonParserFieldValue);
-				}
-			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
-			}
-		}
-
 	}
 
 }

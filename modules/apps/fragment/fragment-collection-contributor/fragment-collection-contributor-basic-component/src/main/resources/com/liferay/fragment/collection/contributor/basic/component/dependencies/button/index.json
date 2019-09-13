@@ -1,0 +1,108 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"dataType": "string",
+					"defaultValue": "primary",
+					"label": "type",
+					"name": "buttonType",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"value": "primary"
+							},
+							{
+								"value": "secondary"
+							},
+							{
+								"value": "link"
+							},
+							{
+								"value": "outline-primary"
+							},
+							{
+								"value": "outline-secondary"
+							}
+						]
+					}
+				},
+				{
+					"dataType": "string",
+					"defaultValue": "nm",
+					"label": "size",
+					"name": "buttonSize",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"label": "small",
+								"value": "sm"
+							},
+							{
+								"label": "normal",
+								"value": "nm"
+							},
+							{
+								"label": "large",
+								"value": "lg"
+							}
+						]
+					}
+				},
+				{
+					"dataType": "string",
+					"defaultValue": "left",
+					"label": "align",
+					"name": "buttonAlign",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"value": "left"
+							},
+							{
+								"value": "center"
+							},
+							{
+								"value": "right"
+							}
+						]
+					}
+				},
+				{
+					"dataType": "string",
+					"defaultValue": "3",
+					"label": "margin-bottom",
+					"name": "marginBottom",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"label": "no-margin",
+								"value": "0"
+							},
+							{
+								"label": "small",
+								"value": "2"
+							},
+							{
+								"label": "medium",
+								"value": "3"
+							},
+							{
+								"label": "large",
+								"value": "4"
+							},
+							{
+								"label": "extra-large",
+								"value": "5"
+							}
+						]
+					}
+				}
+			]
+		}
+	]
+}

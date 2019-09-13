@@ -1202,12 +1202,20 @@ public class PoshiRunnerExecutor {
 								throw new Exception(throwable.getMessage(), e);
 							}
 
+							if (throwable instanceof Error) {
+								throw (Error)throwable;
+							}
+
 							throw (Exception)throwable;
 						}
 					}
 					else {
 						if (PropsValues.DEBUG_STACKTRACE) {
 							throw new Exception(throwable.getMessage(), ite);
+						}
+
+						if (throwable instanceof Error) {
+							throw (Error)throwable;
 						}
 
 						throw (Exception)throwable;
@@ -1246,9 +1254,8 @@ public class PoshiRunnerExecutor {
 
 						throw new Exception(throwable.getMessage(), e);
 					}
-					else {
-						throw e;
-					}
+
+					throw e;
 				}
 			}
 			else if (element.attributeValue("type") != null) {
@@ -1286,11 +1293,15 @@ public class PoshiRunnerExecutor {
 					element.attributeValue("from"));
 
 				if (element.attributeValue("hash") != null) {
-					varValue = ((LinkedHashMap)varFrom).get(
-						element.attributeValue("hash"));
+					LinkedHashMap<?, ?> varFromMap =
+						(LinkedHashMap<?, ?>)varFrom;
+
+					varValue = varFromMap.get(element.attributeValue("hash"));
 				}
 				else if (element.attributeValue("index") != null) {
-					varValue = ((List)varFrom).get(
+					List<?> varFromList = (List<?>)varFrom;
+
+					varValue = varFromList.get(
 						GetterUtil.getInteger(element.attributeValue("index")));
 				}
 			}

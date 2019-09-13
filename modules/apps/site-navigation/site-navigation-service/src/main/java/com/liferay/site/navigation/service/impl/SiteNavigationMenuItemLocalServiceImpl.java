@@ -14,6 +14,7 @@
 
 package com.liferay.site.navigation.service.impl;
 
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
@@ -21,9 +22,12 @@ import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
-import com.liferay.portal.spring.extender.service.ServiceReference;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.site.navigation.exception.InvalidSiteNavigationMenuItemOrderException;
 import com.liferay.site.navigation.exception.InvalidSiteNavigationMenuItemTypeException;
 import com.liferay.site.navigation.exception.SiteNavigationMenuItemNameException;
@@ -37,9 +41,16 @@ import com.liferay.site.navigation.util.comparator.SiteNavigationMenuItemOrderCo
 import java.util.Date;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Pavel Savinov
  */
+@Component(
+	property = "model.class.name=com.liferay.site.navigation.model.SiteNavigationMenuItem",
+	service = AopService.class
+)
 public class SiteNavigationMenuItemLocalServiceImpl
 	extends SiteNavigationMenuItemLocalServiceBaseImpl {
 
@@ -118,13 +129,10 @@ public class SiteNavigationMenuItemLocalServiceImpl
 				siteNavigationMenuItemId);
 
 		if (!siteNavigationMenuItems.isEmpty()) {
-			long parentSiteNavigationMenuItemId =
-				siteNavigationMenuItem.getParentSiteNavigationMenuItemId();
-
 			List<SiteNavigationMenuItem> siblingsSiteNavigationMenuItems =
 				getSiteNavigationMenuItems(
 					siteNavigationMenuItem.getSiteNavigationMenuId(),
-					parentSiteNavigationMenuItemId);
+					siteNavigationMenuItem.getParentSiteNavigationMenuItemId());
 
 			for (SiteNavigationMenuItem siblingSiteNavigationMenuItem :
 					siblingsSiteNavigationMenuItems) {
@@ -330,6 +338,8 @@ public class SiteNavigationMenuItemLocalServiceImpl
 
 		validateName(name);
 
+		validateLayout(typeSettings);
+
 		siteNavigationMenuItem.setUserId(userId);
 		siteNavigationMenuItem.setUserName(user.getFullName());
 		siteNavigationMenuItem.setModifiedDate(
@@ -367,6 +377,26 @@ public class SiteNavigationMenuItemLocalServiceImpl
 		}
 	}
 
+	protected void validateLayout(String typeSettings) throws PortalException {
+		UnicodeProperties typeSettingsProperties = new UnicodeProperties(true);
+
+		typeSettingsProperties.fastLoad(typeSettings);
+
+		String layoutUuid = typeSettingsProperties.getProperty("layoutUuid");
+
+		if (Validator.isNull(layoutUuid)) {
+			return;
+		}
+
+		long groupId = GetterUtil.getLong(
+			typeSettingsProperties.getProperty("groupId"));
+		boolean privateLayout = GetterUtil.getBoolean(
+			typeSettingsProperties.getProperty("privateLayout"));
+
+		_layoutService.getLayoutByUuidAndGroupId(
+			layoutUuid, groupId, privateLayout);
+	}
+
 	protected void validateName(String name) throws PortalException {
 		if (name == null) {
 			return;
@@ -381,7 +411,10 @@ public class SiteNavigationMenuItemLocalServiceImpl
 		}
 	}
 
-	@ServiceReference(type = SiteNavigationMenuItemTypeRegistry.class)
+	@Reference
+	private LayoutService _layoutService;
+
+	@Reference
 	private SiteNavigationMenuItemTypeRegistry
 		_siteNavigationMenuItemTypeRegistry;
 

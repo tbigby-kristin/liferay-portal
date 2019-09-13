@@ -1,5 +1,19 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import dateFns from 'date-fns';
-import {CONJUNCTIONS} from 'utils/constants.es';
+import {CONJUNCTIONS} from './constants.es';
 import {getUid} from 'metal';
 
 const GROUP_ID_NAMESPACE = 'group_';
@@ -51,14 +65,11 @@ export function getChildGroupIds(criteria) {
 	let childGroupIds = [];
 
 	if (criteria.items && criteria.items.length) {
-		childGroupIds = criteria.items.reduce(
-			(groupIdList, item) => {
-				return item.groupId ?
-					[...groupIdList, item.groupId, ...getChildGroupIds(item)] :
-					groupIdList;
-			},
-			[]
-		);
+		childGroupIds = criteria.items.reduce((groupIdList, item) => {
+			return item.groupId
+				? [...groupIdList, item.groupId, ...getChildGroupIds(item)]
+				: groupIdList;
+		}, []);
 	}
 
 	return childGroupIds;
@@ -73,13 +84,11 @@ export function getChildGroupIds(criteria) {
  * @param {string} type The type to get the supported operators for.
  */
 export function getSupportedOperatorsFromType(operators, propertyTypes, type) {
-	return operators.filter(
-		operator => {
-			const validOperators = propertyTypes[type];
+	return operators.filter(operator => {
+		const validOperators = propertyTypes[type];
 
-			return validOperators && validOperators.includes(operator.name);
-		}
-	);
+		return validOperators && validOperators.includes(operator.name);
+	});
 }
 
 /**
@@ -101,11 +110,9 @@ export function insertAtIndex(item, list, index) {
 export function objectToFormData(dataObject) {
 	const formData = new FormData();
 
-	Object.keys(dataObject).forEach(
-		key => {
-			formData.set(key, dataObject[key]);
-		}
-	);
+	Object.keys(dataObject).forEach(key => {
+		formData.set(key, dataObject[key]);
+	});
 
 	return formData;
 }
@@ -117,9 +124,7 @@ export function objectToFormData(dataObject) {
  * @return {Array}
  */
 export function removeAtIndex(list, index) {
-	return list.filter(
-		(fItem, fIndex) => fIndex !== index
-	);
+	return list.filter((fItem, fIndex) => fIndex !== index);
 }
 
 /**
@@ -130,12 +135,9 @@ export function removeAtIndex(list, index) {
  * @return {Array}
  */
 export function replaceAtIndex(item, list, index) {
-	return Object.assign(
-		list,
-		{
-			[index]: item
-		}
-	);
+	return Object.assign(list, {
+		[index]: item
+	});
 }
 
 /**

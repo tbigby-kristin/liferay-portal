@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -41,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see MDRActionPersistence
  * @generated
  */
-@ProviderType
 public class MDRActionUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -182,16 +180,16 @@ public class MDRActionUtil {
 	 * @param start the lower bound of the range of mdr actions
 	 * @param end the upper bound of the range of mdr actions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching mdr actions
 	 */
 	public static List<MDRAction> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<MDRAction> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -317,13 +315,13 @@ public class MDRActionUtil {
 	 *
 	 * @param uuid the uuid
 	 * @param groupId the group ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching mdr action, or <code>null</code> if a matching mdr action could not be found
 	 */
 	public static MDRAction fetchByUUID_G(
-		String uuid, long groupId, boolean retrieveFromCache) {
+		String uuid, long groupId, boolean useFinderCache) {
 
-		return getPersistence().fetchByUUID_G(uuid, groupId, retrieveFromCache);
+		return getPersistence().fetchByUUID_G(uuid, groupId, useFinderCache);
 	}
 
 	/**
@@ -414,16 +412,16 @@ public class MDRActionUtil {
 	 * @param start the lower bound of the range of mdr actions
 	 * @param end the upper bound of the range of mdr actions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching mdr actions
 	 */
 	public static List<MDRAction> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<MDRAction> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -597,17 +595,16 @@ public class MDRActionUtil {
 	 * @param start the lower bound of the range of mdr actions
 	 * @param end the upper bound of the range of mdr actions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching mdr actions
 	 */
 	public static List<MDRAction> findByRuleGroupInstanceId(
 		long ruleGroupInstanceId, int start, int end,
 		OrderByComparator<MDRAction> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByRuleGroupInstanceId(
-			ruleGroupInstanceId, start, end, orderByComparator,
-			retrieveFromCache);
+			ruleGroupInstanceId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -831,15 +828,15 @@ public class MDRActionUtil {
 	 * @param start the lower bound of the range of mdr actions
 	 * @param end the upper bound of the range of mdr actions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of mdr actions
 	 */
 	public static List<MDRAction> findAll(
 		int start, int end, OrderByComparator<MDRAction> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

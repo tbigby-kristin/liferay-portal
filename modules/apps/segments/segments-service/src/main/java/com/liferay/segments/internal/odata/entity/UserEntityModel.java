@@ -24,22 +24,18 @@ import com.liferay.portal.odata.entity.StringEntityField;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * Provides the entity data model from the Indexed Entity (User).
+ * Provides the entity data model from the User.
  *
  * @author David Arques
- * @review
  */
 public class UserEntityModel implements EntityModel {
 
 	public static final String NAME = "User";
 
 	public UserEntityModel(List<EntityField> customEntityFields) {
-		_entityFieldsMap = Stream.of(
+		_entityFieldsMap = EntityModel.toEntityFieldsMap(
 			new ComplexEntityField("customField", customEntityFields),
 			new DateTimeEntityField(
 				"dateModified",
@@ -77,10 +73,7 @@ public class UserEntityModel implements EntityModel {
 			new StringEntityField(
 				"screenName",
 				locale -> Field.getSortableFieldName("screenName")),
-			new StringEntityField("userName", locale -> Field.USER_NAME)
-		).collect(
-			Collectors.toMap(EntityField::getName, Function.identity())
-		);
+			new StringEntityField("userName", locale -> Field.USER_NAME));
 	}
 
 	@Override

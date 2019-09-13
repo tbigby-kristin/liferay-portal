@@ -70,10 +70,9 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 			long entryClassPK, String actionId)
 		throws Exception {
 
-		WikiNode node = _wikiNodeLocalService.getNode(entryClassPK);
-
 		return _wikiNodeModelResourcePermission.contains(
-			permissionChecker, node, ActionKeys.VIEW);
+			permissionChecker, _wikiNodeLocalService.getNode(entryClassPK),
+			ActionKeys.VIEW);
 	}
 
 	@Override
@@ -109,9 +108,7 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 
 	@Override
 	protected void doReindex(String className, long classPK) throws Exception {
-		WikiNode node = _wikiNodeLocalService.getNode(classPK);
-
-		doReindex(node);
+		doReindex(_wikiNodeLocalService.getNode(classPK));
 	}
 
 	@Override
@@ -125,7 +122,7 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 	protected void doReindex(WikiNode wikiNode) throws Exception {
 		Document document = getDocument(wikiNode);
 
-		if (!wikiNode.isInTrash()) {
+		if (wikiNode.isInTrash()) {
 			_indexWriterHelper.deleteDocument(
 				getSearchEngineId(), wikiNode.getCompanyId(),
 				document.get(Field.UID), isCommitImmediately());
@@ -147,15 +144,14 @@ public class WikiNodeIndexer extends BaseIndexer<WikiNode> {
 				Property property = PropertyFactoryUtil.forName("status");
 
 				dynamicQuery.add(
-					property.eq(WorkflowConstants.STATUS_IN_TRASH));
+					property.eq(WorkflowConstants.STATUS_APPROVED));
 			});
 		indexableActionableDynamicQuery.setCompanyId(companyId);
 		indexableActionableDynamicQuery.setPerformActionMethod(
 			(WikiNode node) -> {
 				try {
-					Document document = getDocument(node);
-
-					indexableActionableDynamicQuery.addDocuments(document);
+					indexableActionableDynamicQuery.addDocuments(
+						getDocument(node));
 				}
 				catch (PortalException pe) {
 					if (_log.isWarnEnabled()) {

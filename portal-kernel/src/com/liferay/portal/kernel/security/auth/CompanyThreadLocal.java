@@ -15,20 +15,18 @@
 package com.liferay.portal.kernel.security.auth;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
-import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.TimeZoneThreadLocal;
-
-import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * @author Brian Wing Shun Chan
  */
-@ProviderType
 public class CompanyThreadLocal {
 
 	public static Long getCompanyId() {
@@ -58,10 +56,12 @@ public class CompanyThreadLocal {
 			_companyId.set(companyId);
 
 			try {
-				Company company = CompanyLocalServiceUtil.getCompany(companyId);
+				User defaultUser = UserLocalServiceUtil.getDefaultUser(
+					companyId);
 
-				LocaleThreadLocal.setDefaultLocale(company.getLocale());
-				TimeZoneThreadLocal.setDefaultTimeZone(company.getTimeZone());
+				LocaleThreadLocal.setDefaultLocale(defaultUser.getLocale());
+				TimeZoneThreadLocal.setDefaultTimeZone(
+					defaultUser.getTimeZone());
 			}
 			catch (Exception e) {
 				_log.error(e, e);
@@ -73,6 +73,8 @@ public class CompanyThreadLocal {
 			LocaleThreadLocal.setDefaultLocale(null);
 			TimeZoneThreadLocal.setDefaultTimeZone(null);
 		}
+
+		CTCollectionThreadLocal.removeCTCollectionId();
 	}
 
 	public static void setDeleteInProcess(boolean deleteInProcess) {

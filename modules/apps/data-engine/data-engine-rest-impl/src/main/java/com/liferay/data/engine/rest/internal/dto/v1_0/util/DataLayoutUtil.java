@@ -14,16 +14,15 @@
 
 package com.liferay.data.engine.rest.internal.dto.v1_0.util;
 
+import com.liferay.data.engine.field.type.util.LocalizedValueUtil;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayout;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayoutColumn;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayoutPage;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayoutRow;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Objects;
 
@@ -41,27 +40,20 @@ public class DataLayoutUtil {
 					jsonObject.getJSONArray("pages"),
 					pageJSONObject -> _toDataLayoutPage(pageJSONObject),
 					DataLayoutPage.class);
-				defaultLanguageId = jsonObject.getString("defaultLanguageId");
 				paginationMode = jsonObject.getString("paginationMode");
 			}
 		};
 	}
 
 	public static String toJSON(DataLayout dataLayout) throws Exception {
-		if (Validator.isNull(dataLayout.getDefaultLanguageId())) {
-			throw new Exception("Default language ID is required");
-		}
-
-		if (Objects.equals(dataLayout.getPaginationMode(), "pagination") ||
-			Objects.equals(dataLayout.getPaginationMode(), "wizard")) {
+		if (!Objects.equals(dataLayout.getPaginationMode(), "pagination") &&
+			!Objects.equals(dataLayout.getPaginationMode(), "wizard")) {
 
 			throw new Exception(
 				"Pagination mode must be \"pagination\" or \"wizard\"");
 		}
 
 		return JSONUtil.put(
-			"defaultLanguageId", dataLayout.getDefaultLanguageId()
-		).put(
 			"pages",
 			JSONUtil.toJSONArray(
 				dataLayout.getDataLayoutPages(),
@@ -103,7 +95,7 @@ public class DataLayoutUtil {
 
 		return new DataLayoutRow() {
 			{
-				dataLayoutColums = JSONUtil.toArray(
+				dataLayoutColumns = JSONUtil.toArray(
 					jsonObject.getJSONArray("columns"),
 					columnJSONObject -> _toDataLayoutColumn(columnJSONObject),
 					DataLayoutColumn.class);
@@ -115,9 +107,9 @@ public class DataLayoutUtil {
 		throws Exception {
 
 		return JSONUtil.put(
-			"fieldNames", JSONUtil.put(dataLayoutColumn.getFieldNames())
+			"columnSize", dataLayoutColumn.getColumnSize()
 		).put(
-			"size", dataLayoutColumn.getColumnSize()
+			"fieldNames", JSONUtil.put(dataLayoutColumn.getFieldNames())
 		);
 	}
 
@@ -147,7 +139,7 @@ public class DataLayoutUtil {
 		return JSONUtil.put(
 			"columns",
 			JSONUtil.toJSONArray(
-				dataLayoutRow.getDataLayoutColums(),
+				dataLayoutRow.getDataLayoutColumns(),
 				dataLayoutColumn -> _toJSONObject(dataLayoutColumn)));
 	}
 

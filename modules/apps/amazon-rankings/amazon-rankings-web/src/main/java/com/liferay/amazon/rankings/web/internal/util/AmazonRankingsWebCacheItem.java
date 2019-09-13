@@ -14,7 +14,7 @@
 
 package com.liferay.amazon.rankings.web.internal.util;
 
-import com.liferay.amazon.rankings.web.configuration.AmazonRankingsConfiguration;
+import com.liferay.amazon.rankings.web.internal.configuration.AmazonRankingsConfiguration;
 import com.liferay.amazon.rankings.web.internal.model.AmazonRankings;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
@@ -176,13 +176,13 @@ public class AmazonRankingsWebCacheItem implements WebCacheItem {
 		int salesRank = GetterUtil.getInteger(
 			itemElement.elementText("SalesRank"));
 		String media = StringPool.BLANK;
-		String availability = getAvailability(offerListingElement);
 
 		return new AmazonRankings(
 			_isbn, productName, catalog, authors, releaseDate,
 			releaseDateAsString, manufacturer, smallImageURL, mediumImageURL,
 			largeImageURL, listPrice, ourPrice, usedPrice, collectiblePrice,
-			thirdPartyNewPrice, salesRank, media, availability);
+			thirdPartyNewPrice, salesRank, media,
+			getAvailability(offerListingElement));
 	}
 
 	protected String[] getAuthors(Element itemAttributesElement) {

@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import {Config} from 'metal-state';
 
@@ -10,7 +24,6 @@ import DisabledAreaPopover from './DisabledAreaPopover.es';
  * @review
  */
 class DisabledAreaMask extends Component {
-
 	/**
 	 * Checks if the given element can be disabled.
 	 * @param {HTMLElement} element
@@ -22,10 +35,11 @@ class DisabledAreaMask extends Component {
 		const {height} = element.getBoundingClientRect();
 		const {position} = window.getComputedStyle(element);
 
-		const hasAbsolutePosition = DisabledAreaMask.STATIC_POSITIONS.indexOf(position) === -1;
+		const hasAbsolutePosition =
+			DisabledAreaMask.STATIC_POSITIONS.indexOf(position) === -1;
 		const hasZeroHeight = height === 0;
 
-		return (!hasZeroHeight && !hasAbsolutePosition);
+		return !hasZeroHeight && !hasAbsolutePosition;
 	}
 
 	/**
@@ -41,7 +55,7 @@ class DisabledAreaMask extends Component {
 		const childMatchesSelector = element.querySelector(selector);
 		const matchesSelector = element.matches(selector);
 
-		return (matchesSelector || childMatchesSelector);
+		return matchesSelector || childMatchesSelector;
 	}
 
 	/**
@@ -73,8 +87,8 @@ class DisabledAreaMask extends Component {
 		let element = document.querySelector(this.origin);
 
 		while (element.parentElement && element !== document.body) {
-			Array.from(element.parentElement.children).forEach(
-				childElement => this._markDisabledElement(childElement)
+			Array.from(element.parentElement.children).forEach(childElement =>
+				this._markDisabledElement(childElement)
 			);
 
 			element = element.parentElement;
@@ -87,13 +101,12 @@ class DisabledAreaMask extends Component {
 	 * @param {HTMLElement} element
 	 */
 	_markDisabledElement(element) {
-		const disable = (
-			(element.tagName !== 'SCRIPT') &&
+		const disable =
+			element.tagName !== 'SCRIPT' &&
 			DisabledAreaMask._elementCanBeDisabled(element) &&
-			!this.whitelist.some(
-				selector => DisabledAreaMask._elementMatchesSelector(element, selector)
-			)
-		);
+			!this.whitelist.some(selector =>
+				DisabledAreaMask._elementMatchesSelector(element, selector)
+			);
 
 		if (disable) {
 			element.classList.add(this.disabledAreaClass);
@@ -111,13 +124,10 @@ class DisabledAreaMask extends Component {
 			this._disabledAreaPopover.dispose();
 		}
 
-		this._disabledAreaPopover = new DisabledAreaPopover(
-			{
-				selector: '.lfr-edit-mode__disabled-area'
-			}
-		);
+		this._disabledAreaPopover = new DisabledAreaPopover({
+			selector: '.lfr-edit-mode__disabled-area'
+		});
 	}
-
 }
 
 /**
@@ -151,11 +161,7 @@ DisabledAreaMask.DEFAULT_WHITELIST = [
  * @review
  * @type {string[]}
  */
-DisabledAreaMask.STATIC_POSITIONS = [
-	'',
-	'static',
-	'relative'
-];
+DisabledAreaMask.STATIC_POSITIONS = ['', 'static', 'relative'];
 
 /**
  * State definition
@@ -164,18 +170,15 @@ DisabledAreaMask.STATIC_POSITIONS = [
  * @type {!object}
  */
 DisabledAreaMask.STATE = {
-
 	/**
-	 * HTMLElement where the disabling process starts
-	 * @default DEFAULT_ORIGIN
+	 * Popover instance used internally
+	 * @default null
 	 * @instance
 	 * @memberOf DisabledAreaMask
 	 * @review
-	 * @type {string}
+	 * @type {object}
 	 */
-	origin: Config
-		.string()
-		.value(DisabledAreaMask.DEFAULT_ORIGIN),
+	_disabledAreaPopover: Config.object().value(null),
 
 	/**
 	 * CSS class added to elements that are going to
@@ -186,9 +189,19 @@ DisabledAreaMask.STATE = {
 	 * @review
 	 * @type {string}
 	 */
-	disabledAreaClass: Config
-		.string()
-		.value(DisabledAreaMask.DEFAULT_DISABLED_AREA_CLASS),
+	disabledAreaClass: Config.string().value(
+		DisabledAreaMask.DEFAULT_DISABLED_AREA_CLASS
+	),
+
+	/**
+	 * HTMLElement where the disabling process starts
+	 * @default DEFAULT_ORIGIN
+	 * @instance
+	 * @memberOf DisabledAreaMask
+	 * @review
+	 * @type {string}
+	 */
+	origin: Config.string().value(DisabledAreaMask.DEFAULT_ORIGIN),
 
 	/**
 	 * List of selectors that are ignored when disabling
@@ -200,21 +213,9 @@ DisabledAreaMask.STATE = {
 	 * @review
 	 * @type {string[]}
 	 */
-	whitelist: Config
-		.arrayOf(Config.string())
-		.value(DisabledAreaMask.DEFAULT_WHITELIST),
-
-	/**
-	 * Popover instance used internally
-	 * @default null
-	 * @instance
-	 * @memberOf DisabledAreaMask
-	 * @review
-	 * @type {object}
-	 */
-	_disabledAreaPopover: Config
-		.object()
-		.value(null)
+	whitelist: Config.arrayOf(Config.string()).value(
+		DisabledAreaMask.DEFAULT_WHITELIST
+	)
 };
 
 export {DisabledAreaMask};

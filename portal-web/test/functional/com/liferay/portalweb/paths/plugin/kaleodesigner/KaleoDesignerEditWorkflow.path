@@ -9,33 +9,38 @@
 </thead>
 <tbody>
 <tr>
+	<td>BODY</td>
+	<td>//body</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DETAILS</td>
-	<td>//li[@class='tab']/a[contains(.,'Details')]</td>
+	<td>//li[@class='nav-item']/a[contains(.,'Details')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DETAILS_ACTIVE</td>
-	<td>//li[@class='tab active']/a[contains(.,'Details')]</td>
+	<td>//a[(@class='nav-link active') and contains(.,'Details')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>DIAGRAM_TAB</td>
-	<td>//*[contains(@class,'nav-link') and contains(.,'Diagram')]</td>
+	<td>//ul[contains(@class,'nav-tabs')]/li/a[contains(.,'Diagram')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>REVISION_HISTORY</td>
-	<td>//li[@class='tab']/a[contains(.,'Revision History')]</td>
+	<td>//li[@class='nav-item']/a[contains(.,'Revision History')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>REVISION_HISTORY_ACTIVE</td>
-	<td>//li[@class='tab active']/a[contains(.,'Revision History')]</td>
+	<td>//a[contains(@class,'active') and contains(.,'Revision History')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SOURCE_KALEO_XML_TAB</td>
-	<td>//*[contains(@class,'nav-link') and contains(.,'Source')]</td>
+	<td>//ul[contains(@class,'nav-tabs')]/li/a[contains(.,'Source')]</td>
 	<td></td>
 </tr>
 <tr>

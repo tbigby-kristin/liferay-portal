@@ -177,6 +177,13 @@ definition {
 			value1 = "${fieldValue}");
 	}
 
+	macro editTextFieldWithEnterKey {
+		KeyPress(
+			key_fieldName = "${fieldName}",
+			locator1 = "FormFields#TEXT_FIELD",
+			value1 = "\RETURN");
+	}
+
 	macro editTextMultiline {
 		Type(
 			key_fieldName = "${fieldName}",
@@ -192,6 +199,13 @@ definition {
 		KeyPress(
 			locator1 = "FormFields#TEXT_FIELD",
 			value1 = "\BACK_SPACE");
+	}
+
+	macro editTextWithDataProvider {
+		Type.sendKeys(
+			key_fieldName = "${fieldName}",
+			locator1 = "FormFields#TEXT_FIELD",
+			value1 = "${fieldValue}");
 	}
 
 	macro editValidation {
@@ -267,23 +281,28 @@ definition {
 
 		Click(locator1 = "FormFields#SELECT_FIELD_MULTIPLE_OPTION_REMOVE");
 
-		AssertNotVisible(
+		AssertElementNotPresent(
 			locator1 = "FormFields#SELECT_FIELD_MULTIPLE_OPTION",
 			value1 = "${selectOption}");
 	}
 
 	macro removeSelectOptionViaDropdown {
-		Click(
-			key_fieldName = "${fieldName}",
-			locator1 = "FormFields#SELECT_FIELD");
+		while (IsElementNotPresent(locator1 = "FormFields#SELECTOR")) {
+			Click(
+				key_fieldName = "${fieldName}",
+				locator1 = "FormFields#SELECT_FIELD");
+
+			Click(locator1 = "FormFields#CHANGE_FIELD_TYPE_BUTTON");
+		}
 
 		FormFields.disableCheckbox(fieldName = "${selectOption}");
 
-		Click(
-			key_fieldName = "${fieldName}",
-			locator1 = "FormFields#SELECT_FIELD");
-
-		AssertNotVisible(
+		while (IsElementNotPresent(locator1 = "FormFields#SELECTOR")) {
+			Click(
+				key_fieldName = "${fieldName}",
+				locator1 = "FormFields#SELECT_FIELD");
+		}
+		AssertElementNotPresent(
 			key_fieldName = "${fieldName}",
 			key_selectOption = "${selectOption}",
 			locator1 = "FormFields#SELECT_FIELD_MULTIPLE_OPTION",
@@ -364,7 +383,11 @@ definition {
 	macro selectSelectWithMultipleOptions {
 		var key_fieldName = "${fieldName}";
 
-		Click(locator1 = "FormFields#SELECT_FIELD");
+		while (IsElementNotPresent(locator1 = "FormFields#SELECTOR")) {
+			Click(
+				key_fieldName = "${fieldName}",
+				locator1 = "FormFields#SELECT_FIELD");
+		}
 
 		for (var selectOption : list "${selectOptionsList}") {
 			FormFields.enableCheckbox(fieldName = "${selectOption}");
@@ -382,7 +405,7 @@ definition {
 		var key_switcherOption = "${switcherOption}";
 		var key_switcherOption = StringUtil.replace("${switcherOption}", " ", "");
 
-		Click(locator1 = "FormFields#SWITCHER_OPTION");
+		Click(locator1 = "FormFields#SWITCHER");
 	}
 
 	macro selectTextFieldLineOption {
@@ -407,6 +430,13 @@ definition {
 		AssertChecked.assertCheckedNotVisible(
 			key_fieldName = "${fieldName}",
 			locator1 = "FormFields#CHECKBOX");
+	}
+
+	macro viewCheckboxEntry {
+		AssertTextEquals.assertText(
+			key_fieldName = "${fieldName}",
+			locator1 = "FormFields#CHECKBOX_ENTRY",
+			value1 = "${fieldValue}");
 	}
 
 	macro viewCheckboxLabel {
@@ -526,7 +556,7 @@ definition {
 	}
 
 	macro viewMultilineTextValue {
-		AssertTextEquals(
+		AssertTextEquals.assertValue(
 			key_fieldName = "${fieldName}",
 			key_fieldValue = "${fieldValue}",
 			locator1 = "FormFields#TEXT_MULTILINE_FIELD",
@@ -586,7 +616,6 @@ definition {
 	}
 
 	macro viewRadioValue {
-		var fieldValue = StringUtil.replace("${fieldValue}", " ", "");
 		var key_fieldName = "${fieldName}";
 		var key_radioOption = "${fieldValue}";
 
@@ -747,6 +776,15 @@ definition {
 			key_fieldLabel = "${fieldLabel}",
 			key_fieldName = "${fieldName}",
 			locator1 = "FormFields#TEXT_FIELD");
+	}
+
+	macro viewTextFieldNotPresent {
+		var key_fieldLabel = "${fieldLabel}";
+		var key_fieldName = "${fieldName}";
+
+		AssertElementNotPresent(locator1 = "FormFields#LABEL");
+
+		AssertElementNotPresent(locator1 = "FormFields#TEXT_FIELD");
 	}
 
 	macro viewTextFieldNotVisible {

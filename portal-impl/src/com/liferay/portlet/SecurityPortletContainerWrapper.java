@@ -49,13 +49,10 @@ import javax.servlet.RequestDispatcher;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * @author Tomas Polesovsky
  * @author Raymond Augé
  */
-@ProviderType
 public class SecurityPortletContainerWrapper implements PortletContainer {
 
 	public static PortletContainer createSecurityPortletContainerWrapper(
@@ -416,10 +413,13 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 
 			_log.warn(
 				String.format(
-					"User %s is not allowed to access URL %s and portlet %s",
+					"User %s is not allowed to access URL %s and portlet %s: " +
+						"%s",
 					PortalUtil.getUserId(httpServletRequest), url,
-					portlet.getPortletId()));
+					portlet.getPortletId(), pe.getMessage()));
 		}
+
+		httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
 		return ActionResult.EMPTY_ACTION_RESULT;
 	}
@@ -466,16 +466,16 @@ public class SecurityPortletContainerWrapper implements PortletContainer {
 			HttpHeaders.CACHE_CONTROL,
 			HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
 
-		httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
 		if (_log.isWarnEnabled()) {
 			String url = getOriginalURL(httpServletRequest);
 
 			_log.warn(
 				String.format(
-					"User %s is not allowed to serve resource for %s on %s",
+					"User %s is not allowed to serve resource for %s on %s: %s",
 					PortalUtil.getUserId(httpServletRequest), url,
-					portlet.getPortletId()));
+					portlet.getPortletId(), pe.getMessage()));
 		}
 	}
 

@@ -884,7 +884,7 @@ public class PoshiRunnerValidation {
 	protected static void validateHasRequiredPropertyElements(
 		Element element, String filePath) {
 
-		List<String> requiredPropertyNames = new ArrayList(
+		List<String> requiredPropertyNames = new ArrayList<>(
 			PoshiRunnerContext.getTestCaseRequiredPropertyNames());
 
 		List<Element> propertyElements = element.elements("property");
@@ -1096,8 +1096,6 @@ public class PoshiRunnerValidation {
 				new ValidationException(
 					element, "Unable to find method ", className, "#",
 					methodName, "\n", filePath));
-
-			return;
 		}
 	}
 
@@ -1659,12 +1657,12 @@ public class PoshiRunnerValidation {
 			minimumAttributeSize = 1;
 		}
 
-		if (attributes.size() <= minimumAttributeSize) {
-			if (Validator.isNull(element.getText())) {
-				_exceptions.add(
-					new ValidationException(
-						element, "Missing value attribute\n", filePath));
-			}
+		if ((attributes.size() <= minimumAttributeSize) &&
+			Validator.isNull(element.getText())) {
+
+			_exceptions.add(
+				new ValidationException(
+					element, "Missing value attribute\n", filePath));
 		}
 
 		List<String> possibleAttributeNames = new ArrayList<>();

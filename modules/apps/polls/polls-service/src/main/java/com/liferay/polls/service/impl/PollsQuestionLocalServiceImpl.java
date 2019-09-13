@@ -21,7 +21,9 @@ import com.liferay.polls.exception.QuestionExpirationDateException;
 import com.liferay.polls.exception.QuestionTitleException;
 import com.liferay.polls.model.PollsChoice;
 import com.liferay.polls.model.PollsQuestion;
+import com.liferay.polls.service.PollsChoiceLocalService;
 import com.liferay.polls.service.base.PollsQuestionLocalServiceBaseImpl;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -35,7 +37,7 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
-import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -44,7 +46,7 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
@@ -57,10 +59,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Julio Camarero
  */
+@Component(
+	property = "model.class.name=com.liferay.polls.model.PollsQuestion",
+	service = AopService.class
+)
 public class PollsQuestionLocalServiceImpl
 	extends PollsQuestionLocalServiceBaseImpl {
 
@@ -83,7 +92,7 @@ public class PollsQuestionLocalServiceImpl
 		Date expirationDate = null;
 
 		if (!neverExpire) {
-			expirationDate = PortalUtil.getDate(
+			expirationDate = _portal.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
 				QuestionExpirationDateException.class);
@@ -124,7 +133,7 @@ public class PollsQuestionLocalServiceImpl
 
 		if (choices != null) {
 			for (PollsChoice choice : choices) {
-				pollsChoiceLocalService.addChoice(
+				_pollsChoiceLocalService.addChoice(
 					userId, questionId, choice.getName(),
 					choice.getDescription(), serviceContext);
 			}
@@ -250,7 +259,7 @@ public class PollsQuestionLocalServiceImpl
 
 		// Indexer
 
-		Indexer<PollsQuestion> indexer = IndexerRegistryUtil.getIndexer(
+		Indexer<PollsQuestion> indexer = _indexerRegistry.getIndexer(
 			PollsQuestion.class.getName());
 
 		indexer.delete(question);
@@ -330,7 +339,7 @@ public class PollsQuestionLocalServiceImpl
 
 	@Override
 	public int searchCount(long companyId, long[] groupIds, String keywords) {
-		Indexer<PollsQuestion> indexer = IndexerRegistryUtil.getIndexer(
+		Indexer<PollsQuestion> indexer = _indexerRegistry.getIndexer(
 			PollsQuestion.class.getName());
 
 		try {
@@ -374,7 +383,7 @@ public class PollsQuestionLocalServiceImpl
 		if (!neverExpire) {
 			User user = userLocalService.getUser(userId);
 
-			expirationDate = PortalUtil.getDate(
+			expirationDate = _portal.getDate(
 				expirationDateMonth, expirationDateDay, expirationDateYear,
 				expirationDateHour, expirationDateMinute, user.getTimeZone(),
 				QuestionExpirationDateException.class);
@@ -406,12 +415,12 @@ public class PollsQuestionLocalServiceImpl
 			choice = pollsChoicePersistence.fetchByQ_N(questionId, choiceName);
 
 			if (choice == null) {
-				pollsChoiceLocalService.addChoice(
+				_pollsChoiceLocalService.addChoice(
 					userId, questionId, choiceName, choiceDescription,
 					serviceContext);
 			}
 			else {
-				pollsChoiceLocalService.updateChoice(
+				_pollsChoiceLocalService.updateChoice(
 					choice.getChoiceId(), questionId, choiceName,
 					choiceDescription, serviceContext);
 			}
@@ -501,7 +510,7 @@ public class PollsQuestionLocalServiceImpl
 			int end, OrderByComparator<PollsQuestion> orderByComparator)
 		throws PortalException {
 
-		Indexer<PollsQuestion> indexer = IndexerRegistryUtil.getIndexer(
+		Indexer<PollsQuestion> indexer = _indexerRegistry.getIndexer(
 			PollsQuestion.class.getName());
 
 		SearchContext searchContext = buildSearchContext(
@@ -549,15 +558,24 @@ public class PollsQuestionLocalServiceImpl
 			}
 		}
 
-		if (!ExportImportThreadLocal.isImportInProcess()) {
-			if ((expirationDate != null) && expirationDate.before(new Date())) {
-				throw new QuestionExpirationDateException(
-					"Expiration date " + expirationDate + " is in the past");
-			}
+		if (!ExportImportThreadLocal.isImportInProcess() &&
+			(expirationDate != null) && expirationDate.before(new Date())) {
+
+			throw new QuestionExpirationDateException(
+				"Expiration date " + expirationDate + " is in the past");
 		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		PollsQuestionLocalServiceImpl.class);
+
+	@Reference
+	private IndexerRegistry _indexerRegistry;
+
+	@Reference
+	private PollsChoiceLocalService _pollsChoiceLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }

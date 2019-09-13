@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.service.OrganizationServiceUtil;
 
 import java.rmi.RemoteException;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the SOAP utility for the
  * <code>OrganizationServiceUtil</code> service
@@ -61,7 +59,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see OrganizationServiceHttp
  * @generated
  */
-@ProviderType
 public class OrganizationServiceSoap {
 
 	/**
@@ -593,7 +590,7 @@ public class OrganizationServiceSoap {
 	 * @param countryId the primary key of the organization's country
 	 * @param statusId the organization's workflow status
 	 * @param comments the comments about the organization
-	 * @param logo whether to update the ogranization's logo
+	 * @param hasLogo if the organization has a custom logo
 	 * @param logoBytes the new logo image data
 	 * @param site whether the organization is to be associated with a main
 	 site
@@ -612,7 +609,8 @@ public class OrganizationServiceSoap {
 			updateOrganization(
 				long organizationId, long parentOrganizationId, String name,
 				String type, long regionId, long countryId, long statusId,
-				String comments, boolean logo, byte[] logoBytes, boolean site,
+				String comments, boolean hasLogo, byte[] logoBytes,
+				boolean site,
 				com.liferay.portal.kernel.model.AddressSoap[] addresses,
 				com.liferay.portal.kernel.model.EmailAddressSoap[]
 					emailAddresses,
@@ -626,7 +624,7 @@ public class OrganizationServiceSoap {
 			com.liferay.portal.kernel.model.Organization returnValue =
 				OrganizationServiceUtil.updateOrganization(
 					organizationId, parentOrganizationId, name, type, regionId,
-					countryId, statusId, comments, logo, logoBytes, site,
+					countryId, statusId, comments, hasLogo, logoBytes, site,
 					com.liferay.portal.model.impl.AddressModelImpl.toModels(
 						addresses),
 					com.liferay.portal.model.impl.EmailAddressModelImpl.

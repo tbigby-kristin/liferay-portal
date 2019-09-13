@@ -1,5 +1,4 @@
-@import "bourbon";
-@import "mixins";
+@import 'atlas-variables';
 
 .product-menu {
 	.sidebar-header {
@@ -8,7 +7,7 @@
 		padding-right: 9px;
 		padding-top: 8px;
 
-		@include sm() {
+		@include media-breakpoint-up(sm) {
 			padding-bottom: 12px;
 			padding-left: 24px;
 			padding-top: 12px;
@@ -32,11 +31,11 @@
 		right: 0;
 		top: 55px;
 
-		@include sm() {
+		@include media-breakpoint-up(sm) {
 			top: 64px;
 		}
 
-		@include media-query(null, 320px) {
+		@include media-breakpoint-down(xs) {
 			overflow: visible;
 			position: static;
 		}
@@ -65,7 +64,12 @@
 	}
 
 	.list-group-heading {
-		h1, h2, h3, h4, h5, h6 {
+		h1,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6 {
 			margin-bottom: 0;
 			margin-top: 0;
 		}
@@ -83,7 +87,7 @@
 	}
 
 	&.popover {
-		background-color: #FFF;
+		background-color: #fff;
 	}
 
 	.impersonation-message {
@@ -102,7 +106,8 @@
 			height: auto;
 		}
 
-		.list-group-item-content, .list-group-item-field {
+		.list-group-item-content,
+		.list-group-item-field {
 			vertical-align: middle;
 		}
 
@@ -135,30 +140,29 @@
 	width: 20px;
 
 	.pm {
-		border-left: 1px solid #FFF;
+		border-left: 1px solid #fff;
 		border-radius: 1px;
 		height: 16px;
 		left: 0;
 		position: absolute;
 		top: 0;
+		transition-delay: 0.2s;
 
-		@include transition(all 0.6s $ease-out-quart);
-		@include transition-delay(0.2s);
+		@include transition(all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1));
 	}
 
 	.cn {
-		border: 1px solid #FFF;
+		border: 1px solid #fff;
 		border-radius: 1px;
 		content: '';
 		height: 18px;
 		position: absolute;
 		right: 0;
 		top: -1px;
-
-		@include transition(all 0.3s $ease-out-quart);
-		@include transition-delay(0.2s);
-
+		transition-delay: 0.2s;
 		width: 15px;
+
+		@include transition(all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1));
 	}
 }
 

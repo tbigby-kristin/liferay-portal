@@ -54,7 +54,7 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 public interface UserService extends BaseService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link UserServiceUtil} to access the user remote service. Add custom service methods to <code>com.liferay.portal.service.impl.UserServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -985,7 +985,7 @@ public interface UserService extends BaseService {
 	 * @param emailAddress the user's new email address
 	 * @param facebookId the user's new Facebook ID
 	 * @param openId the user's new OpenID
-	 * @param portrait whether to update the user's portrait image
+	 * @param hasPortrait if the user has a custom portrait image
 	 * @param portraitBytes the new portrait image data
 	 * @param languageId the user's new language ID
 	 * @param timeZoneId the user's new time zone ID
@@ -1028,7 +1028,7 @@ public interface UserService extends BaseService {
 			String newPassword2, boolean passwordReset,
 			String reminderQueryQuestion, String reminderQueryAnswer,
 			String screenName, String emailAddress, long facebookId,
-			String openId, boolean portrait, byte[] portraitBytes,
+			String openId, boolean hasPortrait, byte[] portraitBytes,
 			String languageId, String timeZoneId, String greeting,
 			String comments, String firstName, String middleName,
 			String lastName, long prefixId, long suffixId, boolean male,

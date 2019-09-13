@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.service.http.TunnelUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the HTTP utility for the
  * <code>LayoutSetServiceUtil</code> service
@@ -51,7 +49,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutSetServiceSoap
  * @generated
  */
-@ProviderType
 public class LayoutSetServiceHttp {
 
 	public static void updateLayoutSetPrototypeLinkEnabled(
@@ -94,7 +91,7 @@ public class LayoutSetServiceHttp {
 
 	public static void updateLogo(
 			HttpPrincipal httpPrincipal, long groupId, boolean privateLayout,
-			boolean logo, byte[] bytes)
+			boolean hasLogo, byte[] bytes)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -103,7 +100,7 @@ public class LayoutSetServiceHttp {
 				_updateLogoParameterTypes1);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, privateLayout, logo, bytes);
+				methodKey, groupId, privateLayout, hasLogo, bytes);
 
 			try {
 				TunnelUtil.invoke(httpPrincipal, methodHandler);
@@ -129,7 +126,7 @@ public class LayoutSetServiceHttp {
 
 	public static void updateLogo(
 			HttpPrincipal httpPrincipal, long groupId, boolean privateLayout,
-			boolean logo, java.io.File file)
+			boolean hasLogo, java.io.File file)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -138,7 +135,7 @@ public class LayoutSetServiceHttp {
 				_updateLogoParameterTypes2);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, privateLayout, logo, file);
+				methodKey, groupId, privateLayout, hasLogo, file);
 
 			try {
 				TunnelUtil.invoke(httpPrincipal, methodHandler);
@@ -164,7 +161,7 @@ public class LayoutSetServiceHttp {
 
 	public static void updateLogo(
 			HttpPrincipal httpPrincipal, long groupId, boolean privateLayout,
-			boolean logo, java.io.InputStream inputStream)
+			boolean hasLogo, java.io.InputStream inputStream)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -173,7 +170,7 @@ public class LayoutSetServiceHttp {
 				_updateLogoParameterTypes3);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, privateLayout, logo, inputStream);
+				methodKey, groupId, privateLayout, hasLogo, inputStream);
 
 			try {
 				TunnelUtil.invoke(httpPrincipal, methodHandler);
@@ -199,7 +196,7 @@ public class LayoutSetServiceHttp {
 
 	public static void updateLogo(
 			HttpPrincipal httpPrincipal, long groupId, boolean privateLayout,
-			boolean logo, java.io.InputStream inputStream,
+			boolean hasLogo, java.io.InputStream inputStream,
 			boolean cleanUpStream)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -209,7 +206,7 @@ public class LayoutSetServiceHttp {
 				_updateLogoParameterTypes4);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, groupId, privateLayout, logo, inputStream,
+				methodKey, groupId, privateLayout, hasLogo, inputStream,
 				cleanUpStream);
 
 			try {

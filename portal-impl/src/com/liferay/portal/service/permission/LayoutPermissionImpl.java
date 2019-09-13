@@ -113,9 +113,9 @@ public class LayoutPermissionImpl
 			PermissionChecker permissionChecker, long plid, String actionId)
 		throws PortalException {
 
-		Layout layout = LayoutLocalServiceUtil.getLayout(plid);
-
-		check(permissionChecker, layout, actionId);
+		check(
+			permissionChecker, LayoutLocalServiceUtil.getLayout(plid),
+			actionId);
 	}
 
 	@Override
@@ -177,9 +177,9 @@ public class LayoutPermissionImpl
 			PermissionChecker permissionChecker, long plid, String actionId)
 		throws PortalException {
 
-		Layout layout = LayoutLocalServiceUtil.getLayout(plid);
-
-		return contains(permissionChecker, layout, actionId);
+		return contains(
+			permissionChecker, LayoutLocalServiceUtil.getLayout(plid),
+			actionId);
 	}
 
 	@Override
@@ -575,10 +575,10 @@ public class LayoutPermissionImpl
 						permissionChecker.getUserId(), group.getClassPK());
 				}
 
-				if (Arrays.binarySearch(
-						userBag.getUserUserGroupsIds(), group.getClassPK()) >=
-							0) {
+				int count = Arrays.binarySearch(
+					userBag.getUserUserGroupsIds(), group.getClassPK());
 
+				if (count >= 0) {
 					return true;
 				}
 

@@ -38,7 +38,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -94,7 +94,10 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 /**
  * @author Eudaldo Alonso
  */
-@Component(immediate = true, service = AssetPublisherWebUtil.class)
+@Component(
+	configurationPid = "com.liferay.asset.publisher.web.internal.configuration.AssetPublisherPortletInstanceConfiguration",
+	immediate = true, service = AssetPublisherWebUtil.class
+)
 public class AssetPublisherWebUtil {
 
 	public void addAndStoreSelection(
@@ -554,7 +557,7 @@ public class AssetPublisherWebUtil {
 		throws ConfigurationException {
 
 		_assetPublisherPortletInstanceConfiguration =
-			ConfigurationProviderUtil.getSystemConfiguration(
+			_configurationProvider.getSystemConfiguration(
 				AssetPublisherPortletInstanceConfiguration.class);
 	}
 
@@ -654,6 +657,9 @@ public class AssetPublisherWebUtil {
 
 	@Reference
 	private AssetTagLocalService _assetTagLocalService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
 	private DDMIndexer _ddmIndexer;

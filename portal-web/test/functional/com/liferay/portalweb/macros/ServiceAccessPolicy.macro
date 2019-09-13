@@ -1,5 +1,35 @@
 definition {
 
+	macro addServiceAccessPolicy {
+		LexiconEntry.gotoAdd();
+
+		FormFields.editText(
+			fieldName = "name",
+			fieldValue = "${policyName}");
+
+		FormFields.editText(
+			fieldName = "title",
+			fieldValue = "${title}");
+
+		if (isSet(serviceClass)) {
+			FormFields.editText(
+				fieldName = "serviceClass",
+				fieldValue = "${serviceClass}");
+		}
+
+		if (isSet(methodName)) {
+			FormFields.editText(
+				fieldName = "MethodName",
+				fieldValue = "${methodName}");
+		}
+
+		if ("${enabled}" == "true") {
+			FormFields.enableCheckbox(fieldName = "enabled");
+		}
+
+		PortletEntry.save();
+	}
+
 	macro editServiceAccessPolicy {
 		ServiceAccessPolicy.gotoServiceAccessPolicy(policyName = "${policyName}");
 
@@ -13,9 +43,38 @@ definition {
 				value1 = "${allowedServiceSignature}");
 		}
 
-		AssertClick(
-			locator1 = "Button#SAVE",
-			value1 = "Save");
+		if ("${enabled}" == "true") {
+			FormFields.enableCheckbox(fieldName = "enabled");
+		}
+		else if ("${enabled}" == "false") {
+			FormFields.disableCheckbox(fieldName = "enabled");
+		}
+
+		if (isSet(newName)) {
+			FormFields.editText(
+				fieldName = "name",
+				fieldValue = "${newName}");
+		}
+
+		if (isSet(title)) {
+			FormFields.editText(
+				fieldName = "title",
+				fieldValue = "${title}");
+		}
+
+		if (isSet(serviceClass)) {
+			FormFields.editText(
+				fieldName = "serviceClass",
+				fieldValue = "${serviceClass}");
+		}
+
+		if (isSet(methodName)) {
+			FormFields.editText(
+				fieldName = "MethodName",
+				fieldValue = "${methodName}");
+		}
+
+		PortletEntry.save();
 	}
 
 	macro gotoServiceAccessPolicy {

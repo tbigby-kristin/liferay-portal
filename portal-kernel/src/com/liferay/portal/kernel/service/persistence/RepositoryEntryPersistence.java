@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface RepositoryEntryPersistence
 	extends BasePersistence<RepositoryEntry> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link RepositoryEntryUtil} to access the repository entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -92,14 +92,14 @@ public interface RepositoryEntryPersistence
 	 * @param start the lower bound of the range of repository entries
 	 * @param end the upper bound of the range of repository entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching repository entries
 	 */
 	public java.util.List<RepositoryEntry> findByUuid(
 		String uuid, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<RepositoryEntry>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first repository entry in the ordered set where uuid = &#63;.
@@ -208,11 +208,11 @@ public interface RepositoryEntryPersistence
 	 *
 	 * @param uuid the uuid
 	 * @param groupId the group ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching repository entry, or <code>null</code> if a matching repository entry could not be found
 	 */
 	public RepositoryEntry fetchByUUID_G(
-		String uuid, long groupId, boolean retrieveFromCache);
+		String uuid, long groupId, boolean useFinderCache);
 
 	/**
 	 * Removes the repository entry where uuid = &#63; and groupId = &#63; from the database.
@@ -290,14 +290,14 @@ public interface RepositoryEntryPersistence
 	 * @param start the lower bound of the range of repository entries
 	 * @param end the upper bound of the range of repository entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching repository entries
 	 */
 	public java.util.List<RepositoryEntry> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<RepositoryEntry>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first repository entry in the ordered set where uuid = &#63; and companyId = &#63;.
@@ -441,14 +441,14 @@ public interface RepositoryEntryPersistence
 	 * @param start the lower bound of the range of repository entries
 	 * @param end the upper bound of the range of repository entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching repository entries
 	 */
 	public java.util.List<RepositoryEntry> findByRepositoryId(
 		long repositoryId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<RepositoryEntry>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first repository entry in the ordered set where repositoryId = &#63;.
@@ -557,11 +557,11 @@ public interface RepositoryEntryPersistence
 	 *
 	 * @param repositoryId the repository ID
 	 * @param mappedId the mapped ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching repository entry, or <code>null</code> if a matching repository entry could not be found
 	 */
 	public RepositoryEntry fetchByR_M(
-		long repositoryId, String mappedId, boolean retrieveFromCache);
+		long repositoryId, String mappedId, boolean useFinderCache);
 
 	/**
 	 * Removes the repository entry where repositoryId = &#63; and mappedId = &#63; from the database.
@@ -681,14 +681,14 @@ public interface RepositoryEntryPersistence
 	 * @param start the lower bound of the range of repository entries
 	 * @param end the upper bound of the range of repository entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of repository entries
 	 */
 	public java.util.List<RepositoryEntry> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<RepositoryEntry>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the repository entries from the database.

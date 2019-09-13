@@ -235,9 +235,7 @@ public class Entity implements Comparable<Entity> {
 
 		Entity entity = (Entity)obj;
 
-		String name = entity.getName();
-
-		if (_name.equals(name)) {
+		if (_name.equals(entity.getName())) {
 			return true;
 		}
 
@@ -565,6 +563,12 @@ public class Entity implements Comparable<Entity> {
 
 	public List<EntityColumn> getPKEntityColumns() {
 		return _pkEntityColumns;
+	}
+
+	public String getPKMethodName() {
+		EntityColumn entityColumn = _getPKEntityColumn();
+
+		return entityColumn.getMethodName();
 	}
 
 	public String getPKVarName() {

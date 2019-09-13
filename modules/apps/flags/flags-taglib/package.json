@@ -1,15 +1,26 @@
 {
 	"dependencies": {
-		"clay-button": "2.15.1",
-		"clay-icon": "2.15.1",
+		"@clayui/button": "3.0.0-alpha.1",
+		"@clayui/css": "3.0.0-alpha.1",
+		"@clayui/icon": "3.0.0-alpha.1",
+		"@clayui/modal": "3.0.0-alpha.1",
+		"clay-button": "2.18.1",
+		"clay-icon": "2.18.1",
+		"frontend-js-web": "*",
 		"metal-soy": "2.16.8",
-		"metal-state": "2.16.8"
+		"metal-state": "2.16.8",
+		"prop-types": "15.7.2",
+		"react": "16.9.0",
+		"react-dom": "16.9.0"
 	},
+	"main": "react/js/index.es.js",
 	"name": "flags-taglib",
+	"private": true,
 	"scripts": {
 		"build": "liferay-npm-scripts build",
-		"checkFormat": "liferay-npm-scripts lint",
-		"format": "liferay-npm-scripts format"
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix",
+		"test": "liferay-npm-scripts test"
 	},
 	"version": "5.0.0"
 }

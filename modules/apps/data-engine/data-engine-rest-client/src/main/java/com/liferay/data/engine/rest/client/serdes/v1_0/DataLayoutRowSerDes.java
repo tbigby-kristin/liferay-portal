@@ -18,11 +18,11 @@ import com.liferay.data.engine.rest.client.dto.v1_0.DataLayoutColumn;
 import com.liferay.data.engine.rest.client.dto.v1_0.DataLayoutRow;
 import com.liferay.data.engine.rest.client.json.BaseJSONParser;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import javax.annotation.Generated;
@@ -57,22 +57,22 @@ public class DataLayoutRowSerDes {
 
 		sb.append("{");
 
-		if (dataLayoutRow.getDataLayoutColums() != null) {
+		if (dataLayoutRow.getDataLayoutColumns() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"dataLayoutColums\": ");
+			sb.append("\"dataLayoutColumns\": ");
 
 			sb.append("[");
 
-			for (int i = 0; i < dataLayoutRow.getDataLayoutColums().length;
+			for (int i = 0; i < dataLayoutRow.getDataLayoutColumns().length;
 				 i++) {
 
 				sb.append(
-					String.valueOf(dataLayoutRow.getDataLayoutColums()[i]));
+					String.valueOf(dataLayoutRow.getDataLayoutColumns()[i]));
 
-				if ((i + 1) < dataLayoutRow.getDataLayoutColums().length) {
+				if ((i + 1) < dataLayoutRow.getDataLayoutColumns().length) {
 					sb.append(", ");
 				}
 			}
@@ -97,18 +97,57 @@ public class DataLayoutRowSerDes {
 			return null;
 		}
 
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> map = new TreeMap<>();
 
-		if (dataLayoutRow.getDataLayoutColums() == null) {
-			map.put("dataLayoutColums", null);
+		if (dataLayoutRow.getDataLayoutColumns() == null) {
+			map.put("dataLayoutColumns", null);
 		}
 		else {
 			map.put(
-				"dataLayoutColums",
-				String.valueOf(dataLayoutRow.getDataLayoutColums()));
+				"dataLayoutColumns",
+				String.valueOf(dataLayoutRow.getDataLayoutColumns()));
 		}
 
 		return map;
+	}
+
+	public static class DataLayoutRowJSONParser
+		extends BaseJSONParser<DataLayoutRow> {
+
+		@Override
+		protected DataLayoutRow createDTO() {
+			return new DataLayoutRow();
+		}
+
+		@Override
+		protected DataLayoutRow[] createDTOArray(int size) {
+			return new DataLayoutRow[size];
+		}
+
+		@Override
+		protected void setField(
+			DataLayoutRow dataLayoutRow, String jsonParserFieldName,
+			Object jsonParserFieldValue) {
+
+			if (Objects.equals(jsonParserFieldName, "dataLayoutColumns")) {
+				if (jsonParserFieldValue != null) {
+					dataLayoutRow.setDataLayoutColumns(
+						Stream.of(
+							toStrings((Object[])jsonParserFieldValue)
+						).map(
+							object -> DataLayoutColumnSerDes.toDTO(
+								(String)object)
+						).toArray(
+							size -> new DataLayoutColumn[size]
+						));
+				}
+			}
+			else {
+				throw new IllegalArgumentException(
+					"Unsupported field name " + jsonParserFieldName);
+			}
+		}
+
 	}
 
 	private static String _escape(Object object) {
@@ -134,9 +173,36 @@ public class DataLayoutRowSerDes {
 			sb.append("\"");
 			sb.append(entry.getKey());
 			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
+
+			Object value = entry.getValue();
+
+			Class<?> valueClass = value.getClass();
+
+			if (value instanceof Map) {
+				sb.append(_toJSON((Map)value));
+			}
+			else if (valueClass.isArray()) {
+				Object[] values = (Object[])value;
+
+				sb.append("[");
+
+				for (int i = 0; i < values.length; i++) {
+					sb.append("\"");
+					sb.append(_escape(values[i]));
+					sb.append("\"");
+
+					if ((i + 1) < values.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else {
+				sb.append("\"");
+				sb.append(_escape(entry.getValue()));
+				sb.append("\"");
+			}
 
 			if (iterator.hasNext()) {
 				sb.append(",");
@@ -146,45 +212,6 @@ public class DataLayoutRowSerDes {
 		sb.append("}");
 
 		return sb.toString();
-	}
-
-	private static class DataLayoutRowJSONParser
-		extends BaseJSONParser<DataLayoutRow> {
-
-		@Override
-		protected DataLayoutRow createDTO() {
-			return new DataLayoutRow();
-		}
-
-		@Override
-		protected DataLayoutRow[] createDTOArray(int size) {
-			return new DataLayoutRow[size];
-		}
-
-		@Override
-		protected void setField(
-			DataLayoutRow dataLayoutRow, String jsonParserFieldName,
-			Object jsonParserFieldValue) {
-
-			if (Objects.equals(jsonParserFieldName, "dataLayoutColums")) {
-				if (jsonParserFieldValue != null) {
-					dataLayoutRow.setDataLayoutColums(
-						Stream.of(
-							toStrings((Object[])jsonParserFieldValue)
-						).map(
-							object -> DataLayoutColumnSerDes.toDTO(
-								(String)object)
-						).toArray(
-							size -> new DataLayoutColumn[size]
-						));
-				}
-			}
-			else {
-				throw new IllegalArgumentException(
-					"Unsupported field name " + jsonParserFieldName);
-			}
-		}
-
 	}
 
 }

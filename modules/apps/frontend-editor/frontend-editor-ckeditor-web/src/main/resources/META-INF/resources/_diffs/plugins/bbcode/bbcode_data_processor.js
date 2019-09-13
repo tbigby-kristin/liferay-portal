@@ -1,4 +1,18 @@
-;(function() {
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+(function() {
 	var toHex = function(val) {
 		val = parseInt(val, 10).toString(16);
 
@@ -11,32 +25,28 @@
 
 	var MAP_HANDLERS = {
 		a: '_handleLink',
+		b: '_handleStrong',
 		blockquote: '_handleQuote',
 		br: '_handleBreak',
 		caption: '_handleTableCaption',
 		cite: '_handleCite',
+		code: '_handlePre',
+		em: '_handleEm',
 		font: '_handleFont',
+		i: '_handleEm',
 		img: '_handleImage',
 		li: '_handleListItem',
 		ol: '_handleOrderedList',
+		pre: '_handlePre',
+		s: '_handleLineThrough',
+		strike: '_handleLineThrough',
+		strong: '_handleStrong',
 		table: '_handleTable',
 		td: '_handleTableCell',
 		th: '_handleTableHeader',
 		tr: '_handleTableRow',
 		u: '_handleUnderline',
-		ul: '_handleUnorderedList',
-
-		em: '_handleEm',
-		i: '_handleEm',
-
-		s: '_handleLineThrough',
-		strike: '_handleLineThrough',
-
-		code: '_handlePre',
-		pre: '_handlePre',
-
-		b: '_handleStrong',
-		strong: '_handleStrong'
+		ul: '_handleUnorderedList'
 	};
 
 	var MAP_IMAGE_ATTRIBUTES = [
@@ -59,7 +69,7 @@
 
 	var NEW_LINE = '\n';
 
-	var REGEX_COLOR_RGB = /^rgb\s*\(\s*([01]?\d\d?|2[0-4]\d|25[0-5])\,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\,\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/;
+	var REGEX_COLOR_RGB = /^rgb\s*\(\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5]),\s*([01]?\d\d?|2[0-4]\d|25[0-5])\s*\)$/;
 
 	var REGEX_EM = /em$/i;
 
@@ -81,7 +91,7 @@
 
 	var REGEX_PERCENT = /%$/i;
 
-	var REGEX_PRE = /<pre>/ig;
+	var REGEX_PRE = /<pre>/gi;
 
 	var REGEX_PX = /px$/i;
 
@@ -118,52 +128,7 @@
 	};
 
 	BBCodeDataProcessor.prototype = {
-		constructor: BBCodeDataProcessor,
-
-		toDataFormat: function(html, fixForBody) {
-			var instance = this;
-
-			html = html.replace(REGEX_PRE, '$&\n');
-
-			var data = instance._convert(html);
-
-			return data;
-		},
-
-		toHtml: function(data, config) {
-			var instance = this;
-
-			if (!instance._bbcodeConverter) {
-				var editorConfig = this._editor.config;
-
-				var converterConfig = {
-					emoticonImages: editorConfig.smiley_images,
-					emoticonPath: editorConfig.smiley_path,
-					emoticonSymbols: editorConfig.smiley_symbols
-				};
-
-				instance._bbcodeConverter = new CKEDITOR.BBCode2HTML(converterConfig);
-			}
-
-			if (config) {
-				var fragment = CKEDITOR.htmlParser.fragment.fromHtml(data);
-
-				var writer = new CKEDITOR.htmlParser.basicWriter();
-
-				config.filter.applyTo(fragment);
-
-				fragment.writeHtml(writer);
-
-				data = writer.getHtml();
-			}
-			else {
-				data = instance._bbcodeConverter.convert(data);
-			}
-
-			return data;
-		},
-
-		_allowNewLine: function(element) {
+		_allowNewLine(element) {
 			var instance = this;
 
 			var allowNewLine = true;
@@ -177,9 +142,15 @@
 					if (parentTagName) {
 						parentTagName = parentTagName.toLowerCase();
 
-						if (parentTagName === TAG_PARAGRAPH && parentNode.style.cssText ||
-							CKEDITOR.env.gecko && element.tagName && element.tagName.toLowerCase() === TAG_BR && parentTagName === TAG_TD && !element.nextSibling) {
-
+						if (
+							(parentTagName === TAG_PARAGRAPH &&
+								parentNode.style.cssText) ||
+							(CKEDITOR.env.gecko &&
+								element.tagName &&
+								element.tagName.toLowerCase() === TAG_BR &&
+								parentTagName === TAG_TD &&
+								!element.nextSibling)
+						) {
 							allowNewLine = false;
 						}
 					}
@@ -189,13 +160,17 @@
 			return allowNewLine;
 		},
 
-		_checkParentElement: function(element, tagName) {
+		_checkParentElement(element, tagName) {
 			var parentNode = element.parentNode;
 
-			return parentNode && parentNode.tagName && parentNode.tagName.toLowerCase() === tagName;
+			return (
+				parentNode &&
+				parentNode.tagName &&
+				parentNode.tagName.toLowerCase() === tagName
+			);
 		},
 
-		_convert: function(data) {
+		_convert(data) {
 			var instance = this;
 
 			var node = document.createElement(TAG_DIV);
@@ -211,39 +186,42 @@
 			return endResult;
 		},
 
-		_convertRGBToHex: function(color) {
-			color = color.replace(
-				REGEX_COLOR_RGB,
-				function(match, red, green, blue, offset, string) {
-					var b = toHex(blue);
-					var g = toHex(green);
-					var r = toHex(red);
+		_convertRGBToHex(color) {
+			color = color.replace(REGEX_COLOR_RGB, function(
+				_match,
+				red,
+				green,
+				blue
+			) {
+				var b = toHex(blue);
+				var g = toHex(green);
+				var r = toHex(red);
 
-					color = '#' + r + g + b;
+				color = '#' + r + g + b;
 
-					return color;
-				}
-			);
+				return color;
+			});
 
 			return color;
 		},
 
-		_getBodySize: function() {
+		_endResult: null,
+
+		_getBodySize() {
 			var body = document.body;
 
 			var style;
 
 			if (document.defaultView.getComputedStyle) {
 				style = document.defaultView.getComputedStyle(body, null);
-			}
-			else if (body.currentStyle) {
+			} else if (body.currentStyle) {
 				style = body.currentStyle;
 			}
 
 			return parseFloat(style.fontSize, 10);
 		},
 
-		_getEmoticonSymbol: function(element) {
+		_getEmoticonSymbol(element) {
 			var instance = this;
 
 			var emoticonSymbol = null;
@@ -255,7 +233,10 @@
 
 				var image = imagePath.substring(imagePath.lastIndexOf('/') + 1);
 
-				var imageIndex = instance._getImageIndex(editorConfig.smiley_images, image);
+				var imageIndex = instance._getImageIndex(
+					editorConfig.smiley_images,
+					image
+				);
 
 				if (imageIndex >= 0) {
 					emoticonSymbol = editorConfig.smiley_symbols[imageIndex];
@@ -265,15 +246,14 @@
 			return emoticonSymbol;
 		},
 
-		_getFontSize: function(fontSize) {
+		_getFontSize(fontSize) {
 			var instance = this;
 
 			var bodySize;
 
 			if (REGEX_PX.test(fontSize)) {
 				fontSize = instance._getFontSizePX(fontSize);
-			}
-			else if (REGEX_EM.test(fontSize)) {
+			} else if (REGEX_EM.test(fontSize)) {
 				bodySize = instance._getBodySize();
 
 				fontSize = parseFloat(fontSize, 10);
@@ -281,12 +261,11 @@
 				fontSize = Math.round(fontSize * bodySize) + 'px';
 
 				fontSize = instance._getFontSize(fontSize);
-			}
-			else if (REGEX_PERCENT.test(fontSize)) {
+			} else if (REGEX_PERCENT.test(fontSize)) {
 				bodySize = instance._getBodySize();
 
 				fontSize = parseFloat(fontSize, 10);
-				fontSize = Math.round(fontSize * bodySize / 100) + 'px';
+				fontSize = Math.round((fontSize * bodySize) / 100) + 'px';
 
 				fontSize = instance._getFontSize(fontSize);
 			}
@@ -294,44 +273,36 @@
 			return fontSize;
 		},
 
-		_getFontSizePX: function(fontSize) {
+		_getFontSizePX(fontSize) {
 			var sizeValue = parseInt(fontSize, 10);
 
 			if (sizeValue <= 10) {
 				sizeValue = '1';
-			}
-			else if (sizeValue <= 12) {
+			} else if (sizeValue <= 12) {
 				sizeValue = '2';
-			}
-			else if (sizeValue <= 14) {
+			} else if (sizeValue <= 14) {
 				sizeValue = '3';
-			}
-			else if (sizeValue <= 16) {
+			} else if (sizeValue <= 16) {
 				sizeValue = '4';
-			}
-			else if (sizeValue <= 18) {
+			} else if (sizeValue <= 18) {
 				sizeValue = '5';
-			}
-			else if (sizeValue <= 24) {
+			} else if (sizeValue <= 24) {
 				sizeValue = '6';
-			}
-			else if (sizeValue <= 32) {
+			} else if (sizeValue <= 32) {
 				sizeValue = '7';
-			}
-			else {
+			} else {
 				sizeValue = '8';
 			}
 
 			return sizeValue;
 		},
 
-		_getImageIndex: function(array, image) {
+		_getImageIndex(array, image) {
 			var index = -1;
 
 			if (array.lastIndexOf) {
 				index = array.lastIndexOf(image);
-			}
-			else {
+			} else {
 				for (var i = array.length - 1; i >= 0; i--) {
 					var item = array[i];
 
@@ -346,7 +317,7 @@
 			return index;
 		},
 
-		_handle: function(node) {
+		_handle(node) {
 			var instance = this;
 
 			if (!instance._endResult) {
@@ -385,27 +356,27 @@
 			instance._handleData(node.data, node);
 		},
 
-		_handleBreak: function(element, listTagsIn, listTagsOut) {
+		_handleBreak(element, listTagsIn) {
 			var instance = this;
 
 			if (instance._inPRE) {
 				listTagsIn.push(NEW_LINE);
-			}
-			else if (instance._allowNewLine(element)) {
+			} else if (instance._allowNewLine(element)) {
 				listTagsIn.push(NEW_LINE);
 			}
 		},
 
-		_handleCite: function(element, listTagsIn, listTagsOut) {
+		_handleCite(element, _listTagsIn, listTagsOut) {
 			var instance = this;
 
 			var parentNode = element.parentNode;
 
-			if (parentNode &&
+			if (
+				parentNode &&
 				parentNode.tagName &&
 				parentNode.tagName.toLowerCase() === TAG_BLOCKQUOTE &&
-				!parentNode.getAttribute(TAG_CITE)) {
-
+				!parentNode.getAttribute(TAG_CITE)
+			) {
 				var endResult = instance._endResult;
 
 				for (var i = endResult.length - 1; i >= 0; i--) {
@@ -420,19 +391,18 @@
 			}
 		},
 
-		_handleData: function(data, element) {
+		_handleData(data, element) {
 			var instance = this;
 
 			if (data) {
 				if (!instance._allowNewLine(element)) {
 					data = data.replace(REGEX_NEWLINE, STR_EMPTY);
-				}
-				else if (instance._checkParentElement(element, TAG_LINK) &&
-					data.indexOf(STR_MAILTO) === 0) {
-
+				} else if (
+					instance._checkParentElement(element, TAG_LINK) &&
+					data.indexOf(STR_MAILTO) === 0
+				) {
 					data = data.substring(STR_MAILTO.length);
-				}
-				else if (instance._checkParentElement(element, TAG_CITE)) {
+				} else if (instance._checkParentElement(element, TAG_CITE)) {
 					data = Liferay.BBCodeUtil.escape(data);
 				}
 
@@ -440,7 +410,7 @@
 			}
 		},
 
-		_handleElementEnd: function(element, listTagsIn, listTagsOut) {
+		_handleElementEnd(element) {
 			var instance = this;
 
 			var tagName = element.tagName;
@@ -452,14 +422,13 @@
 					if (!instance._isLastItemNewLine()) {
 						instance._endResult.push(NEW_LINE);
 					}
-				}
-				else if (tagName === TAG_PRE || tagName === TAG_CODE) {
+				} else if (tagName === TAG_PRE || tagName === TAG_CODE) {
 					instance._inPRE = false;
 				}
 			}
 		},
 
-		_handleElementStart: function(element, listTagsIn, listTagsOut) {
+		_handleElementStart(element, listTagsIn, listTagsOut) {
 			var instance = this;
 
 			var tagName = element.tagName;
@@ -475,13 +444,13 @@
 			}
 		},
 
-		_handleEm: function(element, listTagsIn, listTagsOut) {
+		_handleEm(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[i]');
 
 			listTagsOut.push('[/i]');
 		},
 
-		_handleFont: function(element, listTagsIn, listTagsOut) {
+		_handleFont(element, listTagsIn) {
 			var instance = this;
 
 			var size = element.size;
@@ -507,18 +476,18 @@
 			}
 		},
 
-		_handleImage: function(element, listTagsIn, listTagsOut) {
+		_handleImage(element, listTagsIn, listTagsOut) {
 			var instance = this;
 
 			var emoticonSymbol = instance._getEmoticonSymbol(element);
 
 			if (emoticonSymbol) {
 				instance._endResult.push(emoticonSymbol);
-			}
-			else {
+			} else {
 				var attrSrc = element.getAttribute('src');
 
-				var openTag = '[img' + instance._handleImageAttributes(element) + ']';
+				var openTag =
+					'[img' + instance._handleImageAttributes(element) + ']';
 
 				listTagsIn.push(openTag);
 				listTagsIn.push(attrSrc);
@@ -527,7 +496,7 @@
 			}
 		},
 
-		_handleImageAttributes: function(element) {
+		_handleImageAttributes(element) {
 			var attrs = '';
 
 			var length = MAP_IMAGE_ATTRIBUTES.length;
@@ -545,13 +514,13 @@
 			return attrs;
 		},
 
-		_handleLineThrough: function(element, listTagsIn, listTagsOut) {
+		_handleLineThrough(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[s]');
 
 			listTagsOut.push('[/s]');
 		},
 
-		_handleLink: function(element, listTagsIn, listTagsOut) {
+		_handleLink(element, listTagsIn, listTagsOut) {
 			var hrefAttribute = element.getAttribute('href');
 
 			if (hrefAttribute) {
@@ -561,7 +530,9 @@
 					hrefAttribute = editorConfig.newThreadURL;
 				}
 
-				var linkHandler = MAP_LINK_HANDLERS[hrefAttribute.indexOf(STR_MAILTO)] || 'url';
+				var linkHandler =
+					MAP_LINK_HANDLERS[hrefAttribute.indexOf(STR_MAILTO)] ||
+					'url';
 
 				listTagsIn.push('[' + linkHandler + '=', hrefAttribute, ']');
 
@@ -569,7 +540,7 @@
 			}
 		},
 
-		_handleListItem: function(element, listTagsIn, listTagsOut) {
+		_handleListItem(_element, listTagsIn) {
 			var instance = this;
 
 			if (!instance._isLastItemNewLine()) {
@@ -579,24 +550,20 @@
 			listTagsIn.push('[*]');
 		},
 
-		_handleOrderedList: function(element, listTagsIn, listTagsOut) {
+		_handleOrderedList(element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[list');
 
 			var listStyleType = element.style.listStyleType;
 
 			if (REGEX_LIST_LOWER_ALPHA.test(listStyleType)) {
 				listTagsIn.push(' type="a"');
-			}
-			else if (REGEX_LIST_LOWER_ROMAN.test(listStyleType)) {
+			} else if (REGEX_LIST_LOWER_ROMAN.test(listStyleType)) {
 				listTagsIn.push(' type="i"');
-			}
-			else if (REGEX_LIST_UPPER_ALPHA.test(listStyleType)) {
+			} else if (REGEX_LIST_UPPER_ALPHA.test(listStyleType)) {
 				listTagsIn.push(' type="A"');
-			}
-			else if (REGEX_LIST_UPPER_ROMAN.test(listStyleType)) {
+			} else if (REGEX_LIST_UPPER_ROMAN.test(listStyleType)) {
 				listTagsIn.push(' type="I"');
-			}
-			else {
+			} else {
 				listTagsIn.push(' type="1"');
 			}
 
@@ -611,7 +578,7 @@
 			listTagsOut.push('[/list]');
 		},
 
-		_handlePre: function(element, listTagsIn, listTagsOut) {
+		_handlePre(_element, listTagsIn, listTagsOut) {
 			var instance = this;
 
 			instance._inPRE = true;
@@ -621,7 +588,7 @@
 			listTagsOut.push('[/code]');
 		},
 
-		_handleQuote: function(element, listTagsIn, listTagsOut) {
+		_handleQuote(element, listTagsIn, listTagsOut) {
 			var cite = element.getAttribute(TAG_CITE);
 
 			var openTag = '[quote]';
@@ -635,13 +602,13 @@
 			listTagsOut.push('[/quote]');
 		},
 
-		_handleStrong: function(element, listTagsIn, listTagsOut) {
+		_handleStrong(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[b]');
 
 			listTagsOut.push('[/b]');
 		},
 
-		_handleStyleAlignCenter: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleAlignCenter(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var alignment = style.textAlign.toLowerCase();
@@ -653,7 +620,7 @@
 			}
 		},
 
-		_handleStyleAlignJustify: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleAlignJustify(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var alignment = style.textAlign.toLowerCase();
@@ -665,7 +632,7 @@
 			}
 		},
 
-		_handleStyleAlignLeft: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleAlignLeft(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var alignment = style.textAlign.toLowerCase();
@@ -677,7 +644,7 @@
 			}
 		},
 
-		_handleStyleAlignRight: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleAlignRight(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var alignment = style.textAlign.toLowerCase();
@@ -689,7 +656,7 @@
 			}
 		},
 
-		_handleStyleBold: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleBold(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var fontWeight = style.fontWeight;
@@ -701,7 +668,7 @@
 			}
 		},
 
-		_handleStyleColor: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleColor(element, stylesTagsIn, stylesTagsOut) {
 			var instance = this;
 
 			var style = element.style;
@@ -717,19 +684,23 @@
 			}
 		},
 
-		_handleStyleFontFamily: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleFontFamily(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var fontFamily = style.fontFamily;
 
 			if (fontFamily) {
-				stylesTagsIn.push('[font=', fontFamily.replace(REGEX_SINGLE_QUOTE, STR_EMPTY), ']');
+				stylesTagsIn.push(
+					'[font=',
+					fontFamily.replace(REGEX_SINGLE_QUOTE, STR_EMPTY),
+					']'
+				);
 
 				stylesTagsOut.push('[/font]');
 			}
 		},
 
-		_handleStyleFontSize: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleFontSize(element, stylesTagsIn, stylesTagsOut) {
 			var instance = this;
 
 			var style = element.style;
@@ -745,7 +716,7 @@
 			}
 		},
 
-		_handleStyleItalic: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleItalic(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var fontStyle = style.fontStyle;
@@ -757,26 +728,7 @@
 			}
 		},
 
-		_handleStyles: function(element, stylesTagsIn, stylesTagsOut) {
-			var instance = this;
-
-			var tagName = element.tagName;
-
-			if ((!tagName || tagName.toLowerCase() !== TAG_LINK) && element.style) {
-				instance._handleStyleAlignCenter(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleAlignJustify(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleAlignLeft(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleAlignRight(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleBold(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleColor(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleFontFamily(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleFontSize(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleItalic(element, stylesTagsIn, stylesTagsOut);
-				instance._handleStyleTextDecoration(element, stylesTagsIn, stylesTagsOut);
-			}
-		},
-
-		_handleStyleTextDecoration: function(element, stylesTagsIn, stylesTagsOut) {
+		_handleStyleTextDecoration(element, stylesTagsIn, stylesTagsOut) {
 			var style = element.style;
 
 			var textDecoration = style.textDecoration.toLowerCase();
@@ -785,21 +737,78 @@
 				stylesTagsIn.push('[s]');
 
 				stylesTagsOut.push('[/s]');
-			}
-			else if (textDecoration === 'underline') {
+			} else if (textDecoration === 'underline') {
 				stylesTagsIn.push('[u]');
 
 				stylesTagsOut.push('[/u]');
 			}
 		},
 
-		_handleTable: function(element, listTagsIn, listTagsOut) {
+		_handleStyles(element, stylesTagsIn, stylesTagsOut) {
+			var instance = this;
+
+			var tagName = element.tagName;
+
+			if (
+				(!tagName || tagName.toLowerCase() !== TAG_LINK) &&
+				element.style
+			) {
+				instance._handleStyleAlignCenter(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleAlignJustify(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleAlignLeft(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleAlignRight(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleBold(element, stylesTagsIn, stylesTagsOut);
+				instance._handleStyleColor(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleFontFamily(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleFontSize(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleItalic(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+				instance._handleStyleTextDecoration(
+					element,
+					stylesTagsIn,
+					stylesTagsOut
+				);
+			}
+		},
+
+		_handleTable(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[table]', NEW_LINE);
 
 			listTagsOut.push('[/table]');
 		},
 
-		_handleTableCaption: function(element, listTagsIn, listTagsOut) {
+		_handleTableCaption(element, listTagsIn, listTagsOut) {
 			var instance = this;
 
 			if (instance._checkParentElement(element, TAG_TABLE)) {
@@ -809,57 +818,60 @@
 			}
 		},
 
-		_handleTableCell: function(element, listTagsIn, listTagsOut) {
+		_handleTableCell(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[td]');
 
 			listTagsOut.push('[/td]', NEW_LINE);
 		},
 
-		_handleTableHeader: function(element, listTagsIn, listTagsOut) {
+		_handleTableHeader(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[th]');
 
 			listTagsOut.push('[/th]', NEW_LINE);
 		},
 
-		_handleTableRow: function(element, listTagsIn, listTagsOut) {
+		_handleTableRow(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[tr]', NEW_LINE);
 
 			listTagsOut.push('[/tr]', NEW_LINE);
 		},
 
-		_handleUnderline: function(element, listTagsIn, listTagsOut) {
+		_handleUnderline(_element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[u]');
 
 			listTagsOut.push('[/u]');
 		},
 
-		_handleUnorderedList: function(element, listTagsIn, listTagsOut) {
+		_handleUnorderedList(element, listTagsIn, listTagsOut) {
 			listTagsIn.push('[list');
 
 			var listStyleType = element.style.listStyleType;
 
 			if (REGEX_LIST_CIRCLE.test(listStyleType)) {
 				listTagsIn.push(' type="circle"]');
-			}
-			else if (REGEX_LIST_SQUARE.test(listStyleType)) {
+			} else if (REGEX_LIST_SQUARE.test(listStyleType)) {
 				listTagsIn.push(' type="square"]');
-			}
-			else {
+			} else {
 				listTagsIn.push(' type="disc"]');
 			}
 
 			listTagsOut.push('[/list]');
 		},
 
-		_isLastItemNewLine: function() {
+		_inPRE: false,
+
+		_isLastItemNewLine() {
 			var instance = this;
 
 			var endResult = instance._endResult;
 
-			return endResult && REGEX_LASTCHAR_NEWLINE_WHITESPACE.test(endResult.slice(-1));
+			return (
+				endResult &&
+				REGEX_LASTCHAR_NEWLINE_WHITESPACE.test(endResult.slice(-1))
+			);
 		},
 
-		_pushTagList: function(tagsList) {
+		_pushTagList(tagsList) {
 			var instance = this;
 
 			var endResult = instance._endResult;
@@ -873,21 +885,60 @@
 			}
 		},
 
-		_endResult: null,
+		constructor: BBCodeDataProcessor,
 
-		_inPRE: false
+		toDataFormat(html) {
+			var instance = this;
+
+			html = html.replace(REGEX_PRE, '$&\n');
+
+			var data = instance._convert(html);
+
+			return data;
+		},
+
+		toHtml(data, config) {
+			var instance = this;
+
+			if (!instance._bbcodeConverter) {
+				var editorConfig = this._editor.config;
+
+				var converterConfig = {
+					emoticonImages: editorConfig.smiley_images,
+					emoticonPath: editorConfig.smiley_path,
+					emoticonSymbols: editorConfig.smiley_symbols
+				};
+
+				instance._bbcodeConverter = new CKEDITOR.BBCode2HTML(
+					converterConfig
+				);
+			}
+
+			if (config) {
+				var fragment = CKEDITOR.htmlParser.fragment.fromHtml(data);
+
+				var writer = new CKEDITOR.htmlParser.basicWriter();
+
+				config.filter.applyTo(fragment);
+
+				fragment.writeHtml(writer);
+
+				data = writer.getHtml();
+			} else {
+				data = instance._bbcodeConverter.convert(data);
+			}
+
+			return data;
+		}
 	};
 
-	CKEDITOR.plugins.add(
-		'bbcode_data_processor',
-		{
-			requires: ['htmlwriter'],
+	CKEDITOR.plugins.add('bbcode_data_processor', {
+		init(editor) {
+			editor.dataProcessor = new BBCodeDataProcessor(editor);
 
-			init: function(editor) {
-				editor.dataProcessor = new BBCodeDataProcessor(editor);
+			editor.fire('customDataProcessorLoaded');
+		},
 
-				editor.fire('customDataProcessorLoaded');
-			}
-		}
-	);
+		requires: ['htmlwriter']
+	});
 })();

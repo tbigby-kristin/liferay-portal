@@ -244,6 +244,10 @@ public interface ExportImportHelper {
 			PortletRequest portletRequest, long targetGroupId)
 		throws PortalException;
 
+	public long getLayoutModelDeletionCount(
+			final PortletDataContext portletDataContext, boolean privateLayout)
+		throws PortalException;
+
 	/**
 	 * Returns the layout with the primary key or a dummy root layout.
 	 *
@@ -301,6 +305,10 @@ public interface ExportImportHelper {
 	public boolean isAlwaysIncludeReference(
 		PortletDataContext portletDataContext,
 		StagedModel referenceStagedModel);
+
+	public boolean isExportPortletData(PortletDataContext portletDataContext);
+
+	public boolean isLayoutRevisionInReview(Layout layout);
 
 	public boolean isReferenceWithinExportScope(
 		PortletDataContext portletDataContext, StagedModel stagedModel);

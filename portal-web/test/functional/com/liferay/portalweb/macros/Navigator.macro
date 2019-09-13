@@ -59,6 +59,10 @@ definition {
 	macro gotoAccountSettings {
 		Click(locator1 = "UserBar#USER_AVATAR_IMAGE");
 
+		if (IsElementNotPresent(locator1 = "UserBar#USER_AVATAR_DROPDOWN_PORTAL_OPEN")) {
+			Click(locator1 = "UserBar#USER_AVATAR_IMAGE");
+		}
+
 		var key_dropdownItem = "Account Settings";
 
 		Click(locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM");
@@ -140,11 +144,7 @@ definition {
 	}
 
 	macro gotoPersonalSite {
-		Click(locator1 = "UserBar#USER_AVATAR_IMAGE");
-
-		var key_dropdownItem = "My Sites";
-
-		Click(locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM");
+		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
 	}
 
 	macro gotoPrivateSitePage {
@@ -188,6 +188,7 @@ definition {
 	macro gotoStagedSitePage {
 		Navigator.openStagingSiteURL(
 			baseURL = "${baseURL}",
+			defaultSite = "${defaultSite}",
 			siteName = "${siteName}");
 
 		Navigator._gotoPage(pageName = "${pageName}");
@@ -276,7 +277,13 @@ definition {
 			var baseURL = PropsUtil.get("portal.url");
 		}
 
-		Open(locator1 = "${baseURL}/web/${siteNameURL}-staging");
+		if (isSet(defaultSite)) {
+			Open(locator1 = "${baseURL}/web/guest-staging");
+		}
+
+		else {
+			Open(locator1 = "${baseURL}/web/${siteNameURL}-staging");
+		}
 	}
 
 	macro openURL {

@@ -35,7 +35,7 @@ String currentURL = PortalUtil.getCurrentURL(request);
 			<%= LanguageUtil.format(userLocale, "this-page-is-displayed-in-x", locale.getDisplayName(userLocale)) %>
 		</div>
 
-		<c:if test="<%= LanguageUtil.isAvailableLocale(userLocale) %>">
+		<c:if test="<%= LanguageUtil.isAvailableLocale(themeDisplay.getSiteGroupId(), user.getLocale()) %>">
 
 			<%
 			String displayPreferredLanguageURLString = themeDisplay.getPathMain() + "/portal/update_language?p_l_id=" + themeDisplay.getPlid() + "&redirect=" + URLCodec.encodeURL(currentURL) + "&languageId=" + user.getLanguageId() + "&persistState=false&showUserLocaleOptionsMessage=false";
@@ -68,12 +68,8 @@ String currentURL = PortalUtil.getCurrentURL(request);
 		ignoreUserLocaleOptionsNode.on(
 			'click',
 			function() {
-				Liferay.Store(
-					{
-						ignoreUserLocaleOptions: true,
-						useHttpSession: true
-					}
-				);
+				Liferay.Util.Session.set('ignoreUserLocaleOptions', true);
+				Liferay.Util.Session.set('useHttpSession', true);
 			}
 		);
 	</aui:script>

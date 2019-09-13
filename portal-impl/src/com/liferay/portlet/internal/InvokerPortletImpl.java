@@ -156,14 +156,9 @@ public class InvokerPortletImpl
 				currentThread.setContextClassLoader(_portletClassLoader);
 			}
 
-			Closeable closeable = (Closeable)_invokerFilterContainer;
-
-			closeable.close();
+			cleanUp();
 
 			_portlet.destroy();
-		}
-		catch (IOException ioe) {
-			_log.error(ioe, ioe);
 		}
 		finally {
 			if (_portletClassLoader != null) {
@@ -251,6 +246,11 @@ public class InvokerPortletImpl
 			}
 
 			_portlet.init(portletConfig);
+		}
+		catch (Throwable t) {
+			cleanUp();
+
+			throw t;
 		}
 		finally {
 			if (_portletClassLoader != null) {
@@ -412,11 +412,16 @@ public class InvokerPortletImpl
 			}
 		}
 
-		Map<String, String[]> properties =
-			((RenderResponseImpl)renderResponse).getProperties();
+		RenderResponseImpl renderResponseImpl =
+			(RenderResponseImpl)renderResponse;
+
+		Map<String, String[]> properties = renderResponseImpl.getProperties();
 
 		if (properties.containsKey("clear-request-parameters")) {
-			((RenderRequestImpl)renderRequest).clearRenderParameters();
+			RenderRequestImpl renderRequestImpl =
+				(RenderRequestImpl)renderRequest;
+
+			renderRequestImpl.clearRenderParameters();
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -524,6 +529,17 @@ public class InvokerPortletImpl
 	public void setPortletFilters() {
 	}
 
+	protected void cleanUp() {
+		try {
+			Closeable closeable = (Closeable)_invokerFilterContainer;
+
+			closeable.close();
+		}
+		catch (IOException ioe) {
+			_log.error("Unable to close invoker filter container", ioe);
+		}
+	}
+
 	protected void invoke(
 			LiferayPortletRequest portletRequest,
 			LiferayPortletResponse portletResponse, String lifecycle,
@@ -593,17 +609,13 @@ public class InvokerPortletImpl
 
 		Map<String, String[]> properties = portletResponse.getProperties();
 
-		if (MapUtil.isNotEmpty(properties)) {
-			if (_expCache != null) {
-				String[] expCache = properties.get(
-					RenderResponse.EXPIRATION_CACHE);
+		if (MapUtil.isNotEmpty(properties) && (_expCache != null)) {
+			String[] expCache = properties.get(RenderResponse.EXPIRATION_CACHE);
 
-				if ((expCache != null) && (expCache.length > 0) &&
-					(expCache[0] != null)) {
+			if ((expCache != null) && (expCache.length > 0) &&
+				(expCache[0] != null)) {
 
-					_expCache = Integer.valueOf(
-						GetterUtil.getInteger(expCache[0]));
-				}
+				_expCache = Integer.valueOf(GetterUtil.getInteger(expCache[0]));
 			}
 		}
 	}

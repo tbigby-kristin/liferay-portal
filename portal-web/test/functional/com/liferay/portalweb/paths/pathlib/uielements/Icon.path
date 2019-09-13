@@ -10,7 +10,7 @@
 <tbody>
 <tr>
 	<td>ADD_FAVORITE</td>
-	<td>//*[@data-qa-id='row'][contains(.,'${key_rowEntry}')]//a[span/*[name()='svg'][contains(@class,'lexicon-icon-star')]]</td>
+	<td>//*[@data-qa-id='row'][contains(.,'${key_rowEntry}')]//a[span/*[name()='svg'][contains(@class,'lexicon-icon-star-o')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -64,8 +64,13 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DEACTIVATE</td>
+	<td>//button[@data-title='Deactivate' or @title='Deactivate']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>DELETE</td>
-	<td>//*[*[name()='svg'][contains(@class,'icon-trash')]] | //button[@data-title='Delete' or @title='Delete'] | //*[*[name()='svg'][contains(@class,'times-circle')]] | //a[@data-title='Deactivate' or @title='Deactivate']</td>
+	<td>//*[*[name()='svg'][contains(@class,'icon-trash')]] | //button[@data-title='Delete' or @title='Delete'] | //*[*[name()='svg'][contains(@class,'times-circle')]] | //a[@data-title='Deactivate' or @title='Deactivate'] | //a[@data-title='Remove' or @title='Remove']</td>
 	<td></td>
 </tr>
 <tr>
@@ -94,6 +99,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDIT_CATEGORIES</td>
+	<td>//*[*[name()='svg'][contains(@class,'icon-categories')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDIT_PENCIL</td>
 	<td>//a[span/*[name()='svg'][contains(@class,'lexicon-icon-pencil')]]</td>
 	<td></td>
@@ -104,6 +114,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDIT_TAGS_DISABLED</td>
+	<td>//button[*[name()='svg'][contains(@class,'icon-tag')] and contains(@disabled,'disabled')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EXPIRE</td>
 	<td>//button[@data-title='Expire' or @title='Expire']</td>
 	<td></td>
@@ -111,16 +126,6 @@
 <tr>
 	<td>FLAG</td>
 	<td>//div[contains(@class,'taglib-flags')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FACEBOOK</td>
-	<td>//i[contains(@class,'icon-facebook')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>GOOGLE_PLUS</td>
-	<td>//a[contains(@href,'google_login')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -155,7 +160,7 @@
 </tr>
 <tr>
 	<td>OK</td>
-	<td>//span[contains(@class,'icon-ok')]</td>
+	<td>//*[name()='svg'][contains(@class,'check')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -236,12 +241,12 @@
 </tr>
 <tr>
 	<td>REMOVE_FAVORITE</td>
-	<td>//*[@data-qa-id='row'][contains(.,'${key_rowEntry}')]//a[contains(@onclick,'removeAddMenuFavIte')]</td>
+	<td>//*[@data-qa-id='row'][contains(.,'${key_rowEntry}')]//a[span/*[name()='svg'][contains(@class,'lexicon-icon-star')][not(contains(@class,'-o'))]]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>ROW_VERTICAL_ELLIPSIS</td>
-	<td>//*[@data-qa-id='row' and contains(.,'${key_rowEntry}')]//a[span/*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_rowEntry}')]//*[*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
 	<td></td>
 </tr>
 <tr>

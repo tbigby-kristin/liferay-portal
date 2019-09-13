@@ -22,6 +22,12 @@ String redirect = ParamUtil.getString(request, "redirect");
 String modelResource = ParamUtil.getString(request, "modelResource");
 String modelResourceName = ResourceActionsUtil.getModelResource(request, modelResource);
 
+ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.getCompanyId(), modelResource);
+
+List<String> attributeNames = Collections.list(expandoBridge.getAttributeNames());
+
+ExpandoDisplayContext expandoDisplayContext = new ExpandoDisplayContext(request);
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("mvcPath", "/view_attributes.jsp");
@@ -33,11 +39,9 @@ portletDisplay.setURLBack(redirect);
 
 renderResponse.setTitle(modelResourceName);
 
-ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.getCompanyId(), modelResource);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "custom-field"), String.valueOf(renderResponse.createRenderURL()));
 
-List<String> attributeNames = Collections.list(expandoBridge.getAttributeNames());
-
-ExpandoDisplayContext expandoDisplayContext = new ExpandoDisplayContext(request);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "view-attributes"), null);
 %>
 
 <clay:navigation-bar
@@ -58,6 +62,15 @@ ExpandoDisplayContext expandoDisplayContext = new ExpandoDisplayContext(request)
 <aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid-1280" method="post" name="fm">
 	<aui:input name="redirect" type="hidden" value="<%= portletURL.toString() %>" />
 	<aui:input name="columnIds" type="hidden" />
+
+	<div class="container-fluid container-fluid-max-xl">
+		<liferay-ui:breadcrumb
+			showCurrentGroup="<%= false %>"
+			showGuestGroup="<%= false %>"
+			showLayout="<%= false %>"
+			showPortletBreadcrumb="<%= true %>"
+		/>
+	</div>
 
 	<liferay-ui:search-container
 		emptyResultsMessage='<%= LanguageUtil.format(request, "no-custom-fields-are-defined-for-x", HtmlUtil.escape(modelResourceName), false) %>'
@@ -128,7 +141,3 @@ ExpandoDisplayContext expandoDisplayContext = new ExpandoDisplayContext(request)
 		}
 	}
 </aui:script>
-
-<%
-PortalUtil.addPortletBreadcrumbEntry(request, modelResourceName, portletURL.toString());
-%>

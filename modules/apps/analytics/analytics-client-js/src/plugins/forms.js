@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {onReady} from '../utils/events.js';
 
 const applicationId = 'Form';
@@ -87,14 +101,10 @@ function trackFieldBlurred(analytics) {
 
 		const focusDuration = perfData.duration;
 
-		analytics.send(
-			'fieldBlurred',
-			applicationId,
-			{
-				...payload,
-				focusDuration
-			}
-		);
+		analytics.send('fieldBlurred', applicationId, {
+			...payload,
+			focusDuration
+		});
 
 		performance.clearMarks('focusDuration');
 	};
@@ -159,21 +169,16 @@ function trackFormSubmitted(analytics) {
  * @param {object} The Analytics client instance
  */
 function trackFormViewed(analytics) {
-	return onReady(
-		() => {
-			Array.prototype.slice.call(
-				document.querySelectorAll('form')
-			).filter(
-				form => isTrackableForm(form)
-			).forEach(
-				form => {
-					const payload = getFormPayload(form);
+	return onReady(() => {
+		Array.prototype.slice
+			.call(document.querySelectorAll('form'))
+			.filter(form => isTrackableForm(form))
+			.forEach(form => {
+				const payload = getFormPayload(form);
 
-					analytics.send('formViewed', applicationId, payload);
-				}
-			);
-		}
-	);
+				analytics.send('formViewed', applicationId, payload);
+			});
+	});
 }
 
 /**

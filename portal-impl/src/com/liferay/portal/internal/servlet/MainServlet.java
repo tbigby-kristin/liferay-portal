@@ -14,6 +14,7 @@
 
 package com.liferay.portal.internal.servlet;
 
+import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.events.EventsProcessorUtil;
@@ -36,7 +37,6 @@ import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletApp;
 import com.liferay.portal.kernel.model.PortletFilter;
 import com.liferay.portal.kernel.model.PortletURLListener;
-import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.patcher.PatchInconsistencyException;
@@ -53,7 +53,6 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutTemplateLocalServiceUtil;
 import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourceActionLocalServiceUtil;
-import com.liferay.portal.kernel.service.ThemeLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.InactiveRequestHandler;
 import com.liferay.portal.kernel.servlet.PortalSessionThreadLocal;
@@ -343,10 +342,11 @@ public class MainServlet extends HttpServlet {
 
 		try {
 			String[] xmls = {
-				HttpUtil.URLtoString(
-					servletContext.getResource("/WEB-INF/liferay-social.xml")),
-				HttpUtil.URLtoString(
-					servletContext.getResource(
+				StreamUtil.toString(
+					servletContext.getResourceAsStream(
+						"/WEB-INF/liferay-social.xml")),
+				StreamUtil.toString(
+					servletContext.getResourceAsStream(
 						"/WEB-INF/liferay-social-ext.xml"))
 			};
 
@@ -361,32 +361,13 @@ public class MainServlet extends HttpServlet {
 			_log.debug("Initialize themes");
 		}
 
-		try {
-			String[] xmls = {
-				HttpUtil.URLtoString(
-					servletContext.getResource(
-						"/WEB-INF/liferay-look-and-feel.xml")),
-				HttpUtil.URLtoString(
-					servletContext.getResource(
-						"/WEB-INF/liferay-look-and-feel-ext.xml"))
-			};
-
-			List<Theme> themes = ThemeLocalServiceUtil.init(
-				servletContext, null, true, xmls, pluginPackage);
-
-			servletContext.setAttribute(WebKeys.PLUGIN_THEMES, themes);
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-
 		if (_log.isDebugEnabled()) {
 			_log.debug("Initialize web settings");
 		}
 
 		try {
-			String xml = HttpUtil.URLtoString(
-				servletContext.getResource("/WEB-INF/web.xml"));
+			String xml = StreamUtil.toString(
+				servletContext.getResourceAsStream("/WEB-INF/web.xml"));
 
 			_checkWebSettings(xml);
 		}
@@ -546,9 +527,7 @@ public class MainServlet extends HttpServlet {
 			_log.debug("Check variables");
 		}
 
-		ServletContext servletContext = getServletContext();
-
-		httpServletRequest.setAttribute(WebKeys.CTX, servletContext);
+		httpServletRequest.setAttribute(WebKeys.CTX, getServletContext());
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Handle non-serializable request");
@@ -604,9 +583,10 @@ public class MainServlet extends HttpServlet {
 			return;
 		}
 
-		if (httpServletRequest.getAttribute(
-				AbsoluteRedirectsResponse.class.getName()) != null) {
+		Object classNameAttribute = httpServletRequest.getAttribute(
+			AbsoluteRedirectsResponse.class.getName());
 
+		if (classNameAttribute != null) {
 			if (_log.isDebugEnabled()) {
 				String currentURL = PortalUtil.getCurrentURL(
 					httpServletRequest);
@@ -811,11 +791,11 @@ public class MainServlet extends HttpServlet {
 						ServletContext servletContext = getServletContext();
 
 						String[] xmls = {
-							HttpUtil.URLtoString(
-								servletContext.getResource(
+							StreamUtil.toString(
+								servletContext.getResourceAsStream(
 									"/WEB-INF/liferay-layout-templates.xml")),
-							HttpUtil.URLtoString(
-								servletContext.getResource(
+							StreamUtil.toString(
+								servletContext.getResourceAsStream(
 									"/WEB-INF" +
 										"/liferay-layout-templates-ext.xml"))
 						};
@@ -958,8 +938,9 @@ public class MainServlet extends HttpServlet {
 		String[] xmls = new String[PropsValues.PORTLET_CONFIGS.length];
 
 		for (int i = 0; i < PropsValues.PORTLET_CONFIGS.length; i++) {
-			xmls[i] = HttpUtil.URLtoString(
-				servletContext.getResource(PropsValues.PORTLET_CONFIGS[i]));
+			xmls[i] = StreamUtil.toString(
+				servletContext.getResourceAsStream(
+					PropsValues.PORTLET_CONFIGS[i]));
 		}
 
 		PortletLocalServiceUtil.initEAR(servletContext, xmls, pluginPackage);
@@ -1108,9 +1089,7 @@ public class MainServlet extends HttpServlet {
 
 		Layout layout = LayoutLocalServiceUtil.getLayout(plid);
 
-		Group group = layout.getGroup();
-
-		if (GroupLocalServiceUtil.isLiveGroupActive(group)) {
+		if (GroupLocalServiceUtil.isLiveGroupActive(layout.getGroup())) {
 			return false;
 		}
 
@@ -1171,11 +1150,9 @@ public class MainServlet extends HttpServlet {
 
 			httpServletRequest.setAttribute(PageContext.EXCEPTION, e);
 
-			ServletContext servletContext = getServletContext();
-
 			StrutsUtil.forward(
 				PropsValues.SERVLET_SERVICE_EVENTS_PRE_ERROR_PAGE,
-				servletContext, httpServletRequest, httpServletResponse);
+				getServletContext(), httpServletRequest, httpServletResponse);
 
 			if (e == httpServletRequest.getAttribute(PageContext.EXCEPTION)) {
 				httpServletRequest.removeAttribute(PageContext.EXCEPTION);
@@ -1229,9 +1206,8 @@ public class MainServlet extends HttpServlet {
 
 		String redirect = mainPath.concat("/portal/login");
 
-		String currentURL = PortalUtil.getCurrentURL(httpServletRequest);
-
-		redirect = HttpUtil.addParameter(redirect, "redirect", currentURL);
+		redirect = HttpUtil.addParameter(
+			redirect, "redirect", PortalUtil.getCurrentURL(httpServletRequest));
 
 		long plid = ParamUtil.getLong(httpServletRequest, "p_l_id");
 

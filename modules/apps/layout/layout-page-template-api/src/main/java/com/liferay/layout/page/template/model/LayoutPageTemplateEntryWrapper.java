@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link LayoutPageTemplateEntry}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutPageTemplateEntry
  * @generated
  */
-@ProviderType
 public class LayoutPageTemplateEntryWrapper
 	extends BaseModelWrapper<LayoutPageTemplateEntry>
 	implements LayoutPageTemplateEntry, ModelWrapper<LayoutPageTemplateEntry> {
@@ -48,6 +45,7 @@ public class LayoutPageTemplateEntryWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put(
 			"layoutPageTemplateEntryId", getLayoutPageTemplateEntryId());
@@ -79,6 +77,12 @@ public class LayoutPageTemplateEntryWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -349,6 +353,16 @@ public class LayoutPageTemplateEntryWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this layout page template entry.
+	 *
+	 * @return the mvcc version of this layout page template entry
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this layout page template entry.
 	 *
 	 * @return the name of this layout page template entry
@@ -578,6 +592,11 @@ public class LayoutPageTemplateEntryWrapper
 		return model.isScheduled();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a layout page template entry model instance should use the <code>LayoutPageTemplateEntry</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -698,6 +717,16 @@ public class LayoutPageTemplateEntryWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this layout page template entry.
+	 *
+	 * @param mvccVersion the mvcc version of this layout page template entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

@@ -1,0 +1,185 @@
+definition {
+
+	macro _deleteAllSLAs {
+		while (IsElementPresent(locator1 = "WorkflowMetricsSLA#SLA_ELLIPSIS_BUTTON")) {
+			Click(locator1 = "WorkflowMetricsSLA#SLA_ELLIPSIS_BUTTON");
+
+			Click(locator1 = "WorkflowMetricsSLA#DELETE_SLA_BUTTON");
+
+			Click(locator1 = "WorkflowMetricsSLA#SLA_REMOVE_CONFIRMATION_BUTTON");
+
+		}
+	}
+
+	macro AssertChartIsPresent {
+		MouseOver(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART");
+
+		AssertTextPresent(
+			locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_TOOLTIP_UNIT_VALUE",
+			value1 = "${chartVelocityUnit}");
+	}
+
+	macro assertDefaultChartRangesAndUnits {
+		AssertTextEquals(
+			locator1 = "WorkflowMetrics#METRICS_COMPLETED_ITEMS_DATE_RANGE_DROPDOWN",
+			value1 = "Last 30 Days");
+
+		AssertTextEquals(
+			locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN",
+			value1 = "Last 30 Days");
+
+		AssertTextEquals(
+			locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN",
+			value1 = "Inst / Day");
+
+		AssertTextEquals(
+			locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_UNIT_LABEL",
+			value1 = "inst / day");
+	}
+
+	macro fillSLAForm {
+		var key_slaDefinitionDays = "${slaDefinitionDays}";
+		var key_slaDefinitionDescription = "${slaDefinitionDescription}";
+		var key_slaDefinitionEnd = "${slaDefinitionEnd}";
+		var key_slaDefinitionName = "${slaDefinitionName}";
+		var key_slaDefinitionStart = "${slaDefinitionStart}";
+
+		Type(
+			locator1 = "WorkflowMetricsSLA#SLA_DEFINITION_NAME",
+			value1 = "${key_slaDefinitionName}");
+
+		Type(
+			locator1 = "WorkflowMetricsSLA#SLA_DEFINITION_DESCRIPTION",
+			value1 = "${key_slaDefinitionDescription}");
+
+		Click(locator1 = "WorkflowMetricsSLA#SLA_DEFINITION_START");
+
+		AssertClick(
+			locator1 = "WorkflowMetricsSLA#SLA_DROPDOWN_START_OPTION",
+			value1 = "${key_slaDefinitionStart}");
+
+		Click(locator1 = "WorkflowMetricsSLA#SLA_DEFINITION_STOP");
+
+		AssertClick(
+			locator1 = "WorkflowMetricsSLA#SLA_DROPDOWN_STOP_OPTION",
+			value1 = "${key_slaDefinitionEnd}");
+
+		Type(
+			locator1 = "WorkflowMetricsSLA#SLA_DEFINITION_DAYS",
+			value1 = "${key_slaDefinitionDays}");
+	}
+
+	macro goToCreatedSLAForm {
+		var key_workflowSLAName = "${workflowSLAName}";
+
+		Click(
+			locator1 = "WorkflowMetricsSLA#SLA_CREATED_FORM",
+			value1 = "${workflowSLAName}");
+	}
+
+	macro goToWorkflowProcess {
+		var key_workflowProcessName = "${workflowProcessName}";
+
+		Click(
+			locator1 = "WorkflowMetrics#METRICS_WORKFLOW_PROCESS_NAME",
+			value1 = "${workflowProcessName}");
+
+	}
+
+	macro goToWorkflowSLASettings {
+		var key_workflowProcessName = "${workflowProcessName}";
+
+		WorkflowMetrics.goToWorkflowProcess(workflowProcessName = "${workflowProcessName}");
+
+		Click(locator1 = "WorkflowMetricsSLA#METRICS_MENU_SLA");
+
+		Click(locator1 = "WorkflowMetricsSLA#METRICS_SLA_SETTINGS");
+
+	}
+
+	macro tearDown {
+		WorkflowMetrics.goToWorkflowSLASettings(workflowProcessName = "Single Approver");
+
+		if (IsElementPresent(locator1 = "WorkflowMetricsSLA#SLA_TABLE")) {
+			WorkflowMetrics._deleteAllSLAs();
+
+		}
+
+	}
+
+	macro verifyDefaultUnitsForEachDateRange {
+		var key_completionVelocityDateRange = "${completionVelocityDateRange}";
+
+		for (var isUnitPresent : list "${isPresent}") {
+
+			Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN");
+
+			Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN_OPTION");
+
+			Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN");
+
+			AssertElementPresent(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitPresent}");
+
+			if ("${isUnitPresent}" == "INST_HOUR") {
+				Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitPresent}");
+
+				AssertTextEquals(
+					locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_UNIT_LABEL",
+					value1 = "inst / hour");
+
+				WorkflowMetrics.AssertChartIsPresent(chartVelocityUnit = "Inst / Hour");
+			}
+
+			if ("${isUnitPresent}" == "INST_DAY") {
+				Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitPresent}");
+
+				AssertTextEquals(
+					locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_UNIT_LABEL",
+					value1 = "inst / day");
+
+				WorkflowMetrics.AssertChartIsPresent(chartVelocityUnit = "Inst / Day");
+			}
+
+			if ("${isUnitPresent}" == "INST_WEEK") {
+				Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitPresent}");
+
+				AssertTextEquals(
+					locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_UNIT_LABEL",
+					value1 = "inst / week");
+
+				WorkflowMetrics.AssertChartIsPresent(chartVelocityUnit = "Inst / Week");
+			}
+
+			if ("${isUnitPresent}" == "INST_MONTH") {
+				Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitPresent}");
+
+				AssertTextEquals(
+					locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_UNIT_LABEL",
+					value1 = "inst / month");
+
+				WorkflowMetrics.AssertChartIsPresent(chartVelocityUnit = "Inst / Month");
+			}
+
+			if ("${isUnitPresent}" == "INST_YEAR") {
+				Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitPresent}");
+
+				AssertTextEquals(
+					locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_CHART_UNIT_LABEL",
+					value1 = "inst / year");
+
+				WorkflowMetrics.AssertChartIsPresent(chartVelocityUnit = "Inst / Year");
+			}
+		}
+
+		for (var isUnitNotPresent : list "${isNotPresent}") {
+			Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN");
+
+			Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_DATE_RANGE_DROPDOWN_OPTION");
+
+			Click(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN");
+
+			AssertElementNotPresent(locator1 = "WorkflowMetrics#METRICS_COMPLETION_VELOCITY_UNIT_DROPDOWN_OPTION_${isUnitNotPresent}");
+		}
+	}
+
+}

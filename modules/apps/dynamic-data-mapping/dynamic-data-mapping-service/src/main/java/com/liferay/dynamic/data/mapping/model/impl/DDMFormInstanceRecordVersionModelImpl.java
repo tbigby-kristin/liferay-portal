@@ -50,8 +50,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the DDMFormInstanceRecordVersion service. Represents a row in the &quot;DDMFormInstanceRecordVersion&quot; database table, with each column mapped to a property of this class.
  *
@@ -64,12 +62,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class DDMFormInstanceRecordVersionModelImpl
 	extends BaseModelImpl<DDMFormInstanceRecordVersion>
 	implements DDMFormInstanceRecordVersionModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ddm form instance record version model instance should use the <code>DDMFormInstanceRecordVersion</code> interface instead.
@@ -77,21 +74,23 @@ public class DDMFormInstanceRecordVersionModelImpl
 	public static final String TABLE_NAME = "DDMFormInstanceRecordVersion";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT},
 		{"formInstanceRecordVersionId", Types.BIGINT},
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
 		{"createDate", Types.TIMESTAMP}, {"formInstanceId", Types.BIGINT},
 		{"formInstanceVersion", Types.VARCHAR},
 		{"formInstanceRecordId", Types.BIGINT}, {"version", Types.VARCHAR},
-		{"status", Types.INTEGER}, {"statusByUserId", Types.BIGINT},
-		{"statusByUserName", Types.VARCHAR}, {"statusDate", Types.TIMESTAMP},
-		{"storageId", Types.BIGINT}
+		{"storageId", Types.BIGINT}, {"status", Types.INTEGER},
+		{"statusByUserId", Types.BIGINT}, {"statusByUserName", Types.VARCHAR},
+		{"statusDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("formInstanceRecordVersionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -102,15 +101,15 @@ public class DDMFormInstanceRecordVersionModelImpl
 		TABLE_COLUMNS_MAP.put("formInstanceVersion", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("formInstanceRecordId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("version", Types.VARCHAR);
+		TABLE_COLUMNS_MAP.put("storageId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("status", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("statusByUserId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("statusByUserName", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("statusDate", Types.TIMESTAMP);
-		TABLE_COLUMNS_MAP.put("storageId", Types.BIGINT);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DDMFormInstanceRecordVersion (formInstanceRecordVersionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,formInstanceId LONG,formInstanceVersion VARCHAR(75) null,formInstanceRecordId LONG,version VARCHAR(75) null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,storageId LONG)";
+		"create table DDMFormInstanceRecordVersion (mvccVersion LONG default 0 not null,formInstanceRecordVersionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,formInstanceId LONG,formInstanceVersion VARCHAR(75) null,formInstanceRecordId LONG,version VARCHAR(75) null,storageId LONG,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table DDMFormInstanceRecordVersion";
@@ -127,21 +126,6 @@ public class DDMFormInstanceRecordVersionModelImpl
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
 
-	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.dynamic.data.mapping.service.util.ServiceProps.get(
-			"value.object.entity.cache.enabled.com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion"),
-		true);
-
-	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.dynamic.data.mapping.service.util.ServiceProps.get(
-			"value.object.finder.cache.enabled.com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion"),
-		true);
-
-	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(
-		com.liferay.dynamic.data.mapping.service.util.ServiceProps.get(
-			"value.object.column.bitmask.enabled.com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion"),
-		true);
-
 	public static final long FORMINSTANCEID_COLUMN_BITMASK = 1L;
 
 	public static final long FORMINSTANCERECORDID_COLUMN_BITMASK = 2L;
@@ -155,6 +139,14 @@ public class DDMFormInstanceRecordVersionModelImpl
 	public static final long VERSION_COLUMN_BITMASK = 32L;
 
 	public static final long FORMINSTANCERECORDVERSIONID_COLUMN_BITMASK = 64L;
+
+	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
+		_entityCacheEnabled = entityCacheEnabled;
+	}
+
+	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
+		_finderCacheEnabled = finderCacheEnabled;
+	}
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -172,6 +164,7 @@ public class DDMFormInstanceRecordVersionModelImpl
 		DDMFormInstanceRecordVersion model =
 			new DDMFormInstanceRecordVersionImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setFormInstanceRecordVersionId(
 			soapModel.getFormInstanceRecordVersionId());
 		model.setGroupId(soapModel.getGroupId());
@@ -183,11 +176,11 @@ public class DDMFormInstanceRecordVersionModelImpl
 		model.setFormInstanceVersion(soapModel.getFormInstanceVersion());
 		model.setFormInstanceRecordId(soapModel.getFormInstanceRecordId());
 		model.setVersion(soapModel.getVersion());
+		model.setStorageId(soapModel.getStorageId());
 		model.setStatus(soapModel.getStatus());
 		model.setStatusByUserId(soapModel.getStatusByUserId());
 		model.setStatusByUserName(soapModel.getStatusByUserName());
 		model.setStatusDate(soapModel.getStatusDate());
-		model.setStorageId(soapModel.getStorageId());
 
 		return model;
 	}
@@ -214,10 +207,6 @@ public class DDMFormInstanceRecordVersionModelImpl
 
 		return models;
 	}
-
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
-		com.liferay.dynamic.data.mapping.service.util.ServiceProps.get(
-			"lock.expiration.time.com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion"));
 
 	public DDMFormInstanceRecordVersionModelImpl() {
 	}
@@ -353,6 +342,12 @@ public class DDMFormInstanceRecordVersionModelImpl
 					<String, BiConsumer<DDMFormInstanceRecordVersion, ?>>();
 
 		attributeGetterFunctions.put(
+			"mvccVersion", DDMFormInstanceRecordVersion::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<DDMFormInstanceRecordVersion, Long>)
+				DDMFormInstanceRecordVersion::setMvccVersion);
+		attributeGetterFunctions.put(
 			"formInstanceRecordVersionId",
 			DDMFormInstanceRecordVersion::getFormInstanceRecordVersionId);
 		attributeSetterBiConsumers.put(
@@ -416,6 +411,12 @@ public class DDMFormInstanceRecordVersionModelImpl
 			(BiConsumer<DDMFormInstanceRecordVersion, String>)
 				DDMFormInstanceRecordVersion::setVersion);
 		attributeGetterFunctions.put(
+			"storageId", DDMFormInstanceRecordVersion::getStorageId);
+		attributeSetterBiConsumers.put(
+			"storageId",
+			(BiConsumer<DDMFormInstanceRecordVersion, Long>)
+				DDMFormInstanceRecordVersion::setStorageId);
+		attributeGetterFunctions.put(
 			"status", DDMFormInstanceRecordVersion::getStatus);
 		attributeSetterBiConsumers.put(
 			"status",
@@ -440,17 +441,22 @@ public class DDMFormInstanceRecordVersionModelImpl
 			"statusDate",
 			(BiConsumer<DDMFormInstanceRecordVersion, Date>)
 				DDMFormInstanceRecordVersion::setStatusDate);
-		attributeGetterFunctions.put(
-			"storageId", DDMFormInstanceRecordVersion::getStorageId);
-		attributeSetterBiConsumers.put(
-			"storageId",
-			(BiConsumer<DDMFormInstanceRecordVersion, Long>)
-				DDMFormInstanceRecordVersion::setStorageId);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -654,6 +660,17 @@ public class DDMFormInstanceRecordVersionModelImpl
 
 	@JSON
 	@Override
+	public long getStorageId() {
+		return _storageId;
+	}
+
+	@Override
+	public void setStorageId(long storageId) {
+		_storageId = storageId;
+	}
+
+	@JSON
+	@Override
 	public int getStatus() {
 		return _status;
 	}
@@ -727,17 +744,6 @@ public class DDMFormInstanceRecordVersionModelImpl
 	@Override
 	public void setStatusDate(Date statusDate) {
 		_statusDate = statusDate;
-	}
-
-	@JSON
-	@Override
-	public long getStorageId() {
-		return _storageId;
-	}
-
-	@Override
-	public void setStorageId(long storageId) {
-		_storageId = storageId;
 	}
 
 	@Override
@@ -841,7 +847,12 @@ public class DDMFormInstanceRecordVersionModelImpl
 	@Override
 	public DDMFormInstanceRecordVersion toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, DDMFormInstanceRecordVersion>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -853,6 +864,7 @@ public class DDMFormInstanceRecordVersionModelImpl
 		DDMFormInstanceRecordVersionImpl ddmFormInstanceRecordVersionImpl =
 			new DDMFormInstanceRecordVersionImpl();
 
+		ddmFormInstanceRecordVersionImpl.setMvccVersion(getMvccVersion());
 		ddmFormInstanceRecordVersionImpl.setFormInstanceRecordVersionId(
 			getFormInstanceRecordVersionId());
 		ddmFormInstanceRecordVersionImpl.setGroupId(getGroupId());
@@ -866,12 +878,12 @@ public class DDMFormInstanceRecordVersionModelImpl
 		ddmFormInstanceRecordVersionImpl.setFormInstanceRecordId(
 			getFormInstanceRecordId());
 		ddmFormInstanceRecordVersionImpl.setVersion(getVersion());
+		ddmFormInstanceRecordVersionImpl.setStorageId(getStorageId());
 		ddmFormInstanceRecordVersionImpl.setStatus(getStatus());
 		ddmFormInstanceRecordVersionImpl.setStatusByUserId(getStatusByUserId());
 		ddmFormInstanceRecordVersionImpl.setStatusByUserName(
 			getStatusByUserName());
 		ddmFormInstanceRecordVersionImpl.setStatusDate(getStatusDate());
-		ddmFormInstanceRecordVersionImpl.setStorageId(getStorageId());
 
 		ddmFormInstanceRecordVersionImpl.resetOriginalValues();
 
@@ -925,12 +937,12 @@ public class DDMFormInstanceRecordVersionModelImpl
 
 	@Override
 	public boolean isEntityCacheEnabled() {
-		return ENTITY_CACHE_ENABLED;
+		return _entityCacheEnabled;
 	}
 
 	@Override
 	public boolean isFinderCacheEnabled() {
-		return FINDER_CACHE_ENABLED;
+		return _finderCacheEnabled;
 	}
 
 	@Override
@@ -974,6 +986,8 @@ public class DDMFormInstanceRecordVersionModelImpl
 		DDMFormInstanceRecordVersionCacheModel
 			ddmFormInstanceRecordVersionCacheModel =
 				new DDMFormInstanceRecordVersionCacheModel();
+
+		ddmFormInstanceRecordVersionCacheModel.mvccVersion = getMvccVersion();
 
 		ddmFormInstanceRecordVersionCacheModel.formInstanceRecordVersionId =
 			getFormInstanceRecordVersionId();
@@ -1028,6 +1042,8 @@ public class DDMFormInstanceRecordVersionModelImpl
 			ddmFormInstanceRecordVersionCacheModel.version = null;
 		}
 
+		ddmFormInstanceRecordVersionCacheModel.storageId = getStorageId();
+
 		ddmFormInstanceRecordVersionCacheModel.status = getStatus();
 
 		ddmFormInstanceRecordVersionCacheModel.statusByUserId =
@@ -1052,8 +1068,6 @@ public class DDMFormInstanceRecordVersionModelImpl
 		else {
 			ddmFormInstanceRecordVersionCacheModel.statusDate = Long.MIN_VALUE;
 		}
-
-		ddmFormInstanceRecordVersionCacheModel.storageId = getStorageId();
 
 		return ddmFormInstanceRecordVersionCacheModel;
 	}
@@ -1125,10 +1139,19 @@ public class DDMFormInstanceRecordVersionModelImpl
 		return sb.toString();
 	}
 
-	private static final Function
-		<InvocationHandler, DDMFormInstanceRecordVersion>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
 
+		private static final Function
+			<InvocationHandler, DDMFormInstanceRecordVersion>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
+
+	private static boolean _entityCacheEnabled;
+	private static boolean _finderCacheEnabled;
+
+	private long _mvccVersion;
 	private long _formInstanceRecordVersionId;
 	private long _groupId;
 	private long _companyId;
@@ -1147,13 +1170,13 @@ public class DDMFormInstanceRecordVersionModelImpl
 	private boolean _setOriginalFormInstanceRecordId;
 	private String _version;
 	private String _originalVersion;
+	private long _storageId;
 	private int _status;
 	private int _originalStatus;
 	private boolean _setOriginalStatus;
 	private long _statusByUserId;
 	private String _statusByUserName;
 	private Date _statusDate;
-	private long _storageId;
 	private long _columnBitmask;
 	private DDMFormInstanceRecordVersion _escapedModel;
 

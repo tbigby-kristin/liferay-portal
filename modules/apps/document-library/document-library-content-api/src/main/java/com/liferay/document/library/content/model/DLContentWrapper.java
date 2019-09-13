@@ -22,8 +22,6 @@ import java.sql.Blob;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DLContent}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLContent
  * @generated
  */
-@ProviderType
 public class DLContentWrapper
 	extends BaseModelWrapper<DLContent>
 	implements DLContent, ModelWrapper<DLContent> {
@@ -46,6 +43,7 @@ public class DLContentWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("contentId", getContentId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -60,6 +58,12 @@ public class DLContentWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long contentId = (Long)attributes.get("contentId");
 
 		if (contentId != null) {
@@ -150,6 +154,16 @@ public class DLContentWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this document library content.
+	 *
+	 * @return the mvcc version of this document library content
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the path of this document library content.
 	 *
 	 * @return the path of this document library content
@@ -199,6 +213,11 @@ public class DLContentWrapper
 		return model.getVersion();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a document library content model instance should use the <code>DLContent</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -242,6 +261,16 @@ public class DLContentWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the mvcc version of this document library content.
+	 *
+	 * @param mvccVersion the mvcc version of this document library content
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

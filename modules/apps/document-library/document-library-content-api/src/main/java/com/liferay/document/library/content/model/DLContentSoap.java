@@ -21,20 +21,18 @@ import java.sql.Blob;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DLContentSoap implements Serializable {
 
 	public static DLContentSoap toSoapModel(DLContent model) {
 		DLContentSoap soapModel = new DLContentSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setContentId(model.getContentId());
 		soapModel.setGroupId(model.getGroupId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -94,6 +92,14 @@ public class DLContentSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setContentId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public long getContentId() {
@@ -160,6 +166,7 @@ public class DLContentSoap implements Serializable {
 		_size = size;
 	}
 
+	private long _mvccVersion;
 	private long _contentId;
 	private long _groupId;
 	private long _companyId;

@@ -16,11 +16,14 @@ package com.liferay.document.library.google.docs.internal.instance.lifecycle;
 
 import com.liferay.document.library.google.docs.internal.util.GoogleDocsDLFileEntryTypeHelper;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
-import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerTracker;
+import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
+import com.liferay.dynamic.data.mapping.kernel.DDMStructureManager;
+import com.liferay.dynamic.data.mapping.kernel.DDMStructureManagerUtil;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
 import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.dynamic.data.mapping.util.DDMStructurePermissionSupport;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.instance.lifecycle.BasePortalInstanceLifecycleListener;
 import com.liferay.portal.instance.lifecycle.PortalInstanceLifecycleListener;
 import com.liferay.portal.kernel.exception.ModelListenerException;
@@ -28,6 +31,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+
+import java.lang.reflect.Field;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -45,7 +50,7 @@ public class GoogleDocsPortalInstanceLifecycleListener
 			GoogleDocsDLFileEntryTypeHelper googleDocsDLFileEntryTypeHelper =
 				new GoogleDocsDLFileEntryTypeHelper(
 					company, _classNameLocalService, _ddm,
-					_ddmFormDeserializerTracker, _ddmStructureLocalService,
+					_xsdDDMFormDeserializer, _ddmStructureLocalService,
 					_dlFileEntryTypeLocalService, _userLocalService);
 
 			googleDocsDLFileEntryTypeHelper.addGoogleDocsDLFileEntryType();
@@ -53,6 +58,17 @@ public class GoogleDocsPortalInstanceLifecycleListener
 		catch (PortalException pe) {
 			throw new ModelListenerException(pe);
 		}
+	}
+
+	@Reference(unbind = "-")
+	protected void setDDMStructureManager(
+			DDMStructureManager ddmStructureManager)
+		throws Exception {
+
+		Field field = ReflectionUtil.getDeclaredField(
+			DDMStructureManagerUtil.class, "_ddmStructureManager");
+
+		field.set(null, ddmStructureManager);
 	}
 
 	@Reference(
@@ -75,9 +91,6 @@ public class GoogleDocsPortalInstanceLifecycleListener
 	private DDM _ddm;
 
 	@Reference
-	private DDMFormDeserializerTracker _ddmFormDeserializerTracker;
-
-	@Reference
 	private DDMStructureLocalService _ddmStructureLocalService;
 
 	@Reference
@@ -85,5 +98,8 @@ public class GoogleDocsPortalInstanceLifecycleListener
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference(target = "(ddm.form.deserializer.type=xsd)")
+	private DDMFormDeserializer _xsdDDMFormDeserializer;
 
 }

@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {contains, hasClass, toElement} from 'metal-dom';
 import position from 'metal-position';
 
@@ -34,45 +48,40 @@ const getNearestMenuItem = function(originMenuItem, placeholder) {
 	const originMenuItemId = getId(originMenuItem);
 	const originMenuItemRegion = position.getRegion(placeholder);
 
-	return Array.prototype
-		.slice.call(
-			document.querySelectorAll(`.${MENU_ITEM_CLASSNAME}`)
-		)
+	return Array.prototype.slice
+		.call(document.querySelectorAll(`.${MENU_ITEM_CLASSNAME}`))
 		.filter(
-			menuItem => (
-				(contains(container, menuItem)) &&
-				(!contains(originMenuItem, menuItem)) &&
-				(getId(menuItem) !== originMenuItemId) &&
-				(!hasClass(menuItem, MENU_ITEM_DRAGGING_CLASSNAME))
-			)
+			menuItem =>
+				contains(container, menuItem) &&
+				!contains(originMenuItem, menuItem) &&
+				getId(menuItem) !== originMenuItemId &&
+				!hasClass(menuItem, MENU_ITEM_DRAGGING_CLASSNAME)
 		)
-		.map(
-			menuItem => {
-				const menuItemRegion = position.getRegion(menuItem);
+		.map(menuItem => {
+			const menuItemRegion = position.getRegion(menuItem);
 
-				const distance = Math.sqrt(
-					Math.pow(originMenuItemRegion.left - menuItemRegion.left, 2) +
+			const distance = Math.sqrt(
+				Math.pow(originMenuItemRegion.left - menuItemRegion.left, 2) +
 					Math.pow(originMenuItemRegion.top - menuItemRegion.top, 2)
-				);
+			);
 
-				return {
-					distance,
-					menuItem,
-					region: menuItemRegion
-				};
-			}
-		)
+			return {
+				distance,
+				menuItem,
+				region: menuItemRegion
+			};
+		})
 		.reduce(
 			(distanceA, distanceB) => {
-				return distanceA.distance < distanceB.distance ?
-					distanceA : distanceB;
+				return distanceA.distance < distanceB.distance
+					? distanceA
+					: distanceB;
 			},
 			{
 				distance: Infinity,
 				menuItem: null
 			}
-		)
-		.menuItem;
+		).menuItem;
 };
 
 /**
@@ -89,12 +98,8 @@ const insertAtPosition = function(parentMenuItem, menuItem, position) {
 
 	if (position >= children.length) {
 		parentMenuItem.appendChild(menuItem);
-	}
-	else {
-		parentMenuItem.insertBefore(
-			menuItem,
-			children[position]
-		);
+	} else {
+		parentMenuItem.insertBefore(menuItem, children[position]);
 	}
 };
 
@@ -109,12 +114,8 @@ const insertAtTop = function(menuItem) {
 	const children = getChildren(container);
 
 	if (children.length) {
-		container.insertBefore(
-			menuItem,
-			children[0]
-		);
-	}
-	else {
+		container.insertBefore(menuItem, children[0]);
+	} else {
 		container.appendChild(menuItem);
 	}
 };
@@ -149,15 +150,13 @@ const shouldBeNested = (menuItem, parentMenuItem) => {
 		const menuItemRegion = position.getRegion(menuItem);
 		const parentMenuItemRegion = position.getRegion(parentMenuItem);
 
-		const nestedInParent = menuItemRegion.left >
-			(parentMenuItemRegion.left + NEST_THRESHOLD);
+		const nestedInParent =
+			menuItemRegion.left > parentMenuItemRegion.left + NEST_THRESHOLD;
 
-		const parentWithChildren = getChildren(parentMenuItem)
-			.filter(
-				childMenuItem => getId(childMenuItem) !==
-				getId(menuItem)
-			)
-			.length > 0;
+		const parentWithChildren =
+			getChildren(parentMenuItem).filter(
+				childMenuItem => getId(childMenuItem) !== getId(menuItem)
+			).length > 0;
 
 		nested = nestedInParent || parentWithChildren;
 	}

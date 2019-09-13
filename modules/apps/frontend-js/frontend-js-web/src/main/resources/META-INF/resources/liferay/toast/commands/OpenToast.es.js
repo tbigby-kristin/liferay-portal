@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import dom from 'metal-dom';
 import {ClayToast} from 'clay-alert';
 
@@ -13,30 +27,30 @@ import {ClayToast} from 'clay-alert';
  * @review
  */
 
-function openToast(
-	{
-		events = {},
-		message = '',
-		title = Liferay.Language.get('success'),
-		type = 'success'
-	} = {}
-) {
+function openToast({
+	events = {},
+	message = '',
+	title = Liferay.Language.get('success'),
+	type = 'success'
+} = {}) {
 	var alertContainer = document.getElementById('alertContainer');
 
 	if (!alertContainer) {
 		alertContainer = document.createElement('div');
 		alertContainer.id = 'alertContainer';
 
-		dom.addClasses(alertContainer, 'alert-notifications alert-notifications-fixed');
+		dom.addClasses(
+			alertContainer,
+			'alert-notifications alert-notifications-fixed'
+		);
 		dom.enterDocument(alertContainer);
-	}
-	else {
+	} else {
 		dom.removeChildren(alertContainer);
 	}
 
 	const mergedEvents = Object.assign(
 		{
-			'disposed': function(event) {
+			disposed() {
 				if (!alertContainer.hasChildNodes()) {
 					dom.exitDocument(alertContainer);
 				}
@@ -50,21 +64,19 @@ function openToast(
 			autoClose: true,
 			destroyOnHide: true,
 			events: mergedEvents,
-			message: message,
+			message,
 			spritemap: themeDisplay.getPathThemeImages() + '/lexicon/icons.svg',
 			style: type,
-			title: title
+			title
 		},
 		alertContainer
 	);
 
 	dom.removeClasses(clayToast.element, 'show');
 
-	requestAnimationFrame(
-		function() {
-			dom.addClasses(clayToast.element, 'show');
-		}
-	);
+	requestAnimationFrame(function() {
+		dom.addClasses(clayToast.element, 'show');
+	});
 
 	return clayToast;
 }

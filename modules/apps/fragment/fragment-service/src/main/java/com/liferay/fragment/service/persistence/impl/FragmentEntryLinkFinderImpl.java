@@ -19,6 +19,7 @@ import com.liferay.fragment.model.impl.FragmentEntryLinkImpl;
 import com.liferay.fragment.service.persistence.FragmentEntryLinkFinder;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
@@ -201,7 +202,8 @@ public class FragmentEntryLinkFinderImpl
 			qPos.add(groupId);
 			qPos.add(fragmentEntryId);
 
-			return q.list(true);
+			return (List<FragmentEntryLink>)QueryUtil.list(
+				q, getDialect(), start, end);
 		}
 		catch (Exception e) {
 			throw new SystemException(e);
@@ -235,7 +237,8 @@ public class FragmentEntryLinkFinderImpl
 			qPos.add(fragmentEntryId);
 			qPos.add(classNameId);
 
-			return q.list(true);
+			return (List<FragmentEntryLink>)QueryUtil.list(
+				q, getDialect(), start, end);
 		}
 		catch (Exception e) {
 			throw new SystemException(e);
@@ -271,7 +274,8 @@ public class FragmentEntryLinkFinderImpl
 			qPos.add(classNameId);
 			qPos.add(layoutPageTemplateEntryType);
 
-			return q.list(true);
+			return (List<FragmentEntryLink>)QueryUtil.list(
+				q, getDialect(), start, end);
 		}
 		catch (Exception e) {
 			throw new SystemException(e);

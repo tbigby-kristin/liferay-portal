@@ -213,7 +213,7 @@ public class DLAdminDisplayContext {
 		}
 
 		return StringBundler.concat(
-			"^[^?]+/", portletDisplay.getInstanceId(), "/view/" + _folderId,
+			"^[^?]+/", portletDisplay.getInstanceId(), "/view/", _folderId,
 			"\\?");
 	}
 
@@ -224,7 +224,9 @@ public class DLAdminDisplayContext {
 			return folder.getRepositoryId();
 		}
 
-		return _themeDisplay.getScopeGroupId();
+		return ParamUtil.getLong(
+			_httpServletRequest, "repositoryId",
+			_themeDisplay.getScopeGroupId());
 	}
 
 	public long getRootFolderId() {
@@ -423,10 +425,9 @@ public class DLAdminDisplayContext {
 			_dlPortletInstanceSettings.getEntriesPerPage(), portletURL, null,
 			null);
 
-		String[] entryColumns =
-			_dlPortletInstanceSettingsHelper.getEntryColumns();
-
-		dlSearchContainer.setHeaderNames(ListUtil.fromArray(entryColumns));
+		dlSearchContainer.setHeaderNames(
+			ListUtil.fromArray(
+				_dlPortletInstanceSettingsHelper.getEntryColumns()));
 
 		String orderByCol = getOrderByCol();
 		String orderByType = getOrderByType();

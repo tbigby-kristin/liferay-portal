@@ -60,7 +60,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface GroupLocalService
 	extends BaseLocalService, PersistedModelLocalService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link GroupLocalServiceUtil} to access the group local service. Add custom service methods to <code>com.liferay.portal.service.impl.GroupLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -320,6 +320,9 @@ public interface GroupLocalService
 	@ThreadLocalCachable
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Group fetchGroup(long groupId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public Group fetchGroup(long companyId, long classNameId, long classPK);
 
 	/**
 	 * Returns the group with the matching group key by first searching the

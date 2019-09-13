@@ -24,17 +24,22 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderTracker;
 import com.liferay.dynamic.data.mapping.data.provider.internal.rest.DDMRESTDataProviderSettings;
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.util.Validator;
 
+import com.netflix.hystrix.Hystrix;
 import com.netflix.hystrix.exception.HystrixRuntimeException;
+
+import java.lang.reflect.Field;
 
 import java.util.Optional;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -43,9 +48,27 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, service = DDMDataProviderInvoker.class)
 public class DDMDataProviderInvokerImpl implements DDMDataProviderInvoker {
 
+	@Deactivate
+	public void deactivate() throws Exception {
+		if (!_invoked) {
+			return;
+		}
+
+		Hystrix.reset();
+
+		Field field = ReflectionUtil.getDeclaredField(
+			Hystrix.class, "currentCommand");
+
+		ThreadLocal<?> threadLocal = (ThreadLocal<?>)field.get(null);
+
+		threadLocal.remove();
+	}
+
 	@Override
 	public DDMDataProviderResponse invoke(
 		DDMDataProviderRequest ddmDataProviderRequest) {
+
+		_invoked = true;
 
 		try {
 			return doInvoke(ddmDataProviderRequest);
@@ -196,5 +219,7 @@ public class DDMDataProviderInvokerImpl implements DDMDataProviderInvoker {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMDataProviderInvokerImpl.class);
+
+	private boolean _invoked;
 
 }

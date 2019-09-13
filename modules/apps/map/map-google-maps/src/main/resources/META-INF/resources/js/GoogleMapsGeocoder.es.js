@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import State from 'metal-state';
 
 /**
@@ -5,7 +19,6 @@ import State from 'metal-state';
  * @review
  */
 class GoogleMapsGeocoder extends State {
-
 	/**
 	 * Creates a new geocoder using Google Map's API
 	 * @param  {Array} args List of arguments to be passed to State
@@ -20,7 +33,7 @@ class GoogleMapsGeocoder extends State {
 	/**
 	 * Handles the server response of a successfull address/location resolution
 	 * @param {function} callback Callback that will be executed on success
-  	 * @param {Object} location Raw location information
+	 * @param {Object} location Raw location information
 	 * @param {Object} response Server response
 	 * @param {Object} status Server response status
 	 * @protected
@@ -43,11 +56,10 @@ class GoogleMapsGeocoder extends State {
 					lng: geolocation.lng()
 				}
 			};
-		}
-		else {
+		} else {
 			result.data = {
 				address: '',
-				location: location
+				location
 			};
 		}
 

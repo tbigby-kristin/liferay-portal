@@ -23,8 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DLFileVersion}.
@@ -34,7 +32,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLFileVersion
  * @generated
  */
-@ProviderType
 public class DLFileVersionWrapper
 	extends BaseModelWrapper<DLFileVersion>
 	implements DLFileVersion, ModelWrapper<DLFileVersion> {
@@ -47,6 +44,7 @@ public class DLFileVersionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("fileVersionId", getFileVersionId());
 		attributes.put("groupId", getGroupId());
@@ -81,6 +79,12 @@ public class DLFileVersionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -471,6 +475,16 @@ public class DLFileVersionWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this document library file version.
+	 *
+	 * @return the mvcc version of this document library file version
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this document library file version.
 	 *
 	 * @return the primary key of this document library file version
@@ -700,6 +714,11 @@ public class DLFileVersionWrapper
 		return model.isScheduled();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a document library file version model instance should use the <code>DLFileVersion</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -871,6 +890,16 @@ public class DLFileVersionWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this document library file version.
+	 *
+	 * @param mvccVersion the mvcc version of this document library file version
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

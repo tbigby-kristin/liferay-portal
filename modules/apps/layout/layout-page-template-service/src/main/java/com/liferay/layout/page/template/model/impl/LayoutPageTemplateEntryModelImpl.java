@@ -53,8 +53,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the LayoutPageTemplateEntry service. Represents a row in the &quot;LayoutPageTemplateEntry&quot; database table, with each column mapped to a property of this class.
  *
@@ -67,12 +65,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class LayoutPageTemplateEntryModelImpl
 	extends BaseModelImpl<LayoutPageTemplateEntry>
 	implements LayoutPageTemplateEntryModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a layout page template entry model instance should use the <code>LayoutPageTemplateEntry</code> interface instead.
@@ -80,10 +77,11 @@ public class LayoutPageTemplateEntryModelImpl
 	public static final String TABLE_NAME = "LayoutPageTemplateEntry";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR}, {"layoutPageTemplateEntryId", Types.BIGINT},
-		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
+		{"layoutPageTemplateEntryId", Types.BIGINT}, {"groupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP},
 		{"layoutPageTemplateCollectionId", Types.BIGINT},
 		{"classNameId", Types.BIGINT}, {"classTypeId", Types.BIGINT},
 		{"name", Types.VARCHAR}, {"type_", Types.INTEGER},
@@ -98,6 +96,7 @@ public class LayoutPageTemplateEntryModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("layoutPageTemplateEntryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -123,7 +122,7 @@ public class LayoutPageTemplateEntryModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table LayoutPageTemplateEntry (uuid_ VARCHAR(75) null,layoutPageTemplateEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,layoutPageTemplateCollectionId LONG,classNameId LONG,classTypeId LONG,name VARCHAR(75) null,type_ INTEGER,previewFileEntryId LONG,defaultTemplate BOOLEAN,layoutPrototypeId LONG,plid LONG,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table LayoutPageTemplateEntry (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,layoutPageTemplateEntryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,layoutPageTemplateCollectionId LONG,classNameId LONG,classTypeId LONG,name VARCHAR(75) null,type_ INTEGER,previewFileEntryId LONG,defaultTemplate BOOLEAN,layoutPrototypeId LONG,plid LONG,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table LayoutPageTemplateEntry";
@@ -139,21 +138,6 @@ public class LayoutPageTemplateEntryModelImpl
 	public static final String SESSION_FACTORY = "liferaySessionFactory";
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
-
-	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"value.object.entity.cache.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateEntry"),
-		true);
-
-	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"value.object.finder.cache.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateEntry"),
-		true);
-
-	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"value.object.column.bitmask.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateEntry"),
-		true);
 
 	public static final long CLASSNAMEID_COLUMN_BITMASK = 1L;
 
@@ -180,6 +164,14 @@ public class LayoutPageTemplateEntryModelImpl
 
 	public static final long UUID_COLUMN_BITMASK = 2048L;
 
+	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
+		_entityCacheEnabled = entityCacheEnabled;
+	}
+
+	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
+		_finderCacheEnabled = finderCacheEnabled;
+	}
+
 	/**
 	 * Converts the soap model instance into a normal model instance.
 	 *
@@ -195,6 +187,7 @@ public class LayoutPageTemplateEntryModelImpl
 
 		LayoutPageTemplateEntry model = new LayoutPageTemplateEntryImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setLayoutPageTemplateEntryId(
 			soapModel.getLayoutPageTemplateEntryId());
@@ -245,10 +238,6 @@ public class LayoutPageTemplateEntryModelImpl
 
 		return models;
 	}
-
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"lock.expiration.time.com.liferay.layout.page.template.model.LayoutPageTemplateEntry"));
 
 	public LayoutPageTemplateEntryModelImpl() {
 	}
@@ -381,6 +370,12 @@ public class LayoutPageTemplateEntryModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<LayoutPageTemplateEntry, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", LayoutPageTemplateEntry::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<LayoutPageTemplateEntry, Long>)
+				LayoutPageTemplateEntry::setMvccVersion);
 		attributeGetterFunctions.put("uuid", LayoutPageTemplateEntry::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -517,6 +512,17 @@ public class LayoutPageTemplateEntryModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -1096,7 +1102,12 @@ public class LayoutPageTemplateEntryModelImpl
 	@Override
 	public LayoutPageTemplateEntry toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, LayoutPageTemplateEntry>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1108,6 +1119,7 @@ public class LayoutPageTemplateEntryModelImpl
 		LayoutPageTemplateEntryImpl layoutPageTemplateEntryImpl =
 			new LayoutPageTemplateEntryImpl();
 
+		layoutPageTemplateEntryImpl.setMvccVersion(getMvccVersion());
 		layoutPageTemplateEntryImpl.setUuid(getUuid());
 		layoutPageTemplateEntryImpl.setLayoutPageTemplateEntryId(
 			getLayoutPageTemplateEntryId());
@@ -1183,12 +1195,12 @@ public class LayoutPageTemplateEntryModelImpl
 
 	@Override
 	public boolean isEntityCacheEnabled() {
-		return ENTITY_CACHE_ENABLED;
+		return _entityCacheEnabled;
 	}
 
 	@Override
 	public boolean isFinderCacheEnabled() {
-		return FINDER_CACHE_ENABLED;
+		return _finderCacheEnabled;
 	}
 
 	@Override
@@ -1264,6 +1276,8 @@ public class LayoutPageTemplateEntryModelImpl
 	public CacheModel<LayoutPageTemplateEntry> toCacheModel() {
 		LayoutPageTemplateEntryCacheModel layoutPageTemplateEntryCacheModel =
 			new LayoutPageTemplateEntryCacheModel();
+
+		layoutPageTemplateEntryCacheModel.mvccVersion = getMvccVersion();
 
 		layoutPageTemplateEntryCacheModel.uuid = getUuid();
 
@@ -1437,9 +1451,19 @@ public class LayoutPageTemplateEntryModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, LayoutPageTemplateEntry>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
 
+		private static final Function
+			<InvocationHandler, LayoutPageTemplateEntry>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
+
+	private static boolean _entityCacheEnabled;
+	private static boolean _finderCacheEnabled;
+
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _layoutPageTemplateEntryId;

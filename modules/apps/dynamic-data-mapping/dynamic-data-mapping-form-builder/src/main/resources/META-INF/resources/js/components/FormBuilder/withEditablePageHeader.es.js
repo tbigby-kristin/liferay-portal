@@ -1,9 +1,23 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import './EditablePageHeader.soy.js';
-import Component, {Fragment} from 'metal-jsx';
+import Component from 'metal-jsx';
 import {Config} from 'metal-state';
 import {EventHandler} from 'metal-events';
-import {focusedFieldStructure, pageStructure, ruleStructure} from '../../util/config.es';
-import {PagesVisitor} from '../../util/visitors.es';
+import {focusedFieldStructure, pageStructure} from '../../util/config.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
 import {sub} from '../../util/strings.es.js';
 
 const withEditablePageHeader = ChildComponent => {
@@ -12,8 +26,16 @@ const withEditablePageHeader = ChildComponent => {
 			this._eventHandler = new EventHandler();
 
 			this._eventHandler.add(
-				this.delegate('input', '.form-builder-page-header-title', this._handlePageTitleChanged.bind(this)),
-				this.delegate('input', '.form-builder-page-header-description', this._handlePageDescriptionChanged.bind(this))
+				this.delegate(
+					'input',
+					'.form-builder-page-header-title',
+					this._handlePageTitleChanged.bind(this)
+				),
+				this.delegate(
+					'input',
+					'.form-builder-page-header-description',
+					this._handlePageDescriptionChanged.bind(this)
+				)
 			);
 		}
 
@@ -26,24 +48,25 @@ const withEditablePageHeader = ChildComponent => {
 			const total = pages.length;
 			const visitor = new PagesVisitor(pages);
 
-			return visitor.mapPages(
-				(page, pageIndex) => {
-					return {
-						...page,
-						headerRenderer: 'editable',
-						pageIndex,
-						placeholder: sub(Liferay.Language.get('untitled-page-x-of-x'), [pageIndex + 1, total]),
-						total
-					};
-				}
-			);
+			return visitor.mapPages((page, pageIndex) => {
+				return {
+					...page,
+					headerRenderer: 'editable',
+					pageIndex,
+					placeholder: sub(
+						Liferay.Language.get('untitled-page-x-of-x'),
+						[pageIndex + 1, total]
+					),
+					total
+				};
+			});
 		}
 
 		render() {
 			return (
-				<Fragment>
+				<div>
 					<ChildComponent {...this.props} pages={this.getPages()} />
-				</Fragment>
+				</div>
 			);
 		}
 
@@ -56,22 +79,20 @@ const withEditablePageHeader = ChildComponent => {
 
 			dispatch(
 				'pagesUpdated',
-				visitor.mapPages(
-					(page, pageIndex) => {
-						if (pageIndex === activePage) {
-							page = {
-								...page,
-								description: value,
-								localizedDescription: {
-									...page.localizedDescription,
-									[editingLanguageId]: value
-								}
-							};
-						}
-
-						return page;
+				visitor.mapPages((page, pageIndex) => {
+					if (pageIndex === activePage) {
+						page = {
+							...page,
+							description: value,
+							localizedDescription: {
+								...page.localizedDescription,
+								[editingLanguageId]: value
+							}
+						};
 					}
-				)
+
+					return page;
+				})
 			);
 		}
 
@@ -84,28 +105,25 @@ const withEditablePageHeader = ChildComponent => {
 
 			dispatch(
 				'pagesUpdated',
-				visitor.mapPages(
-					(page, pageIndex) => {
-						if (pageIndex === activePage) {
-							page = {
-								...page,
-								localizedTitle: {
-									...page.localizedTitle,
-									[editingLanguageId]: value
-								},
-								title: value
-							};
-						}
-
-						return page;
+				visitor.mapPages((page, pageIndex) => {
+					if (pageIndex === activePage) {
+						page = {
+							...page,
+							localizedTitle: {
+								...page.localizedTitle,
+								[editingLanguageId]: value
+							},
+							title: value
+						};
 					}
-				)
+
+					return page;
+				})
 			);
 		}
 	}
 
 	EditablePageHeader.PROPS = {
-
 		/**
 		 * @default
 		 * @instance
@@ -134,9 +152,27 @@ const withEditablePageHeader = ChildComponent => {
 		editingLanguageId: Config.string(),
 
 		/**
+		 * @default undefined
+		 * @instance
+		 * @memberof FormBuilder
+		 * @type {?string}
+		 */
+
+		fieldSetDefinitionURL: Config.string(),
+
+		/**
 		 * @default []
 		 * @instance
-		 * @memberof Sidebar
+		 * @memberof FormBuilder
+		 * @type {?(array|undefined)}
+		 */
+
+		fieldSets: Config.array().value([]),
+
+		/**
+		 * @default []
+		 * @instance
+		 * @memberof FormBuilder
 		 * @type {?(array|undefined)}
 		 */
 
@@ -174,16 +210,37 @@ const withEditablePageHeader = ChildComponent => {
 		 * @type {string}
 		 */
 
-		rules: Config.arrayOf(ruleStructure).required(),
+		portletNamespace: Config.string().required(),
 
 		/**
 		 * @default undefined
 		 * @instance
-		 * @memberof FormRenderer
+		 * @memberof FormBuilder
 		 * @type {!string}
 		 */
 
-		spritemap: Config.string().required()
+		spritemap: Config.string().required(),
+
+		/**
+		 * @instance
+		 * @memberof FormBuilder
+		 * @type {object}
+		 */
+
+		successPageSettings: Config.shapeOf({
+			body: Config.object(),
+			enabled: Config.bool(),
+			title: Config.object()
+		}).value({}),
+
+		/**
+		 * @default undefined
+		 * @instance
+		 * @memberof FormBuilder
+		 * @type {?string}
+		 */
+
+		view: Config.string()
 	};
 
 	return EditablePageHeader;

@@ -30,19 +30,22 @@ import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
+@Component(service = MBThreadFinder.class)
 public class MBThreadFinderImpl
 	extends MBThreadFinderBaseImpl implements MBThreadFinder {
 
@@ -168,11 +171,12 @@ public class MBThreadFinderImpl
 					sql, "(MBThread.categoryId = ?) AND", StringPool.BLANK);
 			}
 			else {
+				String mergedCategoryIds = StringUtil.merge(
+					categoryIds, " OR MBThread.categoryId = ");
+
 				sql = StringUtil.replace(
 					sql, "MBThread.categoryId = ?",
-					"MBThread.categoryId = " +
-						StringUtil.merge(
-							categoryIds, " OR MBThread.categoryId = "));
+					"MBThread.categoryId = " + mergedCategoryIds);
 			}
 
 			sql = updateSQL(sql, queryDefinition);
@@ -291,11 +295,12 @@ public class MBThreadFinderImpl
 					sql, "(MBThread.categoryId = ?) AND", StringPool.BLANK);
 			}
 			else {
+				String mergedCategoryIds = StringUtil.merge(
+					categoryIds, " OR MBThread.categoryId = ");
+
 				sql = StringUtil.replace(
 					sql, "MBThread.categoryId = ?",
-					"MBThread.categoryId = " +
-						StringUtil.merge(
-							categoryIds, " OR MBThread.categoryId = "));
+					"MBThread.categoryId = " + mergedCategoryIds);
 			}
 
 			sql = updateSQL(sql, queryDefinition);
@@ -348,8 +353,9 @@ public class MBThreadFinderImpl
 
 			if (userId <= 0) {
 				sql = StringUtil.replace(
+					sql, "DISTINCT MBThread.threadId", StringPool.STAR);
+				sql = StringUtil.replace(
 					sql, _INNER_JOIN_SQL, StringPool.BLANK);
-
 				sql = StringUtil.replace(sql, _USER_ID_SQL, StringPool.BLANK);
 			}
 
@@ -555,7 +561,7 @@ public class MBThreadFinderImpl
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(PortalUtil.getClassNameId(MBThread.class));
+			qPos.add(_portal.getClassNameId(MBThread.class));
 
 			return q.list(true);
 		}
@@ -630,11 +636,12 @@ public class MBThreadFinderImpl
 					sql, "(MBThread.categoryId = ?) AND", StringPool.BLANK);
 			}
 			else {
+				String mergedCategoryIds = StringUtil.merge(
+					categoryIds, " OR MBThread.categoryId = ");
+
 				sql = StringUtil.replace(
 					sql, "MBThread.categoryId = ?",
-					"MBThread.categoryId = " +
-						StringUtil.merge(
-							categoryIds, " OR MBThread.categoryId = "));
+					"MBThread.categoryId = " + mergedCategoryIds);
 			}
 
 			sql = updateSQL(sql, queryDefinition);
@@ -732,7 +739,7 @@ public class MBThreadFinderImpl
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(PortalUtil.getClassNameId(MBThread.class.getName()));
+			qPos.add(_portal.getClassNameId(MBThread.class.getName()));
 			qPos.add(groupId);
 			qPos.add(userId);
 
@@ -769,11 +776,12 @@ public class MBThreadFinderImpl
 					sql, "(MBThread.categoryId = ?) AND", StringPool.BLANK);
 			}
 			else {
+				String mergedCategoryIds = StringUtil.merge(
+					categoryIds, " OR MBThread.categoryId = ");
+
 				sql = StringUtil.replace(
 					sql, "MBThread.categoryId = ?",
-					"MBThread.categoryId = " +
-						StringUtil.merge(
-							categoryIds, " OR MBThread.categoryId = "));
+					"MBThread.categoryId = " + mergedCategoryIds);
 			}
 
 			sql = updateSQL(sql, queryDefinition);
@@ -817,9 +825,9 @@ public class MBThreadFinderImpl
 			String sql = _customSQL.get(getClass(), FIND_BY_G_U_LPD);
 
 			if (userId <= 0) {
+				sql = StringUtil.replace(sql, "DISTINCT ", StringPool.BLANK);
 				sql = StringUtil.replace(
 					sql, _INNER_JOIN_SQL, StringPool.BLANK);
-
 				sql = StringUtil.replace(sql, _USER_ID_SQL, StringPool.BLANK);
 			}
 
@@ -955,7 +963,7 @@ public class MBThreadFinderImpl
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(PortalUtil.getClassNameId(MBThread.class.getName()));
+			qPos.add(_portal.getClassNameId(MBThread.class.getName()));
 			qPos.add(groupId);
 			qPos.add(userId);
 
@@ -999,11 +1007,12 @@ public class MBThreadFinderImpl
 					sql, "(MBThread.categoryId = ?) AND", StringPool.BLANK);
 			}
 			else {
+				String mergedCategoryIds = StringUtil.merge(
+					categoryIds, " OR MBThread.categoryId = ");
+
 				sql = StringUtil.replace(
 					sql, "MBThread.categoryId = ?",
-					"MBThread.categoryId = " +
-						StringUtil.merge(
-							categoryIds, " OR MBThread.categoryId = "));
+					"MBThread.categoryId = " + mergedCategoryIds);
 			}
 
 			sql = updateSQL(sql, queryDefinition);
@@ -1020,7 +1029,7 @@ public class MBThreadFinderImpl
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(PortalUtil.getClassNameId(MBThread.class.getName()));
+			qPos.add(_portal.getClassNameId(MBThread.class.getName()));
 			qPos.add(groupId);
 			qPos.add(userId);
 
@@ -1135,11 +1144,12 @@ public class MBThreadFinderImpl
 					sql, "(MBThread.categoryId = ?) AND", StringPool.BLANK);
 			}
 			else {
+				String mergedCategoryIds = StringUtil.merge(
+					categoryIds, " OR MBThread.categoryId = ");
+
 				sql = StringUtil.replace(
 					sql, "MBThread.categoryId = ?",
-					"MBThread.categoryId = " +
-						StringUtil.merge(
-							categoryIds, " OR MBThread.categoryId = "));
+					"MBThread.categoryId = " + mergedCategoryIds);
 			}
 
 			sql = updateSQL(sql, queryDefinition);
@@ -1156,7 +1166,7 @@ public class MBThreadFinderImpl
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(PortalUtil.getClassNameId(MBThread.class.getName()));
+			qPos.add(_portal.getClassNameId(MBThread.class.getName()));
 			qPos.add(groupId);
 			qPos.add(userId);
 
@@ -1195,7 +1205,10 @@ public class MBThreadFinderImpl
 
 	private static final String _USER_ID_SQL = "AND (MBMessage.userId = ?)";
 
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private Portal _portal;
 
 }

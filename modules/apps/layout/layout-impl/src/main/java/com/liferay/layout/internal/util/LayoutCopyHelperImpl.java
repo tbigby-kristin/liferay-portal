@@ -22,8 +22,11 @@ import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
+import com.liferay.layout.seo.model.LayoutSEOEntry;
+import com.liferay.layout.seo.service.LayoutSEOEntryLocalService;
 import com.liferay.layout.util.LayoutCopyHelper;
-import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.message.boards.service.MBMessageLocalService;
+import com.liferay.portal.kernel.comment.CommentManager;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -44,7 +47,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.segments.constants.SegmentsConstants;
+import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.model.SegmentsExperienceModel;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
@@ -250,6 +253,13 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 
 					newFragmentEntryLinkIdsJSONArray.put(
 						newFragmentEntryLink.getFragmentEntryLinkId());
+
+					_commentManager.copyDiscussion(
+						targetLayout.getUserId(), targetLayout.getGroupId(),
+						FragmentEntryLink.class.getName(),
+						fragmentEntryLink.getFragmentEntryLinkId(),
+						newFragmentEntryLink.getFragmentEntryLinkId(),
+						className -> serviceContext);
 				}
 
 				columnJSONObject.put(
@@ -310,12 +320,11 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 	}
 
 	private long[] _getSegmentsExperienceIds(
-			long groupId, long classNameId, long classPK)
-		throws PortalException {
+		long groupId, long classNameId, long classPK) {
 
 		List<SegmentsExperience> segmentsExperiences =
 			_segmentsExperienceLocalService.getSegmentsExperiences(
-				groupId, classNameId, classPK, true);
+				groupId, classNameId, classPK);
 
 		Stream<SegmentsExperience> stream = segmentsExperiences.stream();
 
@@ -323,7 +332,7 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			stream.mapToLong(
 				SegmentsExperienceModel::getSegmentsExperienceId
 			).toArray(),
-			new long[] {SegmentsConstants.SEGMENTS_EXPERIENCE_ID_DEFAULT});
+			new long[] {SegmentsExperienceConstants.ID_DEFAULT});
 	}
 
 	private static final TransactionConfig _transactionConfig =
@@ -332,6 +341,9 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 
 	@Reference
 	private AssetEntryUsageLocalService _assetEntryUsageLocalService;
+
+	@Reference
+	private CommentManager _commentManager;
 
 	@Reference
 	private CounterLocalService _counterLocalService;
@@ -352,6 +364,12 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 	@Reference
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Reference
+	private LayoutSEOEntryLocalService _layoutSEOEntryLocalService;
+
+	@Reference
+	private MBMessageLocalService _mbMessageLocalService;
 
 	@Reference
 	private Portal _portal;
@@ -402,6 +420,33 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			_layoutLocalService.updateLayout(
 				_targetLayout.getGroupId(), _targetLayout.isPrivateLayout(),
 				_targetLayout.getLayoutId(), _sourceLayout.getTypeSettings());
+
+			LayoutSEOEntry layoutSEOEntry =
+				_layoutSEOEntryLocalService.fetchLayoutSEOEntry(
+					_sourceLayout.getGroupId(), _sourceLayout.isPrivateLayout(),
+					_sourceLayout.getLayoutId());
+
+			if (layoutSEOEntry == null) {
+				LayoutSEOEntry targetLayoutSEOEntry =
+					_layoutSEOEntryLocalService.fetchLayoutSEOEntry(
+						_targetLayout.getGroupId(),
+						_targetLayout.isPrivateLayout(),
+						_targetLayout.getLayoutId());
+
+				if (targetLayoutSEOEntry != null) {
+					_layoutSEOEntryLocalService.deleteLayoutSEOEntry(
+						_targetLayout.getGroupId(),
+						_targetLayout.isPrivateLayout(),
+						_targetLayout.getLayoutId());
+				}
+			}
+			else {
+				_layoutSEOEntryLocalService.updateLayoutSEOEntry(
+					_targetLayout.getUserId(), _targetLayout.getGroupId(),
+					_targetLayout.isPrivateLayout(),
+					_targetLayout.getLayoutId(), layoutSEOEntry.isEnabled(),
+					layoutSEOEntry.getCanonicalURLMap(), serviceContext);
+			}
 
 			return _layoutLocalService.updateIconImage(
 				_targetLayout.getPlid(), imageBytes);

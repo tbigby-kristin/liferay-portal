@@ -88,22 +88,20 @@ public class BlogEntriesDisplayContext {
 	public List<String> getAvailableActions(BlogsEntry blogsEntry)
 		throws PortalException {
 
-		List<String> availableActionDropdownItems = new ArrayList<>();
+		List<String> availableActions = new ArrayList<>();
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		PermissionChecker permissionChecker =
-			themeDisplay.getPermissionChecker();
-
 		if (BlogsEntryPermission.contains(
-				permissionChecker, blogsEntry, ActionKeys.DELETE)) {
+				themeDisplay.getPermissionChecker(), blogsEntry,
+				ActionKeys.DELETE)) {
 
-			availableActionDropdownItems.add("deleteEntries");
+			availableActions.add("deleteEntries");
 		}
 
-		return availableActionDropdownItems;
+		return availableActions;
 	}
 
 	public Map<String, Object> getComponentContext() throws PortalException {
@@ -295,17 +293,18 @@ public class BlogEntriesDisplayContext {
 
 			Sort sort = null;
 
-			boolean orderByAsc = true;
+			boolean orderByAsc = false;
 
 			if (Objects.equals(orderByType, "asc")) {
-				orderByAsc = false;
+				orderByAsc = true;
 			}
 
 			if (Objects.equals(orderByCol, "display-date")) {
-				sort = new Sort(Field.DISPLAY_DATE, Sort.LONG_TYPE, orderByAsc);
+				sort = new Sort(
+					Field.DISPLAY_DATE, Sort.LONG_TYPE, !orderByAsc);
 			}
 			else {
-				sort = new Sort(orderByCol, orderByAsc);
+				sort = new Sort(orderByCol, !orderByAsc);
 			}
 
 			searchContext.setSorts(sort);

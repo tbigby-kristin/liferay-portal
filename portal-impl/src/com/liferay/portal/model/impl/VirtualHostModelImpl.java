@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the VirtualHost service. Represents a row in the &quot;VirtualHost&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,11 +52,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see VirtualHostImpl
  * @generated
  */
-@ProviderType
 public class VirtualHostModelImpl
 	extends BaseModelImpl<VirtualHost> implements VirtualHostModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a virtual host model instance should use the <code>VirtualHost</code> interface instead.
@@ -390,7 +387,12 @@ public class VirtualHostModelImpl
 	@Override
 	public VirtualHost toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, VirtualHost>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -570,8 +572,12 @@ public class VirtualHostModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, VirtualHost>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, VirtualHost>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _mvccVersion;
 	private long _virtualHostId;

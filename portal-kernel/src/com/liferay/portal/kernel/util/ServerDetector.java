@@ -25,16 +25,36 @@ import java.lang.reflect.Field;
  */
 public class ServerDetector {
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String GLASSFISH_ID = "glassfish";
 
 	public static final String JBOSS_ID = "jboss";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String JETTY_ID = "jetty";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String JONAS_ID = "jonas";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String OC4J_ID = "oc4j";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String RESIN_ID = "resin";
 
 	public static final String SYSTEM_PROPERTY_KEY_SERVER_DETECTOR_SERVER_ID =
@@ -85,6 +105,10 @@ public class ServerDetector {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static boolean isGlassfish() {
 		if (_serverType == ServerType.GLASSFISH) {
 			return true;
@@ -101,6 +125,10 @@ public class ServerDetector {
 		return false;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static boolean isJetty() {
 		if (_serverType == ServerType.JETTY) {
 			return true;
@@ -109,6 +137,10 @@ public class ServerDetector {
 		return false;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static boolean isJOnAS() {
 		if (_serverType == ServerType.JONAS) {
 			return true;
@@ -117,6 +149,10 @@ public class ServerDetector {
 		return false;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static boolean isOC4J() {
 		if (_serverType == ServerType.OC4J) {
 			return true;
@@ -125,6 +161,10 @@ public class ServerDetector {
 		return false;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static boolean isResin() {
 		if (_serverType == ServerType.RESIN) {
 			return true;
@@ -134,12 +174,7 @@ public class ServerDetector {
 	}
 
 	public static boolean isSupported(String serverType) {
-		if (serverType.equals(ServerDetector.GLASSFISH_ID) ||
-			serverType.equals(ServerDetector.JBOSS_ID) ||
-			serverType.equals(ServerDetector.JONAS_ID) ||
-			serverType.equals(ServerDetector.JETTY_ID) ||
-			serverType.equals(ServerDetector.OC4J_ID) ||
-			serverType.equals(ServerDetector.RESIN_ID) ||
+		if (serverType.equals(ServerDetector.JBOSS_ID) ||
 			serverType.equals(ServerDetector.TOMCAT_ID) ||
 			serverType.equals(ServerDetector.WEBLOGIC_ID) ||
 			serverType.equals(ServerDetector.WEBSPHERE_ID) ||

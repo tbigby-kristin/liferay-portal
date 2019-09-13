@@ -174,13 +174,13 @@ public class MeetingsPortlet extends MVCPortlet {
 
 				name = ParamUtil.getString(actionRequest, "name");
 
-				if (powwowParticipant != null) {
-					if (!name.equals(powwowParticipant.getName())) {
-						powwowParticipant.setName(name);
+				if ((powwowParticipant != null) &&
+					!name.equals(powwowParticipant.getName())) {
 
-						PowwowParticipantLocalServiceUtil.
-							updatePowwowParticipant(powwowParticipant);
-					}
+					powwowParticipant.setName(name);
+
+					PowwowParticipantLocalServiceUtil.updatePowwowParticipant(
+						powwowParticipant);
 				}
 			}
 
@@ -353,10 +353,9 @@ public class MeetingsPortlet extends MVCPortlet {
 						providerType, options);
 			}
 
-			String portletId = PortalUtil.getPortletId(actionRequest);
-
 			PowwowMeetingServiceUtil.addPowwowMeeting(
-				themeDisplay.getScopeGroupId(), portletId, powwowServerId, name,
+				themeDisplay.getScopeGroupId(),
+				PortalUtil.getPortletId(actionRequest), powwowServerId, name,
 				description, providerType, providerTypeMetadataMap, languageId,
 				calendarBooking.getCalendarBookingId(),
 				PowwowMeetingConstants.STATUS_SCHEDULED, powwowParticipants,

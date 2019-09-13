@@ -42,11 +42,10 @@ public class NPMResolverImpl implements NPMResolver {
 	public NPMResolverImpl(
 		Bundle bundle, JSONFactory jsonFactory, NPMRegistry npmRegistry) {
 
-		_jsonFactory = jsonFactory;
 		_npmRegistry = npmRegistry;
 
-		_jsPackageIdentifier = _resolveJSPackageIdentifier(bundle);
-		_packageNamesMap = _loadPackageNamesMap(bundle);
+		_jsPackageIdentifier = _resolveJSPackageIdentifier(bundle, jsonFactory);
+		_packageNamesMap = _loadPackageNamesMap(bundle, jsonFactory);
 	}
 
 	@Override
@@ -102,16 +101,18 @@ public class NPMResolverImpl implements NPMResolver {
 		return sb.toString();
 	}
 
-	private Map<String, String> _loadPackageNamesMap(Bundle bundle) {
+	private static Map<String, String> _loadPackageNamesMap(
+		Bundle bundle, JSONFactory jsonFactory) {
+
 		try {
 			Map<String, String> map = new HashMap<>();
 
-			URL url = bundle.getResource("META-INF/resources/manifest.json");
+			URL url = bundle.getEntry("META-INF/resources/manifest.json");
 
 			if (url != null) {
 				String content = StringUtil.read(url.openStream());
 
-				JSONObject jsonObject = _jsonFactory.createJSONObject(content);
+				JSONObject jsonObject = jsonFactory.createJSONObject(content);
 
 				JSONObject packagesJSONObject = jsonObject.getJSONObject(
 					"packages");
@@ -142,18 +143,20 @@ public class NPMResolverImpl implements NPMResolver {
 		}
 	}
 
-	private String _resolveJSPackageIdentifier(Bundle bundle) {
+	private static String _resolveJSPackageIdentifier(
+		Bundle bundle, JSONFactory jsonFactory) {
+
 		try {
 			StringBundler sb = new StringBundler(5);
 
 			sb.append(bundle.getBundleId());
 			sb.append(StringPool.SLASH);
 
-			URL url = bundle.getResource("META-INF/resources/package.json");
+			URL url = bundle.getEntry("META-INF/resources/package.json");
 
 			String content = StringUtil.read(url.openStream());
 
-			JSONObject jsonObject = _jsonFactory.createJSONObject(content);
+			JSONObject jsonObject = jsonFactory.createJSONObject(content);
 
 			String name = jsonObject.getString("name");
 
@@ -172,7 +175,6 @@ public class NPMResolverImpl implements NPMResolver {
 		}
 	}
 
-	private final JSONFactory _jsonFactory;
 	private final String _jsPackageIdentifier;
 	private final NPMRegistry _npmRegistry;
 	private final Map<String, String> _packageNamesMap;

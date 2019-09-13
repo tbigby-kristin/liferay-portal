@@ -87,6 +87,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutBranch;
@@ -112,6 +113,7 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutBranchLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -184,7 +186,6 @@ import javax.portlet.PortletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -195,7 +196,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author Zsolt Balogh
  */
 @Component(immediate = true, service = Staging.class)
-@ProviderType
 public class StagingImpl implements Staging {
 
 	@Override
@@ -227,11 +227,9 @@ public class StagingImpl implements Staging {
 					ExportImportClassedModelUtil.getClassName(
 						stagedGroupedModel));
 
-			int[] exportableStatuses =
-				stagedModelDataHandler.getExportableStatuses();
-
 			if (!ArrayUtil.contains(
-					exportableStatuses, workflowedModel.getStatus())) {
+					stagedModelDataHandler.getExportableStatuses(),
+					workflowedModel.getStatus())) {
 
 				removeModelFromChangesetCollection(model);
 
@@ -469,11 +467,9 @@ public class StagingImpl implements Staging {
 	public long copyRemoteLayouts(long exportImportConfigurationId)
 		throws PortalException {
 
-		ExportImportConfiguration exportImportConfiguration =
+		return copyRemoteLayouts(
 			_exportImportConfigurationLocalService.getExportImportConfiguration(
-				exportImportConfigurationId);
-
-		return copyRemoteLayouts(exportImportConfiguration);
+				exportImportConfigurationId));
 	}
 
 	@Override
@@ -598,9 +594,8 @@ public class StagingImpl implements Staging {
 		HttpServletRequest httpServletRequest, long layoutSetBranchId,
 		long plid) {
 
-		long userId = _portal.getUserId(httpServletRequest);
-
-		deleteRecentLayoutRevisionId(userId, layoutSetBranchId, plid);
+		deleteRecentLayoutRevisionId(
+			_portal.getUserId(httpServletRequest), layoutSetBranchId, plid);
 	}
 
 	@Override
@@ -824,7 +819,7 @@ public class StagingImpl implements Staging {
 						new String[] {
 							MapUtil.toString(eicve.getDlReferenceParameters()),
 							eicve.getStagedModelClassName(),
-							String.valueOf(eicve.getStagedModelClassPK())
+							String.valueOf(eicve.getStagedModelPrimaryKeyObj())
 						});
 				}
 				else {
@@ -849,7 +844,7 @@ public class StagingImpl implements Staging {
 						new String[] {
 							eicve.getLayoutURL(), eicve.getGroupFriendlyURL(),
 							eicve.getStagedModelClassName(),
-							String.valueOf(eicve.getStagedModelClassPK())
+							String.valueOf(eicve.getStagedModelPrimaryKeyObj())
 						});
 				}
 				else {
@@ -876,7 +871,7 @@ public class StagingImpl implements Staging {
 							MapUtil.toString(
 								eicve.getLayoutReferenceParameters()),
 							eicve.getStagedModelClassName(),
-							String.valueOf(eicve.getStagedModelClassPK())
+							String.valueOf(eicve.getStagedModelPrimaryKeyObj())
 						});
 				}
 				else {
@@ -900,7 +895,7 @@ public class StagingImpl implements Staging {
 						new String[] {
 							eicve.getLayoutURL(),
 							eicve.getStagedModelClassName(),
-							String.valueOf(eicve.getStagedModelClassPK())
+							String.valueOf(eicve.getStagedModelPrimaryKeyObj())
 						});
 				}
 				else {
@@ -920,7 +915,7 @@ public class StagingImpl implements Staging {
 						new String[] {
 							eicve.getClassName(),
 							eicve.getStagedModelClassName(),
-							String.valueOf(eicve.getStagedModelClassPK())
+							String.valueOf(eicve.getStagedModelPrimaryKeyObj())
 						});
 				}
 				else {
@@ -1816,9 +1811,8 @@ public class StagingImpl implements Staging {
 			long plid)
 		throws PortalException {
 
-		long userId = _portal.getUserId(httpServletRequest);
-
-		return getRecentLayoutRevisionId(userId, layoutSetBranchId, plid);
+		return getRecentLayoutRevisionId(
+			_portal.getUserId(httpServletRequest), layoutSetBranchId, plid);
 	}
 
 	@Override
@@ -2116,6 +2110,27 @@ public class StagingImpl implements Staging {
 
 	@Override
 	public boolean isGroupAccessible(Group group, Group fromGroup) {
+		if (fromGroup == null) {
+			long companyId = group.getCompanyId();
+
+			try {
+				Company company = _companyLocalService.getCompany(companyId);
+
+				Group companyGroup = company.getGroup();
+
+				if (group.equals(companyGroup)) {
+					return true;
+				}
+			}
+			catch (PortalException pe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Company group does not exist", pe);
+				}
+			}
+
+			return false;
+		}
+
 		if (group.equals(fromGroup)) {
 			return true;
 		}
@@ -2149,14 +2164,12 @@ public class StagingImpl implements Staging {
 		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
 			layout);
 
-		if (layoutRevision != null) {
-			long layoutSetBranchId = layoutRevision.getLayoutSetBranchId();
+		if ((layoutRevision != null) &&
+			isLayoutRevisionIncomplete(
+				layout.getPlid(), layoutRevision,
+				layoutRevision.getLayoutSetBranchId())) {
 
-			if (isLayoutRevisionIncomplete(
-					layout.getPlid(), layoutRevision, layoutSetBranchId)) {
-
-				return true;
-			}
+			return true;
 		}
 
 		return false;
@@ -2164,11 +2177,9 @@ public class StagingImpl implements Staging {
 
 	@Override
 	public boolean isIncomplete(Layout layout, long layoutSetBranchId) {
-		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
-			layout);
-
 		return isLayoutRevisionIncomplete(
-			layout.getPlid(), layoutRevision, layoutSetBranchId);
+			layout.getPlid(), LayoutStagingUtil.getLayoutRevision(layout),
+			layoutSetBranchId);
 	}
 
 	@Override
@@ -2272,10 +2283,8 @@ public class StagingImpl implements Staging {
 							if (stagedModel instanceof TypedModel) {
 								TypedModel typedModel = (TypedModel)stagedModel;
 
-								String className = typedModel.getClassName();
-
 								if (Objects.equals(
-										className,
+										typedModel.getClassName(),
 										stagedModelType.
 											getReferrerClassName())) {
 
@@ -2344,11 +2353,9 @@ public class StagingImpl implements Staging {
 			layouts.addAll(layout.getAllChildren());
 		}
 
-		long[] layoutIds = _exportImportHelper.getLayoutIds(layouts);
-
 		return publishLayouts(
 			userId, layout.getGroupId(), liveGroupId, layout.isPrivateLayout(),
-			layoutIds, parameterMap);
+			_exportImportHelper.getLayoutIds(layouts), parameterMap);
 	}
 
 	@Override
@@ -2391,11 +2398,10 @@ public class StagingImpl implements Staging {
 	public long publishLayouts(long userId, long exportImportConfigurationId)
 		throws PortalException {
 
-		ExportImportConfiguration exportImportConfiguration =
+		return publishLayouts(
+			userId,
 			_exportImportConfigurationLocalService.getExportImportConfiguration(
-				exportImportConfigurationId);
-
-		return publishLayouts(userId, exportImportConfiguration);
+				exportImportConfigurationId));
 	}
 
 	@Override
@@ -2438,13 +2444,11 @@ public class StagingImpl implements Staging {
 			PortletDataHandlerKeys.PERFORM_DIRECT_BINARY_IMPORT,
 			new String[] {Boolean.TRUE.toString()});
 
-		User user = _userLocalService.getUser(userId);
-
 		Map<String, Serializable> publishLayoutLocalSettingsMap =
 			_exportImportConfigurationSettingsMapFactory.
 				buildPublishLayoutLocalSettingsMap(
-					user, sourceGroupId, targetGroupId, privateLayout,
-					layoutIds, parameterMap);
+					_userLocalService.getUser(userId), sourceGroupId,
+					targetGroupId, privateLayout, layoutIds, parameterMap);
 
 		ExportImportConfiguration exportImportConfiguration = null;
 
@@ -2601,11 +2605,10 @@ public class StagingImpl implements Staging {
 	public long publishPortlet(long userId, long exportImportConfigurationId)
 		throws PortalException {
 
-		ExportImportConfiguration exportImportConfiguration =
+		return publishPortlet(
+			userId,
 			_exportImportConfigurationLocalService.getExportImportConfiguration(
-				exportImportConfigurationId);
-
-		return publishPortlet(userId, exportImportConfiguration);
+				exportImportConfigurationId));
 	}
 
 	@Override
@@ -2831,9 +2834,6 @@ public class StagingImpl implements Staging {
 		}
 
 		if (publishLayoutRemoteSettingsMap == null) {
-			boolean privateLayout = getPrivateLayout(portletRequest);
-			Map<Long, Boolean> layoutIdMap = _exportImportHelper.getLayoutIdMap(
-				portletRequest);
 			Map<String, String[]> parameterMap =
 				_exportImportConfigurationParameterMapFactory.buildParameterMap(
 					portletRequest);
@@ -2858,7 +2858,9 @@ public class StagingImpl implements Staging {
 			publishLayoutRemoteSettingsMap =
 				_exportImportConfigurationSettingsMapFactory.
 					buildPublishLayoutRemoteSettingsMap(
-						user.getUserId(), groupId, privateLayout, layoutIdMap,
+						user.getUserId(), groupId,
+						getPrivateLayout(portletRequest),
+						_exportImportHelper.getLayoutIdMap(portletRequest),
 						parameterMap, remoteAddress, remotePort,
 						remotePathContext, secureConnection, remoteGroupId,
 						remotePrivateLayout, user.getLocale(),
@@ -2945,7 +2947,6 @@ public class StagingImpl implements Staging {
 
 		long sourceGroupId = targetGroup.getLiveGroupId();
 
-		boolean privateLayout = getPrivateLayout(portletRequest);
 		long[] layoutIds = _exportImportHelper.getLayoutIds(
 			portletRequest, targetGroupId);
 		Map<String, String[]> parameterMap =
@@ -2956,8 +2957,8 @@ public class StagingImpl implements Staging {
 		String name = ParamUtil.getString(portletRequest, "name");
 
 		_layoutService.schedulePublishToLive(
-			sourceGroupId, targetGroupId, privateLayout, layoutIds,
-			parameterMap, scheduleInformation.getGroupName(),
+			sourceGroupId, targetGroupId, getPrivateLayout(portletRequest),
+			layoutIds, parameterMap, scheduleInformation.getGroupName(),
 			scheduleInformation.getCronText(),
 			scheduleInformation.getStartDate(),
 			scheduleInformation.getSchedulerEndDate(), name);
@@ -2996,6 +2997,15 @@ public class StagingImpl implements Staging {
 					settingsMap, "privateLayout");
 				layoutIds = GetterUtil.getLongValues(
 					settingsMap.get("layoutIds"));
+
+				Map<String, String[]> portletRequestParameterMap =
+					portletRequest.getParameterMap();
+
+				if (portletRequestParameterMap.containsKey("timeZoneId")) {
+					parameterMap.put(
+						"timeZoneId",
+						portletRequestParameterMap.get("timeZoneId"));
+				}
 			}
 		}
 
@@ -4189,6 +4199,9 @@ public class StagingImpl implements Staging {
 
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
 
 	@Reference
 	private CTEngineManager _ctEngineManager;

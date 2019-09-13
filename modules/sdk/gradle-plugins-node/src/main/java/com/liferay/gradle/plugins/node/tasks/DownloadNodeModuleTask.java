@@ -15,7 +15,6 @@
 package com.liferay.gradle.plugins.node.tasks;
 
 import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.node.internal.util.NodePluginUtil;
 
 import java.io.File;
 
@@ -32,7 +31,7 @@ import org.gradle.api.tasks.OutputDirectory;
 /**
  * @author Andrea Di Giorgi
  */
-public class DownloadNodeModuleTask extends ExecuteNpmTask {
+public class DownloadNodeModuleTask extends ExecutePackageManagerTask {
 
 	public DownloadNodeModuleTask() {
 		onlyIf(
@@ -71,16 +70,7 @@ public class DownloadNodeModuleTask extends ExecuteNpmTask {
 
 	@OutputDirectory
 	public File getModuleDir() {
-		File nodeModulesDir = new File(getWorkingDir(), "node_modules");
-
-		if (NodePluginUtil.isYarnScriptFile(getScriptFile())) {
-			File scriptFile = getScriptFile();
-
-			nodeModulesDir = new File(
-				scriptFile.getParentFile(), "node_modules");
-		}
-
-		return new File(nodeModulesDir, getModuleName());
+		return new File(getNodeModulesDir(), getModuleName());
 	}
 
 	@Input
@@ -105,11 +95,11 @@ public class DownloadNodeModuleTask extends ExecuteNpmTask {
 	protected List<String> getCompleteArgs() {
 		List<String> completeArgs = super.getCompleteArgs();
 
-		if (NodePluginUtil.isYarnScriptFile(getScriptFile())) {
-			completeArgs.add("add");
+		if (isUseNpm()) {
+			completeArgs.add("install");
 		}
 		else {
-			completeArgs.add("install");
+			completeArgs.add("add");
 		}
 
 		completeArgs.add(getModuleName() + "@" + getModuleVersion());

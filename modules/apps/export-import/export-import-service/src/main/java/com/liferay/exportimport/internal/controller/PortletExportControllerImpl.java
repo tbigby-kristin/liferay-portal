@@ -108,7 +108,6 @@ import java.util.concurrent.Callable;
 
 import org.apache.commons.lang.time.StopWatch;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -128,7 +127,6 @@ import org.osgi.service.component.annotations.Reference;
 	property = "model.class.name=com.liferay.portal.kernel.model.Portlet",
 	service = {ExportImportController.class, PortletExportController.class}
 )
-@ProviderType
 public class PortletExportControllerImpl implements PortletExportController {
 
 	@Override
@@ -1138,15 +1136,7 @@ public class PortletExportControllerImpl implements PortletExportController {
 			return;
 		}
 
-		LayoutTypePortlet layoutTypePortlet = null;
-
-		if (layout != null) {
-			layoutTypePortlet = (LayoutTypePortlet)layout.getLayoutType();
-		}
-
-		if ((layoutTypePortlet == null) ||
-			layoutTypePortlet.hasPortletId(portletId)) {
-
+		if (_hasPortletId(layout, portletId, ownerType)) {
 			exportPortletPreference(
 				portletDataContext, ownerId, ownerType, defaultUser,
 				portletPreferences, portletId, plid, parentElement);
@@ -1401,6 +1391,43 @@ public class PortletExportControllerImpl implements PortletExportController {
 		).orElse(
 			null
 		);
+	}
+
+	private boolean _hasPortletId(
+		Layout layout, String portletId, int ownerType) {
+
+		if (layout == null) {
+			return true;
+		}
+
+		LayoutTypePortlet layoutTypePortlet =
+			(LayoutTypePortlet)layout.getLayoutType();
+
+		if (layoutTypePortlet == null) {
+			return true;
+		}
+
+		boolean rootPortletId = false;
+
+		if ((ownerType == PortletKeys.PREFS_OWNER_TYPE_COMPANY) ||
+			(ownerType == PortletKeys.PREFS_OWNER_TYPE_GROUP)) {
+
+			rootPortletId = true;
+		}
+
+		if (!rootPortletId) {
+			return layoutTypePortlet.hasPortletId(portletId);
+		}
+
+		List<Portlet> allPortlets = layoutTypePortlet.getAllPortlets(false);
+
+		for (Portlet portlet : allPortlets) {
+			if (portletId.equals(portlet.getRootPortletId())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private Optional<Portlet> _replacePortlet(

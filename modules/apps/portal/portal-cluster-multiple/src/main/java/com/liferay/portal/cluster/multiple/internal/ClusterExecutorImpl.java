@@ -86,7 +86,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
  */
 @Component(
 	configurationPid = "com.liferay.portal.cluster.multiple.configuration.ClusterExecutorConfiguration",
-	immediate = true,
+	enabled = false, immediate = true,
 	service = {ClusterExecutor.class, ClusterExecutorImpl.class}
 )
 public class ClusterExecutorImpl implements ClusterExecutor {
@@ -105,10 +105,6 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 
 	@Override
 	public FutureClusterResponses execute(ClusterRequest clusterRequest) {
-		if (!isEnabled()) {
-			return null;
-		}
-
 		Set<String> clusterNodeIds = new HashSet<>();
 
 		if (clusterRequest.isMulticast()) {
@@ -127,9 +123,8 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 			new FutureClusterResponses(clusterNodeIds);
 
 		if (!clusterRequest.isFireAndForget()) {
-			String uuid = clusterRequest.getUuid();
-
-			_futureClusterResponses.put(uuid, futureClusterResponses);
+			_futureClusterResponses.put(
+				clusterRequest.getUuid(), futureClusterResponses);
 		}
 
 		if (clusterNodeIds.remove(_localClusterNodeStatus.getClusterNodeId())) {
@@ -186,10 +181,6 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 
 	@Override
 	public List<ClusterNode> getClusterNodes() {
-		if (!isEnabled()) {
-			return Collections.emptyList();
-		}
-
 		List<ClusterNode> clusterNodes = new ArrayList<>();
 
 		for (ClusterNodeStatus clusterNodeStatus :
@@ -203,19 +194,11 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 
 	@Override
 	public ClusterNode getLocalClusterNode() {
-		if (!isEnabled()) {
-			return null;
-		}
-
 		return _localClusterNodeStatus.getClusterNode();
 	}
 
 	@Override
 	public boolean isClusterNodeAlive(String clusterNodeId) {
-		if (!isEnabled()) {
-			return false;
-		}
-
 		return _clusterNodeStatuses.containsKey(clusterNodeId);
 	}
 
@@ -233,12 +216,7 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 
 	@Activate
 	protected void activate(ComponentContext componentContext) {
-		_enabled = GetterUtil.getBoolean(
-			_props.get(PropsKeys.CLUSTER_LINK_ENABLED));
-
-		if (!_enabled) {
-			return;
-		}
+		_enabled = true;
 
 		clusterExecutorConfiguration = ConfigurableUtil.createConfigurable(
 			ClusterExecutorConfiguration.class,
@@ -279,10 +257,6 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 
 	@Deactivate
 	protected void deactivate() {
-		if (!_enabled) {
-			return;
-		}
-
 		if (_clusterChannel != null) {
 			_clusterChannel.close();
 		}
@@ -494,14 +468,10 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 	}
 
 	protected void initialize(
-		String channelLogicName, String channelPropertiesString,
+		String channelLogicName, String channelPropertiesLocation,
 		String channelName) {
 
-		if (!isEnabled()) {
-			return;
-		}
-
-		if (Validator.isNull(channelPropertiesString)) {
+		if (Validator.isNull(channelPropertiesLocation)) {
 			throw new IllegalStateException(
 				"Set \"" + PropsKeys.CLUSTER_LINK_CHANNEL_PROPERTIES_CONTROL +
 					"\"");
@@ -519,8 +489,8 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 			this);
 
 		_clusterChannel = _clusterChannelFactory.createClusterChannel(
-			channelLogicName, channelPropertiesString, channelName,
-			clusterReceiver);
+			_executorService, channelLogicName, channelPropertiesLocation,
+			channelName, clusterReceiver);
 
 		ClusterNode localClusterNode = new ClusterNode(
 			generateClusterNodeId(), _clusterChannel.getBindInetAddress());
@@ -742,10 +712,6 @@ public class ClusterExecutorImpl implements ClusterExecutor {
 		@Override
 		public void portalLocalInetSocketAddressConfigured(
 			InetSocketAddress inetSocketAddress, boolean secure) {
-
-			if (!isEnabled()) {
-				return;
-			}
 
 			ClusterNode localClusterNode = getLocalClusterNode();
 

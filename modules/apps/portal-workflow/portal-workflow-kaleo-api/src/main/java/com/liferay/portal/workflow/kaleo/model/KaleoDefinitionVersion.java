@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface KaleoDefinitionVersion
 	extends KaleoDefinitionVersionModel, PersistedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.workflow.kaleo.model.impl.KaleoDefinitionVersionImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -60,6 +60,10 @@ public interface KaleoDefinitionVersion
 
 			};
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public KaleoDefinition fetchKaleoDefinition();
 
 	public KaleoDefinition getKaleoDefinition()
@@ -68,6 +72,10 @@ public interface KaleoDefinitionVersion
 	public KaleoNode getKaleoStartNode()
 		throws com.liferay.portal.kernel.exception.PortalException;
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public boolean hasIncompleteKaleoInstances();
 
 }

@@ -485,12 +485,10 @@ public class JournalTestUtil {
 			Locale defaultLocale)
 		throws Exception {
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(groupId);
-
 		return addArticleWithXMLContent(
 			folderId, classNameId, classPK, xml, ddmStructureKey,
-			ddmTemplateKey, defaultLocale, null, serviceContext);
+			ddmTemplateKey, defaultLocale, null,
+			ServiceContextTestUtil.getServiceContext(groupId));
 	}
 
 	public static JournalArticle addArticleWithXMLContent(
@@ -1067,7 +1065,7 @@ public class JournalTestUtil {
 
 		try {
 			_JOURNAL_UTIL_CLASS = classLoader.loadClass(
-				"com.liferay.journal.util.impl.JournalUtil");
+				"com.liferay.journal.internal.util.JournalUtil");
 		}
 		catch (ClassNotFoundException cnfe) {
 			throw new ExceptionInInitializerError(cnfe);

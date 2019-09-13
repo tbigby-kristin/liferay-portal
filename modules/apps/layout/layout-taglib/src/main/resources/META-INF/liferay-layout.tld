@@ -143,6 +143,37 @@
 		</attribute>
 	</tag>
 	<tag>
+		<description>Creates a component that renders a list of fragments.</description>
+		<name>render-fragment-layout</name>
+		<tag-class>com.liferay.layout.taglib.servlet.taglib.RenderFragmentLayoutTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>fieldValues</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>groupId</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>mode</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>plid</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>showPreview</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	<tag>
 		<description></description>
 		<name>select-layout</name>
 		<tag-class>com.liferay.layout.taglib.servlet.taglib.soy.SelectLayoutTag</tag-class>

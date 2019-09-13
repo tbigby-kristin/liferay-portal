@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-calendar-util',
 	function(A) {
@@ -25,30 +39,32 @@ AUI.add(
 			SECOND: 1000,
 			WEEK: 604800000,
 
+			// eslint-disable-next-line
 			TIME_DESC: ['weeks', 'days', 'hours', 'minutes'],
 
-			getDescription: function(milliseconds) {
-				var instance = this;
-
+			getDescription(milliseconds) {
 				var desc = 'minutes';
 				var value = 0;
 
 				if (milliseconds > 0) {
-					var timeArray = [Time.WEEK, Time.DAY, Time.HOUR, Time.MINUTE];
+					var timeArray = [
+						Time.WEEK,
+						Time.DAY,
+						Time.HOUR,
+						Time.MINUTE
+					];
 
-					timeArray.some(
-						function(item, index) {
-							value = milliseconds / item;
-							desc = Time.TIME_DESC[index];
+					timeArray.some(function(item, index) {
+						value = milliseconds / item;
+						desc = Time.TIME_DESC[index];
 
-							return milliseconds % item === 0;
-						}
-					);
+						return milliseconds % item === 0;
+					});
 				}
 
 				return {
-					desc: desc,
-					value: value
+					desc,
+					value
 				};
 			}
 		};
@@ -58,42 +74,52 @@ AUI.add(
 		var CalendarUtil = {
 			NOTIFICATION_DEFAULT_TYPE: 'email',
 
-			createSchedulerEvent: function(calendarBooking) {
-				var instance = this;
-
-				var endDate = new Date(calendarBooking.endTimeYear, calendarBooking.endTimeMonth, calendarBooking.endTimeDay, calendarBooking.endTimeHour, calendarBooking.endTimeMinute);
-				var startDate = new Date(calendarBooking.startTimeYear, calendarBooking.startTimeMonth, calendarBooking.startTimeDay, calendarBooking.startTimeHour, calendarBooking.startTimeMinute);
-
-				var schedulerEvent = new Liferay.SchedulerEvent(
-					{
-						allDay: calendarBooking.allDay,
-						calendarBookingId: calendarBooking.calendarBookingId,
-						calendarId: calendarBooking.calendarId,
-						content: calendarBooking.title,
-						description: calendarBooking.description,
-						endDate: endDate.getTime(),
-						firstReminder: calendarBooking.firstReminder,
-						firstReminderType: calendarBooking.firstReminderType,
-						hasChildCalendarBookings: calendarBooking.hasChildCalendarBookings,
-						hasWorkflowInstanceLink: calendarBooking.hasWorkflowInstanceLink,
-						instanceIndex: calendarBooking.instanceIndex,
-						location: calendarBooking.location,
-						parentCalendarBookingId: calendarBooking.parentCalendarBookingId,
-						recurrence: calendarBooking.recurrence,
-						recurringCalendarBookingId: calendarBooking.recurringCalendarBookingId,
-						secondReminder: calendarBooking.secondReminder,
-						secondReminderType: calendarBooking.secondReminderType,
-						startDate: startDate.getTime(),
-						status: calendarBooking.status
-					}
+			createSchedulerEvent(calendarBooking) {
+				var endDate = new Date(
+					calendarBooking.endTimeYear,
+					calendarBooking.endTimeMonth,
+					calendarBooking.endTimeDay,
+					calendarBooking.endTimeHour,
+					calendarBooking.endTimeMinute
 				);
+				var startDate = new Date(
+					calendarBooking.startTimeYear,
+					calendarBooking.startTimeMonth,
+					calendarBooking.startTimeDay,
+					calendarBooking.startTimeHour,
+					calendarBooking.startTimeMinute
+				);
+
+				var schedulerEvent = new Liferay.SchedulerEvent({
+					allDay: calendarBooking.allDay,
+					calendarBookingId: calendarBooking.calendarBookingId,
+					calendarId: calendarBooking.calendarId,
+					content: calendarBooking.title,
+					description: calendarBooking.description,
+					endDate: endDate.getTime(),
+					firstReminder: calendarBooking.firstReminder,
+					firstReminderType: calendarBooking.firstReminderType,
+					hasChildCalendarBookings:
+						calendarBooking.hasChildCalendarBookings,
+					hasWorkflowInstanceLink:
+						calendarBooking.hasWorkflowInstanceLink,
+					instanceIndex: calendarBooking.instanceIndex,
+					location: calendarBooking.location,
+					parentCalendarBookingId:
+						calendarBooking.parentCalendarBookingId,
+					recurrence: calendarBooking.recurrence,
+					recurringCalendarBookingId:
+						calendarBooking.recurringCalendarBookingId,
+					secondReminder: calendarBooking.secondReminder,
+					secondReminderType: calendarBooking.secondReminderType,
+					startDate: startDate.getTime(),
+					status: calendarBooking.status
+				});
 
 				return schedulerEvent;
 			},
 
-			destroyEvent: function(schedulerEvent) {
-				var instance = this;
-
+			destroyEvent(schedulerEvent) {
 				var scheduler = schedulerEvent.get('scheduler');
 
 				scheduler.removeEvents(schedulerEvent);
@@ -101,25 +127,23 @@ AUI.add(
 				scheduler.syncEventsUI();
 			},
 
-			fillURLParameters: function(url, data) {
-				var instance = this;
-
+			fillURLParameters(url, data) {
 				url = Lang.sub(url, data);
 
 				return url.replace(REGEX_UNFILLED_PARAMETER, '');
 			},
 
-			getCalendarName: function(name, calendarResourceName) {
-				var instance = this;
-
+			getCalendarName(name, calendarResourceName) {
 				if (name !== calendarResourceName) {
-					name = [calendarResourceName, STR_DASH, name].join(STR_SPACE);
+					name = [calendarResourceName, STR_DASH, name].join(
+						STR_SPACE
+					);
 				}
 
 				return name;
 			},
 
-			getDateFromObject: function(object) {
+			getDateFromObject(object) {
 				var day = toInt(object.day);
 				var hour = toInt(object.hour);
 				var minute = toInt(object.minute);
@@ -129,9 +153,7 @@ AUI.add(
 				return new Date(year, month, day, hour, minute);
 			},
 
-			getDatesList: function(startDate, total) {
-				var instance = this;
-
+			getDatesList(startDate, total) {
 				var ADate = A.Date;
 
 				var output = [];
@@ -145,9 +167,7 @@ AUI.add(
 				return output;
 			},
 
-			getLocalizationMap: function(value) {
-				var instance = this;
-
+			getLocalizationMap(value) {
 				var map = {};
 
 				map[themeDisplay.getLanguageId()] = value;
@@ -155,9 +175,7 @@ AUI.add(
 				return JSON.stringify(map);
 			},
 
-			setEventAttrs: function(schedulerEvent, data) {
-				var instance = this;
-
+			setEventAttrs(schedulerEvent, data) {
 				var scheduler = schedulerEvent.get('scheduler');
 
 				var newCalendarId = data.calendarId;
@@ -167,8 +185,12 @@ AUI.add(
 				if (scheduler) {
 					var calendarContainer = scheduler.get('calendarContainer');
 
-					var newCalendar = calendarContainer.getCalendar(newCalendarId);
-					var oldCalendar = calendarContainer.getCalendar(oldCalendarId);
+					var newCalendar = calendarContainer.getCalendar(
+						newCalendarId
+					);
+					var oldCalendar = calendarContainer.getCalendar(
+						oldCalendarId
+					);
 
 					if (oldCalendar !== newCalendar) {
 						oldCalendar.remove(schedulerEvent);
@@ -183,9 +205,11 @@ AUI.add(
 							calendarBookingId: data.calendarBookingId,
 							calendarId: newCalendarId,
 							calendarResourceId: data.calendarResourceId,
-							parentCalendarBookingId: data.parentCalendarBookingId,
+							parentCalendarBookingId:
+								data.parentCalendarBookingId,
 							recurrence: data.recurrence,
-							recurringCalendarBookingId: data.recurringCalendarBookingId,
+							recurringCalendarBookingId:
+								data.recurringCalendarBookingId,
 							status: data.status
 						},
 						{
@@ -197,39 +221,40 @@ AUI.add(
 				}
 			},
 
-			toLocalTime: function(utc) {
-				var instance = this;
-
+			toLocalTime(utc) {
 				if (!isDate(utc)) {
 					utc = new Date(utc);
 				}
 
-				return DateMath.add(utc, DateMath.MINUTES, utc.getTimezoneOffset());
+				return DateMath.add(
+					utc,
+					DateMath.MINUTES,
+					utc.getTimezoneOffset()
+				);
 			},
 
-			toUTC: function(date) {
-				var instance = this;
-
+			toUTC(date) {
 				if (!isDate(date)) {
 					date = new Date(date);
 				}
 
-				return DateMath.subtract(date, DateMath.MINUTES, date.getTimezoneOffset());
+				return DateMath.subtract(
+					date,
+					DateMath.MINUTES,
+					date.getTimezoneOffset()
+				);
 			},
 
-			updateSchedulerEvents: function(schedulerEvents, calendarBooking) {
-				A.each(
-					schedulerEvents,
-					function(schedulerEvent) {
-						if (schedulerEvent.isRecurring()) {
-							var scheduler = schedulerEvent.get('scheduler');
+			updateSchedulerEvents(schedulerEvents, calendarBooking) {
+				A.each(schedulerEvents, function(schedulerEvent) {
+					if (schedulerEvent.isRecurring()) {
+						var scheduler = schedulerEvent.get('scheduler');
 
-							scheduler.load();
-						}
-
-						schedulerEvent.set('status', calendarBooking.status);
+						scheduler.load();
 					}
-				);
+
+					schedulerEvent.set('status', calendarBooking.status);
+				});
 			}
 		};
 
@@ -245,6 +270,13 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-datatype', 'aui-scheduler', 'aui-toolbar', 'autocomplete', 'autocomplete-highlighters', 'liferay-portlet-url']
+		requires: [
+			'aui-datatype',
+			'aui-scheduler',
+			'aui-toolbar',
+			'autocomplete',
+			'autocomplete-highlighters',
+			'liferay-portlet-url'
+		]
 	}
 );

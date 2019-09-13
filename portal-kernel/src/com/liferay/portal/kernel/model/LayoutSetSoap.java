@@ -20,22 +20,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.LayoutSetServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class LayoutSetSoap implements Serializable {
 
 	public static LayoutSetSoap toSoapModel(LayoutSet model) {
 		LayoutSetSoap soapModel = new LayoutSetSoap();
 
 		soapModel.setMvccVersion(model.getMvccVersion());
-		soapModel.setHeadId(model.getHeadId());
 		soapModel.setLayoutSetId(model.getLayoutSetId());
 		soapModel.setGroupId(model.getGroupId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -110,14 +106,6 @@ public class LayoutSetSoap implements Serializable {
 
 	public void setMvccVersion(long mvccVersion) {
 		_mvccVersion = mvccVersion;
-	}
-
-	public long getHeadId() {
-		return _headId;
-	}
-
-	public void setHeadId(long headId) {
-		_headId = headId;
 	}
 
 	public long getLayoutSetId() {
@@ -243,7 +231,6 @@ public class LayoutSetSoap implements Serializable {
 	}
 
 	private long _mvccVersion;
-	private long _headId;
 	private long _layoutSetId;
 	private long _groupId;
 	private long _companyId;

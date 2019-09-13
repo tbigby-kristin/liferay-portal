@@ -28,11 +28,12 @@
 	label="<%= label %>"
 />
 
-<aui:script use="liferay-store">
-	var sidenavToggle = $('[href="#<%= sidenavId %>"]');
+<aui:script>
+	var sidenavToggle = document.querySelector('[href="#<%= sidenavId %>"]');
 
-	if (!sidenavToggle.sideNavigation('instance')) {
-		sidenavToggle.sideNavigation(
+	if (!Liferay.SideNavigation.instance(sidenavToggle)) {
+		var sidenavInstance = Liferay.SideNavigation.initialize(
+			sidenavToggle,
 			{
 				position: '<%= position %>',
 				type: '<%= type %>',
@@ -41,19 +42,17 @@
 			}
 		);
 
-		var sidenavSlider = $('#<%= sidenavId %>');
-
-		sidenavSlider.on(
+		sidenavInstance.on(
 			'closed.lexicon.sidenav',
 			function(event) {
-				Liferay.Store('com.liferay.info.panel_<%= sidenavId %>', 'closed');
+				Liferay.Util.Session.set('com.liferay.info.panel_<%= sidenavId %>', 'closed');
 			}
 		);
 
-		sidenavSlider.on(
+		sidenavInstance.on(
 			'open.lexicon.sidenav',
 			function(event) {
-				Liferay.Store('com.liferay.info.panel_<%= sidenavId %>', 'open');
+				Liferay.Util.Session.set('com.liferay.info.panel_<%= sidenavId %>', 'open');
 			}
 		);
 	}

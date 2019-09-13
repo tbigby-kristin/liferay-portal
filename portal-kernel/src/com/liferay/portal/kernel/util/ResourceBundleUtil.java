@@ -93,9 +93,9 @@ public class ResourceBundleUtil {
 
 		Registry registry = RegistryUtil.getRegistry();
 
-		String symbolicName = registry.getSymbolicName(classLoader);
-
-		return _getBundle(baseName, locale, classLoader, symbolicName);
+		return _getBundle(
+			baseName, locale, classLoader,
+			registry.getSymbolicName(classLoader));
 	}
 
 	public static Map<Locale, String> getLocalizationMap(
@@ -223,7 +223,16 @@ public class ResourceBundleUtil {
 
 		ResourceBundleLoader resourceBundleLoader = null;
 
-		if (symbolicName != null) {
+		if (symbolicName == null) {
+			ClassLoader portalClassLoader =
+				PortalClassLoaderUtil.getClassLoader();
+
+			if (classLoader == portalClassLoader) {
+				resourceBundleLoader =
+					ResourceBundleLoaderUtil.getPortalResourceBundleLoader();
+			}
+		}
+		else {
 			resourceBundleLoader =
 				ResourceBundleLoaderUtil.
 					getResourceBundleLoaderByBundleSymbolicName(symbolicName);

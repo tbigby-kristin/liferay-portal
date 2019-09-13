@@ -21,8 +21,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMFormInstanceRecordVersion}.
@@ -32,7 +30,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMFormInstanceRecordVersion
  * @generated
  */
-@ProviderType
 public class DDMFormInstanceRecordVersionWrapper
 	extends BaseModelWrapper<DDMFormInstanceRecordVersion>
 	implements DDMFormInstanceRecordVersion,
@@ -48,6 +45,7 @@ public class DDMFormInstanceRecordVersionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"formInstanceRecordVersionId", getFormInstanceRecordVersionId());
 		attributes.put("groupId", getGroupId());
@@ -59,17 +57,23 @@ public class DDMFormInstanceRecordVersionWrapper
 		attributes.put("formInstanceVersion", getFormInstanceVersion());
 		attributes.put("formInstanceRecordId", getFormInstanceRecordId());
 		attributes.put("version", getVersion());
+		attributes.put("storageId", getStorageId());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
 		attributes.put("statusByUserName", getStatusByUserName());
 		attributes.put("statusDate", getStatusDate());
-		attributes.put("storageId", getStorageId());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long formInstanceRecordVersionId = (Long)attributes.get(
 			"formInstanceRecordVersionId");
 
@@ -133,6 +137,12 @@ public class DDMFormInstanceRecordVersionWrapper
 			setVersion(version);
 		}
 
+		Long storageId = (Long)attributes.get("storageId");
+
+		if (storageId != null) {
+			setStorageId(storageId);
+		}
+
 		Integer status = (Integer)attributes.get("status");
 
 		if (status != null) {
@@ -155,12 +165,6 @@ public class DDMFormInstanceRecordVersionWrapper
 
 		if (statusDate != null) {
 			setStatusDate(statusDate);
-		}
-
-		Long storageId = (Long)attributes.get("storageId");
-
-		if (storageId != null) {
-			setStorageId(storageId);
 		}
 	}
 
@@ -261,6 +265,16 @@ public class DDMFormInstanceRecordVersionWrapper
 	@Override
 	public long getGroupId() {
 		return model.getGroupId();
+	}
+
+	/**
+	 * Returns the mvcc version of this ddm form instance record version.
+	 *
+	 * @return the mvcc version of this ddm form instance record version
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -453,6 +467,11 @@ public class DDMFormInstanceRecordVersionWrapper
 		return model.isScheduled();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm form instance record version model instance should use the <code>DDMFormInstanceRecordVersion</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -528,6 +547,16 @@ public class DDMFormInstanceRecordVersionWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm form instance record version.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm form instance record version
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

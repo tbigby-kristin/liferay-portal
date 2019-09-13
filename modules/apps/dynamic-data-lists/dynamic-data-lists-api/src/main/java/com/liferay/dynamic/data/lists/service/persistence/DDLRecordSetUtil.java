@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -41,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see DDLRecordSetPersistence
  * @generated
  */
-@ProviderType
 public class DDLRecordSetUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -184,16 +182,16 @@ public class DDLRecordSetUtil {
 	 * @param start the lower bound of the range of ddl record sets
 	 * @param end the upper bound of the range of ddl record sets (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddl record sets
 	 */
 	public static List<DDLRecordSet> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<DDLRecordSet> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -323,13 +321,13 @@ public class DDLRecordSetUtil {
 	 *
 	 * @param uuid the uuid
 	 * @param groupId the group ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching ddl record set, or <code>null</code> if a matching ddl record set could not be found
 	 */
 	public static DDLRecordSet fetchByUUID_G(
-		String uuid, long groupId, boolean retrieveFromCache) {
+		String uuid, long groupId, boolean useFinderCache) {
 
-		return getPersistence().fetchByUUID_G(uuid, groupId, retrieveFromCache);
+		return getPersistence().fetchByUUID_G(uuid, groupId, useFinderCache);
 	}
 
 	/**
@@ -421,16 +419,16 @@ public class DDLRecordSetUtil {
 	 * @param start the lower bound of the range of ddl record sets
 	 * @param end the upper bound of the range of ddl record sets (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddl record sets
 	 */
 	public static List<DDLRecordSet> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<DDLRecordSet> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -604,16 +602,16 @@ public class DDLRecordSetUtil {
 	 * @param start the lower bound of the range of ddl record sets
 	 * @param end the upper bound of the range of ddl record sets (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddl record sets
 	 */
 	public static List<DDLRecordSet> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<DDLRecordSet> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByGroupId(
-			groupId, start, end, orderByComparator, retrieveFromCache);
+			groupId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -875,16 +873,16 @@ public class DDLRecordSetUtil {
 	 * @param start the lower bound of the range of ddl record sets
 	 * @param end the upper bound of the range of ddl record sets (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddl record sets
 	 */
 	public static List<DDLRecordSet> findByGroupId(
 		long[] groupIds, int start, int end,
 		OrderByComparator<DDLRecordSet> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByGroupId(
-			groupIds, start, end, orderByComparator, retrieveFromCache);
+			groupIds, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -937,6 +935,272 @@ public class DDLRecordSetUtil {
 	}
 
 	/**
+	 * Returns all the ddl record sets where DDMStructureId = &#63;.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @return the matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(long DDMStructureId) {
+		return getPersistence().findByDDMStructureId(DDMStructureId);
+	}
+
+	/**
+	 * Returns a range of all the ddl record sets where DDMStructureId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param start the lower bound of the range of ddl record sets
+	 * @param end the upper bound of the range of ddl record sets (not inclusive)
+	 * @return the range of matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long DDMStructureId, int start, int end) {
+
+		return getPersistence().findByDDMStructureId(
+			DDMStructureId, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the ddl record sets where DDMStructureId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param start the lower bound of the range of ddl record sets
+	 * @param end the upper bound of the range of ddl record sets (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long DDMStructureId, int start, int end,
+		OrderByComparator<DDLRecordSet> orderByComparator) {
+
+		return getPersistence().findByDDMStructureId(
+			DDMStructureId, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns an ordered range of all the ddl record sets where DDMStructureId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param start the lower bound of the range of ddl record sets
+	 * @param end the upper bound of the range of ddl record sets (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long DDMStructureId, int start, int end,
+		OrderByComparator<DDLRecordSet> orderByComparator,
+		boolean useFinderCache) {
+
+		return getPersistence().findByDDMStructureId(
+			DDMStructureId, start, end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Returns the first ddl record set in the ordered set where DDMStructureId = &#63;.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching ddl record set
+	 * @throws NoSuchRecordSetException if a matching ddl record set could not be found
+	 */
+	public static DDLRecordSet findByDDMStructureId_First(
+			long DDMStructureId,
+			OrderByComparator<DDLRecordSet> orderByComparator)
+		throws com.liferay.dynamic.data.lists.exception.
+			NoSuchRecordSetException {
+
+		return getPersistence().findByDDMStructureId_First(
+			DDMStructureId, orderByComparator);
+	}
+
+	/**
+	 * Returns the first ddl record set in the ordered set where DDMStructureId = &#63;.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching ddl record set, or <code>null</code> if a matching ddl record set could not be found
+	 */
+	public static DDLRecordSet fetchByDDMStructureId_First(
+		long DDMStructureId,
+		OrderByComparator<DDLRecordSet> orderByComparator) {
+
+		return getPersistence().fetchByDDMStructureId_First(
+			DDMStructureId, orderByComparator);
+	}
+
+	/**
+	 * Returns the last ddl record set in the ordered set where DDMStructureId = &#63;.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching ddl record set
+	 * @throws NoSuchRecordSetException if a matching ddl record set could not be found
+	 */
+	public static DDLRecordSet findByDDMStructureId_Last(
+			long DDMStructureId,
+			OrderByComparator<DDLRecordSet> orderByComparator)
+		throws com.liferay.dynamic.data.lists.exception.
+			NoSuchRecordSetException {
+
+		return getPersistence().findByDDMStructureId_Last(
+			DDMStructureId, orderByComparator);
+	}
+
+	/**
+	 * Returns the last ddl record set in the ordered set where DDMStructureId = &#63;.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the last matching ddl record set, or <code>null</code> if a matching ddl record set could not be found
+	 */
+	public static DDLRecordSet fetchByDDMStructureId_Last(
+		long DDMStructureId,
+		OrderByComparator<DDLRecordSet> orderByComparator) {
+
+		return getPersistence().fetchByDDMStructureId_Last(
+			DDMStructureId, orderByComparator);
+	}
+
+	/**
+	 * Returns the ddl record sets before and after the current ddl record set in the ordered set where DDMStructureId = &#63;.
+	 *
+	 * @param recordSetId the primary key of the current ddl record set
+	 * @param DDMStructureId the ddm structure ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the previous, current, and next ddl record set
+	 * @throws NoSuchRecordSetException if a ddl record set with the primary key could not be found
+	 */
+	public static DDLRecordSet[] findByDDMStructureId_PrevAndNext(
+			long recordSetId, long DDMStructureId,
+			OrderByComparator<DDLRecordSet> orderByComparator)
+		throws com.liferay.dynamic.data.lists.exception.
+			NoSuchRecordSetException {
+
+		return getPersistence().findByDDMStructureId_PrevAndNext(
+			recordSetId, DDMStructureId, orderByComparator);
+	}
+
+	/**
+	 * Returns all the ddl record sets where DDMStructureId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureIds the ddm structure IDs
+	 * @return the matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long[] DDMStructureIds) {
+
+		return getPersistence().findByDDMStructureId(DDMStructureIds);
+	}
+
+	/**
+	 * Returns a range of all the ddl record sets where DDMStructureId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureIds the ddm structure IDs
+	 * @param start the lower bound of the range of ddl record sets
+	 * @param end the upper bound of the range of ddl record sets (not inclusive)
+	 * @return the range of matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long[] DDMStructureIds, int start, int end) {
+
+		return getPersistence().findByDDMStructureId(
+			DDMStructureIds, start, end);
+	}
+
+	/**
+	 * Returns an ordered range of all the ddl record sets where DDMStructureId = any &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureIds the ddm structure IDs
+	 * @param start the lower bound of the range of ddl record sets
+	 * @param end the upper bound of the range of ddl record sets (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long[] DDMStructureIds, int start, int end,
+		OrderByComparator<DDLRecordSet> orderByComparator) {
+
+		return getPersistence().findByDDMStructureId(
+			DDMStructureIds, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns an ordered range of all the ddl record sets where DDMStructureId = &#63;, optionally using the finder cache.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>DDLRecordSetModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * </p>
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @param start the lower bound of the range of ddl record sets
+	 * @param end the upper bound of the range of ddl record sets (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching ddl record sets
+	 */
+	public static List<DDLRecordSet> findByDDMStructureId(
+		long[] DDMStructureIds, int start, int end,
+		OrderByComparator<DDLRecordSet> orderByComparator,
+		boolean useFinderCache) {
+
+		return getPersistence().findByDDMStructureId(
+			DDMStructureIds, start, end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Removes all the ddl record sets where DDMStructureId = &#63; from the database.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 */
+	public static void removeByDDMStructureId(long DDMStructureId) {
+		getPersistence().removeByDDMStructureId(DDMStructureId);
+	}
+
+	/**
+	 * Returns the number of ddl record sets where DDMStructureId = &#63;.
+	 *
+	 * @param DDMStructureId the ddm structure ID
+	 * @return the number of matching ddl record sets
+	 */
+	public static int countByDDMStructureId(long DDMStructureId) {
+		return getPersistence().countByDDMStructureId(DDMStructureId);
+	}
+
+	/**
+	 * Returns the number of ddl record sets where DDMStructureId = any &#63;.
+	 *
+	 * @param DDMStructureIds the ddm structure IDs
+	 * @return the number of matching ddl record sets
+	 */
+	public static int countByDDMStructureId(long[] DDMStructureIds) {
+		return getPersistence().countByDDMStructureId(DDMStructureIds);
+	}
+
+	/**
 	 * Returns the ddl record set where groupId = &#63; and recordSetKey = &#63; or throws a <code>NoSuchRecordSetException</code> if it could not be found.
 	 *
 	 * @param groupId the group ID
@@ -967,14 +1231,14 @@ public class DDLRecordSetUtil {
 	 *
 	 * @param groupId the group ID
 	 * @param recordSetKey the record set key
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching ddl record set, or <code>null</code> if a matching ddl record set could not be found
 	 */
 	public static DDLRecordSet fetchByG_R(
-		long groupId, String recordSetKey, boolean retrieveFromCache) {
+		long groupId, String recordSetKey, boolean useFinderCache) {
 
 		return getPersistence().fetchByG_R(
-			groupId, recordSetKey, retrieveFromCache);
+			groupId, recordSetKey, useFinderCache);
 	}
 
 	/**
@@ -1124,15 +1388,15 @@ public class DDLRecordSetUtil {
 	 * @param start the lower bound of the range of ddl record sets
 	 * @param end the upper bound of the range of ddl record sets (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of ddl record sets
 	 */
 	public static List<DDLRecordSet> findAll(
 		int start, int end, OrderByComparator<DDLRecordSet> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

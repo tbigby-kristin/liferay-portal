@@ -52,14 +52,14 @@ String unsubscribeActionName = StringPool.BLANK;
 		if (Validator.isNotNull(ddmStructureKey)) {
 			subscribed = JournalUtil.isSubscribedToStructure(themeDisplay.getCompanyId(), scopeGroupId, user.getUserId(), ddmStructureId);
 
-			subscribeActionName = "subscribeStructure";
-			unsubscribeActionName = "unsubscribeStructure";
+			subscribeActionName = "/journal/subscribe_ddm_structure";
+			unsubscribeActionName = "/journal/unsubscribe_ddm_structure";
 		}
 		else if (Validator.isNull(ddmStructureKey) && (article != null)) {
 			subscribed = JournalUtil.isSubscribedToArticle(themeDisplay.getCompanyId(), scopeGroupId, user.getUserId(), article.getResourcePrimKey());
 
-			subscribeActionName = "subscribeArticle";
-			unsubscribeActionName = "unsubscribeArticle";
+			subscribeActionName = "/journal/subscribe_article";
+			unsubscribeActionName = "/journal/unsubscribe_article";
 		}
 		else {
 			subscribed = JournalUtil.isSubscribedToFolder(themeDisplay.getCompanyId(), scopeGroupId, user.getUserId(), folderId);
@@ -70,8 +70,8 @@ String unsubscribeActionName = StringPool.BLANK;
 				}
 			}
 
-			subscribeActionName = "subscribeFolder";
-			unsubscribeActionName = "unsubscribeFolder";
+			subscribeActionName = "/journal/subscribe_folder";
+			unsubscribeActionName = "/journal/unsubscribe_folder";
 		}
 		%>
 

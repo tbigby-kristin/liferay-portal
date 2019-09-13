@@ -169,7 +169,7 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 
 				<div class="template-history-toolbar" id="<portlet:namespace />templateHistoryToolbar"></div>
 
-				<aui:script use="aui-toolbar,aui-dialog-iframe-deprecated,liferay-util-window">
+				<aui:script use="aui-dialog-iframe-deprecated,aui-toolbar,liferay-util-window">
 					var toolbarChildren = [
 						<portlet:renderURL var="viewHistoryURL">
 							<portlet:param name="mvcPath" value="/view_template_history.jsp" />
@@ -178,7 +178,6 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 						</portlet:renderURL>
 
 						{
-							icon: 'icon-time',
 							label: '<%= UnicodeLanguageUtil.get(request, "view-history") %>',
 							on: {
 								click: function(event) {
@@ -232,9 +231,10 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 
 									<c:if test="<%= ddmNavigationHelper.isNavigationStartsOnViewTemplates(liferayPortletRequest) && ((template == null) || (template.getClassPK() == 0)) %>">
 										<liferay-ui:icon
-											iconCssClass="icon-search"
+											icon="search"
 											label="<%= true %>"
 											linkCssClass="btn btn-default"
+											markupView="lexicon"
 											message="select"
 											url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
 										/>
@@ -465,6 +465,13 @@ DDMNavigationHelper ddmNavigationHelper = ddmDisplay.getDDMNavigationHelper();
 
 				Liferay.fire('<portlet:namespace />saveTemplate');
 			}
+
+			var onDestroyPortlet = function(event) {
+				Liferay.detach('destroyPortlet', onDestroyPortlet);
+				Liferay.detach('<portlet:namespace />saveTemplate');
+			}
+
+			Liferay.on('destroyPortlet', onDestroyPortlet);
 		</aui:script>
 
 		<%

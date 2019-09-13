@@ -64,8 +64,8 @@ import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -76,6 +76,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
@@ -424,9 +425,8 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		RatingsStats ratingsStats =
 			_ratingsStatsLocalService.createRatingsStats(statsId);
 
-		long classNameId = _classNameLocalService.getClassNameId(className);
-
-		ratingsStats.setClassNameId(classNameId);
+		ratingsStats.setClassNameId(
+			_classNameLocalService.getClassNameId(className));
 
 		ratingsStats.setClassPK(classPK);
 		ratingsStats.setTotalEntries(totalEntries);
@@ -695,14 +695,19 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 
 			Map<Locale, String> nameMap = new HashMap<>();
 
-			nameMap.put(LocaleUtil.getDefault(), userName);
+			nameMap.put(LocaleUtil.getSiteDefault(), userName);
 
 			Map<Locale, String> descriptionMap = new HashMap<>();
 
 			return _calendarResourceLocalService.addCalendarResource(
 				userId, userGroup.getGroupId(),
 				_classNameLocalService.getClassNameId(User.class), userId, null,
-				null, nameMap, descriptionMap, true, serviceContext);
+				null,
+				LocalizationUtil.populateLocalizationMap(
+					nameMap,
+					LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
+					groupId),
+				descriptionMap, true, serviceContext);
 		}
 
 		CalendarResource calendarResource =
@@ -728,13 +733,17 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 
 		Map<Locale, String> nameMap = new HashMap<>();
 
-		nameMap.put(LocaleUtil.getDefault(), group.getDescriptiveName());
+		nameMap.put(LocaleUtil.getSiteDefault(), group.getDescriptiveName());
 
 		Map<Locale, String> descriptionMap = new HashMap<>();
 
 		return _calendarResourceLocalService.addCalendarResource(
 			userId, groupId, _classNameLocalService.getClassNameId(Group.class),
-			groupId, null, null, nameMap, descriptionMap, true, serviceContext);
+			groupId, null, null,
+			LocalizationUtil.populateLocalizationMap(
+				nameMap, LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
+				groupId),
+			descriptionMap, true, serviceContext);
 	}
 
 	private JSONSerializer _getJSONSerializer() throws Exception {
@@ -1107,10 +1116,9 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 			Map<Long, Long> mbMessageIds)
 		throws PortalException {
 
-		MBMessage mbMessage = _mbMessageLocalService.getMBMessage(messageId);
-
 		return _importMBMessage(
-			mbMessage, threadId, calendarBookingId, mbMessageIds);
+			_mbMessageLocalService.getMBMessage(messageId), threadId,
+			calendarBookingId, mbMessageIds);
 	}
 
 	private long _importMBMessage(

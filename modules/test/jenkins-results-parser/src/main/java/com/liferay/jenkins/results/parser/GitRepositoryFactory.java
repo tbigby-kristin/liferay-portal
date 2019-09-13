@@ -16,6 +16,7 @@ package com.liferay.jenkins.results.parser;
 
 import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.json.JSONObject;
 
@@ -96,10 +97,14 @@ public class GitRepositoryFactory {
 			throw new RuntimeException("Invalid remote URL " + remoteURL);
 		}
 
-		String username = matcher.group("username");
+		Pattern pattern = matcher.pattern();
 
-		if (username == null) {
-			username = "liferay";
+		String patternString = pattern.toString();
+
+		String username = "liferay";
+
+		if (patternString.contains("(?<username>")) {
+			username = matcher.group("username");
 		}
 
 		return getRemoteGitRepository(

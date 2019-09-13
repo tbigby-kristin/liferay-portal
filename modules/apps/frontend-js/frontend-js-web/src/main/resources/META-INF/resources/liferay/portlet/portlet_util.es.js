@@ -1,7 +1,18 @@
-import {
-	isDefAndNotNull,
-	isString
-} from 'metal';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import {isDefAndNotNull, isString} from 'metal';
 
 // Constants for URL generation
 
@@ -43,8 +54,10 @@ const WINDOW_STATE_KEY = 'p_p_state';
  */
 
 const decodeUpdateString = function(pageRenderState, updateString) {
-	const portlets = pageRenderState && pageRenderState.portlets ?
-		pageRenderState.portlets : {};
+	const portlets =
+		pageRenderState && pageRenderState.portlets
+			? pageRenderState.portlets
+			: {};
 
 	try {
 		const newRenderState = JSON.parse(updateString);
@@ -52,22 +65,23 @@ const decodeUpdateString = function(pageRenderState, updateString) {
 		if (newRenderState.portlets) {
 			const keys = Object.keys(portlets);
 
-			for (const key of keys) {
+			keys.forEach(key => {
 				const newState = newRenderState.portlets[key].state;
 				const oldState = portlets[key].state;
 
 				if (!newState || !oldState) {
-					throw new Error(`Invalid update string.\nold state=${oldState}\nnew state=${newState}`);
+					throw new Error(
+						`Invalid update string.\nold state=${oldState}\nnew state=${newState}`
+					);
 				}
 
 				if (stateChanged(pageRenderState, newState, key)) {
 					portlets[key] = newRenderState.portlets[key];
 				}
-			}
+			});
 		}
-
-	}
-	catch (e) {
+	} catch (e) {
+		// Do nothing
 	}
 
 	return portlets;
@@ -95,21 +109,26 @@ const encodeFormAsString = function(portletId, form) {
 			if (tag === 'SELECT' && element.multiple) {
 				const options = [...element.options];
 
-				options.forEach(
-					opt => {
-						if (opt.checked) {
-							const value = opt.value;
+				options.forEach(opt => {
+					if (opt.checked) {
+						const value = opt.value;
 
-							const parameter = encodeURIComponent(portletId + name) + '=' + encodeURIComponent(value);
+						const parameter =
+							encodeURIComponent(portletId + name) +
+							'=' +
+							encodeURIComponent(value);
 
-							parameters.push(parameter);
-						}
+						parameters.push(parameter);
 					}
-				);
-			}
-			else if (
-				(type !== 'CHECKBOX' && type !== 'RADIO') || element.checked) {
-				let param = encodeURIComponent(portletId + name) + '=' + encodeURIComponent(value);
+				});
+			} else if (
+				(type !== 'CHECKBOX' && type !== 'RADIO') ||
+				element.checked
+			) {
+				const param =
+					encodeURIComponent(portletId + name) +
+					'=' +
+					encodeURIComponent(value);
 				parameters.push(param);
 			}
 		}
@@ -131,20 +150,24 @@ const encodeParameter = function(name, values) {
 
 	if (Array.isArray(values)) {
 		if (values.length === 0) {
-			str += TOKEN_DELIM + encodeURIComponent(name) + VALUE_DELIM + VALUE_ARRAY_EMPTY;
-		}
-		else {
-			for (let value of values) {
+			str +=
+				TOKEN_DELIM +
+				encodeURIComponent(name) +
+				VALUE_DELIM +
+				VALUE_ARRAY_EMPTY;
+		} else {
+			values.forEach(value => {
 				str += TOKEN_DELIM + encodeURIComponent(name);
+
 				if (value === null) {
 					str += VALUE_DELIM + VALUE_NULL;
-				}
-				else {
+				} else {
 					str += VALUE_DELIM + encodeURIComponent(value);
 				}
-			}
+			});
 		}
 	}
+
 	return str;
 };
 
@@ -163,32 +186,29 @@ const generateActionUrl = function(portletId, url, form) {
 	const request = {
 		credentials: 'same-origin',
 		method: 'POST',
-		url: url
+		url
 	};
 
 	if (form) {
 		const enctype = form.enctype;
 
-		if (enctype === 'multipart\/form-data') {
+		if (enctype === 'multipart/form-data') {
 			const formData = new FormData(form);
 
 			request.body = formData;
-		}
-		else {
+		} else {
 			const formAsString = encodeFormAsString(portletId, form);
 			const method = form.method ? form.method.toUpperCase() : 'GET';
 
 			if (method === 'GET') {
 				if (url.indexOf('?') >= 0) {
 					url += `&${formAsString}`;
-				}
-				else {
+				} else {
 					url += `?${formAsString}`;
 				}
 
 				request.url = url;
-			}
-			else {
+			} else {
 				request.body = formAsString;
 				request.headers = {
 					'Content-Type': 'application/x-www-form-urlencoded'
@@ -210,7 +230,13 @@ const generateActionUrl = function(portletId, url, form) {
  * @review
  */
 
-const generateParameterString = function(pageRenderState, portletId, name, type, group) {
+const generateParameterString = function(
+	pageRenderState,
+	portletId,
+	name,
+	type,
+	group
+) {
 	let str = '';
 
 	if (pageRenderState.portlets && pageRenderState.portlets[portletId]) {
@@ -220,16 +246,16 @@ const generateParameterString = function(pageRenderState, portletId, name, type,
 			const values = portletData.state.parameters[name];
 
 			if (values !== undefined) {
-
 				// If values are present, encode the mutlivalued parameter string
 
 				if (type === PUBLIC_RENDER_PARAM_KEY) {
 					str += encodeParameter(group, values);
-				}
-				else if (type === RENDER_PARAM_KEY) {
-					str += encodeParameter(portletId + RENDER_PARAM_KEY + name, values);
-				}
-				else {
+				} else if (type === RENDER_PARAM_KEY) {
+					str += encodeParameter(
+						portletId + RENDER_PARAM_KEY + name,
+						values
+					);
+				} else {
 					str += encodeParameter(portletId + name, values);
 				}
 			}
@@ -247,7 +273,10 @@ const generateParameterString = function(pageRenderState, portletId, name, type,
  * @review
  */
 
-const generatePortletModeAndWindowStateString = function(pageRenderState, portletId) {
+const generatePortletModeAndWindowStateString = function(
+	pageRenderState,
+	portletId
+) {
 	let str = '';
 
 	if (pageRenderState.portlets) {
@@ -256,8 +285,16 @@ const generatePortletModeAndWindowStateString = function(pageRenderState, portle
 		if (portletData.state) {
 			const state = portletData.state;
 
-			str += TOKEN_DELIM + PORTLET_MODE_KEY + VALUE_DELIM + encodeURIComponent(state.portletMode);
-			str += TOKEN_DELIM + WINDOW_STATE_KEY + VALUE_DELIM + encodeURIComponent(state.windowState);
+			str +=
+				TOKEN_DELIM +
+				PORTLET_MODE_KEY +
+				VALUE_DELIM +
+				encodeURIComponent(state.portletMode);
+			str +=
+				TOKEN_DELIM +
+				WINDOW_STATE_KEY +
+				VALUE_DELIM +
+				encodeURIComponent(state.windowState);
 		}
 	}
 
@@ -275,26 +312,35 @@ const generatePortletModeAndWindowStateString = function(pageRenderState, portle
  * @review
  */
 
-const getUpdatedPublicRenderParameters = function(pageRenderState, portletId, state) {
+const getUpdatedPublicRenderParameters = function(
+	pageRenderState,
+	portletId,
+	state
+) {
 	const publicRenderParameters = {};
 
 	if (pageRenderState && pageRenderState.portlets) {
-
 		const portletData = pageRenderState.portlets[portletId];
 
 		if (portletData && portletData.pubParms) {
-
 			const portletPublicParameters = portletData.pubParms;
 
 			const keys = Object.keys(portletPublicParameters);
 
-			for (let key of keys) {
-				if (!isParameterInStateEqual(pageRenderState, portletId, state, key)) {
+			keys.forEach(key => {
+				if (
+					!isParameterInStateEqual(
+						pageRenderState,
+						portletId,
+						state,
+						key
+					)
+				) {
 					const group = portletPublicParameters[key];
 
 					publicRenderParameters[group] = state.parameters[key];
 				}
-			}
+			});
 		}
 	}
 
@@ -313,13 +359,19 @@ const getUpdatedPublicRenderParameters = function(pageRenderState, portletId, st
  * @review
  */
 
-const getUrl = function(pageRenderState, type, portletId, parameters, cache, resourceId) {
+const getUrl = function(
+	pageRenderState,
+	type,
+	portletId,
+	parameters,
+	cache,
+	resourceId
+) {
 	let cacheability = 'cacheLevelPage';
 	let str = '';
 	let url = '';
 
 	if (pageRenderState && pageRenderState.portlets) {
-
 		// If target portlet not defined for render URL, set it to null
 
 		if (type === 'RENDER' && portletId === undefined) {
@@ -336,25 +388,37 @@ const getUrl = function(pageRenderState, type, portletId, parameters, cache, res
 					cacheability = cache;
 				}
 
-				url += TOKEN_DELIM + CACHE_LEVEL_KEY + VALUE_DELIM + encodeURIComponent(cacheability);
+				url +=
+					TOKEN_DELIM +
+					CACHE_LEVEL_KEY +
+					VALUE_DELIM +
+					encodeURIComponent(cacheability);
 
 				if (resourceId) {
-					url += TOKEN_DELIM + RESOURCE_ID_KEY + VALUE_DELIM + encodeURIComponent(resourceId);
+					url +=
+						TOKEN_DELIM +
+						RESOURCE_ID_KEY +
+						VALUE_DELIM +
+						encodeURIComponent(resourceId);
 				}
-			}
-			else if (type === 'RENDER' && portletId !== null) {
+			} else if (type === 'RENDER' && portletId !== null) {
 				url = decodeURIComponent(portletData.encodedRenderURL);
-			}
-			else if (type === 'RENDER') {
+			} else if (type === 'RENDER') {
 				url = decodeURIComponent(pageRenderState.encodedCurrentURL);
-			}
-			else if (type === 'ACTION') {
+			} else if (type === 'ACTION') {
 				url = decodeURIComponent(portletData.encodedActionURL);
-				url += TOKEN_DELIM + HUB_ACTION_KEY + VALUE_DELIM + encodeURIComponent(AJAX_ACTION_VALUE);
-			}
-			else if (type === 'PARTIAL_ACTION') {
+				url +=
+					TOKEN_DELIM +
+					HUB_ACTION_KEY +
+					VALUE_DELIM +
+					encodeURIComponent(AJAX_ACTION_VALUE);
+			} else if (type === 'PARTIAL_ACTION') {
 				url = decodeURIComponent(portletData.encodedActionURL);
-				url += TOKEN_DELIM + HUB_ACTION_KEY + VALUE_DELIM + encodeURIComponent(PARTIAL_ACTION_VALUE);
+				url +=
+					TOKEN_DELIM +
+					HUB_ACTION_KEY +
+					VALUE_DELIM +
+					encodeURIComponent(PARTIAL_ACTION_VALUE);
 			}
 
 			// Now add the state to the URL, taking into account cacheability if
@@ -363,13 +427,15 @@ const getUrl = function(pageRenderState, type, portletId, parameters, cache, res
 			// Put the private & public parameters on the URL if cacheability != FULL
 
 			if (type !== 'RESOURCE' || cacheability !== 'cacheLevelFull') {
-
 				// Add the state for the target portlet, if there is one.
 				// (for the render URL, pid can be null, and the state will have
 				// been added previously)
 
 				if (portletId) {
-					url += generatePortletModeAndWindowStateString(pageRenderState, portletId);
+					url += generatePortletModeAndWindowStateString(
+						pageRenderState,
+						portletId
+					);
 				}
 
 				// Add the state for the target portlet, if there is one.
@@ -383,11 +449,23 @@ const getUrl = function(pageRenderState, type, portletId, parameters, cache, res
 
 						const keys = Object.keys(stateParameters);
 
-						for (let key of keys) {
-							if (!isPublicParameter(pageRenderState, portletId, key)) {
-								str += generateParameterString(pageRenderState, portletId, key, RENDER_PARAM_KEY);
+						keys.forEach(key => {
+							if (
+								!isPublicParameter(
+									pageRenderState,
+									portletId,
+									key
+								)
+							) {
+								str += generateParameterString(
+									pageRenderState,
+									portletId,
+									key,
+									RENDER_PARAM_KEY
+								);
 							}
-						}
+						});
+
 						url += str;
 					}
 				}
@@ -400,16 +478,29 @@ const getUrl = function(pageRenderState, type, portletId, parameters, cache, res
 					const publicRenderParameters = {};
 
 					const mapKeys = Object.keys(pageRenderState.prpMap);
-					for (let mapKey of mapKeys) {
-						const groupKeys = Object.keys(pageRenderState.prpMap[mapKey]);
-						for (let groupKey of groupKeys) {
-							const groupName = pageRenderState.prpMap[mapKey][groupKey];
+
+					mapKeys.forEach(mapKey => {
+						const groupKeys = Object.keys(
+							pageRenderState.prpMap[mapKey]
+						);
+
+						groupKeys.forEach(groupKey => {
+							const groupName =
+								pageRenderState.prpMap[mapKey][groupKey];
+
 							const parts = groupName.split('|');
 
 							// Only need to add parameter once, since it is shared
 
-							if (!publicRenderParameters.hasOwnProperty(mapKey)) {
-								publicRenderParameters[mapKey] = generateParameterString(
+							if (
+								!Object.hasOwnProperty.call(
+									publicRenderParameters,
+									mapKey
+								)
+							) {
+								publicRenderParameters[
+									mapKey
+								] = generateParameterString(
 									pageRenderState,
 									parts[0],
 									parts[1],
@@ -419,8 +510,8 @@ const getUrl = function(pageRenderState, type, portletId, parameters, cache, res
 
 								str += publicRenderParameters[mapKey];
 							}
-						}
-					}
+						});
+					});
 
 					url += str;
 				}
@@ -434,9 +525,12 @@ const getUrl = function(pageRenderState, type, portletId, parameters, cache, res
 		str = '';
 		const parameterKeys = Object.keys(parameters);
 
-		for (let parameterKey of parameterKeys) {
-			str += encodeParameter(portletId + parameterKey, parameters[parameterKey]);
-		}
+		parameterKeys.forEach(parameterKey => {
+			str += encodeParameter(
+				portletId + parameterKey,
+				parameters[parameterKey]
+			);
+		});
 
 		url += str;
 	}
@@ -490,11 +584,15 @@ const isParameterEqual = function(parameter1, parameter2) {
  * @review
  */
 
-const isParameterInStateEqual = function(pageRenderState, portletId, state, name) {
+const isParameterInStateEqual = function(
+	pageRenderState,
+	portletId,
+	state,
+	name
+) {
 	let result = false;
 
 	if (pageRenderState && pageRenderState.portlets) {
-
 		const portletData = pageRenderState.portlets[portletId];
 
 		if (state.parameters[name] && portletData.state.parameters[name]) {
@@ -552,35 +650,42 @@ const stateChanged = function(pageRenderState, newState, portletId) {
 		if (portletData) {
 			const oldState = pageRenderState.portlets[portletId].state;
 
-			if (!newState.portletMode || !newState.windowState || !newState.parameters) {
+			if (
+				!newState.portletMode ||
+				!newState.windowState ||
+				!newState.parameters
+			) {
 				throw new Error(`Error decoding state: ${newState}`);
 			}
 
-			if (newState.porletMode !== oldState.portletMode || newState.windowState !== oldState.windowState) {
+			if (
+				newState.porletMode !== oldState.portletMode ||
+				newState.windowState !== oldState.windowState
+			) {
 				result = true;
-			}
-			else {
-
+			} else {
 				// Has a parameter changed or been added?
 
 				const newKeys = Object.keys(newState.parameters);
-				for (const key of newKeys) {
+
+				newKeys.forEach(key => {
 					const newParameter = newState.parameters[key];
 					const oldParameter = oldState.parameters[key];
 
 					if (!isParameterEqual(newParameter, oldParameter)) {
 						result = true;
 					}
-				}
+				});
 
 				// Make sure no parameter was deleted
 
 				const oldKeys = Object.keys(oldState.parameters);
-				for (const key of oldKeys) {
+
+				oldKeys.forEach(key => {
 					if (!newState.parameters[key]) {
 						result = true;
 					}
-				}
+				});
 			}
 		}
 	}
@@ -605,17 +710,23 @@ const stateChanged = function(pageRenderState, newState, portletId) {
 
 const validateArguments = function(args = [], min = 0, max = 1, types = []) {
 	if (args.length < min) {
-		throw new TypeError(`Too few arguments provided: Number of arguments: ${args.length}`);
-	}
-	else if (args.length > max) {
-		throw new TypeError(`Too many arguments provided: ${[].join.call(args, ', ')}`);
-	}
-	else if (Array.isArray(types)) {
+		throw new TypeError(
+			`Too few arguments provided: Number of arguments: ${args.length}`
+		);
+	} else if (args.length > max) {
+		throw new TypeError(
+			`Too many arguments provided: ${[].join.call(args, ', ')}`
+		);
+	} else if (Array.isArray(types)) {
 		let i = Math.min(args.length, types.length) - 1;
 
 		for (i; i >= 0; i--) {
-			if ((typeof args[i]) !== types[i]) {
-				throw new TypeError(`Parameter ${i} is of type ${(typeof args[i])} rather than the expected type ${types[i]}`);
+			if (typeof args[i] !== types[i]) {
+				throw new TypeError(
+					`Parameter ${i} is of type ${typeof args[
+						i
+					]} rather than the expected type ${types[i]}`
+				);
 			}
 
 			if (args[i] === null || args[i] === undefined) {
@@ -643,25 +754,40 @@ const validateForm = function(form) {
 	const method = form.method ? form.method.toUpperCase() : undefined;
 
 	if (method && method !== 'GET' && method !== 'POST') {
-		throw new TypeError(`Invalid form method ${method}. Allowed methods are GET & POST`);
+		throw new TypeError(
+			`Invalid form method ${method}. Allowed methods are GET & POST`
+		);
 	}
 
 	const enctype = form.enctype;
 
-	if (enctype	&& enctype !== 'application\/x-www-form-urlencoded' && enctype !== 'multipart\/form-data') {
-		throw new TypeError(`Invalid form enctype ${enctype}. Allowed: 'application\/x-www-form-urlencoded' & 'multipart\/form-data'`);
+	if (
+		enctype &&
+		enctype !== 'application/x-www-form-urlencoded' &&
+		enctype !== 'multipart/form-data'
+	) {
+		throw new TypeError(
+			`Invalid form enctype ${enctype}. Allowed: 'application/x-www-form-urlencoded' & 'multipart/form-data'`
+		);
 	}
 
-	if (enctype && enctype === 'multipart\/form-data' && method !== 'POST') {
-		throw new TypeError('Invalid method with multipart/form-data. Must be POST');
+	if (enctype && enctype === 'multipart/form-data' && method !== 'POST') {
+		throw new TypeError(
+			'Invalid method with multipart/form-data. Must be POST'
+		);
 	}
 
-	if (!enctype || enctype === 'application\/x-www-form-urlencoded') {
+	if (!enctype || enctype === 'application/x-www-form-urlencoded') {
 		const l = form.elements.length;
 
 		for (let i = 0; i < l; i++) {
-			if (form.elements[i].nodeName.toUpperCase() === 'INPUT' && form.elements[i].type.toUpperCase() === 'FILE') {
-				throw new TypeError('Must use enctype = \'multipart/form-data\' with input type FILE.');
+			if (
+				form.elements[i].nodeName.toUpperCase() === 'INPUT' &&
+				form.elements[i].type.toUpperCase() === 'FILE'
+			) {
+				throw new TypeError(
+					"Must use enctype = 'multipart/form-data' with input type FILE."
+				);
 			}
 		}
 	}
@@ -691,7 +817,8 @@ const validateParameters = function(parameters) {
 	}
 
 	const keys = Object.keys(parameters);
-	for (let key of keys) {
+
+	keys.forEach(key => {
 		if (!Array.isArray(parameters[key])) {
 			throw new TypeError(`${key} parameter is not an array`);
 		}
@@ -699,7 +826,7 @@ const validateParameters = function(parameters) {
 		if (!parameters[key].length) {
 			throw new TypeError(`${key} parameter is an empty array`);
 		}
-	}
+	});
 };
 
 /**
@@ -713,7 +840,10 @@ const validateParameters = function(parameters) {
  */
 
 const validatePortletId = function(pageRenderState = {}, portletId = '') {
-	return pageRenderState.portlets && Object.keys(pageRenderState.portlets).includes(portletId);
+	return (
+		pageRenderState.portlets &&
+		Object.keys(pageRenderState.portlets).includes(portletId)
+	);
 };
 
 /**
@@ -731,26 +861,32 @@ const validateState = function(state = {}, portletData = {}) {
 	const portletMode = state.portletMode;
 
 	if (!isString(portletMode)) {
-		throw new TypeError(`Invalid parameters. portletMode is ${typeof portletMode}`);
-	}
-	else {
+		throw new TypeError(
+			`Invalid parameters. portletMode is ${typeof portletMode}`
+		);
+	} else {
 		const allowedPortletModes = portletData.allowedPM;
 
 		if (!allowedPortletModes.includes(portletMode.toLowerCase())) {
-			throw new TypeError(`Invalid portletMode=${portletMode} is not in ${allowedPortletModes}`);
+			throw new TypeError(
+				`Invalid portletMode=${portletMode} is not in ${allowedPortletModes}`
+			);
 		}
 	}
 
 	const windowState = state.windowState;
 
 	if (!isString(windowState)) {
-		throw new TypeError(`Invalid parameters. windowState is ${typeof windowState}`);
-	}
-	else {
+		throw new TypeError(
+			`Invalid parameters. windowState is ${typeof windowState}`
+		);
+	} else {
 		const allowedWindowStates = portletData.allowedWS;
 
 		if (!allowedWindowStates.includes(windowState.toLowerCase())) {
-			throw new TypeError(`Invalid windowState=${windowState} is not in ${allowedWindowStates}`);
+			throw new TypeError(
+				`Invalid windowState=${windowState} is not in ${allowedWindowStates}`
+			);
 		}
 	}
 };

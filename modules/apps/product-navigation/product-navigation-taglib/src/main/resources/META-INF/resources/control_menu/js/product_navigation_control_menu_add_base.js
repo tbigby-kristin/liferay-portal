@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-product-navigation-control-menu-add-base',
 	function(A) {
@@ -31,363 +45,373 @@ AUI.add(
 
 		var TPL_LOADING = '<div class="loading-animation" />';
 
-		var AddBase = A.Component.create(
-			{
-				ATTRS: {
-					focusItem: {
-						setter: A.one
-					},
+		var AddBase = A.Component.create({
+			ATTRS: {
+				focusItem: {
+					setter: A.one
+				},
 
-					id: {
-						validator: Lang.isString
-					},
+				id: {
+					validator: Lang.isString
+				},
 
-					inputNode: {
-						setter: A.one
-					},
+				inputNode: {
+					setter: A.one
+				},
 
-					nodeList: {
-						setter: A.one
-					},
+				nodeList: {
+					setter: A.one
+				},
 
-					nodeSelector: {
-						validator: Lang.isString
-					},
+				nodeSelector: {
+					validator: Lang.isString
+				},
 
-					panelBody: {
-						setter: A.one
+				panelBody: {
+					setter: A.one
+				}
+			},
+
+			EXTENDS: A.Base,
+
+			NAME: 'addbase',
+
+			prototype: {
+				_bindUIDABase() {
+					var instance = this;
+
+					var panelBody = $(Util.getDOM(instance._panelBody));
+
+					var listGroupPanel = panelBody.find('.list-group-panel');
+
+					var eventType =
+						EVENT_SHOWN_BS_COLLAPSE + STR_DOT + instance._guid;
+
+					instance._jqueryEventHandles.push(
+						panelBody.on(
+							eventType,
+							$.proxy(instance._focusOnItem, instance)
+						),
+						listGroupPanel.on(eventType, function(event) {
+							event.stopPropagation();
+						})
+					);
+				},
+
+				_disablePortletEntry(portletId) {
+					var instance = this;
+
+					instance._eachPortletEntry(portletId, function(item) {
+						item.addClass(CSS_LFR_PORTLET_USED);
+					});
+				},
+
+				_eachPortletEntry(portletId, callback) {
+					var portlets = A.all('[data-portlet-id=' + portletId + ']');
+
+					portlets.each(callback);
+				},
+
+				_enablePortletEntry(portletId) {
+					var instance = this;
+
+					instance._eachPortletEntry(portletId, function(item) {
+						item.removeClass(CSS_LFR_PORTLET_USED);
+					});
+				},
+
+				_focusOnItem() {
+					var instance = this;
+
+					var focusItem = instance._focusItem;
+
+					if (focusItem) {
+						focusItem.focus();
 					}
 				},
 
-				EXTENDS: A.Base,
+				_getPortletMetaData(portlet) {
+					var portletMetaData = portlet._LFR_portletMetaData;
 
-				NAME: 'addbase',
+					if (!portletMetaData) {
+						var className = portlet.attr(DATA_CLASS_NAME);
+						var classPK = portlet.attr(DATA_CLASS_PK);
 
-				prototype: {
-					initializer: function(config) {
-						var instance = this;
+						var instanceable =
+							portlet.attr('data-instanceable') == 'true';
+						var plid = portlet.attr('data-plid');
 
-						instance._focusItem = instance.get('focusItem');
-						instance._panelBody = instance.get('panelBody');
+						var portletData = STR_EMPTY;
 
-						var focusItem = instance._focusItem;
-
-						if (focusItem && instance._isSelected()) {
-							focusItem.focus();
+						if (className != STR_EMPTY && classPK != STR_EMPTY) {
+							portletData = classPK + ',' + className;
 						}
 
-						instance._guid = A.stamp(instance);
+						var portletId = portlet.attr(DATA_PORTLET_ID);
+						var portletItemId = portlet.attr(
+							'data-portlet-item-id'
+						);
+						var portletUsed = portlet.hasClass(
+							CSS_LFR_PORTLET_USED
+						);
 
-						instance._eventHandles = [];
-						instance._jqueryEventHandles = [];
+						portletMetaData = {
+							instanceable,
+							plid,
+							portletData,
+							portletId,
+							portletItemId,
+							portletUsed
+						};
 
-						instance._bindUIDABase();
-					},
+						portlet._LFR_portletMetaData = portletMetaData;
+					}
 
-					destructor: function() {
-						var instance = this;
+					return portletMetaData;
+				},
 
-						(new A.EventHandle(instance._eventHandles)).detach();
+				_isSelected() {
+					var instance = this;
 
-						A.Array.invoke(instance._jqueryEventHandles, 'off', STR_DOT + instance._guid);
-					},
+					return instance._panelBody.hasClass('in');
+				},
 
-					addPortlet: function(portlet, options) {
-						var instance = this;
+				_portletFeedback() {
+					new Liferay.Notification({
+						closeable: true,
+						delay: {
+							hide: 5000,
+							show: 0
+						},
+						duration: 500,
+						message: Liferay.Language.get(
+							'the-application-was-added-to-the-page'
+						),
+						type: 'success'
+					}).render('body');
+				},
 
-						var portletMetaData = instance._getPortletMetaData(portlet);
+				addPortlet(portlet, options) {
+					var instance = this;
 
-						if (!portletMetaData.portletUsed) {
-							var portletId = portletMetaData.portletId;
+					var portletMetaData = instance._getPortletMetaData(portlet);
 
-							if (!portletMetaData.instanceable) {
-								instance._disablePortletEntry(portletId);
-							}
+					if (!portletMetaData.portletUsed) {
+						var portletId = portletMetaData.portletId;
 
-							var beforePortletLoaded = null;
-							var placeHolder = A.Node.create(TPL_LOADING);
+						if (!portletMetaData.instanceable) {
+							instance._disablePortletEntry(portletId);
+						}
 
-							if (options) {
-								var item = options.item;
+						var beforePortletLoaded = null;
+						var placeHolder = A.Node.create(TPL_LOADING);
 
-								item.placeAfter(placeHolder);
-								item.remove(true);
+						if (options) {
+							var item = options.item;
 
-								beforePortletLoaded = options.beforePortletLoaded;
-							}
-							else {
-								var firstColumn = Layout.getActiveDropNodes().item(0);
+							item.placeAfter(placeHolder);
+							item.remove(true);
 
-								if (firstColumn) {
-									var dropColumn = firstColumn.one(Layout.options.dropContainer);
-									var referencePortlet = Layout.findReferencePortlet(dropColumn);
-
-									if (referencePortlet) {
-										referencePortlet.placeBefore(placeHolder);
-									}
-									else if (dropColumn) {
-										dropColumn.append(placeHolder);
-									}
-								}
-							}
-
-							if (Util.isPhone() || Util.isTablet()) {
-								placeHolder.guid();
-
-								instance._portletFeedback(portletId, portlet);
-							}
-
-							Portlet.add(
-								{
-									beforePortletLoaded: beforePortletLoaded,
-									placeHolder: placeHolder,
-									plid: portletMetaData.plid,
-									portletData: portletMetaData.portletData,
-									portletId: portletId,
-									portletItemId: portletMetaData.portletItemId
-								}
+							beforePortletLoaded = options.beforePortletLoaded;
+						} else {
+							var firstColumn = Layout.getActiveDropNodes().item(
+								0
 							);
-						}
-					},
 
-					_bindUIDABase: function() {
-						var instance = this;
+							if (firstColumn) {
+								var dropColumn = firstColumn.one(
+									Layout.options.dropContainer
+								);
+								var referencePortlet = Layout.findReferencePortlet(
+									dropColumn
+								);
 
-						var panelBody = $(Util.getDOM(instance._panelBody));
-
-						var listGroupPanel = panelBody.find('.list-group-panel');
-
-						var eventType = EVENT_SHOWN_BS_COLLAPSE + STR_DOT + instance._guid;
-
-						instance._jqueryEventHandles.push(
-							panelBody.on(
-								eventType,
-								$.proxy(instance._focusOnItem, instance)
-							),
-							listGroupPanel.on(
-								eventType,
-								function(event) {
-									event.stopPropagation();
+								if (referencePortlet) {
+									referencePortlet.placeBefore(placeHolder);
+								} else if (dropColumn) {
+									dropColumn.append(placeHolder);
 								}
-							)
-						);
-					},
-
-					_disablePortletEntry: function(portletId) {
-						var instance = this;
-
-						instance._eachPortletEntry(
-							portletId,
-							function(item, index) {
-								item.addClass(CSS_LFR_PORTLET_USED);
 							}
-						);
-					},
-
-					_eachPortletEntry: function(portletId, callback) {
-						var instance = this;
-
-						var portlets = A.all('[data-portlet-id=' + portletId + ']');
-
-						portlets.each(callback);
-					},
-
-					_enablePortletEntry: function(portletId) {
-						var instance = this;
-
-						instance._eachPortletEntry(
-							portletId,
-							function(item, index) {
-								item.removeClass(CSS_LFR_PORTLET_USED);
-							}
-						);
-					},
-
-					_focusOnItem: function(event) {
-						var instance = this;
-
-						var focusItem = instance._focusItem;
-
-						if (focusItem) {
-							focusItem.focus();
-						}
-					},
-
-					_getPortletMetaData: function(portlet) {
-						var instance = this;
-
-						var portletMetaData = portlet._LFR_portletMetaData;
-
-						if (!portletMetaData) {
-							var className = portlet.attr(DATA_CLASS_NAME);
-							var classPK = portlet.attr(DATA_CLASS_PK);
-
-							var instanceable = (portlet.attr('data-instanceable') == 'true');
-							var plid = portlet.attr('data-plid');
-
-							var portletData = STR_EMPTY;
-
-							if ((className != STR_EMPTY) && (classPK != STR_EMPTY)) {
-								portletData = classPK + ',' + className;
-							}
-
-							var portletId = portlet.attr(DATA_PORTLET_ID);
-							var portletItemId = portlet.attr('data-portlet-item-id');
-							var portletUsed = portlet.hasClass(CSS_LFR_PORTLET_USED);
-
-							portletMetaData = {
-								instanceable: instanceable,
-								plid: plid,
-								portletData: portletData,
-								portletId: portletId,
-								portletItemId: portletItemId,
-								portletUsed: portletUsed
-							};
-
-							portlet._LFR_portletMetaData = portletMetaData;
 						}
 
-						return portletMetaData;
-					},
+						if (Util.isPhone() || Util.isTablet()) {
+							placeHolder.guid();
 
-					_isSelected: function() {
-						var instance = this;
+							instance._portletFeedback(portletId, portlet);
+						}
 
-						return instance._panelBody.hasClass('in');
-					},
-
-					_portletFeedback: function(portletId, portlet) {
-						var instance = this;
-
-						new Liferay.Notification(
-							{
-								closeable: true,
-								delay: {
-									hide: 5000,
-									show: 0
-								},
-								duration: 500,
-								message: Liferay.Language.get('the-application-was-added-to-the-page'),
-								type: 'success'
-							}
-						).render('body');
-					}
-				}
-			}
-		);
-
-		var PortletItem = A.Component.create(
-			{
-				ATTRS: {
-					lazyStart: {
-						value: true
-					},
-
-					proxyNode: {
-						value: PROXY_NODE_ITEM
+						Portlet.add({
+							beforePortletLoaded,
+							placeHolder,
+							plid: portletMetaData.plid,
+							portletData: portletMetaData.portletData,
+							portletId,
+							portletItemId: portletMetaData.portletItemId
+						});
 					}
 				},
 
-				EXTENDS: Layout.ColumnLayout,
+				destructor() {
+					var instance = this;
 
-				NAME: 'PortletItem',
+					new A.EventHandle(instance._eventHandles).detach();
 
-				prototype: {
-					PROXY_TITLE: PROXY_NODE_ITEM.one('.portlet-title'),
+					A.Array.invoke(
+						instance._jqueryEventHandles,
+						'off',
+						STR_DOT + instance._guid
+					);
+				},
 
-					bindUI: function() {
-						var instance = this;
+				initializer() {
+					var instance = this;
 
-						PortletItem.superclass.bindUI.apply(this, arguments);
+					instance._focusItem = instance.get('focusItem');
+					instance._panelBody = instance.get('panelBody');
 
-						instance.on('placeholderAlign', instance._onPlaceholderAlign);
-					},
+					var focusItem = instance._focusItem;
 
-					_getAppendNode: function() {
-						var instance = this;
-
-						instance.appendNode = DDM.activeDrag.get(STR_NODE).clone();
-
-						return instance.appendNode;
-					},
-
-					_onDragStart: function() {
-						var instance = this;
-
-						PortletItem.superclass._onDragStart.apply(this, arguments);
-
-						instance._syncProxyTitle();
-
-						instance.lazyEvents = false;
-					},
-
-					_onPlaceholderAlign: function(event) {
-						var instance = this;
-
-						var drop = event.drop;
-						var portletItem = event.currentTarget;
-
-						if (drop && portletItem) {
-							var dropNodeId = drop.get(STR_NODE).get('id');
-
-							if (Layout.EMPTY_COLUMNS[dropNodeId]) {
-								portletItem.activeDrop = drop;
-								portletItem.lazyEvents = false;
-								portletItem.quadrant = 1;
-							}
-						}
-					},
-
-					_positionNode: function(event) {
-						var instance = this;
-
-						var portalLayout = event.currentTarget;
-
-						var activeDrop = portalLayout.lastAlignDrop || portalLayout.activeDrop;
-
-						if (activeDrop) {
-							var dropNode = activeDrop.get(STR_NODE);
-
-							if (dropNode.isStatic) {
-								var dropColumn = dropNode.ancestor(Layout.options.dropContainer);
-								var foundReferencePortlet = Layout.findReferencePortlet(dropColumn);
-
-								if (!foundReferencePortlet) {
-									foundReferencePortlet = Layout.getLastPortletNode(dropColumn);
-								}
-
-								if (foundReferencePortlet) {
-									var drop = DDM.getDrop(foundReferencePortlet);
-
-									if (drop) {
-										portalLayout.quadrant = 4;
-										portalLayout.activeDrop = drop;
-										portalLayout.lastAlignDrop = drop;
-									}
-								}
-							}
-
-							PortletItem.superclass._positionNode.apply(this, arguments);
-						}
-					},
-
-					_syncProxyTitle: function() {
-						var instance = this;
-
-						var node = DDM.activeDrag.get(STR_NODE);
-						var title = node.attr('data-title');
-
-						instance.PROXY_TITLE.html(title);
+					if (focusItem && instance._isSelected()) {
+						focusItem.focus();
 					}
+
+					instance._guid = A.stamp(instance);
+
+					instance._eventHandles = [];
+					instance._jqueryEventHandles = [];
+
+					instance._bindUIDABase();
 				}
 			}
-		);
+		});
+
+		var PortletItem = A.Component.create({
+			ATTRS: {
+				lazyStart: {
+					value: true
+				},
+
+				proxyNode: {
+					value: PROXY_NODE_ITEM
+				}
+			},
+
+			EXTENDS: Layout.ColumnLayout,
+
+			NAME: 'PortletItem',
+
+			prototype: {
+				_getAppendNode() {
+					var instance = this;
+
+					instance.appendNode = DDM.activeDrag.get(STR_NODE).clone();
+
+					return instance.appendNode;
+				},
+
+				_onDragStart() {
+					var instance = this;
+
+					PortletItem.superclass._onDragStart.apply(this, arguments);
+
+					instance._syncProxyTitle();
+
+					instance.lazyEvents = false;
+				},
+
+				_onPlaceholderAlign(event) {
+					var drop = event.drop;
+					var portletItem = event.currentTarget;
+
+					if (drop && portletItem) {
+						var dropNodeId = drop.get(STR_NODE).get('id');
+
+						if (Layout.EMPTY_COLUMNS[dropNodeId]) {
+							portletItem.activeDrop = drop;
+							portletItem.lazyEvents = false;
+							portletItem.quadrant = 1;
+						}
+					}
+				},
+
+				_positionNode(event) {
+					var portalLayout = event.currentTarget;
+
+					var activeDrop =
+						portalLayout.lastAlignDrop || portalLayout.activeDrop;
+
+					if (activeDrop) {
+						var dropNode = activeDrop.get(STR_NODE);
+
+						if (dropNode.isStatic) {
+							var dropColumn = dropNode.ancestor(
+								Layout.options.dropContainer
+							);
+							var foundReferencePortlet = Layout.findReferencePortlet(
+								dropColumn
+							);
+
+							if (!foundReferencePortlet) {
+								foundReferencePortlet = Layout.getLastPortletNode(
+									dropColumn
+								);
+							}
+
+							if (foundReferencePortlet) {
+								var drop = DDM.getDrop(foundReferencePortlet);
+
+								if (drop) {
+									portalLayout.quadrant = 4;
+									portalLayout.activeDrop = drop;
+									portalLayout.lastAlignDrop = drop;
+								}
+							}
+						}
+
+						PortletItem.superclass._positionNode.apply(
+							this,
+							arguments
+						);
+					}
+				},
+
+				_syncProxyTitle() {
+					var instance = this;
+
+					var node = DDM.activeDrag.get(STR_NODE);
+					var title = node.attr('data-title');
+
+					instance.PROXY_TITLE.html(title);
+				},
+
+				PROXY_TITLE: PROXY_NODE_ITEM.one('.portlet-title'),
+
+				bindUI() {
+					var instance = this;
+
+					PortletItem.superclass.bindUI.apply(this, arguments);
+
+					instance.on(
+						'placeholderAlign',
+						instance._onPlaceholderAlign
+					);
+				}
+			}
+		});
 
 		ControlMenu.AddBase = AddBase;
 		ControlMenu.PortletItem = PortletItem;
 	},
 	'',
 	{
-		requires: ['anim', 'aui-base', 'liferay-layout', 'liferay-layout-column', 'liferay-notification', 'liferay-product-navigation-control-menu', 'transition']
+		requires: [
+			'anim',
+			'aui-base',
+			'liferay-layout',
+			'liferay-layout-column',
+			'liferay-notification',
+			'liferay-product-navigation-control-menu',
+			'transition'
+		]
 	}
 );

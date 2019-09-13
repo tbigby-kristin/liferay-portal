@@ -310,11 +310,9 @@ public class BreadcrumbUtil {
 		if (layout.getParentLayoutId() !=
 				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) {
 
-			Layout parentLayout = LayoutLocalServiceUtil.getParentLayout(
-				layout);
-
 			_addLayoutBreadcrumbEntries(
-				breadcrumbEntries, themeDisplay, parentLayout);
+				breadcrumbEntries, themeDisplay,
+				LayoutLocalServiceUtil.getParentLayout(layout));
 		}
 
 		BreadcrumbEntry breadcrumbEntry = new BreadcrumbEntry();
@@ -329,11 +327,11 @@ public class BreadcrumbUtil {
 
 		String layoutName = layout.getName(themeDisplay.getLocale());
 
-		if (layout.isTypeControlPanel()) {
-			if (layoutName.equals(LayoutConstants.NAME_CONTROL_PANEL_DEFAULT)) {
-				layoutName = LanguageUtil.get(
-					themeDisplay.getLocale(), "control-panel");
-			}
+		if (layout.isTypeControlPanel() &&
+			layoutName.equals(LayoutConstants.NAME_CONTROL_PANEL_DEFAULT)) {
+
+			layoutName = LanguageUtil.get(
+				themeDisplay.getLocale(), "control-panel");
 		}
 
 		breadcrumbEntry.setTitle(layoutName);

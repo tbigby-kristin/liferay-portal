@@ -106,9 +106,8 @@ public abstract class BaseOpenSearchImpl implements OpenSearch {
 			long userId = PortalUtil.getUserId(httpServletRequest);
 
 			if (userId == 0) {
-				long companyId = PortalUtil.getCompanyId(httpServletRequest);
-
-				userId = UserLocalServiceUtil.getDefaultUserId(companyId);
+				userId = UserLocalServiceUtil.getDefaultUserId(
+					PortalUtil.getCompanyId(httpServletRequest));
 			}
 
 			String keywords = GetterUtil.getString(
@@ -552,10 +551,8 @@ public abstract class BaseOpenSearchImpl implements OpenSearch {
 				layoutGroupId, scopeGroupId, true, portletId);
 		}
 
-		if (plid == 0) {
-			if (layout != null) {
-				plid = layout.getPlid();
-			}
+		if ((plid == 0) && (layout != null)) {
+			plid = layout.getPlid();
 		}
 
 		return plid;

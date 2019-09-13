@@ -48,8 +48,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the SystemEvent service. Represents a row in the &quot;SystemEvent&quot; database table, with each column mapped to a property of this class.
  *
@@ -61,11 +59,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SystemEventImpl
  * @generated
  */
-@ProviderType
 public class SystemEventModelImpl
 	extends BaseModelImpl<SystemEvent> implements SystemEventModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a system event model instance should use the <code>SystemEvent</code> interface instead.
@@ -630,7 +627,12 @@ public class SystemEventModelImpl
 	@Override
 	public SystemEvent toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, SystemEvent>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -870,8 +872,12 @@ public class SystemEventModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, SystemEvent>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, SystemEvent>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _mvccVersion;
 	private long _systemEventId;

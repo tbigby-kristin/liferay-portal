@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-admin',
 	function(A) {
@@ -19,185 +33,223 @@ AUI.add(
 
 		var STR_URL = 'url';
 
-		var Admin = A.Component.create(
-			{
-				ATTRS: {
-					form: {
-						setter: A.one,
-						value: null
-					},
-
-					indexActionsPanel: {
-						value: null
-					},
-
-					redirectUrl: {
-						validator: Lang.isString,
-						value: null
-					},
-
-					submitButton: {
-						validator: Lang.isString,
-						value: null
-					},
-
-					url: {
-						value: null
-					}
+		var Admin = A.Component.create({
+			ATTRS: {
+				form: {
+					setter: A.one,
+					value: null
 				},
 
-				AUGMENTS: [Liferay.PortletBase],
+				indexActionsPanel: {
+					value: null
+				},
 
-				EXTENDS: A.Base,
+				redirectUrl: {
+					validator: Lang.isString,
+					value: null
+				},
 
-				NAME: 'admin',
+				submitButton: {
+					validator: Lang.isString,
+					value: null
+				},
 
-				prototype: {
-					initializer: function(config) {
-						var instance = this;
+				url: {
+					value: null
+				}
+			},
 
-						instance._eventHandles = [];
+			AUGMENTS: [Liferay.PortletBase],
 
-						instance.bindUI();
+			EXTENDS: A.Base,
 
-						instance._laterTimeout = A.later(INTERVAL_RENDER_IN_PROGRESS, instance, '_updateIndexActions');
-					},
+			NAME: 'admin',
 
-					bindUI: function() {
-						var instance = this;
+			prototype: {
+				_addInputsFromData(data) {
+					var instance = this;
 
-						instance._eventHandles.push(
-							instance.get(STR_FORM).delegate(
+					var form = instance.get(STR_FORM);
+
+					var inputsArray = A.Object.map(data, function(value, key) {
+						key = MAP_DATA_PARAMS[key] || key;
+
+						var nsKey = instance.ns(key);
+
+						return (
+							'<input id="' +
+							nsKey +
+							'" name="' +
+							nsKey +
+							'" type="hidden" value="' +
+							value +
+							'" />'
+						);
+					});
+
+					form.append(inputsArray.join(''));
+				},
+
+				_isBackgroundTaskInProgress() {
+					var instance = this;
+
+					var indexActionsNode = A.one(
+						instance.get(STR_INDEX_ACTIONS_PANEL)
+					);
+
+					return !!(
+						indexActionsNode &&
+						indexActionsNode.one(
+							'.background-task-status-in-progress'
+						)
+					);
+				},
+
+				_onSubmit(event) {
+					var instance = this;
+
+					var data = event.currentTarget.getData();
+					var form = instance.get(STR_FORM);
+
+					var redirect = instance.one('#redirect', form);
+
+					if (redirect) {
+						redirect.val(instance.get('redirectURL'));
+					}
+
+					instance._addInputsFromData(data);
+
+					submitForm(form, instance.get(STR_URL));
+				},
+
+				_updateIndexActions() {
+					var instance = this;
+
+					var renderInterval = INTERVAL_RENDER_IDLE;
+
+					if (instance._isBackgroundTaskInProgress()) {
+						renderInterval = INTERVAL_RENDER_IN_PROGRESS;
+					}
+
+					var currentAdminIndexPanel = A.one(
+						instance.get(STR_INDEX_ACTIONS_PANEL)
+					);
+
+					if (currentAdminIndexPanel) {
+						Liferay.Util.fetch(instance.get(STR_URL), {
+							method: 'POST'
+						})
+							.then(response => {
+								return response.text();
+							})
+							.then(response => {
+								var responseDataNode = A.Node.create(response);
+
+								var responseAdminIndexPanel = responseDataNode.one(
+									instance.get(STR_INDEX_ACTIONS_PANEL)
+								);
+
+								var responseAdminIndexNodeList = responseAdminIndexPanel.all(
+									'.index-action-wrapper'
+								);
+
+								var currentAdminIndexNodeList = currentAdminIndexPanel.all(
+									'.index-action-wrapper'
+								);
+
+								currentAdminIndexNodeList.each(function(
+									item,
+									index
+								) {
+									var inProgress = item.one('.progress');
+
+									var responseAdminIndexNode = responseAdminIndexNodeList.item(
+										index
+									);
+
+									if (!inProgress) {
+										inProgress = responseAdminIndexNode.one(
+											'.progress'
+										);
+									}
+
+									if (inProgress) {
+										item.replace(responseAdminIndexNode);
+									}
+								});
+
+								var controlMenuId =
+									'#' + instance.ns('controlMenu');
+
+								var currentControlMenu = A.one(controlMenuId);
+
+								var responseControlMenu = responseDataNode.one(
+									controlMenuId
+								);
+
+								if (currentControlMenu && responseControlMenu) {
+									currentControlMenu.replace(
+										responseControlMenu
+									);
+								}
+							});
+					}
+
+					instance._laterTimeout = A.later(
+						renderInterval,
+						instance,
+						'_updateIndexActions'
+					);
+				},
+
+				bindUI() {
+					var instance = this;
+
+					instance._eventHandles.push(
+						instance
+							.get(STR_FORM)
+							.delegate(
 								STR_CLICK,
 								A.bind('_onSubmit', instance),
 								instance.get('submitButton')
 							)
-						);
-					},
+					);
+				},
 
-					destructor: function() {
-						var instance = this;
+				destructor() {
+					var instance = this;
 
-						A.Array.invoke(instance._eventHandles, 'detach');
+					A.Array.invoke(instance._eventHandles, 'detach');
 
-						instance._eventHandles = null;
+					instance._eventHandles = null;
 
-						A.clearTimeout(instance._laterTimeout);
-					},
+					A.clearTimeout(instance._laterTimeout);
+				},
 
-					_addInputsFromData: function(data) {
-						var instance = this;
+				initializer() {
+					var instance = this;
 
-						var form = instance.get(STR_FORM);
+					instance._eventHandles = [];
 
-						var inputsArray = A.Object.map(
-							data,
-							function(value, key) {
-								key = MAP_DATA_PARAMS[key] || key;
+					instance.bindUI();
 
-								var nsKey = instance.ns(key);
-
-								return '<input id="' + nsKey + '" name="' + nsKey + '" type="hidden" value="' + value + '" />';
-							}
-						);
-
-						form.append(inputsArray.join(''));
-					},
-
-					_isBackgroundTaskInProgress: function() {
-						var instance = this;
-
-						var indexActionsNode = A.one(instance.get(STR_INDEX_ACTIONS_PANEL));
-
-						return !!(indexActionsNode && indexActionsNode.one('.background-task-status-in-progress'));
-					},
-
-					_onSubmit: function(event) {
-						var instance = this;
-
-						var data = event.currentTarget.getData();
-						var form = instance.get(STR_FORM);
-
-						var redirect = instance.one('#redirect', form);
-
-						if (redirect) {
-							redirect.val(instance.get('redirectURL'));
-						}
-
-						instance._addInputsFromData(data);
-
-						submitForm(
-							form,
-							instance.get(STR_URL)
-						);
-					},
-
-					_updateIndexActions: function() {
-						var instance = this;
-
-						var renderInterval = INTERVAL_RENDER_IDLE;
-
-						if (instance._isBackgroundTaskInProgress()) {
-							renderInterval = INTERVAL_RENDER_IN_PROGRESS;
-						}
-
-						var currentAdminIndexPanel = A.one(instance.get(STR_INDEX_ACTIONS_PANEL));
-
-						if (currentAdminIndexPanel) {
-							A.io.request(
-								instance.get(STR_URL),
-								{
-									on: {
-										success: function(event, id, obj) {
-											var responseDataNode = A.Node.create(this.get('responseData'));
-
-											var responseAdminIndexPanel = responseDataNode.one(instance.get(STR_INDEX_ACTIONS_PANEL));
-
-											var responseAdminIndexNodeList = responseAdminIndexPanel.all('.index-action-wrapper');
-
-											var currentAdminIndexNodeList = currentAdminIndexPanel.all('.index-action-wrapper');
-
-											currentAdminIndexNodeList.each(
-												function(item, index) {
-													var inProgress = item.one('.progress');
-
-													var responseAdminIndexNode = responseAdminIndexNodeList.item(index);
-
-													if (!inProgress) {
-														inProgress = responseAdminIndexNode.one('.progress');
-													}
-
-													if (inProgress) {
-														item.replace(responseAdminIndexNode);
-													}
-												}
-											);
-
-											var controlMenuId = '#' + instance.ns('controlMenu');
-
-											var currentControlMenu = A.one(controlMenuId);
-
-											var responseControlMenu = responseDataNode.one(controlMenuId);
-
-											if (currentControlMenu && responseControlMenu) {
-												currentControlMenu.replace(responseControlMenu);
-											}
-										}
-									}
-								}
-							);
-						}
-
-						instance._laterTimeout = A.later(renderInterval, instance, '_updateIndexActions');
-					}
+					instance._laterTimeout = A.later(
+						INTERVAL_RENDER_IN_PROGRESS,
+						instance,
+						'_updateIndexActions'
+					);
 				}
 			}
-		);
+		});
 
 		Liferay.Portlet.Admin = Admin;
 	},
 	'',
 	{
-		requires: ['aui-io-plugin-deprecated', 'aui-io-request', 'liferay-portlet-base', 'querystring-parse']
+		requires: [
+			'aui-io-plugin-deprecated',
+			'liferay-portlet-base',
+			'querystring-parse'
+		]
 	}
 );

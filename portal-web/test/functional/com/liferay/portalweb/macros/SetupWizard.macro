@@ -22,7 +22,9 @@ definition {
 		}
 
 		if (isSet(databaseName)) {
-			var jdbcURL = StringUtil.replace("${jdbcURL}", "lportal", "${databaseName}");
+			var originalDatabaseName = PropsUtil.get("database.mysql.schema");
+
+			var jdbcURL = StringUtil.replace("${jdbcURL}", "${originalDatabaseName}", "${databaseName}");
 		}
 
 		Select(
@@ -170,7 +172,7 @@ definition {
 	}
 
 	macro viewConfigurationSavedPG {
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessageText(successMessage = "Your configuration was saved successfully.");
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "SetupWizard#CONFIGURATION_SAVE_MESSAGE",
@@ -180,9 +182,7 @@ definition {
 			locator1 = "SetupWizard#CONFIGURATION_SAVE_LOCATION",
 			value1 = "portal-setup-wizard.properties");
 
-		AssertTextEquals(
-			locator1 = "Message#INFO",
-			value1 = "Changes will take effect once the portal is restarted. Please restart the portal now.");
+		Alert.viewInfoMessageSpecific(infoMessage = "Changes will take effect once the portal is restarted. Please restart the portal now.");
 	}
 
 	macro viewConfiguredDatabaseInConsole {

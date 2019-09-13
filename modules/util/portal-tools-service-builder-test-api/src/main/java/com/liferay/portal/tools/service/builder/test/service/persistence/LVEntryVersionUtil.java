@@ -14,8 +14,6 @@
 
 package com.liferay.portal.tools.service.builder.test.service.persistence;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -42,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see LVEntryVersionPersistence
  * @generated
  */
-@ProviderType
 public class LVEntryVersionUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -186,16 +183,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByLvEntryId(
 		long lvEntryId, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByLvEntryId(
-			lvEntryId, start, end, orderByComparator, retrieveFromCache);
+			lvEntryId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -332,14 +329,14 @@ public class LVEntryVersionUtil {
 	 *
 	 * @param lvEntryId the lv entry ID
 	 * @param version the version
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching lv entry version, or <code>null</code> if a matching lv entry version could not be found
 	 */
 	public static LVEntryVersion fetchByLvEntryId_Version(
-		long lvEntryId, int version, boolean retrieveFromCache) {
+		long lvEntryId, int version, boolean useFinderCache) {
 
 		return getPersistence().fetchByLvEntryId_Version(
-			lvEntryId, version, retrieveFromCache);
+			lvEntryId, version, useFinderCache);
 	}
 
 	/**
@@ -427,16 +424,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -601,16 +598,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByUuid_Version(
 		String uuid, int version, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_Version(
-			uuid, version, start, end, orderByComparator, retrieveFromCache);
+			uuid, version, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -788,16 +785,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByUUID_G(
 		String uuid, long groupId, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUUID_G(
-			uuid, groupId, start, end, orderByComparator, retrieveFromCache);
+			uuid, groupId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -948,14 +945,14 @@ public class LVEntryVersionUtil {
 	 * @param uuid the uuid
 	 * @param groupId the group ID
 	 * @param version the version
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching lv entry version, or <code>null</code> if a matching lv entry version could not be found
 	 */
 	public static LVEntryVersion fetchByUUID_G_Version(
-		String uuid, long groupId, int version, boolean retrieveFromCache) {
+		String uuid, long groupId, int version, boolean useFinderCache) {
 
 		return getPersistence().fetchByUUID_G_Version(
-			uuid, groupId, version, retrieveFromCache);
+			uuid, groupId, version, useFinderCache);
 	}
 
 	/**
@@ -1054,16 +1051,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1248,17 +1245,17 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByUuid_C_Version(
 		String uuid, long companyId, int version, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C_Version(
 			uuid, companyId, version, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -1443,16 +1440,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByGroupId(
-			groupId, start, end, orderByComparator, retrieveFromCache);
+			groupId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1619,16 +1616,16 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByGroupId_Version(
 		long groupId, int version, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByGroupId_Version(
-			groupId, version, start, end, orderByComparator, retrieveFromCache);
+			groupId, version, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1809,17 +1806,17 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching lv entry versions
 	 */
 	public static List<LVEntryVersion> findByG_UGK(
 		long groupId, String uniqueGroupKey, int start, int end,
 		OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByG_UGK(
 			groupId, uniqueGroupKey, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -1972,15 +1969,15 @@ public class LVEntryVersionUtil {
 	 * @param groupId the group ID
 	 * @param uniqueGroupKey the unique group key
 	 * @param version the version
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching lv entry version, or <code>null</code> if a matching lv entry version could not be found
 	 */
 	public static LVEntryVersion fetchByG_UGK_Version(
 		long groupId, String uniqueGroupKey, int version,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().fetchByG_UGK_Version(
-			groupId, uniqueGroupKey, version, retrieveFromCache);
+			groupId, uniqueGroupKey, version, useFinderCache);
 	}
 
 	/**
@@ -2138,15 +2135,15 @@ public class LVEntryVersionUtil {
 	 * @param start the lower bound of the range of lv entry versions
 	 * @param end the upper bound of the range of lv entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of lv entry versions
 	 */
 	public static List<LVEntryVersion> findAll(
 		int start, int end, OrderByComparator<LVEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

@@ -1,15 +1,15 @@
-@import "components/breadcrumb";
-@import "components/color";
-@import "components/group-item";
-@import "components/info-panel";
-@import "components/navbars";
-@import "components/sidebar";
-@import "components/splitter";
-@import "components/table";
-@import "components/widget";
-@import "portlet/portlet";
-@import "portlet/portlet_decorators";
-@import "portlet/portlet_hello_world";
+@import 'components/breadcrumb';
+@import 'components/color';
+@import 'components/group-item';
+@import 'components/info-panel';
+@import 'components/navbars';
+@import 'components/sidebar';
+@import 'components/splitter';
+@import 'components/table';
+@import 'components/widget';
+@import 'portlet/portlet';
+@import 'portlet/portlet_decorators';
+@import 'portlet/portlet_hello_world';
 
 body {
 	header {
@@ -19,11 +19,12 @@ body {
 			top: 2px;
 
 			a {
-				color: #FFF;
+				color: #fff;
 			}
 		}
 
-		.field-wrapper, .form-group {
+		.field-wrapper,
+		.form-group {
 			margin-bottom: 0;
 		}
 
@@ -41,7 +42,7 @@ body {
 		}
 
 		.text-default {
-			color: #6B6C7E;
+			color: #6b6c7e;
 			font-weight: 600;
 		}
 
@@ -75,7 +76,7 @@ body {
 			.user-full-name {
 				margin-left: 0.5rem;
 
-				@include media-breakpoint-down(sm) {
+				@include media-breakpoint-down(xs) {
 					display: none;
 				}
 			}
@@ -84,14 +85,14 @@ body {
 }
 
 .btn-group + .info-panel {
-	@include media-breakpoint-up(md) {
+	@include media-breakpoint-up(sm) {
 		top: auto;
 	}
 }
 
 #footer {
 	background-color: $complementary-color;
-	color: #FFF;
+	color: #fff;
 	margin-top: 1rem;
 
 	> .container {

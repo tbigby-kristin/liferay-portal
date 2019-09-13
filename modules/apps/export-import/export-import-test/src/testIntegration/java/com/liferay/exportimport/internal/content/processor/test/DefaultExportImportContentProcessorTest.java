@@ -35,6 +35,7 @@ import com.liferay.exportimport.test.util.TestReaderWriter;
 import com.liferay.exportimport.test.util.TestUserIdStrategy;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -77,7 +78,6 @@ import com.liferay.portal.test.randomizerbumpers.FriendlyURLRandomizerBumper;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.test.LayoutTestUtil;
 import com.liferay.registry.Filter;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
@@ -644,9 +644,10 @@ public class DefaultExportImportContentProcessorTest {
 			_portletDataContextImport, _referrerStagedModel, content);
 
 		Assert.assertTrue(
-			"The imported content should contain the friendly URL of the " +
-				"external group (\"" + _externalGroup.getFriendlyURL() +
-					"\"), but it does not:\n" + content,
+			StringBundler.concat(
+				"The imported content should contain the friendly URL of the ",
+				"external group (\"", _externalGroup.getFriendlyURL(),
+				"\"), but it does not:\n", content),
 			content.contains(_externalGroup.getFriendlyURL()));
 
 		Assert.assertFalse(
@@ -1167,9 +1168,9 @@ public class DefaultExportImportContentProcessorTest {
 		String parameters1 = timestampParameter + "&width=100&height=100";
 		String parameters2 = "width=100&" + timestampParameter + "&height=100";
 		String parameters3 = "width=100&height=100&" + timestampParameter;
-		String parameters4 =
-			timestampParameter + "?" + timestampParameter +
-				"&width=100&height=100";
+		String parameters4 = StringBundler.concat(
+			timestampParameter, "?", timestampParameter,
+			"&width=100&height=100");
 
 		List<String> outURLs = new ArrayList<>();
 

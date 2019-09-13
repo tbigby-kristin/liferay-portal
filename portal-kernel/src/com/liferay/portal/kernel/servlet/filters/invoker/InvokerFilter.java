@@ -98,10 +98,8 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 
 			Thread currentThread = Thread.currentThread();
 
-			ClassLoader contextClassLoader =
-				currentThread.getContextClassLoader();
-
-			invokerFilterChain.setContextClassLoader(contextClassLoader);
+			invokerFilterChain.setContextClassLoader(
+				currentThread.getContextClassLoader());
 
 			invokerFilterChain.doFilter(
 				httpServletRequest, httpServletResponse);
@@ -307,13 +305,12 @@ public class InvokerFilter extends BasePortalLifecycle implements Filter {
 	protected HttpServletRequest handleNonSerializableRequest(
 		HttpServletRequest httpServletRequest) {
 
-		if (ServerDetector.isWebLogic()) {
-			if (!NonSerializableObjectRequestWrapper.isWrapped(
-					httpServletRequest)) {
+		if (ServerDetector.isWebLogic() &&
+			!NonSerializableObjectRequestWrapper.isWrapped(
+				httpServletRequest)) {
 
-				httpServletRequest = new NonSerializableObjectRequestWrapper(
-					httpServletRequest);
-			}
+			httpServletRequest = new NonSerializableObjectRequestWrapper(
+				httpServletRequest);
 		}
 
 		return httpServletRequest;

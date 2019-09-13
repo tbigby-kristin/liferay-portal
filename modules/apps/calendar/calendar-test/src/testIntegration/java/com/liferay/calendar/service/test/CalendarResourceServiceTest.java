@@ -20,8 +20,8 @@ import com.liferay.calendar.service.CalendarResourceLocalServiceUtil;
 import com.liferay.calendar.service.CalendarResourceServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.service.permission.ModelPermissionsFactory;
@@ -105,7 +105,7 @@ public class CalendarResourceServiceTest {
 
 		int count = CalendarResourceServiceUtil.searchCount(
 			_user.getCompanyId(), new long[] {_user.getGroupId()},
-			new long[] {classNameId}, nameMap.get(LocaleUtil.getDefault()),
+			new long[] {classNameId}, nameMap.get(LocaleUtil.getSiteDefault()),
 			true);
 
 		Assert.assertEquals(1, count);
@@ -118,7 +118,7 @@ public class CalendarResourceServiceTest {
 			RandomTestUtil.randomString() + StringPool.SPACE +
 				RandomTestUtil.randomString();
 
-		nameMap.put(LocaleUtil.getDefault(), name);
+		nameMap.put(LocaleUtil.getSiteDefault(), name);
 
 		return nameMap;
 	}

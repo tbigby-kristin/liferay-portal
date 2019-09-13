@@ -20,8 +20,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link LayoutSet}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutSet
  * @generated
  */
-@ProviderType
 public class LayoutSetWrapper
 	extends BaseModelWrapper<LayoutSet>
 	implements LayoutSet, ModelWrapper<LayoutSet> {
@@ -45,7 +42,6 @@ public class LayoutSetWrapper
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
 		attributes.put("mvccVersion", getMvccVersion());
-		attributes.put("headId", getHeadId());
 		attributes.put("layoutSetId", getLayoutSetId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -71,12 +67,6 @@ public class LayoutSetWrapper
 
 		if (mvccVersion != null) {
 			setMvccVersion(mvccVersion);
-		}
-
-		Long headId = (Long)attributes.get("headId");
-
-		if (headId != null) {
-			setHeadId(headId);
 		}
 
 		Long layoutSetId = (Long)attributes.get("layoutSetId");
@@ -247,16 +237,6 @@ public class LayoutSetWrapper
 	@Override
 	public long getGroupId() {
 		return model.getGroupId();
-	}
-
-	/**
-	 * Returns the head ID of this layout set.
-	 *
-	 * @return the head ID of this layout set
-	 */
-	@Override
-	public long getHeadId() {
-		return model.getHeadId();
 	}
 
 	/**
@@ -470,6 +450,11 @@ public class LayoutSetWrapper
 		return model.isPrivateLayout();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a layout set model instance should use the <code>LayoutSet</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -530,16 +515,6 @@ public class LayoutSetWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
-	}
-
-	/**
-	 * Sets the head ID of this layout set.
-	 *
-	 * @param headId the head ID of this layout set
-	 */
-	@Override
-	public void setHeadId(long headId) {
-		model.setHeadId(headId);
 	}
 
 	/**
@@ -670,16 +645,6 @@ public class LayoutSetWrapper
 	@Override
 	public void setVirtualHostname(String virtualHostname) {
 		model.setVirtualHostname(virtualHostname);
-	}
-
-	@Override
-	public boolean isHead() {
-		return model.isHead();
-	}
-
-	@Override
-	public void populateVersionModel(LayoutSetVersion layoutSetVersion) {
-		model.populateVersionModel(layoutSetVersion);
 	}
 
 	@Override

@@ -1,20 +1,37 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import dom from 'metal-dom';
 import {EventHandler} from 'metal-events';
 import {Config} from 'metal-state';
 
-import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
+import {createPortletURL, PortletBase} from 'frontend-js-web';
 
 /**
  * Handles actions to display user name field for a given locale.
  */
 class UserNameFields extends PortletBase {
-
 	/**
 	 * @inheritDoc
 	 */
 	attached() {
 		this._eventHandler.add(
-			dom.on(this.languageIdSelectNode, 'change', this._handleSelectChange.bind(this))
+			dom.on(
+				this.languageIdSelectNode,
+				'change',
+				this._handleSelectChange.bind(this)
+			)
 		);
 	}
 
@@ -51,18 +68,10 @@ class UserNameFields extends PortletBase {
 
 		this._getURL(languageId)
 			.then(fetch)
-			.then(
-				response => response.text()
-			)
-			.then(
-				this._insertUserNameFields.bind(this)
-			)
-			.then(
-				this._cleanUp.bind(this)
-			)
-			.catch(
-				this._handleError.bind(this)
-			);
+			.then(response => response.text())
+			.then(this._insertUserNameFields.bind(this))
+			.then(this._cleanUp.bind(this))
+			.catch(this._handleError.bind(this));
 	}
 
 	/**
@@ -72,17 +81,21 @@ class UserNameFields extends PortletBase {
 	 * @protected
 	 */
 	_cacheData() {
-		for (const [name, value] of new FormData(this.formNode)) {
+		const formData = new FormData(this.formNode);
+
+		formData.forEach((value, name) => {
 			const field = this.userNameFieldsNode.querySelector('#' + name);
 
 			if (field) {
 				this._formDataCache[name] = value;
 
 				if (field.hasAttribute('maxLength')) {
-					this._maxLengthsCache[name] = field.getAttribute('maxLength');
+					this._maxLengthsCache[name] = field.getAttribute(
+						'maxLength'
+					);
 				}
 			}
-		}
+		});
 	}
 
 	/**
@@ -115,20 +128,13 @@ class UserNameFields extends PortletBase {
 	 * @return {Promise} A promise to be resolved with the constructed URL
 	 */
 	_getURL(languageId) {
-		return new Promise(
-			resolve => {
-				AUI().use(
-					'liferay-portlet-url',
-					A => {
-						const url = Liferay.PortletURL.createURL(this.baseURL);
+		return new Promise(resolve => {
+			const url = createPortletURL(this.baseURL, {
+				languageId
+			});
 
-						url.setParameter('languageId', languageId);
-
-						resolve(url);
-					}
-				);
-			}
-		);
+			resolve(url);
+		});
 	}
 
 	/**
@@ -138,6 +144,7 @@ class UserNameFields extends PortletBase {
 	 * @protected
 	 */
 	_handleError(error) {
+		// eslint-disable-next-line no-console
 		console.error(error);
 
 		this._removeLoadingIndicator();
@@ -165,7 +172,9 @@ class UserNameFields extends PortletBase {
 
 		temp.body.innerHTML = markupText;
 
-		const newUserNameFields = temp.getElementById(`${this.portletNamespace}userNameFields`);
+		const newUserNameFields = temp.getElementById(
+			`${this.portletNamespace}userNameFields`
+		);
 
 		if (newUserNameFields) {
 			this.userNameFieldsNode.innerHTML = newUserNameFields.innerHTML;
@@ -179,17 +188,22 @@ class UserNameFields extends PortletBase {
 	 * @protected
 	 */
 	_populateData() {
-		for (const [name, value] of Object.entries(this._formDataCache)) {
+		const entries = Object.entries(this._formDataCache);
+
+		entries.forEach(([name, value]) => {
 			const newField = this.userNameFieldsNode.querySelector('#' + name);
 
 			if (newField) {
 				newField.value = value;
 
-				if (this._maxLengthsCache.hasOwnProperty(name)) {
-					newField.setAttribute('maxLength', this._maxLengthsCache[name]);
+				if (Object.hasOwnProperty.call(this._maxLengthsCache, name)) {
+					newField.setAttribute(
+						'maxLength',
+						this._maxLengthsCache[name]
+					);
 				}
 			}
-		}
+		});
 	}
 
 	/**
@@ -218,14 +232,15 @@ class UserNameFields extends PortletBase {
 }
 
 UserNameFields.STATE = {
-
 	/**
 	 * Uri to return the user name data.
 	 * @instance
 	 * @memberof UserNameFields
 	 * @type {String}
 	 */
-	baseURL: Config.required().string().writeOnce(),
+	baseURL: Config.required()
+		.string()
+		.writeOnce(),
 
 	/**
 	 * Form node.
@@ -233,7 +248,9 @@ UserNameFields.STATE = {
 	 * @memberof UserNameFields
 	 * @type {String}
 	 */
-	formNode: Config.required().setter(dom.toElement).writeOnce(),
+	formNode: Config.required()
+		.setter(dom.toElement)
+		.writeOnce(),
 
 	/**
 	 * Language id select field.
@@ -241,7 +258,9 @@ UserNameFields.STATE = {
 	 * @memberof UserNameFields
 	 * @type {String}
 	 */
-	languageIdSelectNode: Config.required().setter(dom.toElement).writeOnce(),
+	languageIdSelectNode: Config.required()
+		.setter(dom.toElement)
+		.writeOnce(),
 
 	/**
 	 * HTML element containing the user name fields.
@@ -249,7 +268,9 @@ UserNameFields.STATE = {
 	 * @memberof UserNameFields
 	 * @type {String}
 	 */
-	userNameFieldsNode: Config.required().setter(dom.toElement).writeOnce()
+	userNameFieldsNode: Config.required()
+		.setter(dom.toElement)
+		.writeOnce()
 };
 
 export default UserNameFields;

@@ -24,12 +24,17 @@
 		<!-- Other fields -->
 
 		<column name="referenceKey" type="String" uad-nonanomizable="true" />
+		<column name="referenceType" type="String" uad-nonanomizable="true" />
 		<column name="fileEntryId" type="long" uad-nonanomizable="true" />
 		<column name="type" type="int" />
 
 		<!-- Finder methods -->
 
 		<finder name="FileEntryId" return-type="DLOpenerFileEntryReference" unique="true">
+			<finder-column name="fileEntryId" />
+		</finder>
+		<finder name="R_F" return-type="DLOpenerFileEntryReference" unique="true">
+			<finder-column name="referenceType" />
 			<finder-column name="fileEntryId" />
 		</finder>
 	</entity>

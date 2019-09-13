@@ -1,11 +1,13 @@
-@import "partials/buttons";
-@import "partials/contents";
-@import "partials/fonts";
-@import "partials/footer";
-@import "partials/header";
-@import "partials/text-formats";
+@import 'partials/variables';
 
-@import "portlet_decorator";
+@import 'partials/backgrounds';
+@import 'partials/buttons';
+@import 'partials/contents';
+@import 'partials/fonts';
+@import 'partials/footer';
+@import 'partials/header';
+@import 'partials/portlet_decorator';
+@import 'partials/text-formats';
 
 .img-spacing {
 	margin-bottom: 15px;
@@ -30,7 +32,7 @@ body {
 }
 
 .modify-pages .delete-tab {
-	color: #F00;
+	color: #f00;
 	height: 20px;
 	left: -15px;
 	right: inherit;

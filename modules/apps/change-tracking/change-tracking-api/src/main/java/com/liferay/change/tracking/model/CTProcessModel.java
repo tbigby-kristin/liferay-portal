@@ -15,6 +15,7 @@
 package com.liferay.change.tracking.model;
 
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 
 import java.util.Date;
@@ -33,9 +34,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @ProviderType
-public interface CTProcessModel extends BaseModel<CTProcess>, ShardedModel {
+public interface CTProcessModel
+	extends BaseModel<CTProcess>, MVCCModel, ShardedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a ct process model instance should use the {@link CTProcess} interface instead.
@@ -54,6 +56,22 @@ public interface CTProcessModel extends BaseModel<CTProcess>, ShardedModel {
 	 * @param primaryKey the primary key of this ct process
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this ct process.
+	 *
+	 * @return the mvcc version of this ct process
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this ct process.
+	 *
+	 * @param mvccVersion the mvcc version of this ct process
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the ct process ID of this ct process.

@@ -1,7 +1,21 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import core from 'metal';
 import dom from 'metal-dom';
 
-import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
+import {PortletBase} from 'frontend-js-web';
 
 /**
  * EditAdaptiveMediaConfig
@@ -11,12 +25,27 @@ import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
  */
 
 class EditAdaptiveMediaConfig extends PortletBase {
-
 	/**
 	 * @inheritDoc
 	 */
 	created() {
-		this.validInputKeyCodes_ = [8, 9, 13, 38, 40, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57];
+		this.validInputKeyCodes_ = [
+			8,
+			9,
+			13,
+			38,
+			40,
+			48,
+			49,
+			50,
+			51,
+			52,
+			53,
+			54,
+			55,
+			56,
+			57
+		];
 	}
 
 	/**
@@ -26,21 +55,15 @@ class EditAdaptiveMediaConfig extends PortletBase {
 		const idOptions = this.one('#idOptions');
 
 		if (idOptions) {
-			dom.delegate(
-				idOptions,
-				'change',
-				'input[type="radio"]',
-				event => this.onChangeUuidOptions_(event.delegateTarget)
+			dom.delegate(idOptions, 'change', 'input[type="radio"]', event =>
+				this.onChangeUuidOptions_(event.delegateTarget)
 			);
 		}
 
 		const nameInput = this.one('#name');
 
 		if (nameInput) {
-			nameInput.addEventListener(
-				'input',
-				() => this.updateUuid()
-			);
+			nameInput.addEventListener('input', () => this.updateUuid());
 		}
 
 		this.nameInput = nameInput;
@@ -49,28 +72,22 @@ class EditAdaptiveMediaConfig extends PortletBase {
 		const maxWidthInput = this.one('#maxWidth');
 
 		if (maxWidthInput) {
-			maxWidthInput.addEventListener(
-				'keydown',
-				(event) => {
-					this.handleKeyDown_(event);
-				}
-			);
+			maxWidthInput.addEventListener('keydown', event => {
+				this.handleKeyDown_(event);
+			});
 
-			maxWidthInput.addEventListener(
-				'input',
-				() => this.validateDimensions_()
+			maxWidthInput.addEventListener('input', () =>
+				this.validateDimensions_()
 			);
 		}
 
 		if (maxHeightInput) {
-			maxHeightInput.addEventListener(
-				'keydown',
-				event => this.handleKeyDown_(event)
+			maxHeightInput.addEventListener('keydown', event =>
+				this.handleKeyDown_(event)
 			);
 
-			maxHeightInput.addEventListener(
-				'input',
-				() => this.validateDimensions_()
+			maxHeightInput.addEventListener('input', () =>
+				this.validateDimensions_()
 			);
 		}
 
@@ -82,9 +99,8 @@ class EditAdaptiveMediaConfig extends PortletBase {
 
 		const saveButton = this.one('button[type=submit]');
 
-		saveButton.addEventListener(
-			'click',
-			event => this.onSubmitForm_(event)
+		saveButton.addEventListener('click', event =>
+			this.onSubmitForm_(event)
 		);
 	}
 
@@ -97,8 +113,13 @@ class EditAdaptiveMediaConfig extends PortletBase {
 
 		const uuidEmpty = !newUuidInput.value;
 
-		if (this.isAutomaticUuid_() && (uuidEmpty || this._originalUuidChanged)) {
-			newUuidInput.value = Liferay.Util.normalizeFriendlyURL(this.nameInput.value);
+		if (
+			this.isAutomaticUuid_() &&
+			(uuidEmpty || this._originalUuidChanged)
+		) {
+			newUuidInput.value = Liferay.Util.normalizeFriendlyURL(
+				this.nameInput.value
+			);
 		}
 
 		this._originalUuidChanged = true;
@@ -142,8 +163,7 @@ class EditAdaptiveMediaConfig extends PortletBase {
 
 			newUuidInput.setAttribute('disabled', true);
 			newUuidLabel.classList.add('disabled');
-		}
-		else {
+		} else {
 			newUuidInput.value = this._lastCustomUuuid || newUuidInput.value;
 
 			newUuidInput.removeAttribute('disabled');
@@ -168,8 +188,7 @@ class EditAdaptiveMediaConfig extends PortletBase {
 
 		if (form.formValidator.hasErrors()) {
 			event.preventDefault();
-		}
-		else {
+		} else {
 			submitForm(form.form);
 		}
 	}
@@ -185,14 +204,15 @@ class EditAdaptiveMediaConfig extends PortletBase {
 		const nsMaxHeight = this.ns('maxHeight');
 		const nsMaxWidth = this.ns('maxWidth');
 
-		const inputErrorMessage = Liferay.Language.get('at-least-one-value-is-required');
+		const inputErrorMessage = Liferay.Language.get(
+			'at-least-one-value-is-required'
+		);
 		const STR_BLANK = ' ';
 
 		if (this.maxWidthInput.value || this.maxHeightInput.value) {
 			form.removeRule(nsMaxWidth, 'required');
 			form.removeRule(nsMaxHeight, 'required');
-		}
-		else {
+		} else {
 			form.addRule(nsMaxWidth, 'required', inputErrorMessage);
 			form.addRule(nsMaxHeight, 'required', STR_BLANK);
 
@@ -209,7 +229,6 @@ class EditAdaptiveMediaConfig extends PortletBase {
  * @type {!Object}
  */
 EditAdaptiveMediaConfig.STATE = {
-
 	/**
 	 * Node where errors will be rendered.
 	 * @instance

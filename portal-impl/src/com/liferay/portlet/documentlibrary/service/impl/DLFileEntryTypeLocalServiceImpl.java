@@ -26,6 +26,7 @@ import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
 import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.persistence.DLFolderPersistence;
 import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.dynamic.data.mapping.kernel.DDMForm;
 import com.liferay.dynamic.data.mapping.kernel.DDMFormField;
@@ -223,9 +224,10 @@ public class DLFileEntryTypeLocalServiceImpl
 	public void deleteFileEntryType(DLFileEntryType dlFileEntryType)
 		throws PortalException {
 
-		if (dlFileEntryPersistence.countByFileEntryTypeId(
-				dlFileEntryType.getFileEntryTypeId()) > 0) {
+		int count = dlFileEntryPersistence.countByFileEntryTypeId(
+			dlFileEntryType.getFileEntryTypeId());
 
+		if (count > 0) {
 			throw new RequiredFileEntryTypeException(
 				"There are file entries of file entry type " +
 					dlFileEntryType.getFileEntryTypeId());
@@ -312,7 +314,8 @@ public class DLFileEntryTypeLocalServiceImpl
 	public long getDefaultFileEntryTypeId(long folderId)
 		throws PortalException {
 
-		folderId = getFileEntryTypesPrimaryFolderId(folderId);
+		folderId = getFileEntryTypesPrimaryFolderId(
+			dlFolderPersistence, folderId);
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
@@ -383,7 +386,8 @@ public class DLFileEntryTypeLocalServiceImpl
 
 		List<DLFileEntryType> dlFileEntryTypes = null;
 
-		folderId = getFileEntryTypesPrimaryFolderId(folderId);
+		folderId = getFileEntryTypesPrimaryFolderId(
+			dlFolderPersistence, folderId);
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			dlFileEntryTypes = dlFolderPersistence.getDLFileEntryTypes(
@@ -574,6 +578,42 @@ public class DLFileEntryTypeLocalServiceImpl
 		}
 	}
 
+	protected static long getDefaultFileEntryTypeId(
+			DLFolderPersistence dlFolderPersistence, long folderId)
+		throws PortalException {
+
+		folderId = getFileEntryTypesPrimaryFolderId(
+			dlFolderPersistence, folderId);
+
+		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
+
+			return dlFolder.getDefaultFileEntryTypeId();
+		}
+
+		return 0;
+	}
+
+	protected static long getFileEntryTypesPrimaryFolderId(
+			DLFolderPersistence dlFolderPersistence, long folderId)
+		throws NoSuchFolderException {
+
+		while (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
+
+			if (dlFolder.getRestrictionType() ==
+					DLFolderConstants.
+						RESTRICTION_TYPE_FILE_ENTRY_TYPES_AND_WORKFLOW) {
+
+				break;
+			}
+
+			folderId = dlFolder.getParentFolderId();
+		}
+
+		return folderId;
+	}
+
 	protected void addFileEntryTypeResources(
 			DLFileEntryType dlFileEntryType, boolean addGroupPermissions,
 			boolean addGuestPermissions)
@@ -606,9 +646,7 @@ public class DLFileEntryTypeLocalServiceImpl
 			groupId, folderId);
 
 		for (DLFileEntry dlFileEntry : dlFileEntries) {
-			Long fileEntryTypeId = dlFileEntry.getFileEntryTypeId();
-
-			if (fileEntryTypeIds.contains(fileEntryTypeId)) {
+			if (fileEntryTypeIds.contains(dlFileEntry.getFileEntryTypeId())) {
 				continue;
 			}
 
@@ -710,25 +748,6 @@ public class DLFileEntryTypeLocalServiceImpl
 		}
 
 		return fileEntryTypeIds;
-	}
-
-	protected long getFileEntryTypesPrimaryFolderId(long folderId)
-		throws NoSuchFolderException {
-
-		while (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			DLFolder dlFolder = dlFolderPersistence.findByPrimaryKey(folderId);
-
-			if (dlFolder.getRestrictionType() ==
-					DLFolderConstants.
-						RESTRICTION_TYPE_FILE_ENTRY_TYPES_AND_WORKFLOW) {
-
-				break;
-			}
-
-			folderId = dlFolder.getParentFolderId();
-		}
-
-		return folderId;
 	}
 
 	protected Set<Long> getMissingDDMStructureLinkStructureIds(

@@ -16,6 +16,11 @@
 	{@param? _handleFormSubmit: any}
 	{@param? _handleModalVisibleChanged: any}
 	{@param? _loadingResponse: bool}
+	{@param? alert: [
+		message: string,
+		style: string,
+		title: string
+	]}
 	{@param? checkboxFieldLabel: html}
 	{@param? checkboxFieldName: string}
 	{@param? checkboxFieldValue: bool}
@@ -28,6 +33,15 @@
 	<div id="{$id ?: ''}">
 		{call liferay.frontend.Modal.render}
 			{param body kind="html"}
+				{if $alert and $alert.message and $alert.title}
+					{call ClayAlert.render}
+						{param message: $alert.message /}
+						{param spritemap: $spritemap /}
+						{param style: $alert.style /}
+						{param title: $alert.title /}
+					{/call}
+				{/if}
+
 				<form action="{$formSubmitURL}" data-onsubmit="{$_handleFormSubmit}" method="post" ref="form">
 					{if $idFieldName}
 						<input
@@ -45,7 +59,7 @@
 					{/let}
 
 					<div class="{$mainFieldClasses}">
-						<label>
+						<label for="{$namespace}{$mainFieldName}">
 							{$mainFieldLabel}
 							<span class="reference-mark">
 								<svg class="lexicon-icon">
@@ -57,6 +71,7 @@
 						{let $mainFieldAttributes kind="attributes"}
 							{if $_loadingResponse}disabled{/if}
 							class="form-control"
+							id="{$namespace}{$mainFieldName}"
 							name="{$namespace}{$mainFieldName}"
 							placeholder="{$mainFieldPlaceholder ?: ''}"
 							ref="mainField"

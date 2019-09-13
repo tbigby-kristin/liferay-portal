@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the document library file entry metadata service. This utility wraps <code>com.liferay.portlet.documentlibrary.service.persistence.impl.DLFileEntryMetadataPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLFileEntryMetadataPersistence
  * @generated
  */
-@ProviderType
 public class DLFileEntryMetadataUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -185,16 +182,16 @@ public class DLFileEntryMetadataUtil {
 	 * @param start the lower bound of the range of document library file entry metadatas
 	 * @param end the upper bound of the range of document library file entry metadatas (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching document library file entry metadatas
 	 */
 	public static List<DLFileEntryMetadata> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<DLFileEntryMetadata> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -361,16 +358,16 @@ public class DLFileEntryMetadataUtil {
 	 * @param start the lower bound of the range of document library file entry metadatas
 	 * @param end the upper bound of the range of document library file entry metadatas (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching document library file entry metadatas
 	 */
 	public static List<DLFileEntryMetadata> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<DLFileEntryMetadata> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -546,16 +543,16 @@ public class DLFileEntryMetadataUtil {
 	 * @param start the lower bound of the range of document library file entry metadatas
 	 * @param end the upper bound of the range of document library file entry metadatas (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching document library file entry metadatas
 	 */
 	public static List<DLFileEntryMetadata> findByFileEntryId(
 		long fileEntryId, int start, int end,
 		OrderByComparator<DLFileEntryMetadata> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByFileEntryId(
-			fileEntryId, start, end, orderByComparator, retrieveFromCache);
+			fileEntryId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -724,16 +721,16 @@ public class DLFileEntryMetadataUtil {
 	 * @param start the lower bound of the range of document library file entry metadatas
 	 * @param end the upper bound of the range of document library file entry metadatas (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching document library file entry metadatas
 	 */
 	public static List<DLFileEntryMetadata> findByFileVersionId(
 		long fileVersionId, int start, int end,
 		OrderByComparator<DLFileEntryMetadata> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByFileVersionId(
-			fileVersionId, start, end, orderByComparator, retrieveFromCache);
+			fileVersionId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -874,14 +871,14 @@ public class DLFileEntryMetadataUtil {
 	 *
 	 * @param DDMStructureId the ddm structure ID
 	 * @param fileVersionId the file version ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching document library file entry metadata, or <code>null</code> if a matching document library file entry metadata could not be found
 	 */
 	public static DLFileEntryMetadata fetchByD_F(
-		long DDMStructureId, long fileVersionId, boolean retrieveFromCache) {
+		long DDMStructureId, long fileVersionId, boolean useFinderCache) {
 
 		return getPersistence().fetchByD_F(
-			DDMStructureId, fileVersionId, retrieveFromCache);
+			DDMStructureId, fileVersionId, useFinderCache);
 	}
 
 	/**
@@ -1039,16 +1036,16 @@ public class DLFileEntryMetadataUtil {
 	 * @param start the lower bound of the range of document library file entry metadatas
 	 * @param end the upper bound of the range of document library file entry metadatas (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of document library file entry metadatas
 	 */
 	public static List<DLFileEntryMetadata> findAll(
 		int start, int end,
 		OrderByComparator<DLFileEntryMetadata> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

@@ -14,6 +14,7 @@
 
 package com.liferay.trash.service.impl;
 
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.trash.model.TrashVersion;
@@ -21,9 +22,15 @@ import com.liferay.trash.service.base.TrashVersionLocalServiceBaseImpl;
 
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Zsolt Berentey
  */
+@Component(
+	property = "model.class.name=com.liferay.trash.model.TrashVersion",
+	service = AopService.class
+)
 public class TrashVersionLocalServiceImpl
 	extends TrashVersionLocalServiceBaseImpl {
 
@@ -51,10 +58,8 @@ public class TrashVersionLocalServiceImpl
 
 	@Override
 	public TrashVersion deleteTrashVersion(String className, long classPK) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		TrashVersion trashVersion = trashVersionPersistence.fetchByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		if (trashVersion != null) {
 			return deleteTrashVersion(trashVersion);
@@ -77,9 +82,8 @@ public class TrashVersionLocalServiceImpl
 
 	@Override
 	public TrashVersion fetchVersion(String className, long classPK) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return trashVersionPersistence.fetchByC_C(classNameId, classPK);
+		return trashVersionPersistence.fetchByC_C(
+			classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -93,9 +97,8 @@ public class TrashVersionLocalServiceImpl
 			return trashVersionPersistence.findByEntryId(entryId);
 		}
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return trashVersionPersistence.findByE_C(entryId, classNameId);
+		return trashVersionPersistence.findByE_C(
+			entryId, classNameLocalService.getClassNameId(className));
 	}
 
 }

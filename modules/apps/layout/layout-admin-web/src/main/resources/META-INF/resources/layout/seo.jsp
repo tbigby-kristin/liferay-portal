@@ -84,3 +84,38 @@ UnicodeProperties layoutTypeSettings = selLayout.getTypeSettingsProperties();
 		<aui:option label="never" />
 	</aui:select>
 </c:if>
+
+<c:if test="<%= !StringUtil.equals(selLayout.getType(), LayoutConstants.TYPE_ASSET_DISPLAY) %>">
+	<h4><liferay-ui:message key="canonical-url" /></h4>
+
+	<%
+	LayoutSEOEntry selLayoutSEOEntry = layoutsAdminDisplayContext.getSelLayoutSEOEntry();
+	%>
+
+	<c:choose>
+		<c:when test="<%= selLayoutSEOEntry != null %>">
+			<aui:model-context bean="<%= selLayoutSEOEntry %>" model="<%= LayoutSEOEntry.class %>" />
+
+			<aui:input checked="<%= selLayoutSEOEntry.isEnabled() %>" helpMessage="use-custom-canonical-url-help" id="useCustomCanonicalURL" label="use-custom-canonical-url" name="useCustomCanonicalURL" type="toggle-switch" />
+
+			<div id="<portlet:namespace />customCanonicalURLSettings">
+				<aui:input name="canonicalURL" placeholder="canonical-url">
+					<aui:validator name="url" />
+				</aui:input>
+			</div>
+		</c:when>
+		<c:otherwise>
+			<aui:input checked="<%= false %>" helpMessage="use-custom-canonical-url-help" id="useCustomCanonicalURL" label="use-custom-canonical-url" name="useCustomCanonicalURL" type="toggle-switch" />
+
+			<div id="<portlet:namespace />customCanonicalURLSettings">
+				<aui:input name="canonicalURL" placeholder="canonical-url" type="text">
+					<aui:validator name="url" />
+				</aui:input>
+			</div>
+		</c:otherwise>
+	</c:choose>
+	</></c:if>
+
+<aui:script>
+	Liferay.Util.toggleBoxes('<portlet:namespace />useCustomCanonicalURL', '<portlet:namespace />customCanonicalURLSettings');
+</aui:script>

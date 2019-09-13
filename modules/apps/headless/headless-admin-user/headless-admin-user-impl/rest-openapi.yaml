@@ -411,6 +411,34 @@ components:
                     readOnly: true
                     type: string
             type: object
+        Site:
+            #@review
+            description: Represents the site where the content is created. Properties follow the [WebSite](https://schema.org/WebSite) specification.
+            properties:
+                availableLanguages:
+                    items:
+                        type: string
+                    type: array
+                creator:
+                    $ref: "#/components/schemas/Creator"
+                description:
+                    type: string
+                friendlyUrlPath:
+                    type: string
+                id:
+                    format: int64
+                    type: integer
+                key:
+                    type: string
+                membershipType:
+                    type: string
+                name:
+                    type: string
+                sites:
+                    items:
+                        $ref: "#/components/schemas/Site"
+                    type: array
+            type: object
         SiteBrief:
             description: Represents a site's basic information.
             properties:
@@ -597,6 +625,9 @@ components:
             type: object
 info:
     description: ""
+    license:
+        name: "Apache 2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
     title: "Headless Admin User"
     version: v1.0
 openapi: 3.0.1
@@ -638,6 +669,32 @@ paths:
                                 $ref: "#/components/schemas/UserAccount"
                     description: ""
             tags: ["UserAccount"]
+    "/my-user-account/sites":
+        get:
+            operationId: getMyUserAccountSitesPage
+            parameters:
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Site"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/Site"
+                                type: array
+                    description: ""
     "/organizations":
         get:
             description: Retrieves the organizations. Results can be paginated, filtered, searched, and sorted.
@@ -1024,6 +1081,45 @@ paths:
                                 type: array
                     description: ""
             tags: ["SegmentUser"]
+    "/sites/by-friendly-url-path/{friendlyUrlPath}":
+        get:
+            operationId: getSiteByFriendlyUrlPath
+            parameters:
+                - in: path
+                  name: friendlyUrlPath
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Site"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Site"
+                    description: ""
+    "/sites/{siteId}":
+        get:
+            operationId: getSite
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Site"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/Site"
+                    description: ""
     "/sites/{siteId}/segments":
         get:
             description: Gets a site's segments.
@@ -1058,6 +1154,52 @@ paths:
                                 type: array
                     description: ""
             tags: ["Segment"]
+    "/sites/{siteId}/user-accounts":
+        get:
+            description: Retrieves the Site members' user accounts. Results can be paginated, filtered, searched, and sorted.
+            operationId: getSiteUserAccountsPage
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/UserAccount"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/UserAccount"
+                                type: array
+                    description: ""
+            tags: ["UserAccount"]
     "/sites/{siteId}/user-accounts/{userAccountId}/segments":
         get:
             description: Gets a user's segments.
@@ -1256,52 +1398,6 @@ paths:
                                 type: array
                     description: ""
             tags: ["WebUrl"]
-    "/web-sites/{webSiteId}/user-accounts":
-        get:
-            description: Retrieves the Site members' user accounts. Results can be paginated, filtered, searched, and sorted.
-            operationId: getWebSiteUserAccountsPage
-            parameters:
-                - in: path
-                  name: webSiteId
-                  required: true
-                  schema:
-                      format: int64
-                      type: integer
-                - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
-                  name: page
-                  schema:
-                      type: integer
-                - in: query
-                  name: pageSize
-                  schema:
-                      type: integer
-                - in: query
-                  name: search
-                  schema:
-                      type: string
-                - in: query
-                  name: sort
-                  schema:
-                      type: string
-            responses:
-                200:
-                    content:
-                        application/json:
-                            schema:
-                                items:
-                                    $ref: "#/components/schemas/UserAccount"
-                                type: array
-                        application/xml:
-                            schema:
-                                items:
-                                    $ref: "#/components/schemas/UserAccount"
-                                type: array
-                    description: ""
-            tags: ["UserAccount"]
     "/web-urls/{webUrlId}":
         get:
             description: Retrieves the web URL.

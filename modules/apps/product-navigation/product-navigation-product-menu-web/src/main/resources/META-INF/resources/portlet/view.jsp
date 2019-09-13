@@ -17,7 +17,7 @@
 <%@ include file="/portlet/init.jsp" %>
 
 <%
-String productMenuState = SessionClicks.get(request, ProductNavigationProductMenuWebKeys.PRODUCT_NAVIGATION_PRODUCT_MENU_STATE, "closed");
+String productMenuState = SessionClicks.get(request, "com.liferay.product.navigation.product.menu.web_productMenuState", "closed");
 %>
 
 <div class="lfr-product-menu-sidebar" id="productMenuSidebar">
@@ -48,92 +48,33 @@ String productMenuState = SessionClicks.get(request, ProductNavigationProductMen
 	</div>
 </div>
 
-<aui:script use="liferay-store,io-request,parse-content">
-	var sidenavToggle = $('#<portlet:namespace />sidenavToggleId');
+<aui:script>
+	var sidenavToggle = document.getElementById('<portlet:namespace />sidenavToggleId');
 
-	sidenavToggle.sideNavigation();
+	var sidenavInstance = Liferay.SideNavigation.initialize(sidenavToggle);
 
 	Liferay.once(
 		'screenLoad',
 		function() {
-			var sideNavigation = sidenavToggle.data('lexicon.sidenav');
-
-			if (sideNavigation) {
-				sideNavigation.destroy();
-			}
+			Liferay.SideNavigation.destroy(sidenavToggle);
 		}
 	);
 
-	var sidenavSlider = $('#<portlet:namespace />sidenavSliderId');
-
-	sidenavSlider.on(
+	sidenavInstance.on(
 		'closed.lexicon.sidenav',
 		function(event) {
-			Liferay.Store('<%= ProductNavigationProductMenuWebKeys.PRODUCT_NAVIGATION_PRODUCT_MENU_STATE %>', 'closed');
+			Liferay.Util.Session.set('com.liferay.product.navigation.product.menu.web_productMenuState', 'closed');
 		}
 	);
 
-	sidenavSlider.on(
+	sidenavInstance.on(
 		'open.lexicon.sidenav',
 		function(event) {
-			Liferay.Store('<%= ProductNavigationProductMenuWebKeys.PRODUCT_NAVIGATION_PRODUCT_MENU_STATE %>', 'open');
+			Liferay.Util.Session.set('com.liferay.product.navigation.product.menu.web_productMenuState', 'open');
 		}
 	);
 
-	if (Liferay.Util.isPhone() && ($('body').hasClass('open'))) {
-		sidenavToggle.sideNavigation('hide');
+	if (Liferay.Util.isPhone() && (document.body.classList.contains('open'))) {
+		Liferay.SideNavigation.hide(sidenavToggle);
 	}
-
-	<c:if test="<%= productMenuDisplayContext.hasUserPanelCategory() %>">
-		Liferay.on(
-			'ProductMenu:openUserMenu',
-			function(event) {
-				var userCollapseSelector = '#<portlet:namespace /><%= AUIUtil.normalizeId(PanelCategoryKeys.USER) %>Collapse';
-
-				var showUserCollapse = function() {
-					var userCollapse = $(userCollapseSelector);
-
-					userCollapse.collapse(
-						{
-							parent: '#<portlet:namespace />Accordion',
-							show: true
-						}
-					);
-
-					userCollapse.collapse('show');
-				};
-
-				if ($('body').hasClass('open')) {
-					if ($(userCollapseSelector).hasClass('in')) {
-						sidenavToggle.sideNavigation('hide');
-					}
-					else {
-						showUserCollapse();
-					}
-				}
-				else {
-					sidenavToggle.sideNavigation('show');
-
-					if (!sidenavToggle.attr('data-url')) {
-						showUserCollapse();
-					}
-					else {
-						var urlLoadedState = sidenavSlider.data('url-loaded') ? sidenavSlider.data('url-loaded').state() : '';
-
-						if (urlLoadedState === 'resolved') {
-							showUserCollapse();
-						}
-						else {
-							sidenavSlider.on(
-								'urlLoaded.lexicon.sidenav',
-								function(event) {
-									showUserCollapse();
-								}
-							);
-						}
-					}
-				}
-			}
-		);
-	</c:if>
 </aui:script>

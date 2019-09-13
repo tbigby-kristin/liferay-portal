@@ -14,15 +14,13 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
-import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,7 +39,7 @@ import org.osgi.service.component.annotations.Component;
 		"data.engine.field.type.display.order:Integer=5",
 		"data.engine.field.type.group=basic",
 		"data.engine.field.type.icon=calendar",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/DatePicker/DatePicker.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/DatePicker/DatePicker.es",
 		"data.engine.field.type.label=date-field-type-label"
 	},
 	service = FieldType.class
@@ -49,35 +47,8 @@ import org.osgi.service.component.annotations.Component;
 public class DateFieldType extends BaseFieldType {
 
 	@Override
-	public SPIDataDefinitionField deserialize(JSONObject jsonObject)
-		throws Exception {
-
-		SPIDataDefinitionField spiDataDefinitionField = super.deserialize(
-			jsonObject);
-
-		spiDataDefinitionField.setDefaultValue(
-			LocalizedValueUtil.toLocalizedValues(
-				jsonObject.getJSONObject("predefinedValue")));
-
-		return spiDataDefinitionField;
-	}
-
-	@Override
 	public String getName() {
 		return "date";
-	}
-
-	@Override
-	public JSONObject toJSONObject(
-			SPIDataDefinitionField spiDataDefinitionField)
-		throws Exception {
-
-		JSONObject jsonObject = super.toJSONObject(spiDataDefinitionField);
-
-		return jsonObject.put(
-			"predefinedValue",
-			LocalizedValueUtil.toJSONObject(
-				spiDataDefinitionField.getDefaultValue()));
 	}
 
 	@Override
@@ -86,13 +57,19 @@ public class DateFieldType extends BaseFieldType {
 		HttpServletResponse httpServletResponse,
 		SPIDataDefinitionField spiDataDefinitionField) {
 
-		context.put(
-			"predefinedValue",
-			MapUtil.getString(
-				CustomPropertiesUtil.getMap(
-					spiDataDefinitionField.getCustomProperties(),
-					"predefinedValue"),
-				LanguageUtil.getLanguageId(httpServletRequest)));
+		List<Integer> years = new ArrayList<>();
+
+		Calendar calendar = Calendar.getInstance();
+
+		calendar.add(Calendar.YEAR, -4);
+
+		for (int i = 0; i < 5; i++) {
+			years.add(calendar.get(Calendar.YEAR));
+
+			calendar.add(Calendar.YEAR, 1);
+		}
+
+		context.put("years", years);
 	}
 
 }

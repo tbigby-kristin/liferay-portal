@@ -36,8 +36,8 @@ import org.osgi.service.component.annotations.Reference;
 		"com.liferay.portlet.css-class-wrapper=portlet-document-library",
 		"com.liferay.portlet.display-category=category.cms",
 		"com.liferay.portlet.display-category=category.highlighted",
-		"com.liferay.portlet.footer-portlet-javascript=/document_library/js/main.js",
-		"com.liferay.portlet.footer-portlet-javascript=/document_library/js/upload.js",
+		"com.liferay.portlet.footer-portlet-javascript=/document_library/js/legacy/main.js",
+		"com.liferay.portlet.footer-portlet-javascript=/document_library/js/legacy/upload.js",
 		"com.liferay.portlet.header-portlet-css=/document_library/css/main.css",
 		"com.liferay.portlet.icon=/document_library/icons/document_library.png",
 		"com.liferay.portlet.instanceable=true",
@@ -60,8 +60,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.security-role-ref=guest,power-user,user",
 		"javax.portlet.supported-public-render-parameter=categoryId",
 		"javax.portlet.supported-public-render-parameter=resetCur",
-		"javax.portlet.supported-public-render-parameter=tag",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.supported-public-render-parameter=tag"
 	},
 	service = Portlet.class
 )

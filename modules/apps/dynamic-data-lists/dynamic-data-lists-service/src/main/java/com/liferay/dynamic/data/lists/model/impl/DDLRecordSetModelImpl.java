@@ -58,8 +58,6 @@ import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the DDLRecordSet service. Represents a row in the &quot;DDLRecordSet&quot; database table, with each column mapped to a property of this class.
  *
@@ -72,11 +70,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class DDLRecordSetModelImpl
 	extends BaseModelImpl<DDLRecordSet> implements DDLRecordSetModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ddl record set model instance should use the <code>DDLRecordSet</code> interface instead.
@@ -139,15 +136,17 @@ public class DDLRecordSetModelImpl
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
 
-	public static final long COMPANYID_COLUMN_BITMASK = 1L;
+	public static final long DDMSTRUCTUREID_COLUMN_BITMASK = 1L;
 
-	public static final long GROUPID_COLUMN_BITMASK = 2L;
+	public static final long COMPANYID_COLUMN_BITMASK = 2L;
 
-	public static final long RECORDSETKEY_COLUMN_BITMASK = 4L;
+	public static final long GROUPID_COLUMN_BITMASK = 4L;
 
-	public static final long UUID_COLUMN_BITMASK = 8L;
+	public static final long RECORDSETKEY_COLUMN_BITMASK = 8L;
 
-	public static final long RECORDSETID_COLUMN_BITMASK = 16L;
+	public static final long UUID_COLUMN_BITMASK = 16L;
+
+	public static final long RECORDSETID_COLUMN_BITMASK = 32L;
 
 	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
 		_entityCacheEnabled = entityCacheEnabled;
@@ -649,7 +648,19 @@ public class DDLRecordSetModelImpl
 
 	@Override
 	public void setDDMStructureId(long DDMStructureId) {
+		_columnBitmask |= DDMSTRUCTUREID_COLUMN_BITMASK;
+
+		if (!_setOriginalDDMStructureId) {
+			_setOriginalDDMStructureId = true;
+
+			_originalDDMStructureId = _DDMStructureId;
+		}
+
 		_DDMStructureId = DDMStructureId;
+	}
+
+	public long getOriginalDDMStructureId() {
+		return _originalDDMStructureId;
 	}
 
 	@JSON
@@ -1078,7 +1089,12 @@ public class DDLRecordSetModelImpl
 	@Override
 	public DDLRecordSet toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, DDLRecordSet>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1183,6 +1199,11 @@ public class DDLRecordSetModelImpl
 		ddlRecordSetModelImpl._setOriginalCompanyId = false;
 
 		ddlRecordSetModelImpl._setModifiedDate = false;
+
+		ddlRecordSetModelImpl._originalDDMStructureId =
+			ddlRecordSetModelImpl._DDMStructureId;
+
+		ddlRecordSetModelImpl._setOriginalDDMStructureId = false;
 
 		ddlRecordSetModelImpl._originalRecordSetKey =
 			ddlRecordSetModelImpl._recordSetKey;
@@ -1374,8 +1395,13 @@ public class DDLRecordSetModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, DDLRecordSet>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, DDLRecordSet>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 
@@ -1397,6 +1423,8 @@ public class DDLRecordSetModelImpl
 	private Date _modifiedDate;
 	private boolean _setModifiedDate;
 	private long _DDMStructureId;
+	private long _originalDDMStructureId;
+	private boolean _setOriginalDDMStructureId;
 	private String _recordSetKey;
 	private String _originalRecordSetKey;
 	private String _version;

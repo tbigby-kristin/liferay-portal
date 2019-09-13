@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link SegmentsExperience}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SegmentsExperience
  * @generated
  */
-@ProviderType
 public class SegmentsExperienceWrapper
 	extends BaseModelWrapper<SegmentsExperience>
 	implements SegmentsExperience, ModelWrapper<SegmentsExperience> {
@@ -55,6 +52,7 @@ public class SegmentsExperienceWrapper
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("segmentsEntryId", getSegmentsEntryId());
+		attributes.put("segmentsExperienceKey", getSegmentsExperienceKey());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("name", getName());
@@ -120,6 +118,13 @@ public class SegmentsExperienceWrapper
 
 		if (segmentsEntryId != null) {
 			setSegmentsEntryId(segmentsEntryId);
+		}
+
+		String segmentsExperienceKey = (String)attributes.get(
+			"segmentsExperienceKey");
+
+		if (segmentsExperienceKey != null) {
+			setSegmentsExperienceKey(segmentsExperienceKey);
 		}
 
 		Long classNameId = (Long)attributes.get("classNameId");
@@ -376,6 +381,16 @@ public class SegmentsExperienceWrapper
 	}
 
 	/**
+	 * Returns the segments experience key of this segments experience.
+	 *
+	 * @return the segments experience key of this segments experience
+	 */
+	@Override
+	public String getSegmentsExperienceKey() {
+		return model.getSegmentsExperienceKey();
+	}
+
+	/**
 	 * Returns the user ID of this segments experience.
 	 *
 	 * @return the user ID of this segments experience
@@ -415,6 +430,11 @@ public class SegmentsExperienceWrapper
 		return model.getUuid();
 	}
 
+	@Override
+	public boolean hasSegmentsExperiment() {
+		return model.hasSegmentsExperiment();
+	}
+
 	/**
 	 * Returns <code>true</code> if this segments experience is active.
 	 *
@@ -425,6 +445,11 @@ public class SegmentsExperienceWrapper
 		return model.isActive();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a segments experience model instance should use the <code>SegmentsExperience</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -631,6 +656,16 @@ public class SegmentsExperienceWrapper
 	@Override
 	public void setSegmentsExperienceId(long segmentsExperienceId) {
 		model.setSegmentsExperienceId(segmentsExperienceId);
+	}
+
+	/**
+	 * Sets the segments experience key of this segments experience.
+	 *
+	 * @param segmentsExperienceKey the segments experience key of this segments experience
+	 */
+	@Override
+	public void setSegmentsExperienceKey(String segmentsExperienceKey) {
+		model.setSegmentsExperienceKey(segmentsExperienceKey);
 	}
 
 	/**

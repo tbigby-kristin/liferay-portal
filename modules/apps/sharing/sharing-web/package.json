@@ -1,18 +1,20 @@
 {
 	"dependencies": {
-		"clay-alert": "2.15.1",
-		"clay-button": "2.15.1",
-		"clay-multi-select": "2.15.1",
-		"clay-select": "2.15.1",
-		"clay-sticker": "2.15.1",
+		"clay-alert": "2.18.1",
+		"clay-button": "2.18.1",
+		"clay-multi-select": "2.18.1",
+		"clay-select": "2.18.1",
+		"clay-sticker": "2.18.1",
+		"frontend-js-web": "*",
 		"metal-component": "2.16.8",
+		"metal-dom": "2.16.8",
 		"metal-soy": "2.16.8"
 	},
 	"name": "sharing-web",
 	"scripts": {
 		"build": "liferay-npm-scripts build",
-		"checkFormat": "liferay-npm-scripts lint",
-		"format": "liferay-npm-scripts format"
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
 	},
 	"version": "2.0.0"
 }

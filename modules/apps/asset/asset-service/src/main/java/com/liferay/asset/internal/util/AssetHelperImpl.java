@@ -481,9 +481,8 @@ public class AssetHelperImpl implements AssetHelper {
 
 		Hits hits = assetSearcher.search(searchContext);
 
-		List<AssetEntry> assetEntries = getAssetEntries(hits);
-
-		return new BaseModelSearchResult<>(assetEntries, hits.getLength());
+		return new BaseModelSearchResult<>(
+			getAssetEntries(hits), hits.getLength());
 	}
 
 	private AssetSearcher _getAssetSearcher(
@@ -547,6 +546,21 @@ public class AssetHelperImpl implements AssetHelper {
 		return assetSearcher;
 	}
 
+	private boolean _getDDMFormFieldLocalizable(String sortField)
+		throws PortalException {
+
+		String[] sortFields = StringUtil.split(
+			sortField, DDMStructureManager.STRUCTURE_INDEXER_FIELD_SEPARATOR);
+
+		long ddmStructureId = GetterUtil.getLong(sortFields[2]);
+
+		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
+			ddmStructureId);
+
+		return GetterUtil.getBoolean(
+			ddmStructure.getFieldProperty(sortFields[3], "localizable"));
+	}
+
 	private String _getDDMFormFieldType(String sortField)
 		throws PortalException {
 
@@ -563,7 +577,8 @@ public class AssetHelperImpl implements AssetHelper {
 	}
 
 	private String _getOrderByCol(
-		String sortField, String fieldType, int sortType, Locale locale) {
+		String sortField, String fieldType, boolean fieldLocalizable,
+		int sortType, Locale locale) {
 
 		if (sortField.startsWith(
 				DDMStructureManager.STRUCTURE_INDEXER_FIELD_PREFIX)) {
@@ -572,8 +587,11 @@ public class AssetHelperImpl implements AssetHelper {
 
 			sb.append(sortField);
 			sb.append(StringPool.UNDERLINE);
-			sb.append(LocaleUtil.toLanguageId(locale));
-			sb.append(StringPool.UNDERLINE);
+
+			if (fieldLocalizable) {
+				sb.append(LocaleUtil.toLanguageId(locale));
+				sb.append(StringPool.UNDERLINE);
+			}
 
 			String suffix = "String";
 
@@ -603,10 +621,13 @@ public class AssetHelperImpl implements AssetHelper {
 	private Sort _getSort(String orderByType, String sortField, Locale locale)
 		throws Exception {
 
+		boolean ddmFormFieldLocalizable = true;
 		String ddmFormFieldType = sortField;
 
 		if (ddmFormFieldType.startsWith(
 				DDMStructureManager.STRUCTURE_INDEXER_FIELD_PREFIX)) {
+
+			ddmFormFieldLocalizable = _getDDMFormFieldLocalizable(sortField);
 
 			ddmFormFieldType = _getDDMFormFieldType(ddmFormFieldType);
 		}
@@ -615,7 +636,9 @@ public class AssetHelperImpl implements AssetHelper {
 
 		return SortFactoryUtil.getSort(
 			AssetEntry.class, sortType,
-			_getOrderByCol(sortField, ddmFormFieldType, sortType, locale),
+			_getOrderByCol(
+				sortField, ddmFormFieldType, ddmFormFieldLocalizable, sortType,
+				locale),
 			!sortField.startsWith(
 				DDMStructureManager.STRUCTURE_INDEXER_FIELD_PREFIX),
 			orderByType);

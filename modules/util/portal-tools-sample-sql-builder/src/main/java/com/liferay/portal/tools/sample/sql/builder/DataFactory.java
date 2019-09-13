@@ -143,9 +143,7 @@ import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutFriendlyURLModel;
 import com.liferay.portal.kernel.model.LayoutModel;
 import com.liferay.portal.kernel.model.LayoutSetModel;
-import com.liferay.portal.kernel.model.LayoutSetVersionModel;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
-import com.liferay.portal.kernel.model.LayoutVersionModel;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.PortletConstants;
 import com.liferay.portal.kernel.model.PortletPreferencesModel;
@@ -154,7 +152,6 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.ResourcePermissionModel;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.RoleModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserModel;
@@ -162,6 +159,7 @@ import com.liferay.portal.kernel.model.UserNotificationDeliveryConstants;
 import com.liferay.portal.kernel.model.UserNotificationDeliveryModel;
 import com.liferay.portal.kernel.model.UserPersonalSite;
 import com.liferay.portal.kernel.model.VirtualHostModel;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.security.auth.FullNameGenerator;
@@ -192,8 +190,6 @@ import com.liferay.portal.model.impl.GroupModelImpl;
 import com.liferay.portal.model.impl.LayoutFriendlyURLModelImpl;
 import com.liferay.portal.model.impl.LayoutModelImpl;
 import com.liferay.portal.model.impl.LayoutSetModelImpl;
-import com.liferay.portal.model.impl.LayoutSetVersionModelImpl;
-import com.liferay.portal.model.impl.LayoutVersionModelImpl;
 import com.liferay.portal.model.impl.PortletPreferencesModelImpl;
 import com.liferay.portal.model.impl.ReleaseModelImpl;
 import com.liferay.portal.model.impl.ResourcePermissionModelImpl;
@@ -2171,7 +2167,6 @@ public class DataFactory {
 		long plid = _counter.get();
 
 		layoutModel.setPlid(plid);
-		layoutModel.setHeadId(plid);
 
 		layoutModel.setGroupId(groupId);
 		layoutModel.setCompanyId(_companyId);
@@ -2212,41 +2207,6 @@ public class DataFactory {
 			newLayoutSetModel(groupId, false, publicLayoutSetPageCount));
 
 		return layoutSetModels;
-	}
-
-	public List<LayoutSetVersionModel> newLayoutSetVersionModels(
-		List<LayoutSetModel> layoutSetModels) {
-
-		List<LayoutSetVersionModel> layoutSetVersionModels = new ArrayList<>(
-			layoutSetModels.size());
-
-		layoutSetModels.forEach(
-			layoutSetModel -> layoutSetVersionModels.add(
-				newLayoutSetVersionModel(layoutSetModel)));
-
-		return layoutSetVersionModels;
-	}
-
-	public LayoutVersionModel newLayoutVersionModel(LayoutModel layoutModel) {
-		LayoutVersionModel layoutVersionModel = new LayoutVersionModelImpl();
-
-		layoutVersionModel.setLayoutVersionId(_counter.get());
-		layoutVersionModel.setUuid(SequentialUUID.generate());
-		layoutVersionModel.setPlid(layoutModel.getPlid());
-		layoutVersionModel.setGroupId(layoutModel.getGroupId());
-		layoutVersionModel.setCompanyId(_companyId);
-		layoutVersionModel.setUserId(_sampleUserId);
-		layoutVersionModel.setUserName(_SAMPLE_USER_NAME);
-		layoutVersionModel.setCreateDate(new Date());
-		layoutVersionModel.setModifiedDate(new Date());
-		layoutVersionModel.setLayoutId(layoutModel.getLayoutId());
-		layoutVersionModel.setName(layoutModel.getName());
-		layoutVersionModel.setType(layoutModel.getType());
-		layoutVersionModel.setFriendlyURL(layoutModel.getFriendlyURL());
-		layoutVersionModel.setTypeSettings(layoutModel.getTypeSettings());
-		layoutVersionModel.setLastPublishDate(new Date());
-
-		return layoutVersionModel;
 	}
 
 	public List<MBCategoryModel> newMBCategoryModels(long groupId) {
@@ -3309,6 +3269,8 @@ public class DataFactory {
 		ddmStructureLayoutModel.setUserName(_SAMPLE_USER_NAME);
 		ddmStructureLayoutModel.setCreateDate(nextFutureDate());
 		ddmStructureLayoutModel.setModifiedDate(nextFutureDate());
+		ddmStructureLayoutModel.setStructureLayoutKey(
+			String.valueOf(_counter.get()));
 		ddmStructureLayoutModel.setStructureVersionId(structureVersionId);
 		ddmStructureLayoutModel.setDefinition(definition);
 
@@ -3495,7 +3457,6 @@ public class DataFactory {
 		long layoutSetId = _counter.get();
 
 		layoutSetModel.setLayoutSetId(layoutSetId);
-		layoutSetModel.setHeadId(layoutSetId);
 
 		layoutSetModel.setGroupId(groupId);
 		layoutSetModel.setCompanyId(_companyId);
@@ -3507,28 +3468,6 @@ public class DataFactory {
 		layoutSetModel.setPageCount(pageCount);
 
 		return layoutSetModel;
-	}
-
-	protected LayoutSetVersionModel newLayoutSetVersionModel(
-		LayoutSetModel layoutSetModel) {
-
-		LayoutSetVersionModel layoutSetVersionModel =
-			new LayoutSetVersionModelImpl();
-
-		layoutSetVersionModel.setLayoutSetVersionId(_counter.get());
-		layoutSetVersionModel.setLayoutSetId(layoutSetModel.getLayoutSetId());
-		layoutSetVersionModel.setGroupId(layoutSetModel.getGroupId());
-		layoutSetVersionModel.setCompanyId(layoutSetModel.getCompanyId());
-		layoutSetVersionModel.setCreateDate(new Date());
-		layoutSetVersionModel.setModifiedDate(new Date());
-		layoutSetVersionModel.setPrivateLayout(
-			layoutSetModel.getPrivateLayout());
-		layoutSetVersionModel.setThemeId(layoutSetModel.getThemeId());
-		layoutSetVersionModel.setColorSchemeId(
-			layoutSetModel.getColorSchemeId());
-		layoutSetVersionModel.setPageCount(layoutSetModel.getPageCount());
-
-		return layoutSetVersionModel;
 	}
 
 	protected MBCategoryModel newMBCategoryModel(long groupId, int index) {

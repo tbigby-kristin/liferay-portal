@@ -14,6 +14,9 @@
 
 package com.liferay.portal.vulcan.internal.jaxrs.exception.mapper;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -24,14 +27,19 @@ public class ExceptionMapper
 	implements javax.ws.rs.ext.ExceptionMapper<Exception> {
 
 	@Override
-	public Response toResponse(Exception e) {
+	public Response toResponse(Exception exception) {
+		_log.error(exception, exception);
+
 		return Response.status(
 			500
 		).type(
 			MediaType.TEXT_PLAIN
 		).entity(
-			e.getMessage()
+			exception.getMessage()
 		).build();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ExceptionMapper.class);
 
 }

@@ -47,8 +47,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the CTCollection service. Represents a row in the &quot;CTCollection&quot; database table, with each column mapped to a property of this class.
  *
@@ -60,11 +58,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CTCollectionImpl
  * @generated
  */
-@ProviderType
 public class CTCollectionModelImpl
 	extends BaseModelImpl<CTCollection> implements CTCollectionModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ct collection model instance should use the <code>CTCollection</code> interface instead.
@@ -72,18 +69,20 @@ public class CTCollectionModelImpl
 	public static final String TABLE_NAME = "CTCollection";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"ctCollectionId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"name", Types.VARCHAR}, {"description", Types.VARCHAR},
-		{"status", Types.INTEGER}, {"statusByUserId", Types.BIGINT},
-		{"statusByUserName", Types.VARCHAR}, {"statusDate", Types.TIMESTAMP}
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP}, {"name", Types.VARCHAR},
+		{"description", Types.VARCHAR}, {"status", Types.INTEGER},
+		{"statusByUserId", Types.BIGINT}, {"statusByUserName", Types.VARCHAR},
+		{"statusDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("userId", Types.BIGINT);
@@ -99,7 +98,7 @@ public class CTCollectionModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CTCollection (ctCollectionId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,description VARCHAR(75) null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table CTCollection (mvccVersion LONG default 0 not null,ctCollectionId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,description VARCHAR(200) null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table CTCollection";
 
@@ -119,7 +118,9 @@ public class CTCollectionModelImpl
 
 	public static final long NAME_COLUMN_BITMASK = 2L;
 
-	public static final long CREATEDATE_COLUMN_BITMASK = 4L;
+	public static final long STATUS_COLUMN_BITMASK = 4L;
+
+	public static final long CREATEDATE_COLUMN_BITMASK = 8L;
 
 	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
 		_entityCacheEnabled = entityCacheEnabled;
@@ -128,33 +129,6 @@ public class CTCollectionModelImpl
 	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
 		_finderCacheEnabled = finderCacheEnabled;
 	}
-
-	public static final String MAPPING_TABLE_CTCOLLECTIONS_CTENTRIES_NAME =
-		"CTCollections_CTEntries";
-
-	public static final Object[][]
-		MAPPING_TABLE_CTCOLLECTIONS_CTENTRIES_COLUMNS = {
-			{"companyId", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
-			{"ctEntryId", Types.BIGINT}
-		};
-
-	public static final String
-		MAPPING_TABLE_CTCOLLECTIONS_CTENTRIES_SQL_CREATE =
-			"create table CTCollections_CTEntries (companyId LONG not null,ctCollectionId LONG not null,ctEntryId LONG not null,primary key (ctCollectionId, ctEntryId))";
-
-	public static final String
-		MAPPING_TABLE_CTCOLLECTION_CTENTRYAGGREGATE_NAME =
-			"CTCollection_CTEntryAggregate";
-
-	public static final Object[][]
-		MAPPING_TABLE_CTCOLLECTION_CTENTRYAGGREGATE_COLUMNS = {
-			{"companyId", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
-			{"ctEntryAggregateId", Types.BIGINT}
-		};
-
-	public static final String
-		MAPPING_TABLE_CTCOLLECTION_CTENTRYAGGREGATE_SQL_CREATE =
-			"create table CTCollection_CTEntryAggregate (companyId LONG not null,ctCollectionId LONG not null,ctEntryAggregateId LONG not null,primary key (ctCollectionId, ctEntryAggregateId))";
 
 	public CTCollectionModelImpl() {
 	}
@@ -282,6 +256,11 @@ public class CTCollectionModelImpl
 			new LinkedHashMap<String, BiConsumer<CTCollection, ?>>();
 
 		attributeGetterFunctions.put(
+			"mvccVersion", CTCollection::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CTCollection, Long>)CTCollection::setMvccVersion);
+		attributeGetterFunctions.put(
 			"ctCollectionId", CTCollection::getCtCollectionId);
 		attributeSetterBiConsumers.put(
 			"ctCollectionId",
@@ -338,6 +317,16 @@ public class CTCollectionModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -488,7 +477,19 @@ public class CTCollectionModelImpl
 
 	@Override
 	public void setStatus(int status) {
+		_columnBitmask |= STATUS_COLUMN_BITMASK;
+
+		if (!_setOriginalStatus) {
+			_setOriginalStatus = true;
+
+			_originalStatus = _status;
+		}
+
 		_status = status;
+	}
+
+	public int getOriginalStatus() {
+		return _originalStatus;
 	}
 
 	@Override
@@ -642,7 +643,12 @@ public class CTCollectionModelImpl
 	@Override
 	public CTCollection toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, CTCollection>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -653,6 +659,7 @@ public class CTCollectionModelImpl
 	public Object clone() {
 		CTCollectionImpl ctCollectionImpl = new CTCollectionImpl();
 
+		ctCollectionImpl.setMvccVersion(getMvccVersion());
 		ctCollectionImpl.setCtCollectionId(getCtCollectionId());
 		ctCollectionImpl.setCompanyId(getCompanyId());
 		ctCollectionImpl.setUserId(getUserId());
@@ -735,6 +742,10 @@ public class CTCollectionModelImpl
 
 		ctCollectionModelImpl._originalName = ctCollectionModelImpl._name;
 
+		ctCollectionModelImpl._originalStatus = ctCollectionModelImpl._status;
+
+		ctCollectionModelImpl._setOriginalStatus = false;
+
 		ctCollectionModelImpl._columnBitmask = 0;
 	}
 
@@ -742,6 +753,8 @@ public class CTCollectionModelImpl
 	public CacheModel<CTCollection> toCacheModel() {
 		CTCollectionCacheModel ctCollectionCacheModel =
 			new CTCollectionCacheModel();
+
+		ctCollectionCacheModel.mvccVersion = getMvccVersion();
 
 		ctCollectionCacheModel.ctCollectionId = getCtCollectionId();
 
@@ -878,11 +891,17 @@ public class CTCollectionModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, CTCollection>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, CTCollection>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 
+	private long _mvccVersion;
 	private long _ctCollectionId;
 	private long _companyId;
 	private long _originalCompanyId;
@@ -896,6 +915,8 @@ public class CTCollectionModelImpl
 	private String _originalName;
 	private String _description;
 	private int _status;
+	private int _originalStatus;
+	private boolean _setOriginalStatus;
 	private long _statusByUserId;
 	private String _statusByUserName;
 	private Date _statusDate;

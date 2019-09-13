@@ -45,6 +45,10 @@ public class MethodCallsOrderCheck extends BaseFileCheck {
 		}
 
 		for (String variableTypeRegex : variableTypeRegexStrings) {
+			if (variableName.matches(variableTypeRegex)) {
+				return true;
+			}
+
 			StringBundler sb = new StringBundler(5);
 
 			sb.append("\\W");
@@ -81,7 +85,8 @@ public class MethodCallsOrderCheck extends BaseFileCheck {
 	}
 
 	private String _sortChainedMethodCall(
-		String content, String methodName, String... variableTypeRegexStrings) {
+		String content, String methodName, int expectedParameterCount,
+		String... variableTypeRegexStrings) {
 
 		if (!content.contains("." + methodName + "(")) {
 			return content;
@@ -128,24 +133,29 @@ public class MethodCallsOrderCheck extends BaseFileCheck {
 				List<String> parametersList = JavaSourceUtil.splitParameters(
 					parameters);
 
+				if (parametersList.size() != expectedParameterCount) {
+					break;
+				}
+
 				String putOrSetParameterName = parametersList.get(0);
 
-				if ((previousPutOrSetParameterName != null) &&
-					(putOrSetParameterNameComparator.compare(
-						previousPutOrSetParameterName, putOrSetParameterName) >
-							0)) {
+				if (previousPutOrSetParameterName != null) {
+					int compare = putOrSetParameterNameComparator.compare(
+						previousPutOrSetParameterName, putOrSetParameterName);
 
-					String codeBlock = content.substring(
-						matcher.start(), y + 1);
+					if (compare > 0) {
+						String codeBlock = content.substring(
+							matcher.start(), y + 1);
 
-					String newCodeBlock = StringUtil.replaceFirst(
-						codeBlock, previousParameters, parameters);
+						String newCodeBlock = StringUtil.replaceFirst(
+							codeBlock, previousParameters, parameters);
 
-					newCodeBlock = StringUtil.replaceLast(
-						newCodeBlock, parameters, previousParameters);
+						newCodeBlock = StringUtil.replaceLast(
+							newCodeBlock, parameters, previousParameters);
 
-					return StringUtil.replaceFirst(
-						content, codeBlock, newCodeBlock, matcher.start());
+						return StringUtil.replaceFirst(
+							content, codeBlock, newCodeBlock, matcher.start());
+					}
 				}
 
 				String s = StringUtil.trim(content.substring(y + 1));
@@ -207,18 +217,20 @@ public class MethodCallsOrderCheck extends BaseFileCheck {
 
 				String putOrSetParameterName = parametersList.get(0);
 
-				if ((previousPutOrSetParameterName != null) &&
-					(putOrSetParameterNameComparator.compare(
-						previousPutOrSetParameterName, putOrSetParameterName) >
-							0)) {
+				if (previousPutOrSetParameterName != null) {
+					int compare = putOrSetParameterNameComparator.compare(
+						previousPutOrSetParameterName, putOrSetParameterName);
 
-					String newCodeBlock = StringUtil.replaceFirst(
-						codeBlock, previousParameters, parameters);
+					if (compare > 0) {
+						String newCodeBlock = StringUtil.replaceFirst(
+							codeBlock, previousParameters, parameters);
 
-					newCodeBlock = StringUtil.replaceLast(
-						newCodeBlock, parameters, previousParameters);
+						newCodeBlock = StringUtil.replaceLast(
+							newCodeBlock, parameters, previousParameters);
 
-					return StringUtil.replace(content, codeBlock, newCodeBlock);
+						return StringUtil.replace(
+							content, codeBlock, newCodeBlock);
+					}
 				}
 
 				previousParameters = parameters;
@@ -230,7 +242,8 @@ public class MethodCallsOrderCheck extends BaseFileCheck {
 	}
 
 	private String _sortMethodCalls(String content) {
-		content = _sortChainedMethodCall(content, "put", "JSONObject");
+		content = _sortChainedMethodCall(
+			content, "put", 2, "JSONObject", "JSONUtil");
 
 		content = _sortMethodCall(
 			content, "add", "ConcurrentSkipListSet(<.*>|\\(\\))",

@@ -1,9 +1,10 @@
-@component-name = "portal-staging"
+@component-name = "portal-change-list"
+@ignore = "true"
 definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Change Lists";
+	property testray.main.component.name = "Change List";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -139,7 +140,7 @@ definition {
 			item = "Delete",
 			tableEntry = "Web Content Title");
 
-		AssertConfirm(value1 = "Are you sure you want to move this to the Recycle Bin?");
+		AssertConfirm(value1 = "Are you sure you want to delete this? It will be deleted immediately.");
 
 		Alert.viewSuccessMessage();
 
@@ -149,6 +150,48 @@ definition {
 			portlet = "Overview");
 
 		ChangeList.viewDeletedItemCounter(nbrOfDeletedItems = "0");
+	}
+
+	@priority = "4"
+	test ViewChangeListOverviewScreenFromWebContentHistory {
+		ProductMenu.gotoPortlet(
+			category = "Change Lists",
+			panel = "Control Panel",
+			portlet = "Overview");
+
+		ChangeList.addNewChangeList(
+			changeListDescription = "Change List Description",
+			changeListName = "Change List Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "Web Content Title");
+
+		Button.clickPublishToChangeList();
+
+		WebContentNavigator.gotoEntryMenuItem(
+			entry = "Web Content Title",
+			menuItem = "View History");
+
+		var key_changeListName = "Change List Name";
+
+		Click(locator1 = "ChangeList#CHANGE_LIST_NAME_WC_HISTORY");
+
+		AssertTextEquals(
+			locator1 = "ChangeList#ACTIVE_CHANGE_LIST_TITLE",
+			value1 = "Change List Name");
+
+		ChangeList.viewChangeOnOverview(
+			contentChangeType = "Added",
+			contentTitle = "Web Content Title",
+			contentType = "Web Content");
 	}
 
 }

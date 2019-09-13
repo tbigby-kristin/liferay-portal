@@ -13,14 +13,9 @@ definition {
 
 		JSONGroup.addGroup(groupName = "Site Name");
 
-		ProductMenu.gotoSite(site = "Site Name");
-
-		ProductMenu.gotoPortlet(
-			category = "Site Builder",
-			panel = "Site Administration",
-			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "Staging Test Page");
+		JSONLayout.addPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Staging Test Page");
 	}
 
 	tearDown {
@@ -255,7 +250,7 @@ definition {
 			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
-		ProductMenu.gotoSite(site = "Community Site Name");
+		Navigator.openSiteURL(siteName = "Community Site Name");
 
 		Navigator.gotoStagedView();
 
@@ -647,8 +642,6 @@ definition {
 			pageName = "New Page Name",
 			siteName = "Community Site Name");
 
-		Pause(locator1 = "5000");
-
 		Staging.schedulePublishToLivePG(scheduleTitleName = "Staging Schedule Title");
 
 		Navigator.gotoSitePage(
@@ -859,7 +852,7 @@ definition {
 			workflowDefinition = "Single Approver",
 			workflowResourceValue = "Page Revision");
 
-		ProductMenu.gotoSite(site = "Community Site Name");
+		Navigator.openSiteURL(siteName = "Community Site Name");
 
 		Navigator.gotoStagedView();
 
@@ -1234,7 +1227,7 @@ definition {
 
 		SitePages.deletePage(pageName = "Wiki");
 
-		ProductMenu.gotoSite(site = "Community Site Name");
+		Navigator.openSiteURL(siteName = "Community Site Name");
 
 		Navigator.gotoStagedView();
 

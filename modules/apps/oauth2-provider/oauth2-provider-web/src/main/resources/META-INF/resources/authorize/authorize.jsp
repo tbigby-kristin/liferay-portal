@@ -68,7 +68,7 @@ if (Validator.isNotNull(replyTo) && !replyTo.startsWith(PortalUtil.getPortalURL(
 
 								messageArguments[0] = StringPool.BLANK;
 
-								for (String getApplicationScopeDescription : assignableScopes.getApplicationScopeDescription(applicationName)) {
+								for (String getApplicationScopeDescription : assignableScopes.getApplicationScopeDescription(themeDisplay.getCompanyId(), applicationName)) {
 									if (Validator.isBlank(messageArguments[0])) {
 										messageArguments[0] = getApplicationScopeDescription;
 										continue;

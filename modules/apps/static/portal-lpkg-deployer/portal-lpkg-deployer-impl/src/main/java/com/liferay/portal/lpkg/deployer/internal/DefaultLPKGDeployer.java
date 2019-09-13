@@ -285,12 +285,12 @@ public class DefaultLPKGDeployer implements LPKGDeployer {
 
 		Path overrideDirPath = _deploymentDirPath.resolve("override");
 
-		List<File> jarFiles = _scanFiles(overrideDirPath, ".jar", true);
+		List<File> jarFiles = _scanFiles(overrideDirPath, ".jar", true, false);
 
 		removalPendingBundles.addAll(
 			_uninstallOrphanOverridingJars(bundleContext, jarFiles));
 
-		List<File> warFiles = _scanFiles(overrideDirPath, ".war", true);
+		List<File> warFiles = _scanFiles(overrideDirPath, ".war", true, false);
 
 		_uninstallOrphanOverridingWars(bundleContext, warFiles);
 
@@ -315,14 +315,20 @@ public class DefaultLPKGDeployer implements LPKGDeployer {
 			}
 		}
 
-		_lpkgBundleTracker = new BundleTracker<>(
-			bundleContext, ~Bundle.UNINSTALLED,
+		LPKGBundleTrackerCustomizer lpkgBundleTrackerCustomizer =
 			new LPKGBundleTrackerCustomizer(
-				bundleContext, _urls, _toFileNames(jarFiles, warFiles)));
+				bundleContext, _urls, _toFileNames(jarFiles, warFiles));
+
+		_lpkgBundleTracker = new BundleTracker<>(
+			bundleContext, ~Bundle.UNINSTALLED, lpkgBundleTrackerCustomizer);
 
 		_lpkgBundleTracker.open();
 
-		List<File> lpkgFiles = _scanFiles(_deploymentDirPath, ".lpkg", false);
+		lpkgBundleTrackerCustomizer.cleanTrackedBundles(
+			_lpkgBundleTracker.getBundles());
+
+		List<File> lpkgFiles = _scanFiles(
+			_deploymentDirPath, ".lpkg", false, true);
 
 		if (lpkgFiles.isEmpty()) {
 			return;
@@ -336,7 +342,7 @@ public class DefaultLPKGDeployer implements LPKGDeployer {
 			File lpkgFile = iterator.next();
 
 			List<File> innerLPKGFiles = ContainerLPKGUtil.deploy(
-				lpkgFile, bundleContext);
+				lpkgFile, bundleContext, null);
 
 			if (innerLPKGFiles != null) {
 				iterator.remove();
@@ -559,7 +565,8 @@ public class DefaultLPKGDeployer implements LPKGDeployer {
 	}
 
 	private List<File> _scanFiles(
-			Path dirPath, String extension, boolean checkFileName)
+			Path dirPath, String extension, boolean checkFileName,
+			boolean recursive)
 		throws IOException {
 
 		if (Files.notExists(dirPath)) {
@@ -576,19 +583,23 @@ public class DefaultLPKGDeployer implements LPKGDeployer {
 					String.valueOf(path.getFileName()));
 
 				if (!pathName.endsWith(extension)) {
+					if (recursive && Files.isDirectory(path)) {
+						files.addAll(
+							_scanFiles(
+								path, extension, checkFileName, recursive));
+					}
+
 					continue;
 				}
 
-				if (checkFileName) {
-					if (!_isValid(pathName)) {
-						if (_log.isWarnEnabled()) {
-							_log.warn(
-								"Override file " + path +
-									" has an invalid name and will be ignored");
-						}
-
-						continue;
+				if (checkFileName && !_isValid(pathName)) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"Override file " + path +
+								" has an invalid name and will be ignored");
 					}
+
+					continue;
 				}
 
 				files.add(path.toFile());

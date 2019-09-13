@@ -56,8 +56,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the DLFileShortcut service. Represents a row in the &quot;DLFileShortcut&quot; database table, with each column mapped to a property of this class.
  *
@@ -70,11 +68,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class DLFileShortcutModelImpl
 	extends BaseModelImpl<DLFileShortcut> implements DLFileShortcutModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a document library file shortcut model instance should use the <code>DLFileShortcut</code> interface instead.
@@ -82,21 +79,23 @@ public class DLFileShortcutModelImpl
 	public static final String TABLE_NAME = "DLFileShortcut";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR}, {"fileShortcutId", Types.BIGINT},
-		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"repositoryId", Types.BIGINT}, {"folderId", Types.BIGINT},
-		{"toFileEntryId", Types.BIGINT}, {"treePath", Types.VARCHAR},
-		{"active_", Types.BOOLEAN}, {"lastPublishDate", Types.TIMESTAMP},
-		{"status", Types.INTEGER}, {"statusByUserId", Types.BIGINT},
-		{"statusByUserName", Types.VARCHAR}, {"statusDate", Types.TIMESTAMP}
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
+		{"fileShortcutId", Types.BIGINT}, {"groupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP}, {"repositoryId", Types.BIGINT},
+		{"folderId", Types.BIGINT}, {"toFileEntryId", Types.BIGINT},
+		{"treePath", Types.VARCHAR}, {"active_", Types.BOOLEAN},
+		{"lastPublishDate", Types.TIMESTAMP}, {"status", Types.INTEGER},
+		{"statusByUserId", Types.BIGINT}, {"statusByUserName", Types.VARCHAR},
+		{"statusDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("fileShortcutId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -118,7 +117,7 @@ public class DLFileShortcutModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DLFileShortcut (uuid_ VARCHAR(75) null,fileShortcutId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,folderId LONG,toFileEntryId LONG,treePath STRING null,active_ BOOLEAN,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table DLFileShortcut (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,fileShortcutId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,repositoryId LONG,folderId LONG,toFileEntryId LONG,treePath STRING null,active_ BOOLEAN,lastPublishDate DATE null,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table DLFileShortcut";
 
@@ -178,6 +177,7 @@ public class DLFileShortcutModelImpl
 
 		DLFileShortcut model = new DLFileShortcutImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setFileShortcutId(soapModel.getFileShortcutId());
 		model.setGroupId(soapModel.getGroupId());
@@ -352,6 +352,11 @@ public class DLFileShortcutModelImpl
 		Map<String, BiConsumer<DLFileShortcut, ?>> attributeSetterBiConsumers =
 			new LinkedHashMap<String, BiConsumer<DLFileShortcut, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", DLFileShortcut::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<DLFileShortcut, Long>)DLFileShortcut::setMvccVersion);
 		attributeGetterFunctions.put("uuid", DLFileShortcut::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -442,6 +447,17 @@ public class DLFileShortcutModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -1039,7 +1055,12 @@ public class DLFileShortcutModelImpl
 	@Override
 	public DLFileShortcut toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, DLFileShortcut>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -1050,6 +1071,7 @@ public class DLFileShortcutModelImpl
 	public Object clone() {
 		DLFileShortcutImpl dlFileShortcutImpl = new DLFileShortcutImpl();
 
+		dlFileShortcutImpl.setMvccVersion(getMvccVersion());
 		dlFileShortcutImpl.setUuid(getUuid());
 		dlFileShortcutImpl.setFileShortcutId(getFileShortcutId());
 		dlFileShortcutImpl.setGroupId(getGroupId());
@@ -1171,6 +1193,8 @@ public class DLFileShortcutModelImpl
 	public CacheModel<DLFileShortcut> toCacheModel() {
 		DLFileShortcutCacheModel dlFileShortcutCacheModel =
 			new DLFileShortcutCacheModel();
+
+		dlFileShortcutCacheModel.mvccVersion = getMvccVersion();
 
 		dlFileShortcutCacheModel.uuid = getUuid();
 
@@ -1327,9 +1351,14 @@ public class DLFileShortcutModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, DLFileShortcut>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
 
+		private static final Function<InvocationHandler, DLFileShortcut>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _fileShortcutId;

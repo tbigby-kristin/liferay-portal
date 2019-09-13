@@ -74,14 +74,14 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 
 		if (deletedContentsMap.isEmpty()) {
 			return JSPSourceUtil.addIncludedAndReferencedFileNames(
-				fileNames, new HashSet<String>(), contentsMap, true);
+				fileNames, new HashSet<String>(), contentsMap, ".*");
 		}
 
 		contentsMap.putAll(deletedContentsMap);
 		fileNames.addAll(deletedContentsMap.keySet());
 
 		fileNames = JSPSourceUtil.addIncludedAndReferencedFileNames(
-			fileNames, new HashSet<String>(), contentsMap, true);
+			fileNames, new HashSet<String>(), contentsMap, ".*");
 
 		fileNames.removeAll(deletedContentsMap.keySet());
 
@@ -181,9 +181,7 @@ public class JSPSourceProcessor extends BaseSourceProcessor {
 		List<String> deletedFileNames = new ArrayList<>();
 
 		for (String fileName : fileNames) {
-			String absolutePath = SourceUtil.getAbsolutePath(fileName);
-
-			File file = new File(absolutePath);
+			File file = new File(SourceUtil.getAbsolutePath(fileName));
 
 			if (!Files.exists(file.toPath())) {
 				deletedFileNames.add(fileName);

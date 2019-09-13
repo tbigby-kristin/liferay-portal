@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
 public class JavaOSGiReferenceCheck extends BaseFileCheck {
 
 	@Override
-	public boolean isModulesCheck() {
+	public boolean isModuleSourceCheck() {
 		return true;
 	}
 
@@ -68,10 +68,8 @@ public class JavaOSGiReferenceCheck extends BaseFileCheck {
 
 		_checkMissingReference(fileName, content);
 
-		String className = JavaSourceUtil.getClassName(fileName);
-
 		String moduleSuperClassContent = _getModuleSuperClassContent(
-			content, className, packageName);
+			content, JavaSourceUtil.getClassName(fileName), packageName);
 
 		content = _formatDuplicateReferenceMethods(
 			fileName, content, moduleSuperClassContent);

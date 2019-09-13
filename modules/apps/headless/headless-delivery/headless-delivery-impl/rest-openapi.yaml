@@ -981,6 +981,12 @@ components:
                     items:
                         type: string
                     type: array
+                messageBoardThreadId:
+                    # @review
+                    description: The ID of the Message Board Thread to which this message is scoped.
+                    format: int64
+                    readOnly: true
+                    type: integer
                 numberOfMessageBoardAttachments:
                     description: The number of the message's attachments.
                     readOnly: true
@@ -1379,8 +1385,184 @@ components:
             required:
                 - name
             type: object
+        WikiNode:
+            # @review
+            description: Represents a wiki node that can be used to organize wiki pages.
+            properties:
+                creator:
+                    allOf:
+                        - $ref: "#/components/schemas/Creator"
+                    description: The wiki node's creator.
+                    readOnly: true
+                dateCreated:
+                    description: The date the wiki node was created.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                dateModified:
+                    description: The last time any of the wiki node's fields changed.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                description:
+                    description: The wiki node's description.
+                    type: string
+                id:
+                    description: The wiki node's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    description: The wiki node's name.
+                    type: string
+                numberOfWikiPages:
+                    description: The number of child wiki page on this wiki node.
+                    readOnly: true
+                    type: integer
+                siteId:
+                    description: The ID of the site to which this wiki node is scoped.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                viewableBy:
+                    description: A write-only property that specifies the default permissions.
+                    enum: [Anyone, Members, Owner]
+                    type: string
+                    writeOnly: true
+            type: object
+        WikiPage:
+            # @review
+            description: Represents a wiki page.
+            properties:
+                aggregateRating:
+                    allOf:
+                        - $ref: "#/components/schemas/AggregateRating"
+                    description: The blog post's average rating.
+                    readOnly: true
+                content:
+                    description: The wiki page's content.
+                    type: string
+                creator:
+                    allOf:
+                        - $ref: "#/components/schemas/Creator"
+                    description: The wiki page's creator.
+                    readOnly: true
+                customFields:
+                    items:
+                        $ref: "#/components/schemas/CustomField"
+                    type: array
+                dateCreated:
+                    description: The date the wiki page was created.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                dateModified:
+                    description: The last time any of the wiki page's fields changed.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                description:
+                    description: The wiki page's description.
+                    type: string
+                encodingFormat:
+                    description: The wiki page's media format (e.g., HTML, BBCode, etc.).
+                    type: string
+                headline:
+                    description: The wiki page's main title.
+                    type: string
+                id:
+                    description: The wiki page's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                keywords:
+                    description: A list of keywords describing the blog post.
+                    items:
+                        type: string
+                    type: array
+                numberOfAttachments:
+                    description: The wiki page's number attachments.
+                    readOnly: true
+                    type: integer
+                numberOfWikiPages:
+                    description: The number of child wiki page on this wiki page.
+                    readOnly: true
+                    type: integer
+                relatedContents:
+                    items:
+                        $ref: "#/components/schemas/RelatedContent"
+                    readOnly: true
+                    type: array
+                siteId:
+                    description: The ID of the site to which this wiki page is scoped.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                taxonomyCategories:
+                    description: The categories associated with this blog post.
+                    items:
+                        properties:
+                            taxonomyCategoryId:
+                                description: The category's ID. This can be used to retrieve more information in the `TaxonomyCategory` API.
+                                format: int64
+                                type: integer
+                            taxonomyCategoryName:
+                                description: The category's name.
+                                type: string
+                        type: object
+                    readOnly: true
+                    type: array
+                taxonomyCategoryIds:
+                    description: A write-only field that adds a `TaxonomyCategory` to this resource.
+                    items:
+                        format: int64
+                        type: integer
+                    type: array
+                    writeOnly: true
+                viewableBy:
+                    description: A write-only property that specifies the default permissions.
+                    enum: [Anyone, Members, Owner]
+                    type: string
+                    writeOnly: true
+            required:
+                - encodingFormat
+                - headline
+            type: object
+        WikiPageAttachment:
+            # @review
+            description: A binary file attached to a wiki page.
+            properties:
+                contentUrl:
+                    description: The file's relative URL.
+                    readOnly: true
+                    type: string
+                encodingFormat:
+                    description: The file's media format (e.g., application/pdf, etc.).
+                    readOnly: true
+                    type: string
+                fileExtension:
+                    description: The file's extension.
+                    readOnly: true
+                    type: string
+                id:
+                    description: The file's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                sizeInBytes:
+                    description: The file's size in bytes.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                title:
+                    description: The file's title.
+                    type: string
+            type: object
 info:
     description: ""
+    license:
+        name: "Apache 2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
     title: "Headless Delivery"
     version: v1.0
 openapi: 3.0.1
@@ -1893,10 +2075,6 @@ paths:
             description: Retrieves a list of the content structure's structured content. Results can be paginated, filtered, searched, and sorted.
             operationId: getContentStructureStructuredContentsPage
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: contentStructureId
                   required: true
@@ -1921,6 +2099,10 @@ paths:
                       type: string
                 - in: query
                   name: sort
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
                   schema:
                       type: string
             responses:
@@ -2931,13 +3113,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4284,13 +4466,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4363,13 +4545,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4445,13 +4627,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4587,13 +4769,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4666,13 +4848,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4745,13 +4927,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4817,10 +4999,6 @@ paths:
             description: Retrieves the Site's structured content. Results can be paginated, filtered, searched, flattened, and sorted.
             operationId: getSiteStructuredContentsPage
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: siteId
                   required: true
@@ -4828,13 +5006,13 @@ paths:
                       format: int64
                       type: integer
                 - in: query
-                  name: filter
-                  schema:
-                      type: string
-                - in: query
                   name: flatten
                   schema:
                       type: boolean
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
                 - in: query
                   name: page
                   schema:
@@ -4849,6 +5027,10 @@ paths:
                       type: string
                 - in: query
                   name: sort
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
                   schema:
                       type: string
             responses:
@@ -4870,16 +5052,16 @@ paths:
             description: Creates a new structured content.
             operationId: postSiteStructuredContent
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: siteId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:
@@ -4904,10 +5086,6 @@ paths:
             description: Retrieves a structured content by its key (`articleKey`).
             operationId: getSiteStructuredContentByKey
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: siteId
                   required: true
@@ -4917,6 +5095,10 @@ paths:
                 - in: path
                   name: key
                   required: true
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
                   schema:
                       type: string
             responses:
@@ -4935,10 +5117,6 @@ paths:
             description: Retrieves a structured content by its UUID.
             operationId: getSiteStructuredContentByUuid
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: siteId
                   required: true
@@ -4948,6 +5126,10 @@ paths:
                 - in: path
                   name: uuid
                   required: true
+                  schema:
+                      type: string
+                - in: header
+                  name: Accept-Language
                   schema:
                       type: string
             responses:
@@ -4961,6 +5143,80 @@ paths:
                                 $ref: "#/components/schemas/StructuredContent"
                     description: ""
             tags: ["StructuredContent"]
+    "/sites/{siteId}/wiki-nodes/":
+        get:
+            operationId: getSiteWikiNodesPage
+            # @review
+            description: Retrieves the wiki node's of a site. Results can be paginated, filtered, searched, and sorted.
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiNode"
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiNode"
+                    description: ""
+            tags: ["WikiNode"]
+        post:
+            description: Creates a new wiki node
+            operationId: postSiteWikiNode
+            parameters:
+                - in: path
+                  name: siteId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiNode"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiNode"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                    description: ""
+            tags: ["WikiNode"]
     "/structured-content-folders/{parentStructuredContentFolderId}/structured-content-folders":
         get:
             description: Retrieves the parent structured content folder's subfolders. Results can be paginated, filtered, searched, and sorted.
@@ -5137,10 +5393,6 @@ paths:
             description: Retrieves the folder's structured content. Results can be paginated, filtered, searched, and sorted.
             operationId: getStructuredContentFolderStructuredContentsPage
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: structuredContentFolderId
                   required: true
@@ -5167,6 +5419,10 @@ paths:
                   name: sort
                   schema:
                       type: string
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             responses:
                 200:
                     content:
@@ -5186,16 +5442,16 @@ paths:
             description: Creates a new structured content in the folder.
             operationId: postStructuredContentFolderStructuredContent
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: structuredContentFolderId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:
@@ -5236,16 +5492,16 @@ paths:
             description: Retrieves the structured content via its ID.
             operationId: getStructuredContent
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: structuredContentId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             responses:
                 200:
                     content:
@@ -5261,16 +5517,16 @@ paths:
             description: Updates only the fields received in the request body, leaving any other fields untouched.
             operationId: patchStructuredContent
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: structuredContentId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:
@@ -5294,16 +5550,16 @@ paths:
             description: Replaces the structured content with the information sent in the request body. Any missing fields are deleted, unless they are required.
             operationId: putStructuredContent
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: structuredContentId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:
@@ -5519,3 +5775,365 @@ paths:
                                 type: string
                     description: ""
             tags: ["StructuredContent"]
+    "/wiki-nodes/{wikiNodeId}":
+        # @review
+        delete:
+            description: Deletes the wiki node and returns a 204 if the operation succeeds.
+            operationId: deleteWikiNode
+            parameters:
+                - in: path
+                  name: wikiNodeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                    description: ""
+            tags: ["WikiNode"]
+        get:
+            description: Retrieves the wiki node
+            operationId: getWikiNode
+            parameters:
+                - in: path
+                  name: wikiNodeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                    description: ""
+            tags: ["WikiNode"]
+        put:
+            description: Replaces the wiki node with the information sent in the request body. Any missing fields are deleted, unless they are required.
+            operationId: putWikiNode
+            parameters:
+                - in: path
+                  name: wikiNodeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiNode"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiNode"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiNode"
+                    description: ""
+            tags: ["WikiNode"]
+    "/wiki-nodes/{wikiNodeId}/wiki-pages/":
+        get:
+            operationId: getWikiNodeWikiPagesPage
+            # @review
+            description: Retrieves the wiki page's of a node. Results can be paginated, filtered, searched, and sorted.
+            parameters:
+                - in: path
+                  name: wikiNodeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: filter
+                  schema:
+                      type: string
+                - in: query
+                  name: page
+                  schema:
+                      type: integer
+                - in: query
+                  name: pageSize
+                  schema:
+                      type: integer
+                - in: query
+                  name: search
+                  schema:
+                      type: string
+                - in: query
+                  name: sort
+                  schema:
+                      type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiPage"
+                    description: ""
+            tags: ["WikiPage"]
+        post:
+            description: Creates a new wiki page
+            operationId: postWikiNodeWikiPage
+            parameters:
+                - in: path
+                  name: wikiNodeId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                    description: ""
+            tags: ["WikiPage"]
+    "/wiki-page-attachments/{wikiPageAttachmentId}":
+        delete:
+            operationId: deleteWikiPageAttachment
+            # @review
+            description: Deletes the wiki page attachment and returns a 204 if the operation succeeds.
+            parameters:
+                - in: path
+                  name: wikiPageAttachmentId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                    description: ""
+            tags: ["WikiPageAttachment"]
+        get:
+            description: Retrieves the wiki page attachment.
+            operationId: getWikiPageAttachment
+            parameters:
+                - in: path
+                  name: wikiPageAttachmentId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPageAttachment"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPageAttachment"
+                    description: ""
+            tags: ["WikiPageAttachment"]
+    "/wiki-pages/{parentWikiPageId}/wiki-pages":
+        get:
+            operationId: getWikiPageWikiPagesPage
+            # @review
+            description: Retrieves the child wiki page's of a wiki page.
+            parameters:
+                - in: path
+                  name: parentWikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiPage"
+                    description: ""
+            tags: ["WikiPage"]
+        post:
+            description: Creates a child wiki page of the parent wiki page.
+            operationId: postWikiPageWikiPage
+            parameters:
+                - in: path
+                  name: parentWikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                    description: ""
+            tags: ["WikiPage"]
+    "/wiki-pages/{wikiPageId}":
+        # @review
+        delete:
+            description: Deletes the wiki page and returns a 204 if the operation succeeds.
+            operationId: deleteWikiPage
+            parameters:
+                - in: path
+                  name: wikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                    description: ""
+            tags: ["WikiPage"]
+        get:
+            description: Retrieves the wiki page
+            operationId: getWikiPage
+            parameters:
+                - in: path
+                  name: wikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                    description: ""
+            tags: ["WikiPage"]
+        put:
+            description: Replaces the wiki page with the information sent in the request body. Any missing fields are deleted, unless they are required.
+            operationId: putWikiPage
+            parameters:
+                - in: path
+                  name: wikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WikiPage"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPage"
+                    description: ""
+            tags: ["WikiPage"]
+    "/wiki-pages/{wikiPageId}/wiki-page-attachments":
+        get:
+            operationId: getWikiPageWikiPageAttachmentsPage
+            # @review
+            description: Retrieves the wiki page's attachments.
+            parameters:
+                - in: path
+                  name: wikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiPageAttachment"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/WikiPageAttachment"
+                                type: array
+                    description: ""
+            tags: ["WikiPageAttachment"]
+        post:
+            description: Creates an attachment for the wiki page. The request body must be `multipart/form-data` with two parts, the file's bytes (`file`), and an optional JSON string (`WikiPageAttachment`) with the metadata.
+            operationId: postWikiPageWikiPageAttachment
+            parameters:
+                - in: path
+                  name: wikiPageId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+            requestBody:
+                content:
+                    multipart/form-data:
+                        schema:
+                            properties:
+                                WikiPageAttachment:
+                                    $ref: "#/components/schemas/WikiPageAttachment"
+                                file:
+                                    format: binary
+                                    type: string
+                            type: object
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WikiPageAttachment"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WikiPageAttachment"
+                    description: ""
+            tags: ["WikiPageAttachment"]

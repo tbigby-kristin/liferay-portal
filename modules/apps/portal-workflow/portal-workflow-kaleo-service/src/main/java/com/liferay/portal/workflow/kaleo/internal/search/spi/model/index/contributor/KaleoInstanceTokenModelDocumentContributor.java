@@ -20,14 +20,16 @@ import com.liferay.asset.kernel.model.AssetRenderer;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.workflow.WorkflowHandler;
+import com.liferay.portal.kernel.workflow.WorkflowHandlerRegistryUtil;
 import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContributor;
 import com.liferay.portal.workflow.kaleo.internal.search.KaleoInstanceTokenField;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstance;
@@ -95,52 +97,66 @@ public class KaleoInstanceTokenModelDocumentContributor
 
 		AssetEntry assetEntry = getAssetEntry(kaleoInstanceToken);
 
-		if (assetEntry == null) {
-			return;
+		if (assetEntry != null) {
+			document.addLocalizedText(
+				KaleoInstanceTokenField.ASSET_DESCRIPTION,
+				LocalizationUtil.populateLocalizationMap(
+					assetEntry.getDescriptionMap(),
+					assetEntry.getDefaultLanguageId(),
+					assetEntry.getGroupId()));
+			document.addLocalizedText(
+				KaleoInstanceTokenField.ASSET_TITLE,
+				LocalizationUtil.populateLocalizationMap(
+					assetEntry.getTitleMap(), assetEntry.getDefaultLanguageId(),
+					assetEntry.getGroupId()));
 		}
+		else {
+			WorkflowHandler<?> workflowHandler =
+				WorkflowHandlerRegistryUtil.getWorkflowHandler(
+					kaleoInstanceToken.getClassName());
 
-		Locale defaultLocale = LocaleUtil.getSiteDefault();
+			for (Locale availableLocale :
+					LanguageUtil.getAvailableLocales(
+						kaleoInstanceToken.getGroupId())) {
 
-		String siteDefaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
-
-		String[] titleLanguageIds = getLanguageIds(
-			siteDefaultLanguageId, assetEntry.getTitle());
-
-		for (String titleLanguageId : titleLanguageIds) {
-			document.addText(
-				LocalizationUtil.getLocalizedName(
-					KaleoInstanceTokenField.ASSET_TITLE, titleLanguageId),
-				assetEntry.getTitle(titleLanguageId));
-		}
-
-		String[] descriptionLanguageIds = getLanguageIds(
-			siteDefaultLanguageId, assetEntry.getDescription());
-
-		for (String descriptionLanguageId : descriptionLanguageIds) {
-			document.addText(
-				LocalizationUtil.getLocalizedName(
-					KaleoInstanceTokenField.ASSET_DESCRIPTION,
-					descriptionLanguageId),
-				assetEntry.getDescription(descriptionLanguageId));
+				document.addText(
+					LocalizationUtil.getLocalizedName(
+						KaleoInstanceTokenField.ASSET_TITLE,
+						availableLocale.getLanguage()),
+					workflowHandler.getTitle(
+						kaleoInstanceToken.getClassPK(), availableLocale));
+			}
 		}
 	}
 
 	protected AssetEntry getAssetEntry(KaleoInstanceToken kaleoInstanceToken) {
 		try {
-			AssetRendererFactory<?> assetRendererFactory =
-				getAssetRendererFactory(kaleoInstanceToken.getClassName());
+			AssetRenderer<?> assetRenderer = getAssetRenderer(
+				kaleoInstanceToken.getClassName(),
+				kaleoInstanceToken.getClassPK());
 
-			AssetRenderer<?> assetRenderer =
-				assetRendererFactory.getAssetRenderer(
-					kaleoInstanceToken.getClassPK());
-
-			return assetEntryLocalService.getEntry(
-				assetRenderer.getClassName(), assetRenderer.getClassPK());
+			if (assetRenderer != null) {
+				return assetEntryLocalService.getEntry(
+					assetRenderer.getClassName(), assetRenderer.getClassPK());
+			}
 		}
 		catch (PortalException pe) {
 			if (_log.isDebugEnabled()) {
 				_log.debug(pe, pe);
 			}
+		}
+
+		return null;
+	}
+
+	protected AssetRenderer<?> getAssetRenderer(String className, long classPK)
+		throws PortalException {
+
+		AssetRendererFactory<?> assetRendererFactory = getAssetRendererFactory(
+			className);
+
+		if (assetRendererFactory != null) {
+			return assetRendererFactory.getAssetRenderer(classPK);
 		}
 
 		return null;

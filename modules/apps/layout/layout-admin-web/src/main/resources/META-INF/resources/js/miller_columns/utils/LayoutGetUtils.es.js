@@ -1,4 +1,18 @@
 /**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+/**
  * @param {number} columnIndex
  * @param {object} item
  * @param {number} itemColumnIndex
@@ -6,7 +20,7 @@
  * @review
  */
 function columnIsItemChild(columnIndex, item, itemColumnIndex) {
-	return item.active && (itemColumnIndex < columnIndex);
+	return item.active && itemColumnIndex < columnIndex;
 }
 
 /**
@@ -19,13 +33,9 @@ function columnIsItemChild(columnIndex, item, itemColumnIndex) {
 function getColumnActiveItem(layoutColumns, columnIndex) {
 	const column = layoutColumns[columnIndex];
 
-	const activeItem = column.find(
-		(item) => item.active
-	);
+	const activeItem = column.find(item => item.active);
 
-	return (
-		activeItem ? activeItem : null
-	);
+	return activeItem ? activeItem : null;
 }
 
 /**
@@ -53,13 +63,9 @@ function getColumnLastItem(layoutColumns, columnIndex) {
 function getItem(layoutColumns, itemPlid) {
 	let item = null;
 
-	layoutColumns.forEach(
-		(layoutColumn) => {
-			item = item || layoutColumn.find(
-				(_item) => _item.plid === itemPlid
-			);
-		}
-	);
+	layoutColumns.forEach(layoutColumn => {
+		item = item || layoutColumn.find(_item => _item.plid === itemPlid);
+	});
 
 	return item;
 }
@@ -74,17 +80,13 @@ function getItem(layoutColumns, itemPlid) {
 function getItemColumn(layoutColumns, itemPlid) {
 	let column = null;
 
-	layoutColumns.forEach(
-		(layoutColumn) => {
-			const item = layoutColumn.find(
-				(_item) => _item.plid === itemPlid
-			);
+	layoutColumns.forEach(layoutColumn => {
+		const item = layoutColumn.find(_item => _item.plid === itemPlid);
 
-			if (item) {
-				column = layoutColumn;
-			}
+		if (item) {
+			column = layoutColumn;
 		}
-	);
+	});
 
 	return column;
 }
@@ -120,7 +122,7 @@ function itemIsParent(layoutColumns, childItemPlid, parentItemPlid) {
 		parentItemPlid
 	);
 
-	return parentItem.active && (childItemColumnIndex > parentItemColumnIndex);
+	return parentItem.active && childItemColumnIndex > parentItemColumnIndex;
 }
 
 export {

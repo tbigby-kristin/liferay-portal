@@ -44,8 +44,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the CTProcess service. Represents a row in the &quot;CTProcess&quot; database table, with each column mapped to a property of this class.
  *
@@ -57,11 +55,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CTProcessImpl
  * @generated
  */
-@ProviderType
 public class CTProcessModelImpl
 	extends BaseModelImpl<CTProcess> implements CTProcessModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ct process model instance should use the <code>CTProcess</code> interface instead.
@@ -69,15 +66,17 @@ public class CTProcessModelImpl
 	public static final String TABLE_NAME = "CTProcess";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"ctProcessId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"createDate", Types.TIMESTAMP},
-		{"ctCollectionId", Types.BIGINT}, {"backgroundTaskId", Types.BIGINT}
+		{"mvccVersion", Types.BIGINT}, {"ctProcessId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"createDate", Types.TIMESTAMP}, {"ctCollectionId", Types.BIGINT},
+		{"backgroundTaskId", Types.BIGINT}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("ctProcessId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("userId", Types.BIGINT);
@@ -87,7 +86,7 @@ public class CTProcessModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table CTProcess (ctProcessId LONG not null primary key,companyId LONG,userId LONG,createDate DATE null,ctCollectionId LONG,backgroundTaskId LONG)";
+		"create table CTProcess (mvccVersion LONG default 0 not null,ctProcessId LONG not null primary key,companyId LONG,userId LONG,createDate DATE null,ctCollectionId LONG,backgroundTaskId LONG)";
 
 	public static final String TABLE_SQL_DROP = "drop table CTProcess";
 
@@ -243,6 +242,10 @@ public class CTProcessModelImpl
 		Map<String, BiConsumer<CTProcess, ?>> attributeSetterBiConsumers =
 			new LinkedHashMap<String, BiConsumer<CTProcess, ?>>();
 
+		attributeGetterFunctions.put("mvccVersion", CTProcess::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<CTProcess, Long>)CTProcess::setMvccVersion);
 		attributeGetterFunctions.put("ctProcessId", CTProcess::getCtProcessId);
 		attributeSetterBiConsumers.put(
 			"ctProcessId",
@@ -272,6 +275,16 @@ public class CTProcessModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -406,7 +419,12 @@ public class CTProcessModelImpl
 	@Override
 	public CTProcess toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, CTProcess>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -417,6 +435,7 @@ public class CTProcessModelImpl
 	public Object clone() {
 		CTProcessImpl ctProcessImpl = new CTProcessImpl();
 
+		ctProcessImpl.setMvccVersion(getMvccVersion());
 		ctProcessImpl.setCtProcessId(getCtProcessId());
 		ctProcessImpl.setCompanyId(getCompanyId());
 		ctProcessImpl.setUserId(getUserId());
@@ -505,6 +524,8 @@ public class CTProcessModelImpl
 	public CacheModel<CTProcess> toCacheModel() {
 		CTProcessCacheModel ctProcessCacheModel = new CTProcessCacheModel();
 
+		ctProcessCacheModel.mvccVersion = getMvccVersion();
+
 		ctProcessCacheModel.ctProcessId = getCtProcessId();
 
 		ctProcessCacheModel.companyId = getCompanyId();
@@ -590,11 +611,17 @@ public class CTProcessModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, CTProcess>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, CTProcess>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 
+	private long _mvccVersion;
 	private long _ctProcessId;
 	private long _companyId;
 	private long _originalCompanyId;

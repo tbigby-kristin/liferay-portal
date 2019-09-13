@@ -23,9 +23,18 @@ import javax.ws.rs.core.MultivaluedMap;
  */
 public interface JSONWebServiceClient {
 
+	public String doDelete(
+		String url, Map<String, String> parameters,
+		Map<String, String> headers);
+
 	public String doGet(
 		String url, MultivaluedMap<String, Object> parameters,
 		Map<String, String> headers);
+
+	public <T> T doPost(
+		Class<T> clazz, String url, T object, Map<String, String> headers);
+
+	public <T> void doPut(String url, T object, Map<String, String> headers);
 
 	public String getBaseURI();
 

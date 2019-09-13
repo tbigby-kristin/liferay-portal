@@ -124,6 +124,8 @@ public class CTCollectionPersistenceTest {
 
 		CTCollection newCTCollection = _persistence.create(pk);
 
+		newCTCollection.setMvccVersion(RandomTestUtil.nextLong());
+
 		newCTCollection.setCompanyId(RandomTestUtil.nextLong());
 
 		newCTCollection.setUserId(RandomTestUtil.nextLong());
@@ -151,6 +153,9 @@ public class CTCollectionPersistenceTest {
 		CTCollection existingCTCollection = _persistence.findByPrimaryKey(
 			newCTCollection.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingCTCollection.getMvccVersion(),
+			newCTCollection.getMvccVersion());
 		Assert.assertEquals(
 			existingCTCollection.getCtCollectionId(),
 			newCTCollection.getCtCollectionId());
@@ -202,6 +207,14 @@ public class CTCollectionPersistenceTest {
 	}
 
 	@Test
+	public void testCountByC_S() throws Exception {
+		_persistence.countByC_S(
+			RandomTestUtil.nextLong(), RandomTestUtil.nextInt());
+
+		_persistence.countByC_S(0L, 0);
+	}
+
+	@Test
 	public void testFindByPrimaryKeyExisting() throws Exception {
 		CTCollection newCTCollection = addCTCollection();
 
@@ -226,10 +239,11 @@ public class CTCollectionPersistenceTest {
 
 	protected OrderByComparator<CTCollection> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"CTCollection", "ctCollectionId", true, "companyId", true, "userId",
-			true, "userName", true, "createDate", true, "modifiedDate", true,
-			"name", true, "description", true, "status", true, "statusByUserId",
-			true, "statusByUserName", true, "statusDate", true);
+			"CTCollection", "mvccVersion", true, "ctCollectionId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "name", true, "description", true,
+			"status", true, "statusByUserId", true, "statusByUserName", true,
+			"statusDate", true);
 	}
 
 	@Test
@@ -469,6 +483,8 @@ public class CTCollectionPersistenceTest {
 		long pk = RandomTestUtil.nextLong();
 
 		CTCollection ctCollection = _persistence.create(pk);
+
+		ctCollection.setMvccVersion(RandomTestUtil.nextLong());
 
 		ctCollection.setCompanyId(RandomTestUtil.nextLong());
 

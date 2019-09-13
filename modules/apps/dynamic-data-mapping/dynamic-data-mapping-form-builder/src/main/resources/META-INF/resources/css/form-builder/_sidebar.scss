@@ -16,10 +16,14 @@ $c: '.sidebar-container';
 
 	.sidebar-body {
 		overflow: visible;
+
+		.ddm-form-tabs {
+			display: none;
+		}
 	}
 
 	.list-group-item:hover {
-		background-color: #F0F5FF;
+		background-color: #f0f5ff;
 	}
 
 	.ddm-sidebar-body {

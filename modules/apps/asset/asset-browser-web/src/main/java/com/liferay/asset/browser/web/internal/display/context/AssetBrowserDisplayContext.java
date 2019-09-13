@@ -117,22 +117,14 @@ public class AssetBrowserDisplayContext {
 		}
 
 		if (Objects.equals(_getOrderByCol(), "modified-date")) {
-			sort = new Sort(Field.MODIFIED_DATE, Sort.LONG_TYPE, orderByAsc);
+			sort = new Sort(Field.MODIFIED_DATE, Sort.LONG_TYPE, !orderByAsc);
 		}
 		else if (Objects.equals(_getOrderByCol(), "title")) {
 			String sortFieldName = Field.getSortableFieldName(
 				"localized_title_".concat(themeDisplay.getLanguageId()));
 
-			sort = new Sort(sortFieldName, Sort.STRING_TYPE, orderByAsc);
+			sort = new Sort(sortFieldName, Sort.STRING_TYPE, !orderByAsc);
 		}
-
-		int total = (int)AssetEntryLocalServiceUtil.searchCount(
-			themeDisplay.getCompanyId(), _getFilterGroupIds(),
-			themeDisplay.getUserId(), _getClassNameIds(),
-			getSubtypeSelectionId(), _getKeywords(), _isShowNonindexable(),
-			_getStatuses());
-
-		assetBrowserSearch.setTotal(total);
 
 		Hits hits = AssetEntryLocalServiceUtil.search(
 			themeDisplay.getCompanyId(), _getFilterGroupIds(),
@@ -141,9 +133,9 @@ public class AssetBrowserDisplayContext {
 			_getStatuses(), assetBrowserSearch.getStart(),
 			assetBrowserSearch.getEnd(), sort);
 
-		List<AssetEntry> assetEntries = _assetHelper.getAssetEntries(hits);
+		assetBrowserSearch.setResults(_assetHelper.getAssetEntries(hits));
 
-		assetBrowserSearch.setResults(assetEntries);
+		assetBrowserSearch.setTotal(hits.getLength());
 
 		return assetBrowserSearch;
 	}

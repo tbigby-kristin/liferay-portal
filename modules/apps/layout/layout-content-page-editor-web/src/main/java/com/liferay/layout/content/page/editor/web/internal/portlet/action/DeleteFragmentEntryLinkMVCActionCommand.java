@@ -41,7 +41,6 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsConstants;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -79,18 +78,6 @@ public class DeleteFragmentEntryLinkMVCActionCommand
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkService.deleteFragmentEntryLink(
 				fragmentEntryLinkId);
-
-		long classNameId = ParamUtil.getLong(actionRequest, "classNameId");
-		long classPK = ParamUtil.getLong(actionRequest, "classPK");
-		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId",
-			SegmentsConstants.SEGMENTS_EXPERIENCE_ID_DEFAULT);
-		String data = ParamUtil.getString(actionRequest, "data");
-
-		_layoutPageTemplateStructureLocalService.
-			updateLayoutPageTemplateStructure(
-				themeDisplay.getScopeGroupId(), classNameId, classPK,
-				segmentsExperienceId, data);
 
 		if (fragmentEntryLink.getFragmentEntryId() == 0) {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(

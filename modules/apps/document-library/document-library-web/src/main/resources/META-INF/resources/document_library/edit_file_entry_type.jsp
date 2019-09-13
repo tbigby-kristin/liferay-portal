@@ -182,15 +182,17 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 				title: '<%= UnicodeLanguageUtil.get(request, "metadata-sets") %>'
 			},
 			function(event) {
-				var A = AUI();
-
 				var searchContainer = Liferay.SearchContainer.get('<portlet:namespace />ddmStructuresSearchContainer');
 
-				var ddmStructureLink = '<a class="modify-link" data-rowId="' + event.ddmstructureid + '" href="javascript:;" title="<%= LanguageUtil.get(request, "remove") %>"><%= UnicodeFormatter.toString(removeStructureIcon) %></a>';
+				var data = searchContainer.getData(false);
 
-				searchContainer.addRow([event.name, ddmStructureLink], event.ddmstructureid);
+				if (!data.includes(event.ddmstructureid)) {
+					var ddmStructureLink = '<a class="modify-link" data-rowId="' + event.ddmstructureid + '" href="javascript:;" title="<%= LanguageUtil.get(request, "remove") %>"><%= UnicodeFormatter.toString(removeStructureIcon) %></a>';
 
-				searchContainer.updateDataStore();
+					searchContainer.addRow([event.name, ddmStructureLink], event.ddmstructureid);
+
+					searchContainer.updateDataStore();
+				}
 			}
 		);
 	}

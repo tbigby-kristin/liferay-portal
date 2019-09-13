@@ -55,7 +55,7 @@ public abstract class AssetCategoryPropertyFinderBaseImpl
 
 	@Override
 	@Reference(
-		target = AssetPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = AssetPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -85,5 +85,14 @@ public abstract class AssetCategoryPropertyFinderBaseImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AssetCategoryPropertyFinderBaseImpl.class);
+
+	static {
+		try {
+			Class.forName(AssetPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

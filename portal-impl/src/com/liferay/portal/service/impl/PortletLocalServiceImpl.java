@@ -20,6 +20,7 @@ import com.liferay.petra.content.ContentUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.ConfigurationFactoryImpl;
 import com.liferay.portal.kernel.application.type.ApplicationType;
 import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.configuration.Configuration;
@@ -44,8 +45,8 @@ import com.liferay.portal.kernel.model.PortletURLListener;
 import com.liferay.portal.kernel.model.PublicRenderParameter;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.portlet.PortletDependencyFactoryUtil;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
 import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
@@ -577,6 +578,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			}
 
 			portlet.setActive(true);
+			portlet.setReady(true);
 			portlet.setUndeployedPortlet(true);
 		}
 
@@ -618,9 +620,8 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	public List<Portlet> getPortlets(
 		long companyId, boolean showSystem, boolean showPortal) {
 
-		Map<String, Portlet> portletsMap = getPortletsMap(companyId);
-
-		List<Portlet> portlets = ListUtil.fromMapValues(portletsMap);
+		List<Portlet> portlets = ListUtil.fromMapValues(
+			getPortletsMap(companyId));
 
 		if (showSystem && showPortal) {
 			return portlets;
@@ -798,23 +799,28 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 				Portlet portletModel = entry.getValue();
 
-				String portletId = PortletProviderUtil.getPortletId(
-					PortalMyAccountApplicationType.MyAccount.CLASS_NAME,
-					PortletProvider.Action.VIEW);
-
 				if (!Objects.equals(
 						portletModel.getPortletId(),
 						PortletKeys.SERVER_ADMIN) &&
-					!Objects.equals(portletModel.getPortletId(), portletId) &&
 					!portletModel.isInclude()) {
 
-					portletPoolsItr.remove();
+					String portletId = PortletProviderUtil.getPortletId(
+						PortalMyAccountApplicationType.MyAccount.CLASS_NAME,
+						PortletProvider.Action.VIEW);
+
+					if (!Objects.equals(
+							portletModel.getPortletId(), portletId)) {
+
+						portletPoolsItr.remove();
+					}
 				}
 			}
 
 			// Sprite images
 
-			setSpriteImages(servletContext, portletApp, "/html/icons/");
+			if (PropsValues.SPRITE_ENABLED) {
+				setSpriteImages(servletContext, portletApp, "/html/icons/");
+			}
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -922,7 +928,9 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 			// Sprite images
 
-			setSpriteImages(servletContext, portletApp, "/icons/");
+			if (PropsValues.SPRITE_ENABLED) {
+				setSpriteImages(servletContext, portletApp, "/icons/");
+			}
 
 			return ListUtil.fromMapValues(portletsMap);
 		}
@@ -2698,11 +2706,11 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	}
 
 	private Configuration _getConfiguration(PortletApp portletApp) {
-		String propertyFileName = "portal";
-
-		if (portletApp.isWARFile()) {
-			propertyFileName = "portlet";
+		if (!portletApp.isWARFile()) {
+			return ConfigurationFactoryImpl.CONFIGURATION_PORTAL;
 		}
+
+		String propertyFileName = "portlet";
 
 		ServletContext servletContext = portletApp.getServletContext();
 

@@ -271,10 +271,15 @@ public class StructureUtil {
 						DDMFormFieldValidation ddmFormFieldValidation =
 							(DDMFormFieldValidation)object;
 
+						LocalizedValue errorMessageLocalizedValue =
+							ddmFormFieldValidation.
+								getErrorMessageLocalizedValue();
+
 						return new Validation() {
 							{
 								errorMessage =
-									ddmFormFieldValidation.getErrorMessage();
+									errorMessageLocalizedValue.getString(
+										locale);
 								expression =
 									ddmFormFieldValidation.getExpression();
 							}
@@ -307,10 +312,12 @@ public class StructureUtil {
 			Collectors.toList()
 		);
 
-		DDMFormField[] ddmFormFields = ddmStructure.getDDMFormFields(
-			true
-		).stream(
-		).filter(
+		List<DDMFormField> ddmFormFieldsList = ddmStructure.getDDMFormFields(
+			true);
+
+		Stream<DDMFormField> ddmFormFieldsStream = ddmFormFieldsList.stream();
+
+		DDMFormField[] ddmFormFields = ddmFormFieldsStream.filter(
 			ddmFormField -> ddmFormFieldNames.contains(ddmFormField.getName())
 		).toArray(
 			DDMFormField[]::new

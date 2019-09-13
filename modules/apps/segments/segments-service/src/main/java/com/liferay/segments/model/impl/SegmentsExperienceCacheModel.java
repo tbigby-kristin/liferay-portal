@@ -26,15 +26,12 @@ import java.io.ObjectOutput;
 
 import java.util.Date;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The cache model class for representing SegmentsExperience in entity cache.
  *
  * @author Eduardo Garcia
  * @generated
  */
-@ProviderType
 public class SegmentsExperienceCacheModel
 	implements CacheModel<SegmentsExperience>, Externalizable {
 
@@ -67,7 +64,7 @@ public class SegmentsExperienceCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(33);
 
 		sb.append("{uuid=");
 		sb.append(uuid);
@@ -87,6 +84,8 @@ public class SegmentsExperienceCacheModel
 		sb.append(modifiedDate);
 		sb.append(", segmentsEntryId=");
 		sb.append(segmentsEntryId);
+		sb.append(", segmentsExperienceKey=");
+		sb.append(segmentsExperienceKey);
 		sb.append(", classNameId=");
 		sb.append(classNameId);
 		sb.append(", classPK=");
@@ -143,6 +142,15 @@ public class SegmentsExperienceCacheModel
 		}
 
 		segmentsExperienceImpl.setSegmentsEntryId(segmentsEntryId);
+
+		if (segmentsExperienceKey == null) {
+			segmentsExperienceImpl.setSegmentsExperienceKey("");
+		}
+		else {
+			segmentsExperienceImpl.setSegmentsExperienceKey(
+				segmentsExperienceKey);
+		}
+
 		segmentsExperienceImpl.setClassNameId(classNameId);
 		segmentsExperienceImpl.setClassPK(classPK);
 
@@ -185,6 +193,7 @@ public class SegmentsExperienceCacheModel
 		modifiedDate = objectInput.readLong();
 
 		segmentsEntryId = objectInput.readLong();
+		segmentsExperienceKey = objectInput.readUTF();
 
 		classNameId = objectInput.readLong();
 
@@ -226,6 +235,13 @@ public class SegmentsExperienceCacheModel
 
 		objectOutput.writeLong(segmentsEntryId);
 
+		if (segmentsExperienceKey == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(segmentsExperienceKey);
+		}
+
 		objectOutput.writeLong(classNameId);
 
 		objectOutput.writeLong(classPK);
@@ -252,6 +268,7 @@ public class SegmentsExperienceCacheModel
 	public long createDate;
 	public long modifiedDate;
 	public long segmentsEntryId;
+	public String segmentsExperienceKey;
 	public long classNameId;
 	public long classPK;
 	public String name;

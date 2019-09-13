@@ -80,7 +80,6 @@ public class CreateAccountNavigationPostPageInclude implements PageInclude {
 
 		IconTag iconTag = new IconTag();
 
-		iconTag.setIconCssClass("icon-plus");
 		iconTag.setMessage("create-account");
 
 		try {

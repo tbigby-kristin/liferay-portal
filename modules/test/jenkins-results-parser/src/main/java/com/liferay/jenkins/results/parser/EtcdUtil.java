@@ -38,11 +38,7 @@ import mousio.etcd4j.responses.EtcdKeysResponse;
 public class EtcdUtil {
 
 	public static synchronized void delete(String etcdServerURL, String key) {
-		Node node = get(etcdServerURL, key);
-
-		if (node != null) {
-			node.delete();
-		}
+		_deleteEtcdNode(etcdServerURL, key);
 	}
 
 	public static synchronized Node get(String etcdServerURL, String key) {
@@ -53,18 +49,6 @@ public class EtcdUtil {
 		}
 
 		return null;
-	}
-
-	public static EtcdClient getEtcdClient(String url) {
-		try {
-			return new EtcdClient(new URI(url));
-		}
-		catch (URISyntaxException urise) {
-			throw new RuntimeException(
-				JenkinsResultsParserUtil.combine(
-					"Unable to create an Etcd client using url ", url),
-				urise);
-		}
 	}
 
 	public static synchronized boolean has(String etcdServerURL, String key) {
@@ -84,59 +68,13 @@ public class EtcdUtil {
 	public static synchronized Node put(
 		String etcdServerURL, String key, String value) {
 
-		try (EtcdClient etcdClient = getEtcdClient(etcdServerURL)) {
-			EtcdKeyPutRequest etcdKeyPutRequest = null;
-
-			if (value == null) {
-				etcdKeyPutRequest = etcdClient.putDir(key);
-			}
-			else {
-				etcdKeyPutRequest = etcdClient.put(key, value);
-			}
-
-			if (has(etcdServerURL, key)) {
-				etcdKeyPutRequest.prevExist(true);
-			}
-
-			EtcdResponsePromise<EtcdKeysResponse> etcdResponsePromise =
-				etcdKeyPutRequest.send();
-
-			EtcdKeysResponse etcdKeysResponse = etcdResponsePromise.get();
-
-			return new Node(etcdServerURL, etcdKeysResponse.getNode());
-		}
-		catch (EtcdAuthenticationException | EtcdException | IOException |
-			   TimeoutException e) {
-
-			throw new RuntimeException(e);
-		}
+		return new Node(etcdServerURL, _putEtcdNode(etcdServerURL, key, value));
 	}
 
 	public static class Node {
 
 		public void delete() {
-			try (EtcdClient etcdClient = getEtcdClient(_etcdServerURL)) {
-				EtcdKeyDeleteRequest etcdKeyDeleteRequest = null;
-
-				if (!isDir()) {
-					etcdKeyDeleteRequest = etcdClient.delete(getKey());
-				}
-				else {
-					etcdKeyDeleteRequest = etcdClient.deleteDir(getKey());
-
-					etcdKeyDeleteRequest.recursive();
-				}
-
-				EtcdResponsePromise<EtcdKeysResponse> etcdResponsePromise =
-					etcdKeyDeleteRequest.send();
-
-				etcdResponsePromise.get();
-			}
-			catch (EtcdAuthenticationException | EtcdException | IOException |
-				   TimeoutException e) {
-
-				throw new RuntimeException(e);
-			}
+			_deleteEtcdNode(getEtcdServerURL(), getKey());
 		}
 
 		public boolean exists() {
@@ -158,7 +96,7 @@ public class EtcdUtil {
 		}
 
 		public String getKey() {
-			return _etcdNode.getKey();
+			return _key;
 		}
 
 		public long getModifiedIndex() {
@@ -182,7 +120,7 @@ public class EtcdUtil {
 				_etcdNode.getNodes();
 
 			for (EtcdKeysResponse.EtcdNode childEtcdNode : childEtcdNodes) {
-				nodes.add(new Node(_etcdServerURL, childEtcdNode));
+				nodes.add(new Node(getEtcdServerURL(), childEtcdNode));
 			}
 
 			return nodes;
@@ -205,36 +143,196 @@ public class EtcdUtil {
 		private Node(String etcdServerURL, EtcdKeysResponse.EtcdNode etcdNode) {
 			_etcdServerURL = etcdServerURL;
 			_etcdNode = etcdNode;
+			_key = etcdNode.getKey();
 		}
 
 		private synchronized void _refreshEtcdNode() {
-			_etcdNode = _getEtcdNode(_etcdServerURL, getKey());
+			Retryable<EtcdKeysResponse.EtcdNode> etcdNodeRefreshRetryable =
+				new Retryable<EtcdKeysResponse.EtcdNode>(
+					false, _RETRIES_SIZE_MAX_DEFAULT,
+					_SECONDS_RETRY_PERIOD_DEFAULT, true) {
+
+					public EtcdKeysResponse.EtcdNode execute() {
+						EtcdKeysResponse.EtcdNode etcdNode = _getEtcdNode(
+							getEtcdServerURL(), getKey());
+
+						if (etcdNode == null) {
+							throw new RuntimeException(
+								JenkinsResultsParserUtil.combine(
+									"Unable to get Etcd node from ",
+									getEtcdServerURL(), " with key ",
+									getKey()));
+						}
+
+						return etcdNode;
+					}
+
+				};
+
+			_etcdNode = etcdNodeRefreshRetryable.executeWithRetries();
 		}
 
 		private EtcdKeysResponse.EtcdNode _etcdNode;
 		private final String _etcdServerURL;
+		private final String _key;
 
+	}
+
+	private static synchronized void _deleteEtcdNode(
+		String etcdServerURL, String key) {
+
+		EtcdKeysResponse.EtcdNode etcdNode = _getEtcdNode(etcdServerURL, key);
+
+		if (etcdNode == null) {
+			return;
+		}
+
+		int retryCount = 0;
+
+		while (true) {
+			try (EtcdClient etcdClient = _getEtcdClient(etcdServerURL)) {
+				EtcdKeyDeleteRequest etcdKeyDeleteRequest = null;
+
+				if (!etcdNode.isDir()) {
+					etcdKeyDeleteRequest = etcdClient.delete(key);
+				}
+				else {
+					etcdKeyDeleteRequest = etcdClient.deleteDir(key);
+
+					etcdKeyDeleteRequest.recursive();
+				}
+
+				EtcdResponsePromise<EtcdKeysResponse> etcdResponsePromise =
+					etcdKeyDeleteRequest.send();
+
+				etcdResponsePromise.get();
+
+				return;
+			}
+			catch (EtcdAuthenticationException | EtcdException | IOException |
+				   TimeoutException e) {
+
+				e.printStackTrace();
+			}
+
+			retryCount++;
+
+			if (retryCount > _RETRIES_SIZE_MAX_DEFAULT) {
+				throw new RuntimeException(
+					"Unable to delete " + key + " from " + etcdServerURL);
+			}
+
+			System.out.println(
+				"Retrying in " + _SECONDS_RETRY_PERIOD_DEFAULT + " seconds");
+
+			JenkinsResultsParserUtil.sleep(
+				1000 * _SECONDS_RETRY_PERIOD_DEFAULT);
+		}
+	}
+
+	private static EtcdClient _getEtcdClient(String url) {
+		try {
+			return new EtcdClient(new URI(url));
+		}
+		catch (URISyntaxException urise) {
+			throw new RuntimeException(
+				JenkinsResultsParserUtil.combine(
+					"Unable to create an etcd client for ", url),
+				urise);
+		}
 	}
 
 	private static synchronized EtcdKeysResponse.EtcdNode _getEtcdNode(
 		String etcdServerURL, String key) {
 
-		try (EtcdClient etcdClient = getEtcdClient(etcdServerURL)) {
-			EtcdKeyGetRequest etcdKeyGetRequest = etcdClient.get(key);
+		int retryCount = 0;
 
-			EtcdResponsePromise<EtcdKeysResponse> etcdResponsePromise =
-				etcdKeyGetRequest.send();
+		while (true) {
+			try (EtcdClient etcdClient = _getEtcdClient(etcdServerURL)) {
+				EtcdKeyGetRequest etcdKeyGetRequest = etcdClient.get(key);
 
-			EtcdKeysResponse etcdKeysResponse = etcdResponsePromise.get();
+				EtcdResponsePromise<EtcdKeysResponse> etcdResponsePromise =
+					etcdKeyGetRequest.send();
 
-			return etcdKeysResponse.getNode();
-		}
-		catch (EtcdException ee) {
-			return null;
-		}
-		catch (EtcdAuthenticationException | IOException | TimeoutException e) {
-			throw new RuntimeException(e);
+				EtcdKeysResponse etcdKeysResponse = etcdResponsePromise.get();
+
+				return etcdKeysResponse.getNode();
+			}
+			catch (EtcdAuthenticationException | EtcdException | IOException |
+				   TimeoutException e) {
+
+				String errorMessage = e.getMessage();
+
+				if (errorMessage.contains("Key not found")) {
+					return null;
+				}
+			}
+
+			retryCount++;
+
+			if (retryCount > _RETRIES_SIZE_MAX_DEFAULT) {
+				throw new RuntimeException(
+					"Unable to find " + key + " from " + etcdServerURL);
+			}
+
+			System.out.println(
+				"Retrying in " + _SECONDS_RETRY_PERIOD_DEFAULT + " seconds");
+
+			JenkinsResultsParserUtil.sleep(
+				1000 * _SECONDS_RETRY_PERIOD_DEFAULT);
 		}
 	}
+
+	private static synchronized EtcdKeysResponse.EtcdNode _putEtcdNode(
+		String etcdServerURL, String key, String value) {
+
+		int retryCount = 0;
+
+		while (true) {
+			try (EtcdClient etcdClient = _getEtcdClient(etcdServerURL)) {
+				EtcdKeyPutRequest etcdKeyPutRequest = null;
+
+				if (value == null) {
+					etcdKeyPutRequest = etcdClient.putDir(key);
+				}
+				else {
+					etcdKeyPutRequest = etcdClient.put(key, value);
+				}
+
+				if (has(etcdServerURL, key)) {
+					etcdKeyPutRequest.prevExist(true);
+				}
+
+				EtcdResponsePromise<EtcdKeysResponse> etcdResponsePromise =
+					etcdKeyPutRequest.send();
+
+				EtcdKeysResponse etcdKeysResponse = etcdResponsePromise.get();
+
+				return etcdKeysResponse.getNode();
+			}
+			catch (EtcdAuthenticationException | EtcdException | IOException |
+				   TimeoutException e) {
+
+				e.printStackTrace();
+			}
+
+			retryCount++;
+
+			if (retryCount > _RETRIES_SIZE_MAX_DEFAULT) {
+				throw new RuntimeException(
+					"Unable to put " + key + " into " + etcdServerURL);
+			}
+
+			System.out.println(
+				"Retrying in " + _SECONDS_RETRY_PERIOD_DEFAULT + " seconds");
+
+			JenkinsResultsParserUtil.sleep(
+				1000 * _SECONDS_RETRY_PERIOD_DEFAULT);
+		}
+	}
+
+	private static final int _RETRIES_SIZE_MAX_DEFAULT = 5;
+
+	private static final int _SECONDS_RETRY_PERIOD_DEFAULT = 5;
 
 }

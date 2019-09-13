@@ -14,9 +14,10 @@
 
 package com.liferay.portal.workflow.kaleo.service.impl;
 
-import com.liferay.exportimport.kernel.staging.StagingUtil;
+import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
@@ -48,6 +49,9 @@ import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignment;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken;
 import com.liferay.portal.workflow.kaleo.runtime.util.WorkflowContextUtil;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskAssignmentInstanceLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskFormInstanceLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTimerInstanceTokenLocalService;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoTaskInstanceTokenLocalServiceBaseImpl;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoTaskInstanceTokenQuery;
 
@@ -63,12 +67,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Marcellus Tavares
  */
+@Component(
+	property = "model.class.name=com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken",
+	service = AopService.class
+)
 public class KaleoTaskInstanceTokenLocalServiceImpl
 	extends KaleoTaskInstanceTokenLocalServiceBaseImpl {
 
@@ -93,7 +105,7 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 		KaleoTaskInstanceToken kaleoTaskInstanceToken =
 			kaleoTaskInstanceTokenPersistence.create(kaleoTaskInstanceTokenId);
 
-		long groupId = StagingUtil.getLiveGroupId(
+		long groupId = _staging.getLiveGroupId(
 			serviceContext.getScopeGroupId());
 
 		kaleoTaskInstanceToken.setGroupId(groupId);
@@ -134,7 +146,7 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		kaleoTaskInstanceTokenPersistence.update(kaleoTaskInstanceToken);
 
-		kaleoTaskAssignmentInstanceLocalService.addTaskAssignmentInstances(
+		_kaleoTaskAssignmentInstanceLocalService.addTaskAssignmentInstances(
 			kaleoTaskInstanceToken, kaleoTaskAssignments, workflowContext,
 			serviceContext);
 
@@ -159,7 +171,7 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		kaleoTaskInstanceTokenPersistence.update(kaleoTaskInstanceToken);
 
-		kaleoTaskAssignmentInstanceLocalService.
+		_kaleoTaskAssignmentInstanceLocalService.
 			assignKaleoTaskAssignmentInstance(
 				kaleoTaskInstanceToken, assigneeClassName, assigneeClassPK,
 				serviceContext);
@@ -187,12 +199,12 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		// Kaleo task assignment instance
 
-		kaleoTaskAssignmentInstanceLocalService.completeKaleoTaskInstanceToken(
+		_kaleoTaskAssignmentInstanceLocalService.completeKaleoTaskInstanceToken(
 			kaleoTaskInstanceTokenId, serviceContext);
 
 		// Kaleo timers
 
-		kaleoTimerInstanceTokenLocalService.completeKaleoTimerInstanceTokens(
+		_kaleoTimerInstanceTokenLocalService.completeKaleoTimerInstanceTokens(
 			kaleoTaskInstanceToken.getKaleoInstanceTokenId(), serviceContext);
 
 		return kaleoTaskInstanceToken;
@@ -212,12 +224,12 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		// Kaleo task assignment instances
 
-		kaleoTaskAssignmentInstanceLocalService.
+		_kaleoTaskAssignmentInstanceLocalService.
 			deleteCompanyKaleoTaskAssignmentInstances(companyId);
 
 		// Kaleo task form instances
 
-		kaleoTaskFormInstanceLocalService.deleteCompanyKaleoTaskFormInstances(
+		_kaleoTaskFormInstanceLocalService.deleteCompanyKaleoTaskFormInstances(
 			companyId);
 	}
 
@@ -237,13 +249,13 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		// Kaleo task assignment instances
 
-		kaleoTaskAssignmentInstanceLocalService.
+		_kaleoTaskAssignmentInstanceLocalService.
 			deleteKaleoDefinitionVersionKaleoTaskAssignmentInstances(
 				kaleoDefinitionVersionId);
 
 		// Kaleo task form instances
 
-		kaleoTaskFormInstanceLocalService.
+		_kaleoTaskFormInstanceLocalService.
 			deleteKaleoDefinitionVersionKaleoTaskFormInstances(
 				kaleoDefinitionVersionId);
 	}
@@ -264,12 +276,12 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		// Kaleo task assignment instances
 
-		kaleoTaskAssignmentInstanceLocalService.
+		_kaleoTaskAssignmentInstanceLocalService.
 			deleteKaleoInstanceKaleoTaskAssignmentInstances(kaleoInstanceId);
 
 		// Kaleo task form instances
 
-		kaleoTaskFormInstanceLocalService.
+		_kaleoTaskFormInstanceLocalService.
 			deleteKaleoInstanceKaleoTaskFormInstances(kaleoInstanceId);
 	}
 
@@ -584,9 +596,12 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 				long kaleoTaskInstanceTokenId = GetterUtil.getLong(
 					document.get(Field.ENTRY_CLASS_PK));
 
-				kaleoTaskInstanceTokens.add(
-					kaleoTaskInstanceTokenPersistence.findByPrimaryKey(
-						kaleoTaskInstanceTokenId));
+				Optional.ofNullable(
+					kaleoTaskInstanceTokenPersistence.fetchByPrimaryKey(
+						kaleoTaskInstanceTokenId)
+				).ifPresent(
+					kaleoTaskInstanceTokens::add
+				);
 			}
 
 			return kaleoTaskInstanceTokens;
@@ -886,5 +901,20 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 				put(KaleoTaskInstanceTokenField.DUE_DATE, Sort.LONG_TYPE);
 			}
 		};
+
+	@Reference
+	private KaleoTaskAssignmentInstanceLocalService
+		_kaleoTaskAssignmentInstanceLocalService;
+
+	@Reference
+	private KaleoTaskFormInstanceLocalService
+		_kaleoTaskFormInstanceLocalService;
+
+	@Reference
+	private KaleoTimerInstanceTokenLocalService
+		_kaleoTimerInstanceTokenLocalService;
+
+	@Reference
+	private Staging _staging;
 
 }

@@ -14,11 +14,14 @@
 
 package com.liferay.blogs.item.selector.web.internal.display.context;
 
+import com.liferay.blogs.configuration.BlogsFileUploadsConfiguration;
 import com.liferay.blogs.item.selector.criterion.BlogsItemSelectorCriterion;
 import com.liferay.blogs.item.selector.web.internal.BlogsItemSelectorView;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.item.selector.ItemSelectorReturnTypeResolver;
 import com.liferay.item.selector.ItemSelectorReturnTypeResolverHandler;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -62,6 +65,14 @@ public class BlogsItemSelectorViewDisplayContext {
 
 	public BlogsItemSelectorCriterion getBlogsItemSelectorCriterion() {
 		return _blogsItemSelectorCriterion;
+	}
+
+	public String[] getImageExtensions() throws ConfigurationException {
+		return _getBlogsFileUploadsConfiguration().imageExtensions();
+	}
+
+	public long getImageMaxSize() throws ConfigurationException {
+		return _getBlogsFileUploadsConfiguration().imageMaxSize();
 	}
 
 	public String getItemSelectedEventName() {
@@ -110,7 +121,20 @@ public class BlogsItemSelectorViewDisplayContext {
 		return _search;
 	}
 
+	private BlogsFileUploadsConfiguration _getBlogsFileUploadsConfiguration()
+		throws ConfigurationException {
+
+		if (_blogsFileUploadsConfiguration == null) {
+			_blogsFileUploadsConfiguration =
+				ConfigurationProviderUtil.getSystemConfiguration(
+					BlogsFileUploadsConfiguration.class);
+		}
+
+		return _blogsFileUploadsConfiguration;
+	}
+
 	private final BlogsEntryLocalService _blogsEntryLocalService;
+	private BlogsFileUploadsConfiguration _blogsFileUploadsConfiguration;
 	private final BlogsItemSelectorCriterion _blogsItemSelectorCriterion;
 	private final BlogsItemSelectorView _blogsItemSelectorView;
 	private final String _itemSelectedEventName;

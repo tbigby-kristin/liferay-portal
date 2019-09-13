@@ -14,6 +14,7 @@
 
 package com.liferay.portal.scheduler.multiple.internal;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.cluster.ClusterEventListener;
 import com.liferay.portal.kernel.cluster.ClusterExecutor;
@@ -72,6 +73,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
@@ -2362,7 +2364,8 @@ public class ClusterSchedulerEngineTest {
 		private String _getFullName(
 			String jobName, String groupName, StorageType storageType) {
 
-			return groupName + StringPool.PERIOD + jobName + storageType;
+			return StringBundler.concat(
+				groupName, StringPool.PERIOD, jobName, storageType);
 		}
 
 		private final Map<String, SchedulerResponse> _defaultJobs =
@@ -2463,6 +2466,14 @@ public class ClusterSchedulerEngineTest {
 		public Trigger createTrigger(
 			String jobName, String groupName, Date startDate, Date endDate,
 			String cronExpression) {
+
+			return null;
+		}
+
+		@Override
+		public Trigger createTrigger(
+			String jobName, String groupName, Date startDate, Date endDate,
+			String cronExpression, TimeZone timeZone) {
 
 			return null;
 		}

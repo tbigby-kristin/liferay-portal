@@ -100,8 +100,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + StagingBarPortletKeys.STAGING_BAR,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=power-user,user",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=power-user,user"
 	},
 	service = Portlet.class
 )
@@ -125,12 +124,9 @@ public class StagingBarPortlet extends MVCPortlet {
 			actionRequest, "updateRecentLayoutRevisionId");
 
 		if (updateRecentLayoutRevisionId) {
-			HttpServletRequest httpServletRequest =
-				_portal.getHttpServletRequest(actionRequest);
-
 			_staging.setRecentLayoutRevisionId(
-				httpServletRequest, layoutRevision.getLayoutSetBranchId(),
-				layoutRevision.getPlid(),
+				_portal.getHttpServletRequest(actionRequest),
+				layoutRevision.getLayoutSetBranchId(), layoutRevision.getPlid(),
 				layoutRevision.getParentLayoutRevisionId());
 		}
 
@@ -547,26 +543,33 @@ public class StagingBarPortlet extends MVCPortlet {
 				break;
 			}
 
-			LayoutRevision parentLayoutsRevision =
-				_layoutRevisionLocalService.fetchLatestLayoutRevision(
+			List<LayoutRevision> parentHeadLayoutRevisions =
+				_layoutRevisionLocalService.getLayoutRevisions(
 					layoutRevision.getLayoutSetBranchId(),
-					parentLayout.getPlid());
+					parentLayout.getPlid(), true);
 
-			_layoutRevisionLocalService.updateLayoutRevision(
-				serviceContext.getUserId(),
-				parentLayoutsRevision.getLayoutRevisionId(),
-				parentLayoutsRevision.getLayoutBranchId(),
-				parentLayoutsRevision.getName(),
-				parentLayoutsRevision.getTitle(),
-				parentLayoutsRevision.getDescription(),
-				parentLayoutsRevision.getKeywords(),
-				parentLayoutsRevision.getRobots(),
-				parentLayoutsRevision.getTypeSettings(),
-				parentLayoutsRevision.getIconImage(),
-				parentLayoutsRevision.getIconImageId(),
-				parentLayoutsRevision.getThemeId(),
-				parentLayoutsRevision.getColorSchemeId(),
-				parentLayoutsRevision.getCss(), serviceContext);
+			if (parentHeadLayoutRevisions.isEmpty()) {
+				LayoutRevision parentLayoutsRevision =
+					_layoutRevisionLocalService.fetchLatestLayoutRevision(
+						layoutRevision.getLayoutSetBranchId(),
+						parentLayout.getPlid());
+
+				_layoutRevisionLocalService.updateLayoutRevision(
+					serviceContext.getUserId(),
+					parentLayoutsRevision.getLayoutRevisionId(),
+					parentLayoutsRevision.getLayoutBranchId(),
+					parentLayoutsRevision.getName(),
+					parentLayoutsRevision.getTitle(),
+					parentLayoutsRevision.getDescription(),
+					parentLayoutsRevision.getKeywords(),
+					parentLayoutsRevision.getRobots(),
+					parentLayoutsRevision.getTypeSettings(),
+					parentLayoutsRevision.getIconImage(),
+					parentLayoutsRevision.getIconImageId(),
+					parentLayoutsRevision.getThemeId(),
+					parentLayoutsRevision.getColorSchemeId(),
+					parentLayoutsRevision.getCss(), serviceContext);
+			}
 
 			parentPlid = parentLayout.getParentPlid();
 		}

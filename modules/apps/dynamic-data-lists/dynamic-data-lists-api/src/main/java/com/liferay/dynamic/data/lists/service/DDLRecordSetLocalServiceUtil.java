@@ -14,7 +14,6 @@
 
 package com.liferay.dynamic.data.lists.service;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -31,10 +30,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see DDLRecordSetLocalService
  * @generated
  */
-@ProviderType
 public class DDLRecordSetLocalServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.dynamic.data.lists.service.impl.DDLRecordSetLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -182,6 +180,12 @@ public class DDLRecordSetLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteDDLRecordSet(recordSetId);
+	}
+
+	public static void deleteDDMStructureRecordSets(long ddmStructureId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().deleteDDMStructureRecordSets(ddmStructureId);
 	}
 
 	/**
@@ -477,6 +481,13 @@ public class DDLRecordSetLocalServiceUtil {
 	 */
 	public static int getDDLRecordSetsCount() {
 		return getService().getDDLRecordSetsCount();
+	}
+
+	public static java.util.List
+		<com.liferay.dynamic.data.lists.model.DDLRecordSet>
+			getDDMStructureRecordSets(long ddmStructureId) {
+
+		return getService().getDDMStructureRecordSets(ddmStructureId);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery

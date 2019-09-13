@@ -45,12 +45,7 @@ public class FragmentCollectionHorizontalCard implements HorizontalCard {
 
 	@Override
 	public String getElementClasses() {
-		return "selector-button";
-	}
-
-	@Override
-	public String getHref() {
-		return "javascript:;";
+		return "card-interactive card-interactive-primary selector-button";
 	}
 
 	@Override

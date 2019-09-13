@@ -54,7 +54,7 @@ public abstract class BaseUpgradeLocalizedColumn extends UpgradeProcess {
 		try {
 			String tableName = getTableName(tableClass);
 
-			if (!hasColumnType(tableClass, columnName, "CLOB null") &&
+			if (!hasColumnType(tableName, columnName, "TEXT null") &&
 				!_alteredTableNameColumnNames.contains(
 					tableName + StringPool.POUND + columnName)) {
 
@@ -118,11 +118,9 @@ public abstract class BaseUpgradeLocalizedColumn extends UpgradeProcess {
 				ResourceBundleUtil.getLocalizationMap(
 					resourceBundleLoader, localizationMapKey);
 
-			String defaultLanguageId = UpgradeProcessUtil.getDefaultLanguageId(
-				companyId);
-
 			return LocalizationUtil.updateLocalization(
-				localizationMap, "", localizationXMLKey, defaultLanguageId);
+				localizationMap, "", localizationXMLKey,
+				UpgradeProcessUtil.getDefaultLanguageId(companyId));
 		}
 		finally {
 			CompanyThreadLocal.setCompanyId(originalCompanyId);

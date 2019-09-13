@@ -15,92 +15,109 @@
 package com.liferay.data.engine.rest.internal.field.type.v1_0.util;
 
 import com.liferay.data.engine.rest.internal.field.type.v1_0.DataFieldOption;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author Marcela Cunha
  */
 public class DataFieldOptionUtil {
 
-	public static List<DataFieldOption> toDataFieldOptions(
-		JSONObject jsonObject) {
+	public static List<DataFieldOption> getLocalizedDataFieldOptions(
+		Map<String, Object> customProperties, String key, String languageId) {
 
-		List<DataFieldOption> dataFieldOptions = new ArrayList<>();
+		if (MapUtil.isEmpty(customProperties) ||
+			!customProperties.containsKey(key)) {
 
-		if (jsonObject == null) {
-			return dataFieldOptions;
+			return Collections.emptyList();
 		}
+
+		Map<String, List<DataFieldOption>> localizedDataFieldOptions =
+			(Map<String, List<DataFieldOption>>)customProperties.get(key);
+
+		return (List<DataFieldOption>)GetterUtil.getObject(
+			localizedDataFieldOptions.get(languageId), Collections.emptyList());
+	}
+
+	public static JSONObject toJSONObject(
+		Map<String, Object> customProperties, String key) {
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		if (MapUtil.isEmpty(customProperties) ||
+			!customProperties.containsKey(key)) {
+
+			return jsonObject;
+		}
+
+		Map<String, List<Map<String, String>>> customPropertyOptions =
+			(Map<String, List<Map<String, String>>>)customProperties.get(key);
+
+		for (Map.Entry<String, List<Map<String, String>>> entry :
+				customPropertyOptions.entrySet()) {
+
+			List<Map<String, String>> options = entry.getValue();
+
+			JSONArray dataFieldOptionsJSONArray =
+				JSONFactoryUtil.createJSONArray();
+
+			for (Map<String, String> option : options) {
+				JSONObject optionJSONObject =
+					JSONFactoryUtil.createJSONObject();
+
+				dataFieldOptionsJSONArray.put(
+					optionJSONObject.put(
+						"label", MapUtil.getString(option, "label")
+					).put(
+						"value", MapUtil.getString(option, "value")
+					));
+			}
+
+			jsonObject.put(entry.getKey(), dataFieldOptionsJSONArray);
+		}
+
+		return jsonObject;
+	}
+
+	public static Map<String, List<DataFieldOption>>
+		toLocalizedDataFieldOptions(JSONObject jsonObject) {
+
+		Map<String, List<DataFieldOption>> localizedDataFieldOptions =
+			new HashMap<>();
 
 		Iterator<String> keys = jsonObject.keys();
 
 		while (keys.hasNext()) {
 			String key = keys.next();
 
-			Map<String, Object> localizationMap =
-				LocalizedValueUtil.toLocalizedValues(
-					jsonObject.getJSONObject(key));
+			List<DataFieldOption> dataFieldOptions = new ArrayList<>();
 
-			DataFieldOption dataFieldOption = new DataFieldOption(
-				localizationMap, key);
+			JSONArray jsonArray = jsonObject.getJSONArray(key);
 
-			dataFieldOptions.add(dataFieldOption);
-		}
-
-		return dataFieldOptions;
-	}
-
-	public static List<DataFieldOption> toDataFieldOptions(
-		List<DataFieldOption> dataFieldOptions, String languageId) {
-
-		if (ListUtil.isEmpty(dataFieldOptions)) {
-			return Collections.emptyList();
-		}
-
-		Stream<DataFieldOption> stream = dataFieldOptions.stream();
-
-		return stream.map(
-			dataFieldOption -> new DataFieldOption(
-				dataFieldOption.getLabel(languageId), languageId,
-				dataFieldOption.getValue())
-		).collect(
-			Collectors.toList()
-		);
-	}
-
-	public static JSONObject toJSONObject(
-			List<DataFieldOption> dataFieldOptions)
-		throws Exception {
-
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
-		if (ListUtil.isEmpty(dataFieldOptions)) {
-			return jsonObject;
-		}
-
-		for (DataFieldOption dataFieldOption : dataFieldOptions) {
-			JSONObject labelJSONObject = JSONFactoryUtil.createJSONObject();
-
-			Map<String, Object> labels = dataFieldOption.getLabels();
-
-			for (Map.Entry<String, Object> entry : labels.entrySet()) {
-				labelJSONObject.put(entry.getKey(), entry.getValue());
+			for (int i = 0; i < jsonArray.length(); i++) {
+				dataFieldOptions.add(
+					_toDataFieldOption(jsonArray.getJSONObject(i)));
 			}
 
-			jsonObject.put(dataFieldOption.getValue(), labelJSONObject);
+			localizedDataFieldOptions.put(key, dataFieldOptions);
 		}
 
-		return jsonObject;
+		return localizedDataFieldOptions;
+	}
+
+	private static DataFieldOption _toDataFieldOption(JSONObject jsonObject) {
+		return new DataFieldOption(
+			jsonObject.getString("label"), jsonObject.getString("value"));
 	}
 
 }

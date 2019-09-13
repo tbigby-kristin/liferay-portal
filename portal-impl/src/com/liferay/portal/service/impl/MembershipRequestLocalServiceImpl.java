@@ -32,9 +32,9 @@ import com.liferay.portal.kernel.model.MembershipRequestConstants;
 import com.liferay.portal.kernel.model.Resource;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -227,15 +227,13 @@ public class MembershipRequestLocalServiceImpl
 			ResourceActionsUtil.getRoles(
 				group.getCompanyId(), group, modelResource, null));
 
-		List<Role> teamRoles = roleLocalService.getTeamRoles(groupId);
-
-		roles.addAll(teamRoles);
+		roles.addAll(roleLocalService.getTeamRoles(groupId));
 
 		Resource resource = resourceLocalService.getResource(
 			group.getCompanyId(), modelResource,
 			ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(groupId));
 
-		List<String> actions = ResourceActionsUtil.getResourceActions(
+		List<String> resourceActions = ResourceActionsUtil.getResourceActions(
 			Group.class.getName());
 
 		for (Role role : roles) {
@@ -275,9 +273,9 @@ public class MembershipRequestLocalServiceImpl
 			List<String> currentCompanyActions = new ArrayList<>();
 
 			ResourcePermissionUtil.populateResourcePermissionActionIds(
-				groupId, role, resource, actions, currentIndividualActions,
-				currentGroupActions, currentGroupTemplateActions,
-				currentCompanyActions);
+				groupId, role, resource, resourceActions,
+				currentIndividualActions, currentGroupActions,
+				currentGroupTemplateActions, currentCompanyActions);
 
 			if (currentIndividualActions.contains(ActionKeys.ASSIGN_MEMBERS) ||
 				currentGroupActions.contains(ActionKeys.ASSIGN_MEMBERS) ||

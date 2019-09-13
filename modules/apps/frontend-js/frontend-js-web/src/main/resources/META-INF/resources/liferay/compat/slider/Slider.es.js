@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import core from 'metal';
 import dom from 'metal-dom';
 import Component from 'metal-component';
@@ -13,7 +27,6 @@ import templates from './Slider.soy';
  */
 
 class Slider extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -37,8 +50,14 @@ class Slider extends Component {
 	 */
 
 	attachDragEvents_() {
-		this.drag_.on(Drag.Events.DRAG, this.updateValueFromDragData_.bind(this));
-		this.drag_.on(Drag.Events.END, this.updateValueFromDragData_.bind(this));
+		this.drag_.on(
+			Drag.Events.DRAG,
+			this.updateValueFromDragData_.bind(this)
+		);
+		this.drag_.on(
+			Drag.Events.END,
+			this.updateValueFromDragData_.bind(this)
+		);
 	}
 
 	/**
@@ -54,8 +73,7 @@ class Slider extends Component {
 		const constrain = Position.getRegion(this.refs.rail, true);
 		if (region.left < constrain.left) {
 			region.left = constrain.left;
-		}
-		else if (region.left > constrain.right) {
+		} else if (region.left > constrain.right) {
 			region.left -= region.left - constrain.right;
 		}
 		region.right = region.left + region.width;
@@ -99,15 +117,17 @@ class Slider extends Component {
 	 */
 
 	onRailClick_(event) {
-		if (dom.hasClass(event.target, 'rail') || dom.hasClass(event.target, 'rail-active')) {
+		if (
+			dom.hasClass(event.target, 'rail') ||
+			dom.hasClass(event.target, 'rail-active')
+		) {
 			const prevValue = this.value;
 			this.updateValue_(event.offsetX, 0, true);
 			if (prevValue === this.value) {
 				const handleRegion = Position.getRegion(this.refs.handle);
 				if (event.offsetX < handleRegion.left) {
 					this.value -= 1;
-				}
-				else {
+				} else {
 					this.value += 1;
 				}
 			}
@@ -150,7 +170,9 @@ class Slider extends Component {
 		if (!opt_relative) {
 			handlePosition -= region.left;
 		}
-		this.value = Math.round(offset + (handlePosition / region.width) * (this.max - this.min));
+		this.value = Math.round(
+			offset + (handlePosition / region.width) * (this.max - this.min)
+		);
 	}
 
 	/**
@@ -171,7 +193,6 @@ Soy.register(Slider, templates);
  */
 
 Slider.STATE = {
-
 	/**
 	 * Name of the hidden input field that holds the slider value. Useful when slider is embedded
 	 * inside a form so it can automatically send its value.
@@ -209,7 +230,7 @@ Slider.STATE = {
 	 */
 
 	value: {
-		validator: function(val) {
+		validator(val) {
 			return core.isNumber(val) && this.min <= val && val <= this.max;
 		},
 		value: 0

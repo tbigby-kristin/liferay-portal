@@ -90,6 +90,7 @@ definition {
 			siteTemplate = "true");
 	}
 
+	@description = "This is a use case for LPS-51432 and LPS-95113."
 	@priority = "4"
 	test AdminCanNotAddASubpageOfAChildPageLinkedToSiteTemplatePage {
 		ProductMenu.gotoPortlet(
@@ -97,9 +98,7 @@ definition {
 			panel = "Control Panel",
 			portlet = "Site Templates");
 
-		SiteTemplates.addCP(
-			siteTemplateActive = "Yes",
-			siteTemplateName = "Site Template Name");
+		SiteTemplates.addCP(siteTemplateName = "Site Template Name");
 
 		ProductMenu.gotoPortlet(
 			category = "Sites",
@@ -144,6 +143,31 @@ definition {
 		Page.viewNoDeletePagesAssociatedWithSiteTemplate(
 			page = "Site Child Page Name",
 			pageName = "Site Page Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Site Templates");
+
+		SiteTemplates.deletePage(
+			pageName = "Site Page Name",
+			siteTemplateName = "Site Template Name");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		Page.viewNoPG(pageName = "Site Page Name");
+
+		Page.viewNoPG(pageName = "Site Child Page Name");
+
+		Page.viewNoPage(
+			pageName = "Site Page Name",
+			privacy = "Public Pages");
+
+		Page.viewNoPage(
+			pageName = "Site Child Page Name",
+			privacy = "Public Pages");
+
+		AssertConsoleTextNotPresent(value1 = "java.lang.NullPointerException");
 	}
 
 	@priority = "4"
@@ -295,6 +319,63 @@ definition {
 			permissionDefinitionKey = "CONTENT_PERMISSIONS_VIEW_CHECKBOX",
 			permissionFlagged = "false",
 			roleTitle = "Guest");
+	}
+
+	@description = "This is a use case for LPS-75802"
+	@priority = "5"
+	test PublishSiteCreatedBasedOnASiteTemplate {
+		property osgi.app.includes = "frontend-theme-porygon";
+
+		ProductMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Site Templates");
+
+		SiteTemplates.addCP(
+			siteTemplateActive = "Yes",
+			siteTemplateName = "Site Template Name");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Manage",
+			rowEntry = "Site Template Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Pages");
+
+		Page.changeCurrentTheme(
+			pageName = "Home",
+			themeName = "Porygon");
+
+		ProductMenu.gotoPortlet(
+			category = "Sites",
+			panel = "Control Panel",
+			portlet = "Sites");
+
+		Site.addCP(
+			siteName = "Site Name",
+			siteTemplateActive = "Yes",
+			siteTemplateName = "Site Template Name",
+			siteType = "Site Template",
+			uncheckPropagation = "true");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Publishing",
+			panel = "Site Administration",
+			portlet = "Staging");
+
+		Staging.activateStagingCP(siteName = "Site Name");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Home",
+			siteName = "Site Name");
+
+		Staging.gotoPublishToLive();
+
+		Staging.publishToLive();
 	}
 
 	@priority = "3"
@@ -585,11 +666,14 @@ definition {
 			siteName = "Site Name",
 			siteType = "Template");
 
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Site Name",
+			layoutName = "Page1 Name",
+			widgetName = "Web Content Display");
+
 		Navigator.gotoSitePage(
 			pageName = "Page1 Name",
 			siteName = "Site Name");
-
-		Portlet.addPG(portletName = "Web Content Display");
 
 		WebContentDisplayPortlet.selectWebContent(
 			portletName = "Web Content Display",
@@ -601,7 +685,7 @@ definition {
 
 		Click(locator1 = "WCD#WEB_CONTENT_LINK");
 
-		Pause(locator1 = "5000");
+		Pause(locator1 = "1000");
 
 		AssertLocation(value1 = "${portalURL}/web/site-name/page2-name");
 	}
@@ -620,12 +704,14 @@ definition {
 			siteName = "Export",
 			siteType = "Blank");
 
+		JSONLayout.addPublicLayout(
+			groupName = "Export",
+			layoutName = "1");
+
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
 			panel = "Site Administration",
 			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "1");
 
 		SitePages.gotoPageMenuItem(
 			menuItem = "Configure",
@@ -635,12 +721,14 @@ definition {
 			locator1 = "TextInput#FRIENDLY_URL",
 			value1 = "/1");
 
+		JSONLayout.addPublicLayout(
+			groupName = "Export",
+			layoutName = "2");
+
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
 			panel = "Site Administration",
 			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "2");
 
 		SitePages.gotoPageMenuItem(
 			menuItem = "Configure",
@@ -650,12 +738,14 @@ definition {
 			locator1 = "TextInput#FRIENDLY_URL",
 			value1 = "/2");
 
+		JSONLayout.addPublicLayout(
+			groupName = "Export",
+			layoutName = "Hello");
+
 		ProductMenu.gotoPortlet(
 			category = "Site Builder",
 			panel = "Site Administration",
 			portlet = "Pages");
-
-		SitePages.addPublicPage(pageName = "Hello");
 
 		SitePages.gotoPageMenuItem(
 			menuItem = "Configure",
@@ -671,8 +761,6 @@ definition {
 			portlet = "Export");
 
 		LAR.exportSiteCP(larFileName = "Export");
-
-		Pause(locator1 = "3000");
 
 		var larFileName = LAR.getLarFileName();
 

@@ -35,8 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Context;
-
 import javax.xml.bind.ValidationException;
 
 import org.osgi.service.component.annotations.Component;
@@ -84,13 +82,13 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 		return Page.of(
 			transform(
 				_workflowTaskManager.getWorkflowTasksByUser(
-					contextCompany.getCompanyId(), _user.getUserId(), null,
-					pagination.getStartPosition(), pagination.getEndPosition(),
-					null),
+					contextCompany.getCompanyId(), contextUser.getUserId(),
+					null, pagination.getStartPosition(),
+					pagination.getEndPosition(), null),
 				this::_toWorkflowTask),
 			pagination,
 			_workflowTaskManager.getWorkflowTaskCountByUser(
-				contextCompany.getCompanyId(), _user.getUserId(), null));
+				contextCompany.getCompanyId(), contextUser.getUserId(), null));
 	}
 
 	@Override
@@ -101,13 +99,13 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 		return Page.of(
 			transform(
 				_workflowTaskManager.getWorkflowTasksByUserRoles(
-					contextCompany.getCompanyId(), _user.getUserId(), null,
-					pagination.getStartPosition(), pagination.getEndPosition(),
-					null),
+					contextCompany.getCompanyId(), contextUser.getUserId(),
+					null, pagination.getStartPosition(),
+					pagination.getEndPosition(), null),
 				this::_toWorkflowTask),
 			pagination,
 			_workflowTaskManager.getWorkflowTaskCountByUserRoles(
-				contextCompany.getCompanyId(), _user.getUserId(), null));
+				contextCompany.getCompanyId(), contextUser.getUserId(), null));
 	}
 
 	@Override
@@ -117,8 +115,9 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 
 		return _toWorkflowTask(
 			_workflowTaskManager.assignWorkflowTaskToUser(
-				_user.getCompanyId(), _user.getUserId(), workflowTaskId,
-				_user.getUserId(), workflowTaskAssignToMe.getComment(),
+				contextUser.getCompanyId(), contextUser.getUserId(),
+				workflowTaskId, contextUser.getUserId(),
+				workflowTaskAssignToMe.getComment(),
 				workflowTaskAssignToMe.getDueDate(), null));
 	}
 
@@ -128,12 +127,10 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 			WorkflowTaskAssignToUser workflowTaskAssignToUser)
 		throws Exception {
 
-		long assigneeId = workflowTaskAssignToUser.getAssigneeId();
-
 		return _toWorkflowTask(
 			_workflowTaskManager.assignWorkflowTaskToUser(
-				contextCompany.getCompanyId(), _user.getUserId(),
-				workflowTaskId, assigneeId,
+				contextCompany.getCompanyId(), contextUser.getUserId(),
+				workflowTaskId, workflowTaskAssignToUser.getAssigneeId(),
 				workflowTaskAssignToUser.getComment(),
 				workflowTaskAssignToUser.getDueDate(), null));
 	}
@@ -147,7 +144,7 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 
 		List<String> transitionsNames = _getTaskTransitionsNames(
 			_workflowTaskManager.getWorkflowTask(
-				_user.getCompanyId(), workflowTaskId));
+				contextUser.getCompanyId(), workflowTaskId));
 
 		if (!transitionsNames.contains(transition)) {
 			throw new ValidationException("Invalid transition: " + transition);
@@ -155,8 +152,8 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 
 		return _toWorkflowTask(
 			_workflowTaskManager.completeWorkflowTask(
-				_user.getCompanyId(), _user.getUserId(), workflowTaskId,
-				transition, "", null));
+				contextUser.getCompanyId(), contextUser.getUserId(),
+				workflowTaskId, transition, "", null));
 	}
 
 	@Override
@@ -166,8 +163,8 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 
 		return _toWorkflowTask(
 			_workflowTaskManager.updateDueDate(
-				_user.getCompanyId(), _user.getUserId(), workflowTaskId,
-				workflowTaskAssignToMe.getComment(),
+				contextUser.getCompanyId(), contextUser.getUserId(),
+				workflowTaskId, workflowTaskAssignToMe.getComment(),
 				workflowTaskAssignToMe.getDueDate()));
 	}
 
@@ -239,9 +236,6 @@ public class WorkflowTaskResourceImpl extends BaseWorkflowTaskResourceImpl {
 			}
 		};
 	}
-
-	@Context
-	private User _user;
 
 	@Reference
 	private UserLocalService _userLocalService;

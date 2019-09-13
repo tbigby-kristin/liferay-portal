@@ -43,4 +43,10 @@ else {
 		}
 	}
 
+	macro waitForReportsManagementBar {
+		AssertVisible(locator1 = "//div[contains(@class,'management-bar')]");
+
+		MetalComponent.waitForMetalComponent(id = '''document.querySelector("div.management-bar").parentNode.id''');
+	}
+
 }

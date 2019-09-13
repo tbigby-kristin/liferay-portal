@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidationExpression;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutColumn;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayoutPage;
@@ -87,15 +88,11 @@ public class DDMFormTemplateContextProcessor {
 			return;
 		}
 
-		DDMFormField ddmFormField = getDDMFormField(jsonObject);
-
-		_ddmForm.addDDMFormField(ddmFormField);
+		_ddmForm.addDDMFormField(getDDMFormField(jsonObject));
 	}
 
 	protected void addDDMFormValuesDDMFormFieldValue(JSONObject jsonObject) {
-		DDMFormFieldValue ddmFormFieldValue = getDDMFormFieldValue(jsonObject);
-
-		_ddmFormValues.addDDMFormFieldValue(ddmFormFieldValue);
+		_ddmFormValues.addDDMFormFieldValue(getDDMFormFieldValue(jsonObject));
 	}
 
 	protected DDMFormField getDDMFormField(JSONObject jsonObject) {
@@ -293,10 +290,7 @@ public class DDMFormTemplateContextProcessor {
 			return;
 		}
 
-		DDMFormFieldOptions ddmFormFieldOptions = getDDMFormFieldOptions(
-			jsonArray);
-
-		ddmFormField.setDDMFormFieldOptions(ddmFormFieldOptions);
+		ddmFormField.setDDMFormFieldOptions(getDDMFormFieldOptions(jsonArray));
 	}
 
 	protected void setDDMFormFieldOptionsProperty(
@@ -308,10 +302,7 @@ public class DDMFormTemplateContextProcessor {
 			return;
 		}
 
-		DDMFormFieldOptions ddmFormFieldOptions = getDDMFormFieldOptions(
-			jsonArray);
-
-		ddmFormField.setProperty(property, ddmFormFieldOptions);
+		ddmFormField.setProperty(property, getDDMFormFieldOptions(jsonArray));
 	}
 
 	protected void setDDMFormFieldPlaceholder(
@@ -362,17 +353,39 @@ public class DDMFormTemplateContextProcessor {
 	protected void setDDMFormFieldValidation(
 		JSONObject jsonObject, DDMFormField ddmFormField) {
 
-		if (jsonObject == null) {
+		if ((jsonObject == null) || !jsonObject.has("expression")) {
 			return;
 		}
 
 		DDMFormFieldValidation ddmFormFieldValidation =
 			new DDMFormFieldValidation();
 
-		ddmFormFieldValidation.setErrorMessage(
-			jsonObject.getString("errorMessage"));
-		ddmFormFieldValidation.setExpression(
-			jsonObject.getString("expression"));
+		ddmFormFieldValidation.setErrorMessageLocalizedValue(
+			getLocalizedValue(jsonObject.getString("errorMessage")));
+
+		JSONObject expressionJSONObject = jsonObject.getJSONObject(
+			"expression");
+
+		if (expressionJSONObject != null) {
+			ddmFormFieldValidation.setDDMFormFieldValidationExpression(
+				new DDMFormFieldValidationExpression() {
+					{
+						setName(expressionJSONObject.getString("name"));
+						setValue(expressionJSONObject.getString("value"));
+					}
+				});
+		}
+		else {
+			ddmFormFieldValidation.setDDMFormFieldValidationExpression(
+				new DDMFormFieldValidationExpression() {
+					{
+						setValue(jsonObject.getString("expression"));
+					}
+				});
+		}
+
+		ddmFormFieldValidation.setParameterLocalizedValue(
+			getLocalizedValue(jsonObject.getString("parameter")));
 
 		ddmFormField.setDDMFormFieldValidation(ddmFormFieldValidation);
 	}
@@ -398,9 +411,7 @@ public class DDMFormTemplateContextProcessor {
 		DDMFormFieldValue ddmFormFieldValue) {
 
 		if (localizable) {
-			LocalizedValue localizedValue = getLocalizedValue(value);
-
-			ddmFormFieldValue.setValue(localizedValue);
+			ddmFormFieldValue.setValue(getLocalizedValue(value));
 		}
 		else {
 			ddmFormFieldValue.setValue(new UnlocalizedValue(value));
@@ -472,6 +483,11 @@ public class DDMFormTemplateContextProcessor {
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
 
 			DDMFormLayoutPage ddmFormLayoutPage = new DDMFormLayoutPage();
+
+			ddmFormLayoutPage.setDescription(
+				getLocalizedValue(jsonObject.getString("description")));
+			ddmFormLayoutPage.setTitle(
+				getLocalizedValue(jsonObject.getString("title")));
 
 			traverseRows(jsonObject.getJSONArray("rows"), ddmFormLayoutPage);
 

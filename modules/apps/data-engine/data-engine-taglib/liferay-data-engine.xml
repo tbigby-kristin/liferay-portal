@@ -3,9 +3,56 @@
 <taglibs osgi-module="true" short-name="liferay-data-engine" tlib-version="1.0" uri="http://liferay.com/tld/data-engine">
 	<authors>
 		<author>Jeyvison Nascimento</author>
+		<author>Leonardo Barros</author>
 	</authors>
-	<component bodyContent="true" name="DataLayoutRenderer" writeJSP="true">
+	<component bodyContent="true" name="DataLayoutBuilder" writeJSP="true">
 		<attributes>
+			<attribute>
+				<name>componentId</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+				<required>false</required>
+			</attribute>
+			<attribute>
+				<name>dataDefinitionInputId</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+				<required>true</required>
+			</attribute>
+			<attribute>
+				<name>dataLayoutId</name>
+				<inputType>java.lang.Long</inputType>
+				<outputType>java.lang.Long</outputType>
+				<required>false</required>
+			</attribute>
+			<attribute>
+				<name>dataLayoutInputId</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+				<required>true</required>
+			</attribute>
+			<attribute>
+				<name>localizable</name>
+				<inputType>boolean</inputType>
+				<outputType>boolean</outputType>
+				<required>false</required>
+			</attribute>
+			<attribute>
+				<name>namespace</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+				<required>true</required>
+			</attribute>
+		</attributes>
+	</component>
+	<component bodyContent="false" name="DataLayoutRenderer" writeJSP="true">
+		<attributes>
+			<attribute>
+				<name>containerId</name>
+				<inputType>java.lang.String</inputType>
+				<outputType>java.lang.String</outputType>
+				<required>true</required>
+			</attribute>
 			<attribute>
 				<name>dataLayoutId</name>
 				<inputType>java.lang.Long</inputType>
@@ -13,10 +60,21 @@
 				<required>true</required>
 			</attribute>
 			<attribute>
+				<name>dataRecordId</name>
+				<inputType>java.lang.Long</inputType>
+				<outputType>java.lang.Long</outputType>
+			</attribute>
+			<attribute>
+				<name>dataRecordValues</name>
+				<inputType>java.util.Map</inputType>
+				<outputType>java.util.Map</outputType>
+				<required>false</required>
+			</attribute>
+			<attribute>
 				<name>namespace</name>
 				<inputType>java.lang.String</inputType>
 				<outputType>java.lang.String</outputType>
-				<required>false</required>
+				<required>true</required>
 			</attribute>
 		</attributes>
 	</component>

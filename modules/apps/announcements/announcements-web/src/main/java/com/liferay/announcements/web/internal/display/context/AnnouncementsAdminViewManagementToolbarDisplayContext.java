@@ -27,7 +27,6 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -85,22 +84,20 @@ public class AnnouncementsAdminViewManagementToolbarDisplayContext {
 			AnnouncementsEntry announcementsEntry)
 		throws PortalException {
 
-		List<String> availableActionDropdownItems = new ArrayList<>();
+		List<String> availableActions = new ArrayList<>();
 
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		PermissionChecker permissionChecker =
-			themeDisplay.getPermissionChecker();
-
 		if (AnnouncementsEntryPermission.contains(
-				permissionChecker, announcementsEntry, ActionKeys.DELETE)) {
+				themeDisplay.getPermissionChecker(), announcementsEntry,
+				ActionKeys.DELETE)) {
 
-			availableActionDropdownItems.add("deleteEntries");
+			availableActions.add("deleteEntries");
 		}
 
-		return availableActionDropdownItems;
+		return availableActions;
 	}
 
 	public String getClearResultsURL() {
@@ -188,11 +185,9 @@ public class AnnouncementsAdminViewManagementToolbarDisplayContext {
 
 							labelItem.setCloseable(true);
 
-							String currentDistributionScopeLabel =
+							labelItem.setLabel(
 								_announcementsAdminViewDisplayContext.
-									getCurrentDistributionScopeLabel();
-
-							labelItem.setLabel(currentDistributionScopeLabel);
+									getCurrentDistributionScopeLabel());
 						});
 				}
 			}

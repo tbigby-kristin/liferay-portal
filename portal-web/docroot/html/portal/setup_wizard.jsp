@@ -89,6 +89,8 @@
 										<aui:button name="changeLanguageButton" value="change" />
 									</div>
 								</aui:field-wrapper>
+
+								<aui:input label="time-zone" name="companyTimeZoneId" type="timeZone" value="<%= SetupWizardUtil.getDefaultTimeZoneId() %>" />
 							</aui:fieldset>
 
 							<aui:fieldset cssClass="col-md-6">
@@ -98,7 +100,7 @@
 
 								<%@ include file="/html/portal/setup_wizard_user_name.jspf" %>
 
-								<aui:input label="email" name="adminEmailAddress" value="<%= PropsValues.ADMIN_EMAIL_FROM_ADDRESS %>">
+								<aui:input label="email" name="adminEmailAddress">
 									<aui:validator name="email" />
 									<aui:validator name="required" />
 								</aui:input>
@@ -237,7 +239,7 @@
 						</aui:button-row>
 					</aui:form>
 
-					<aui:script use="aui-base,aui-io-request,aui-loading-mask-deprecated">
+					<aui:script use="aui-base,aui-loading-mask-deprecated,io">
 						var adminEmailAddress = A.one('#<portlet:namespace />adminEmailAddress');
 						var adminFirstName = A.one('#<portlet:namespace />adminFirstName');
 						var adminLastName = A.one('#<portlet:namespace />adminLastName');
@@ -334,8 +336,8 @@
 							}
 						);
 
-						var updateMessage = function(message, type) {
-							connectionMessages.html('<span class="alert alert-' + type + '">' + message + '</span>');
+						var updateMessage = function(message) {
+							connectionMessages.html('<div class="alert alert-danger"><span class="alert-indicator"><svg aria-hidden="true" class="lexicon-icon lexicon-icon-exclamation-full"><use xlink:href="<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg#exclamation-full"></use></svg></span><strong class="lead"><liferay-ui:message key="error-colon" /></strong>' + message + '</div>');
 						};
 
 						var startInstall = function() {
@@ -347,7 +349,7 @@
 						A.one('#fm').on(
 							'submit',
 							function(event) {
-								if ((adminEmailAddress && (adminEmailAddress.val() != '')) && (adminFirstName && (adminFirstName.val() != '')) && (adminLastName && (adminLastName.val() != '')) && (companyName && (companyName.val() != ''))) {
+								if ((adminEmailAddress && (adminEmailAddress.val() != '')) && (adminFirstName && (adminFirstName.val() != '')) && (adminLastName && (adminLastName.val() != '')) && (companyName && (companyName.val() != '')) && (jdbcDefaultDriverClassName && (jdbcDefaultDriverClassName.val() != '')) && (jdbcDefaultURL && (jdbcDefaultURL.val() != ''))) {
 									if (defaultDatabase.val() == 'true') {
 										startInstall();
 
@@ -358,37 +360,38 @@
 									else {
 										command.val('<%= Constants.TEST %>');
 
-										A.io.request(
+										var body = new URLSearchParams(new FormData(document.fm));
+
+										startInstall();
+
+										Liferay.Util.fetch(
 											setupForm.get('action'),
 											{
-												after: {
-													failure: function(event, id, obj) {
-														loadingMask.hide();
+												body: body,
+												method: 'POST'
+											}
+										).then(
+											function(response) {
+												return response.json();
+											}
+										).then(
+											function(responseData) {
+												command.val('<%= Constants.UPDATE %>');
 
-														updateMessage('<%= UnicodeLanguageUtil.get(request, "an-unexpected-error-occurred-while-connecting-to-the-database") %>', 'error');
-													},
-													success: function(event, id, obj) {
-														command.val('<%= Constants.UPDATE %>');
+												if (!responseData.success) {
+													updateMessage(responseData.message);
 
-														var responseData = this.get('responseData');
-
-														if (!responseData.success) {
-															updateMessage(responseData.message, 'error');
-
-															loadingMask.hide();
-														}
-														else {
-															submitForm(document.fm);
-														}
-													}
-												},
-												dataType: 'JSON',
-												form: {
-													id: document.fm
-												},
-												on: {
-													start: startInstall
+													loadingMask.hide();
 												}
+												else {
+													submitForm(document.fm);
+												}
+											}
+										).catch(
+											function() {
+												loadingMask.hide();
+
+												updateMessage('<%= UnicodeLanguageUtil.get(request, "an-unexpected-error-occurred-while-connecting-to-the-database") %>');
 											}
 										);
 									}
@@ -406,7 +409,13 @@
 					<c:choose>
 						<c:when test="<%= propertiesFileCreated %>">
 							<div class="alert alert-success">
-								<liferay-ui:message key="your-configuration-was-saved-sucessfully" />
+								<span class="alert-indicator">
+									<svg aria-hidden="true" class="lexicon-icon lexicon-icon-check-circle-full">
+										<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg#check-circle-full"></use>
+									</svg>
+								</span>
+
+								<strong class="lead"><liferay-ui:message key="success-colon" /></strong><liferay-ui:message key="your-configuration-was-saved-sucessfully" />
 							</div>
 
 							<p class="lfr-setup-notice">
@@ -429,18 +438,29 @@
 							</c:if>
 
 							<div class="alert alert-info">
-								<liferay-ui:message key="changes-will-take-effect-once-the-portal-is-restarted-please-restart-the-portal-now" />
+								<span class="alert-indicator">
+									<svg aria-hidden="true" class="lexicon-icon lexicon-icon-info-circle">
+										<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg#info-circle"></use>
+									</svg>
+								</span>
+
+								<strong class="lead"><liferay-ui:message key="info" />:</strong><liferay-ui:message key="changes-will-take-effect-once-the-portal-is-restarted-please-restart-the-portal-now" />
 							</div>
 						</c:when>
 						<c:otherwise>
 							<p>
 								<div class="alert alert-warning">
+									<span class="alert-indicator">
+										<svg aria-hidden="true" class="lexicon-icon lexicon-icon-warning-full">
+											<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg#warning-full"></use>
+										</svg>
+									</span>
 
 									<%
 									String taglibArguments = "<span class=\"lfr-inline-code\">" + PropsValues.LIFERAY_HOME + "</span>";
 									%>
 
-									<liferay-ui:message arguments="<%= taglibArguments %>" key="sorry,-we-were-not-able-to-save-the-configuration-file-in-x" translateArguments="<%= false %>" />
+									<strong class="lead"><liferay-ui:message key="warning-colon" /></strong><liferay-ui:message arguments="<%= taglibArguments %>" key="sorry,-we-were-not-able-to-save-the-configuration-file-in-x" translateArguments="<%= false %>" />
 								</div>
 							</p>
 

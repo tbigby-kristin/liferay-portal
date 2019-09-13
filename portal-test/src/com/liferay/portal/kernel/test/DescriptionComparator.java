@@ -20,7 +20,9 @@ import org.junit.runner.Description;
 
 /**
  * @author Shuyang Zhou
+ * @deprecated As of Mueller (7.2.x), with no direct replacement
  */
+@Deprecated
 public class DescriptionComparator implements Comparator<Description> {
 
 	@Override

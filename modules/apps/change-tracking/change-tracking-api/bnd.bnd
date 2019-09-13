@@ -1,10 +1,11 @@
 Bundle-Name: Liferay Change Tracking API
 Bundle-SymbolicName: com.liferay.change.tracking.api
-Bundle-Version: 5.0.0
+Bundle-Version: 7.0.0
 Export-Package:\
 	com.liferay.change.tracking.configuration,\
-	com.liferay.change.tracking.configuration.builder,\
 	com.liferay.change.tracking.constants,\
+	com.liferay.change.tracking.definition,\
+	com.liferay.change.tracking.definition.builder,\
 	com.liferay.change.tracking.engine,\
 	com.liferay.change.tracking.engine.exception,\
 	com.liferay.change.tracking.exception,\
@@ -12,5 +13,4 @@ Export-Package:\
 	com.liferay.change.tracking.model,\
 	com.liferay.change.tracking.service,\
 	com.liferay.change.tracking.service.persistence,\
-	com.liferay.change.tracking.settings,\
 	com.liferay.change.tracking.util.comparator

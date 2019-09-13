@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -41,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see KaleoDefinitionPersistence
  * @generated
  */
-@ProviderType
 public class KaleoDefinitionUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -185,16 +183,16 @@ public class KaleoDefinitionUtil {
 	 * @param start the lower bound of the range of kaleo definitions
 	 * @param end the upper bound of the range of kaleo definitions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kaleo definitions
 	 */
 	public static List<KaleoDefinition> findByCompanyId(
 		long companyId, int start, int end,
 		OrderByComparator<KaleoDefinition> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByCompanyId(
-			companyId, start, end, orderByComparator, retrieveFromCache);
+			companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -330,13 +328,13 @@ public class KaleoDefinitionUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param name the name
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching kaleo definition, or <code>null</code> if a matching kaleo definition could not be found
 	 */
 	public static KaleoDefinition fetchByC_N(
-		long companyId, String name, boolean retrieveFromCache) {
+		long companyId, String name, boolean useFinderCache) {
 
-		return getPersistence().fetchByC_N(companyId, name, retrieveFromCache);
+		return getPersistence().fetchByC_N(companyId, name, useFinderCache);
 	}
 
 	/**
@@ -430,17 +428,16 @@ public class KaleoDefinitionUtil {
 	 * @param start the lower bound of the range of kaleo definitions
 	 * @param end the upper bound of the range of kaleo definitions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching kaleo definitions
 	 */
 	public static List<KaleoDefinition> findByC_A(
 		long companyId, boolean active, int start, int end,
 		OrderByComparator<KaleoDefinition> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByC_A(
-			companyId, active, start, end, orderByComparator,
-			retrieveFromCache);
+			companyId, active, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -591,14 +588,14 @@ public class KaleoDefinitionUtil {
 	 * @param companyId the company ID
 	 * @param name the name
 	 * @param version the version
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching kaleo definition, or <code>null</code> if a matching kaleo definition could not be found
 	 */
 	public static KaleoDefinition fetchByC_N_V(
-		long companyId, String name, int version, boolean retrieveFromCache) {
+		long companyId, String name, int version, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_N_V(
-			companyId, name, version, retrieveFromCache);
+			companyId, name, version, useFinderCache);
 	}
 
 	/**
@@ -666,15 +663,14 @@ public class KaleoDefinitionUtil {
 	 * @param companyId the company ID
 	 * @param name the name
 	 * @param active the active
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching kaleo definition, or <code>null</code> if a matching kaleo definition could not be found
 	 */
 	public static KaleoDefinition fetchByC_N_A(
-		long companyId, String name, boolean active,
-		boolean retrieveFromCache) {
+		long companyId, String name, boolean active, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_N_A(
-			companyId, name, active, retrieveFromCache);
+			companyId, name, active, useFinderCache);
 	}
 
 	/**
@@ -830,16 +826,16 @@ public class KaleoDefinitionUtil {
 	 * @param start the lower bound of the range of kaleo definitions
 	 * @param end the upper bound of the range of kaleo definitions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of kaleo definitions
 	 */
 	public static List<KaleoDefinition> findAll(
 		int start, int end,
 		OrderByComparator<KaleoDefinition> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

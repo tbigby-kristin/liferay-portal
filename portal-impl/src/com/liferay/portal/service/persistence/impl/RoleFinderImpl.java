@@ -103,9 +103,6 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 	public static final String FIND_BY_U_G =
 		RoleFinder.class.getName() + ".findByU_G";
 
-	public static final String FIND_BY_R_N_A =
-		RoleFinder.class.getName() + ".findByR_N_A";
-
 	public static final String FIND_BY_C_N_D_T =
 		RoleFinder.class.getName() + ".findByC_N_D_T";
 
@@ -655,46 +652,6 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 		}
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public List<Role> findByR_N_A(
-		long resourceBlockId, String className, String actionId) {
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			String sql = CustomSQLUtil.get(FIND_BY_R_N_A);
-
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
-
-			q.addEntity("Role_", RoleImpl.class);
-
-			QueryPos qPos = QueryPos.getInstance(q);
-
-			qPos.add(resourceBlockId);
-			qPos.add(className);
-
-			ResourceAction resourceAction =
-				ResourceActionLocalServiceUtil.getResourceAction(
-					className, actionId);
-
-			qPos.add(resourceAction.getBitwiseValue());
-
-			return q.list(true);
-		}
-		catch (Exception e) {
-			throw new SystemException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-	}
-
 	@Override
 	public List<Role> findByC_N_D_T(
 		long companyId, String name, String description, Integer[] types,
@@ -801,6 +758,7 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 				ResourceActionLocalServiceUtil.getResourceAction(
 					name, actionId);
 
+			qPos.add(resourceAction.getBitwiseValue());
 			qPos.add(resourceAction.getBitwiseValue());
 
 			return q.list(true);
@@ -1177,9 +1135,7 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 		StringBundler sb = new StringBundler(params.size());
 
 		for (Map.Entry<String, Object> entry : params.entrySet()) {
-			Object value = entry.getValue();
-
-			if (Validator.isNotNull(value)) {
+			if (Validator.isNotNull(entry.getValue())) {
 				sb.append(getJoin(entry.getKey()));
 			}
 		}
@@ -1231,9 +1187,7 @@ public class RoleFinderImpl extends RoleFinderBaseImpl implements RoleFinder {
 		StringBundler sb = new StringBundler(params.size());
 
 		for (Map.Entry<String, Object> entry : params.entrySet()) {
-			Object value = entry.getValue();
-
-			if (Validator.isNotNull(value)) {
+			if (Validator.isNotNull(entry.getValue())) {
 				sb.append(getWhere(entry.getKey()));
 			}
 		}

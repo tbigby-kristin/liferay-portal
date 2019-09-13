@@ -88,4 +88,8 @@ public class LiferayAccessTokenService extends AccessTokenService {
 		return client;
 	}
 
+	@Override
+	protected void injectContextIntoOAuthProviders() {
+	}
+
 }

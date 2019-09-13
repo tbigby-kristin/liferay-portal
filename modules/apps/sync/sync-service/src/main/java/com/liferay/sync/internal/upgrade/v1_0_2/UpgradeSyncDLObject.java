@@ -40,7 +40,7 @@ import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.sync.constants.SyncDLObjectConstants;
-import com.liferay.sync.service.internal.configuration.SyncServiceConfigurationValues;
+import com.liferay.sync.internal.configuration.SyncServiceConfigurationValues;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -284,12 +284,10 @@ public class UpgradeSyncDLObject extends UpgradeProcess {
 			while (rs.next()) {
 				String name = rs.getString("name");
 
-				String extension = FileUtil.getExtension(name);
-
 				if (!ArrayUtil.contains(
 						SyncServiceConfigurationValues.
 							SYNC_MAC_PACKAGE_FOLDER_EXTENSIONS,
-						extension)) {
+						FileUtil.getExtension(name))) {
 
 					continue;
 				}

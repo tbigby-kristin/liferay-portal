@@ -82,7 +82,7 @@ definition {
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Organizations");
 
-		Organization.deleteCP(orgName = "Organization Name");
+		Organization.deletePG(orgName = "Organization Name");
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Organizations");
 
@@ -97,7 +97,7 @@ definition {
 
 		UserBar.gotoDropdownItem(dropdownItem = "My Organizations");
 
-		Organization.addSiteCP(orgName = "Organization Name");
+		Organization.addSitePG(orgName = "Organization Name");
 
 		ProductMenu.gotoPortlet(
 			category = "Sites",

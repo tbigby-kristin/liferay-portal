@@ -21,7 +21,7 @@ import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.PermissionConversionFilter;
 import com.liferay.portal.kernel.security.permission.PermissionConverter;
 import com.liferay.portal.kernel.service.ResourceActionLocalServiceUtil;
@@ -49,9 +49,8 @@ public class PermissionConverterImpl implements PermissionConverter {
 			long roleId, PermissionConversionFilter permissionConversionFilter)
 		throws PortalException {
 
-		Role role = RoleLocalServiceUtil.getRole(roleId);
-
-		return convertPermissions(role, permissionConversionFilter);
+		return convertPermissions(
+			RoleLocalServiceUtil.getRole(roleId), permissionConversionFilter);
 	}
 
 	@Override

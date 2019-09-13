@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.version.Version;
 import com.liferay.portal.modules.util.GradleDependency;
 import com.liferay.portal.modules.util.ModulesStructureTestUtil;
 
@@ -138,6 +137,17 @@ public class ModulesStructureTest {
 						return FileVisitResult.SKIP_SUBTREE;
 					}
 
+					Path appBndLocalizationDirPath = dirPath.resolve(
+						"app.bnd-localization");
+
+					if (Files.exists(appBndLocalizationDirPath)) {
+						Path parentPath = appBndLocalizationDirPath.getParent();
+
+						Assert.assertTrue(
+							"Forbidden " + appBndLocalizationDirPath,
+							Files.exists(parentPath.resolve("app.bnd")));
+					}
+
 					Path buildGradlePath = dirPath.resolve("build.gradle");
 					Path buildXMLPath = dirPath.resolve("build.xml");
 					Path ivyXmlPath = dirPath.resolve("ivy.xml");
@@ -184,7 +194,7 @@ public class ModulesStructureTest {
 						if (Files.exists(dirPath.resolve("app.bnd"))) {
 							_testEquals(buildGradlePath, _APP_BUILD_GRADLE);
 
-							_testRelengAppProprties(dirPath);
+							_testRelengAppProperties(dirPath);
 						}
 						else {
 							Assert.assertFalse(
@@ -240,6 +250,8 @@ public class ModulesStructureTest {
 						Assert.assertFalse(
 							"Forbidden " + ivyXmlPath,
 							Files.deleteIfExists(ivyXmlPath));
+
+						_testJSONVersion(dirPath);
 
 						return FileVisitResult.SKIP_SUBTREE;
 					}
@@ -317,6 +329,10 @@ public class ModulesStructureTest {
 					Path dirPath, BasicFileAttributes basicFileAttributes) {
 
 					String dirName = String.valueOf(dirPath.getFileName());
+
+					if (_excludedDirNames.contains(dirName)) {
+						return FileVisitResult.SKIP_SUBTREE;
+					}
 
 					if (dirName.equals("archetype-resources") ||
 						dirName.equals("gradleTest")) {
@@ -531,7 +547,7 @@ public class ModulesStructureTest {
 			gradleDependency.getConfiguration());
 		String moduleGroup = gradleDependency.getModuleGroup();
 		String moduleName = gradleDependency.getModuleName();
-		Version moduleVersion = gradleDependency.getModuleVersion();
+		String moduleVersion = gradleDependency.getModuleVersion();
 
 		for (GradleDependency curGradleDependency : gradleDependencies) {
 			if (!moduleGroup.equals(curGradleDependency.getModuleGroup()) ||
@@ -545,8 +561,8 @@ public class ModulesStructureTest {
 			int curConfigurationPos = _gradleConfigurations.indexOf(
 				curGradleDependency.getConfiguration());
 
-			int value = moduleVersion.compareTo(
-				curGradleDependency.getModuleVersion());
+			int value = ModulesStructureTestUtil.compare(
+				moduleVersion, curGradleDependency.getModuleVersion());
 
 			if (((curConfigurationPos == configurationPos) && (value < 0)) ||
 				((curConfigurationPos < configurationPos) && (value <= 0))) {
@@ -778,12 +794,10 @@ public class ModulesStructureTest {
 		String projectPathPrefix = String.valueOf(
 			_modulesDirPath.relativize(dirPath));
 
-		projectPathPrefix =
-			":" +
-				StringUtil.replace(
-					projectPathPrefix, File.separatorChar, CharPool.COLON);
+		projectPathPrefix = StringUtil.replace(
+			projectPathPrefix, File.separatorChar, CharPool.COLON);
 
-		return projectPathPrefix;
+		return ":" + projectPathPrefix;
 	}
 
 	private boolean _isEmptyGitRepo(Path dirPath) {
@@ -844,6 +858,31 @@ public class ModulesStructureTest {
 
 	private boolean _isInPrivateModulesDir(Path dirPath) {
 		return _isInModulesRootDir(dirPath, "private");
+	}
+
+	private boolean _isUnusedGradleConfiguration(
+		String configuration, boolean hasSrcTestDir,
+		boolean hasSrcTestIntegrationDir) {
+
+		if (configuration.equals("testCompile") && !hasSrcTestDir &&
+			!hasSrcTestIntegrationDir) {
+
+			return true;
+		}
+
+		if (configuration.equals("testRuntime") && !hasSrcTestDir &&
+			!hasSrcTestIntegrationDir) {
+
+			return true;
+		}
+
+		if (configuration.startsWith("testIntegration") &&
+			!hasSrcTestIntegrationDir) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private boolean _shouldBecomeProjectDependency(
@@ -1276,6 +1315,12 @@ public class ModulesStructureTest {
 
 		boolean mainConfigurationsAllowed = false;
 
+		if ((_branchName.startsWith("7.0") || _branchName.startsWith("7.1")) &&
+			content.contains("copyLibs {\n\tenabled = true")) {
+
+			mainConfigurationsAllowed = true;
+		}
+
 		if (hasSrcMainDir ||
 			(!hasSrcMainDir && !hasSrcTestDir && !hasSrcTestIntegrationDir)) {
 
@@ -1320,36 +1365,51 @@ public class ModulesStructureTest {
 				sb.toString(),
 				_shouldBecomeProjectDependency(gradleDependency, dirPath));
 
-			Boolean allowed = allowedConfigurationsMap.get(
-				gradleDependency.getConfiguration());
+			String configuration = gradleDependency.getConfiguration();
+
+			Boolean allowed = allowedConfigurationsMap.get(configuration);
 
 			if ((allowed != null) && !allowed.booleanValue()) {
-				sb = new StringBundler(allowedConfigurationsMap.size() * 4 + 4);
+				if (_isUnusedGradleConfiguration(
+						configuration, hasSrcTestDir,
+						hasSrcTestIntegrationDir)) {
 
-				sb.append("Incorrect configuration of dependency {");
-				sb.append(gradleDependency);
-				sb.append("} in ");
-				sb.append(path);
-				sb.append(", use one of these instead: ");
+					sb = new StringBundler(4);
 
-				boolean first = true;
+					sb.append("Please delete the unused ");
+					sb.append(configuration);
+					sb.append(" dependencies in ");
+					sb.append(path);
+				}
+				else {
+					sb = new StringBundler(
+						allowedConfigurationsMap.size() * 4 + 4);
 
-				for (Map.Entry<String, Boolean> entry :
-						allowedConfigurationsMap.entrySet()) {
+					sb.append("Incorrect configuration of dependency {");
+					sb.append(gradleDependency);
+					sb.append("} in ");
+					sb.append(path);
+					sb.append(", use one of these instead: ");
 
-					if (!entry.getValue()) {
-						continue;
+					boolean first = true;
+
+					for (Map.Entry<String, Boolean> entry :
+							allowedConfigurationsMap.entrySet()) {
+
+						if (!entry.getValue()) {
+							continue;
+						}
+
+						if (!first) {
+							sb.append(StringPool.COMMA_AND_SPACE);
+						}
+
+						first = false;
+
+						sb.append(CharPool.QUOTE);
+						sb.append(entry.getKey());
+						sb.append(CharPool.QUOTE);
 					}
-
-					if (!first) {
-						sb.append(StringPool.COMMA_AND_SPACE);
-					}
-
-					first = false;
-
-					sb.append(CharPool.QUOTE);
-					sb.append(entry.getKey());
-					sb.append(CharPool.QUOTE);
 				}
 
 				Assert.assertFalse(sb.toString(), !allowed);
@@ -1365,14 +1425,51 @@ public class ModulesStructureTest {
 		}
 	}
 
-	private void _testRelengAppProprties(Path dirPath) throws IOException {
+	private void _testJSONVersion(Path dirPath) throws IOException {
+		String projectVersion = null;
+
+		try (InputStream inputStream = Files.newInputStream(
+				dirPath.resolve("bnd.bnd"))) {
+
+			Properties properties = new Properties();
+
+			properties.load(inputStream);
+
+			projectVersion = properties.getProperty("Bundle-Version");
+		}
+
+		for (String jsonFileName : _JSON_VERSION_FILE_NAMES) {
+			Path jsonPath = dirPath.resolve(jsonFileName);
+
+			if (Files.exists(jsonPath)) {
+				Matcher matcher = _jsonVersionPattern.matcher(
+					ModulesStructureTestUtil.read(jsonPath));
+
+				if (matcher.find()) {
+					StringBundler sb = new StringBundler(4);
+
+					sb.append("Version must match the project version (");
+					sb.append(projectVersion);
+					sb.append(") ");
+					sb.append(jsonPath);
+
+					String jsonVersion = matcher.group(2);
+
+					Assert.assertTrue(
+						sb.toString(), jsonVersion.equals(projectVersion));
+				}
+			}
+		}
+	}
+
+	private void _testRelengAppProperties(Path dirPath) throws IOException {
 		if (_branchName.contains("master")) {
 			return;
 		}
 
-		String dirName = String.valueOf(dirPath.getFileName());
+		Path relengIgnorePath = dirPath.resolve(".lfrbuild-releng-ignore");
 
-		if (_excludedRelengAppProprtiesDirNames.contains(dirName)) {
+		if (Files.exists(relengIgnorePath)) {
 			return;
 		}
 
@@ -1403,7 +1500,7 @@ public class ModulesStructureTest {
 			}
 
 			sb.append("apps/");
-			sb.append(dirName);
+			sb.append(String.valueOf(dirPath.getFileName()));
 			sb.append("/app.properties");
 
 			Path appPropertiesPath = _modulesDirPath.resolve(sb.toString());
@@ -1463,7 +1560,7 @@ public class ModulesStructureTest {
 	private static final String[] _GIT_IGNORE_LINE_PREFIXES = {"/wedeploy/"};
 
 	private static final String[] _GIT_IGNORE_OPTIONAL_LINES = {
-		"gradle-ext.properties"
+		"gradle-ext.properties", "node_modules_cache/"
 	};
 
 	private static final String _GIT_REPO_FILE_NAME = ".gitrepo";
@@ -1488,6 +1585,10 @@ public class ModulesStructureTest {
 	private static final String _GIT_REPO_GRADLE_REPOSITORY_PRIVATE_USERNAME =
 		"systemProp.repository.private.username";
 
+	private static final String[] _JSON_VERSION_FILE_NAMES = {
+		"npm-shrinkwrap.json", "package-lock.json", "package.json"
+	};
+
 	private static final String _REPOSITORY_URL =
 		"https://repository-cdn.liferay.com/nexus/content/groups/public";
 
@@ -1500,8 +1601,6 @@ public class ModulesStructureTest {
 	private static final Set<String> _excludedDirNames = SetUtil.fromList(
 		Arrays.asList(
 			"bin", "build", "classes", "node_modules", "test-classes", "tmp"));
-	private static final Set<String> _excludedRelengAppProprtiesDirNames =
-		SetUtil.fromList(Arrays.asList("bean-portlet", "portal-odata"));
 	private static final Pattern _gitRepoGradleProjectGroupPattern =
 		Pattern.compile("com\\.liferay(?:\\.[a-z]+)+");
 	private static final Set<String> _gitRepoGradlePropertiesKeys =
@@ -1513,6 +1612,8 @@ public class ModulesStructureTest {
 	private static final List<String> _gradleConfigurations = Arrays.asList(
 		"compileOnly", "provided", "compile", "runtime", "testCompile",
 		"testRuntime", "testIntegrationCompile", "testIntegrationRuntime");
+	private static final Pattern _jsonVersionPattern = Pattern.compile(
+		"\\n(\\t|  )\"version\": \"(.+)\"");
 	private static boolean _masterBranch;
 	private static Path _modulesDirPath;
 

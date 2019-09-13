@@ -14,6 +14,7 @@
 
 package com.liferay.source.formatter.checkstyle.checks;
 
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -22,6 +23,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.source.formatter.checkstyle.util.DetailASTUtil;
 
 import com.puppycrawl.tools.checkstyle.api.DetailAST;
+import com.puppycrawl.tools.checkstyle.api.FileContents;
 import com.puppycrawl.tools.checkstyle.api.TokenTypes;
 
 import java.util.ArrayList;
@@ -71,9 +73,11 @@ public class VariableNameCheck extends BaseCheck {
 		String typeName = firstChildDetailAST.getText();
 
 		if (isAttributeValue(_CHECK_TYPE_NAME_KEY)) {
-			_checkTypeName(detailAST, name, typeName, "DetailAST");
-			_checkTypeName(detailAST, name, typeName, "HttpServletRequest");
-			_checkTypeName(detailAST, name, typeName, "HttpServletResponse");
+			_checkExceptionVariableName(detailAST, name, typeName);
+
+			_checkTypeName(
+				detailAST, name, typeName, "DetailAST", "HttpServletRequest",
+				"HttpServletResponse");
 		}
 
 		_checkTypo(detailAST, name, typeName);
@@ -104,6 +108,32 @@ public class VariableNameCheck extends BaseCheck {
 					name.substring(0, x) + array[0] + name.substring(y);
 
 				log(detailAST, _MSG_RENAME_VARIABLE, name, newName);
+			}
+		}
+	}
+
+	private void _checkExceptionVariableName(
+		DetailAST detailAST, String name, String typeName) {
+
+		DetailAST parentDetailAST = detailAST.getParent();
+
+		if ((parentDetailAST.getType() == TokenTypes.LITERAL_CATCH) ||
+			(detailAST.getType() != TokenTypes.PARAMETER_DEF) ||
+			!typeName.endsWith("Exception")) {
+
+			return;
+		}
+
+		FileContents fileContents = getFileContents();
+
+		String fileName = StringUtil.replace(
+			fileContents.getFileName(), CharPool.BACK_SLASH, CharPool.SLASH);
+
+		if (fileName.endsWith("ExceptionMapper.java")) {
+			String expectedName = _getExpectedVariableName(typeName);
+
+			if (!name.equals(expectedName)) {
+				log(detailAST, _MSG_RENAME_VARIABLE, name, expectedName);
 			}
 		}
 	}

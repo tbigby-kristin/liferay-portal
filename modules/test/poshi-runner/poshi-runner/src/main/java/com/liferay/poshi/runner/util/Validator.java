@@ -34,9 +34,8 @@ public class Validator {
 		if (boolean1 == boolean2) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -51,9 +50,8 @@ public class Validator {
 		if (byte1 == byte2) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -68,9 +66,8 @@ public class Validator {
 		if (char1 == char2) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -85,9 +82,8 @@ public class Validator {
 		if (Double.compare(double1, double2) == 0) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -102,9 +98,8 @@ public class Validator {
 		if (Float.compare(float1, float2) == 0) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -119,9 +114,8 @@ public class Validator {
 		if (int1 == int2) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -136,9 +130,8 @@ public class Validator {
 		if (long1 == long2) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	/**
@@ -174,9 +167,8 @@ public class Validator {
 		if (short1 == short2) {
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public static boolean isBlank(String s) {

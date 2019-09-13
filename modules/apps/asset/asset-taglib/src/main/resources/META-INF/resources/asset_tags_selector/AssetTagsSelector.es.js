@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import 'clay-multi-select';
 import {Config} from 'metal-state';
 import Component from 'metal-component';
@@ -5,12 +19,13 @@ import Soy from 'metal-soy';
 
 import templates from './AssetTagsSelector.soy';
 
+import {ItemSelectorDialog} from 'frontend-js-web';
+
 /**
  * Wraps Clay's existing <code>MultiSelect</code> component that offers the user
  * a tag selection input.
  */
 class AssetTagsSelector extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -27,65 +42,67 @@ class AssetTagsSelector extends Component {
 	 * @private
 	 */
 	_handleButtonClicked() {
-		AUI().use(
-			'liferay-item-selector-dialog',
-			function(A) {
-				const uri = A.Lang.sub(
-					decodeURIComponent(this.portletURL),
-					{
-						selectedTagNames: this._getTagNames()
-					}
+		const sub = (str, obj) => str.replace(/\{([^}]+)\}/g, (_, m) => obj[m]);
+
+		const uri = sub(decodeURIComponent(this.portletURL), {
+			selectedTagNames: this._getTagNames()
+		});
+
+		const itemSelectorDialog = new ItemSelectorDialog({
+			buttonAddLabel: Liferay.Language.get('done'),
+			eventName: this.eventName,
+			title: Liferay.Language.get('tags'),
+			url: uri
+		});
+
+		itemSelectorDialog.open();
+
+		itemSelectorDialog.on('selectedItemChange', event => {
+			const selectedItems = event.selectedItem;
+
+			if (selectedItems) {
+				const newValues =
+					selectedItems.items.length > 0
+						? selectedItems.items.split(',')
+						: [];
+				const oldItems = this.selectedItems.slice();
+				const oldValues = oldItems.map(item => item.value);
+				const valueMapper = item => {
+					return {
+						label: item,
+						value: item
+					};
+				};
+
+				const addedItems = newValues
+					.filter(value => !oldValues.includes(value))
+					.map(valueMapper);
+
+				const removedItems = oldValues
+					.filter(value => !newValues.includes(value))
+					.map(valueMapper);
+
+				this.selectedItems = newValues.map(valueMapper);
+
+				this.tagNames = this._getTagNames();
+
+				addedItems.forEach(item =>
+					this._notifyItemsChanged(
+						'itemAdded',
+						this.addCallback,
+						item
+					)
 				);
 
-				const itemSelectorDialog = new A.LiferayItemSelectorDialog(
-					{
-						eventName: this.eventName,
-						on: {
-							selectedItemChange: function(event) {
-								const selectedItems = event.newVal;
-
-								if (selectedItems) {
-									const newValues = selectedItems.items.split(',');
-									const oldItems = this.selectedItems.slice();
-									const oldValues = oldItems.map(item => item.value);
-									const valueMapper = item => {
-										return {
-											label: item,
-											value: item
-										};
-									};
-
-									const addedItems = newValues
-										.filter(value => !oldValues.includes(value))
-										.map(valueMapper);
-
-									const removedItems = oldValues
-										.filter(value => !newValues.includes(value))
-										.map(valueMapper);
-
-									this.selectedItems = newValues.map(valueMapper);
-
-									this.tagNames = this._getTagNames();
-
-									addedItems.forEach(
-										item => this._notifyItemsChanged('itemAdded', this.addCallback, item)
-									);
-
-									removedItems.forEach(
-										item => this._notifyItemsChanged('itemRemoved', this.removeCallback, item)
-									);
-								}
-							}.bind(this)
-						},
-						'strings.add': Liferay.Language.get('done'),
-						title: Liferay.Language.get('tags'),
-						url: uri
-					}
+				removedItems.forEach(item =>
+					this._notifyItemsChanged(
+						'itemRemoved',
+						this.removeCallback,
+						item
+					)
 				);
-
-				itemSelectorDialog.open();
-			}.bind(this)
-		);
+			}
+		});
 	}
 
 	/**
@@ -96,7 +113,9 @@ class AssetTagsSelector extends Component {
 	 * @return {string} The serialized, comma-separated version of the selected items.
 	 */
 	_getTagNames() {
-		return this.selectedItems.map(selectedItem => selectedItem.value).join();
+		return this.selectedItems
+			.map(selectedItem => selectedItem.value)
+			.join();
 	}
 
 	/**
@@ -107,14 +126,13 @@ class AssetTagsSelector extends Component {
 	_handleInputBlur(event) {
 		const filteredItems = event.target.filteredItems;
 
-		if (
-			!filteredItems ||
-			(filteredItems && filteredItems.length === 0)
-		) {
+		if (!filteredItems || (filteredItems && filteredItems.length === 0)) {
 			const inputValue = event.target.inputValue;
 
 			if (inputValue) {
-				const existingTag = this.selectedItems.find(tag => tag.value === inputValue);
+				const existingTag = this.selectedItems.find(
+					tag => tag.value === inputValue
+				);
 
 				if (existingTag) {
 					return;
@@ -147,7 +165,11 @@ class AssetTagsSelector extends Component {
 		this.selectedItems = event.data.selectedItems;
 		this.tagNames = this._getTagNames();
 
-		this._notifyItemsChanged('itemAdded', this.addCallback, event.data.item);
+		this._notifyItemsChanged(
+			'itemAdded',
+			this.addCallback,
+			event.data.item
+		);
 	}
 
 	/**
@@ -160,7 +182,11 @@ class AssetTagsSelector extends Component {
 		this.selectedItems = event.data.selectedItems;
 		this.tagNames = this._getTagNames();
 
-		this._notifyItemsChanged('itemRemoved', this.removeCallback, event.data.item);
+		this._notifyItemsChanged(
+			'itemRemoved',
+			this.removeCallback,
+			event.data.item
+		);
 	}
 
 	/**
@@ -171,23 +197,19 @@ class AssetTagsSelector extends Component {
 	 * @private
 	 */
 	_handleQuery(query) {
-		return new Promise(
-			(resolve, reject) => {
-				Liferay.Service(
-					'/assettag/search',
-					{
-						end: 20,
-						groupIds: this.groupIds,
-						name: `%${query === '*' ? '' : query}%`,
-						start: 0,
-						tagProperties: ''
-					},
-					tags => resolve(
-						tags.map(tag => tag.value)
-					)
-				);
-			}
-		);
+		return new Promise(resolve => {
+			Liferay.Service(
+				'/assettag/search',
+				{
+					end: 20,
+					groupIds: this.groupIds,
+					name: `%${query === '*' ? '' : query}%`,
+					start: 0,
+					tagProperties: ''
+				},
+				tags => resolve(tags.map(tag => tag.value))
+			);
+		});
 	}
 
 	/**
@@ -203,13 +225,10 @@ class AssetTagsSelector extends Component {
 			window[callback](item);
 		}
 
-		this.emit(
-			eventName,
-			{
-				item,
-				selectedItems: this.selectedItems
-			}
-		);
+		this.emit(eventName, {
+			item,
+			selectedItems: this.selectedItems
+		});
 	}
 }
 
@@ -220,7 +239,6 @@ class AssetTagsSelector extends Component {
  * @type {!Object}
  */
 AssetTagsSelector.STATE = {
-
 	/**
 	 * Function to call every time the input value changes.
 	 *
@@ -302,7 +320,6 @@ AssetTagsSelector.STATE = {
 	 * @type {?string}
 	 */
 	tagNames: Config.string().value('')
-
 };
 
 Soy.register(AssetTagsSelector, templates);

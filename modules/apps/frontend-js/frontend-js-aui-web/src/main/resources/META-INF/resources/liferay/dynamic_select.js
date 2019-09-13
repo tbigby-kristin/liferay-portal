@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-dynamic-select',
 	function(A) {
@@ -14,8 +28,7 @@ AUI.add(
 
 			if (nameA < nameB) {
 				retVal = -1;
-			}
-			else if (nameA > nameB) {
+			} else if (nameA > nameB) {
 				retVal = 1;
 			}
 
@@ -44,63 +57,52 @@ AUI.add(
 
 			instance.array = array;
 
-			array.forEach(
-				function(item, index) {
-					var id = item.select;
-					var select = A.one('#' + id);
-					var selectData = item.selectData;
+			array.forEach(function(item, index) {
+				var id = item.select;
+				var select = A.one('#' + id);
+				var selectData = item.selectData;
 
-					if (select) {
-						select.attr('data-componentType', 'dynamic_select');
+				if (select) {
+					select.attr('data-componentType', 'dynamic_select');
 
-						var prevSelectVal = null;
+					var prevSelectVal = null;
 
-						if (index > 0) {
-							prevSelectVal = array[index - 1].selectVal;
-						}
-
-						selectData(
-							function(list) {
-								instance._updateSelect(index, list);
-							},
-							prevSelectVal
-						);
-
-						if (!select.attr('name')) {
-							select.attr('name', id);
-						}
-
-						select.on(
-							'change',
-							function() {
-								instance._callSelectData(index);
-							}
-						);
+					if (index > 0) {
+						prevSelectVal = array[index - 1].selectVal;
 					}
+
+					selectData(function(list) {
+						instance._updateSelect(index, list);
+					}, prevSelectVal);
+
+					if (!select.attr('name')) {
+						select.attr('name', id);
+					}
+
+					select.on('change', function() {
+						instance._callSelectData(index);
+					});
 				}
-			);
+			});
 		};
 
 		DynamicSelect.prototype = {
-			_callSelectData: function(i) {
+			_callSelectData(i) {
 				var instance = this;
 
 				var array = instance.array;
 
-				if ((i + 1) < array.length) {
+				if (i + 1 < array.length) {
 					var curSelect = A.one('#' + array[i].select);
 					var nextSelectData = array[i + 1].selectData;
 
-					nextSelectData(
-						function(list) {
-							instance._updateSelect(i + 1, list);
-						},
-						curSelect && curSelect.val()
-					);
+					nextSelectData(function(list) {
+						instance._updateSelect(i + 1, list);
+					}, curSelect && curSelect.val());
 				}
 			},
 
-			_updateSelect: function(i, list) {
+			_updateSelect(i, list) {
 				var instance = this;
 
 				var options = instance.array[i];
@@ -120,20 +122,26 @@ AUI.add(
 					selectOptions.push('<option selected value="0"></option>');
 				}
 
-				list.forEach(
-					function(item, index) {
-						var key = item[selectId];
-						var value = item[selectDesc];
+				list.forEach(function(item) {
+					var key = item[selectId];
+					var value = item[selectDesc];
 
-						var selected = '';
+					var selected = '';
 
-						if (selectVal.indexOf(key) > -1) {
-							selected = 'selected="selected"';
-						}
-
-						selectOptions.push('<option ' + selected + ' value="' + key + '">' + value + '</option>');
+					if (selectVal.indexOf(key) > -1) {
+						selected = 'selected="selected"';
 					}
-				);
+
+					selectOptions.push(
+						'<option ' +
+							selected +
+							' value="' +
+							key +
+							'">' +
+							value +
+							'</option>'
+					);
+				});
 
 				if (selectSort) {
 					selectOptions = selectOptions.sort(sortByValue);

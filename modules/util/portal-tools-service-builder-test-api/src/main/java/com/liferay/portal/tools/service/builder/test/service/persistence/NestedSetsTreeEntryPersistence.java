@@ -40,7 +40,7 @@ import java.util.Set;
 public interface NestedSetsTreeEntryPersistence
 	extends BasePersistence<NestedSetsTreeEntry> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link NestedSetsTreeEntryUtil} to access the nested sets tree entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -150,14 +150,14 @@ public interface NestedSetsTreeEntryPersistence
 	 * @param start the lower bound of the range of nested sets tree entries
 	 * @param end the upper bound of the range of nested sets tree entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of nested sets tree entries
 	 */
 	public java.util.List<NestedSetsTreeEntry> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<NestedSetsTreeEntry>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the nested sets tree entries from the database.

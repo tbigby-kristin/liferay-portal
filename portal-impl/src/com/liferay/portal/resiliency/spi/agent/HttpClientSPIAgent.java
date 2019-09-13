@@ -36,7 +36,6 @@ import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 import java.net.InetSocketAddress;
@@ -180,9 +179,8 @@ public class HttpClientSPIAgent implements SPIAgent {
 
 			spiAgentRequest.writeTo(registrationReference, outputStream);
 
-			InputStream inputStream = socket.getInputStream();
-
-			DataInputStream dataInputStream = new DataInputStream(inputStream);
+			DataInputStream dataInputStream = new DataInputStream(
+				socket.getInputStream());
 
 			boolean forceCloseSocket = consumeHttpResponseHead(dataInputStream);
 
@@ -226,10 +224,8 @@ public class HttpClientSPIAgent implements SPIAgent {
 
 		File requestBodyFile = spiAgentRequest.requestBodyFile;
 
-		if (requestBodyFile != null) {
-			if (!requestBodyFile.delete()) {
-				requestBodyFile.deleteOnExit();
-			}
+		if ((requestBodyFile != null) && !requestBodyFile.delete()) {
+			requestBodyFile.deleteOnExit();
 		}
 
 		SPIAgentResponse spiAgentResponse =
@@ -265,21 +261,20 @@ public class HttpClientSPIAgent implements SPIAgent {
 	protected Socket borrowSocket() throws IOException {
 		Socket socket = socketBlockingQueue.poll();
 
-		if (socket != null) {
-			if (socket.isClosed() || !socket.isConnected() ||
-				socket.isInputShutdown() || socket.isOutputShutdown()) {
+		if ((socket != null) &&
+			(socket.isClosed() || !socket.isConnected() ||
+			 socket.isInputShutdown() || socket.isOutputShutdown())) {
 
-				try {
-					socket.close();
-				}
-				catch (IOException ioe) {
-					if (_log.isWarnEnabled()) {
-						_log.warn(ioe, ioe);
-					}
-				}
-
-				socket = null;
+			try {
+				socket.close();
 			}
+			catch (IOException ioe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(ioe, ioe);
+				}
+			}
+
+			socket = null;
 		}
 
 		if (socket == null) {

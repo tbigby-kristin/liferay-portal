@@ -31,7 +31,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
@@ -146,9 +146,8 @@ public class PublishFormInstanceMVCActionCommand
 			ActionRequest actionRequest, long formInstanceId, boolean published)
 		throws PortalException {
 
-		long companyId = _portal.getCompanyId(actionRequest);
-
-		Role role = _roleLocalService.getRole(companyId, RoleConstants.GUEST);
+		Role role = _roleLocalService.getRole(
+			_portal.getCompanyId(actionRequest), RoleConstants.GUEST);
 
 		ResourcePermission resourcePermission =
 			_resourcePermissionLocalService.getResourcePermission(

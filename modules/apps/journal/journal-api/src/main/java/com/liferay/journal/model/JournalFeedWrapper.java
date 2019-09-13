@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link JournalFeed}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalFeed
  * @generated
  */
-@ProviderType
 public class JournalFeedWrapper
 	extends BaseModelWrapper<JournalFeed>
 	implements JournalFeed, ModelWrapper<JournalFeed> {
@@ -46,6 +43,7 @@ public class JournalFeedWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("id", getId());
 		attributes.put("groupId", getGroupId());
@@ -75,6 +73,12 @@ public class JournalFeedWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -367,6 +371,16 @@ public class JournalFeedWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this journal feed.
+	 *
+	 * @return the mvcc version of this journal feed
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this journal feed.
 	 *
 	 * @return the name of this journal feed
@@ -496,6 +510,11 @@ public class JournalFeedWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a journal feed model instance should use the <code>JournalFeed</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -649,6 +668,16 @@ public class JournalFeedWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this journal feed.
+	 *
+	 * @param mvccVersion the mvcc version of this journal feed
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

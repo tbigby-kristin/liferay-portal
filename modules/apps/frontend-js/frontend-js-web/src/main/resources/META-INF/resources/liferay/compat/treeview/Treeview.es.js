@@ -1,7 +1,21 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import core from 'metal';
 import templates from './Treeview.soy';
 import Component from 'metal-component';
-import KeyboardFocusManager from 'metal-keyboard-focus';
+import KeyboardFocusManager from './../../keyboard-focus/KeyboardFocusManager.es';
 import Soy from 'metal-soy';
 
 /**
@@ -10,7 +24,6 @@ import Soy from 'metal-soy';
  */
 
 class Treeview extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -87,8 +100,7 @@ class Treeview extends Component {
 		if (obj.expanded) {
 			obj.expanded = false;
 			this.nodes = this.nodes;
-		}
-		else if (path.length > 1) {
+		} else if (path.length > 1) {
 			path.pop();
 			return Treeview.NODE_REF_PREFIX + path.join('-');
 		}
@@ -107,15 +119,14 @@ class Treeview extends Component {
 		const path = this.getPath_(event.delegateTarget);
 		const obj = this.getNodeObj(path);
 		switch (event.keyCode) {
-		case 37:
-			return this.handleLeftArrow_(path, obj);
-		case 39:
-			return this.handleRightArrow_(path, obj);
-		default:
+			case 37:
+				return this.handleLeftArrow_(path, obj);
+			case 39:
+				return this.handleRightArrow_(path, obj);
+			default:
+				// Use default behavior for other keys (like up/down arrows).
 
-			// Use default behavior for other keys (like up/down arrows).
-
-			return true;
+				return true;
 		}
 	}
 
@@ -157,8 +168,7 @@ class Treeview extends Component {
 		if (obj.expanded) {
 			path.push(0);
 			return Treeview.NODE_REF_PREFIX + path.join('-');
-		}
-		else if (obj.children) {
+		} else if (obj.children) {
 			obj.expanded = true;
 			this.nodes = this.nodes;
 		}
@@ -189,7 +199,6 @@ Treeview.NODE_REF_PREFIX = 'node-';
  */
 
 Treeview.STATE = {
-
 	/**
 	 * The ref of the last item that has been focused, so that we can retain only
 	 * that node in the tab order.
@@ -211,7 +220,7 @@ Treeview.STATE = {
 
 	nodes: {
 		validator: Array.isArray,
-		valueFn: function() {
+		valueFn() {
 			return [];
 		}
 	}

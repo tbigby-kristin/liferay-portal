@@ -60,7 +60,11 @@ public class ServletDataImpl implements ServletData {
 		return new Mutation();
 	}
 
+	/**
+	 * @deprecated
+	 */
 	@Override
+	@Deprecated
 	public String getPath() {
 		return "/headless-admin-taxonomy-graphql/v1_0";
 	}

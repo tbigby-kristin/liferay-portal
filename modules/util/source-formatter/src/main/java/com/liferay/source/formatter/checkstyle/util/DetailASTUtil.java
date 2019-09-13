@@ -262,7 +262,9 @@ public class DetailASTUtil {
 
 		DetailAST typeDetailAST = detailAST;
 
-		if (detailAST.getType() != TokenTypes.TYPE) {
+		if ((detailAST.getType() != TokenTypes.TYPE) &&
+			(detailAST.getType() != TokenTypes.TYPE_ARGUMENT)) {
+
 			typeDetailAST = detailAST.findFirstToken(TokenTypes.TYPE);
 		}
 
@@ -307,11 +309,7 @@ public class DetailASTUtil {
 			typeArgumentsDetailAST, false, TokenTypes.TYPE_ARGUMENT);
 
 		for (DetailAST typeArgumentDetailAST : typeArgumentDetailASTList) {
-			FullIdent typeArgumenIdent = FullIdent.createFullIdentBelow(
-				typeArgumentDetailAST);
-
-			sb.append(typeArgumenIdent.getText());
-
+			sb.append(getTypeName(typeArgumentDetailAST, true));
 			sb.append(StringPool.COMMA_AND_SPACE);
 		}
 

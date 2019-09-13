@@ -32,11 +32,18 @@ import java.util.Set;
 public class MoreLikeThisQueryImpl
 	extends BaseQueryImpl implements MoreLikeThisQuery {
 
-	public MoreLikeThisQueryImpl(List<String> likeTexts) {
-		_likeTexts.addAll(likeTexts);
+	public MoreLikeThisQueryImpl(List<String> fields, String... likeTexts) {
+		_fields.addAll(fields);
+
+		Collections.addAll(_likeTexts, likeTexts);
 	}
 
-	public MoreLikeThisQueryImpl(String... likeTexts) {
+	public MoreLikeThisQueryImpl(Set<DocumentIdentifier> documentIdentifiers) {
+		_documentIdentifiers.addAll(documentIdentifiers);
+	}
+
+	public MoreLikeThisQueryImpl(String[] fields, String... likeTexts) {
+		Collections.addAll(_fields, fields);
 		Collections.addAll(_likeTexts, likeTexts);
 	}
 
@@ -59,6 +66,21 @@ public class MoreLikeThisQueryImpl
 		DocumentIdentifier... documentIdentifiers) {
 
 		Collections.addAll(_documentIdentifiers, documentIdentifiers);
+	}
+
+	@Override
+	public void addField(String field) {
+		_fields.add(field);
+	}
+
+	@Override
+	public void addFields(Collection<String> fields) {
+		_fields.addAll(fields);
+	}
+
+	@Override
+	public void addFields(String... fields) {
+		Collections.addAll(_fields, fields);
 	}
 
 	public void addLikeText(String likeText) {
@@ -91,6 +113,10 @@ public class MoreLikeThisQueryImpl
 
 	public Set<DocumentIdentifier> getDocumentIdentifiers() {
 		return Collections.unmodifiableSet(_documentIdentifiers);
+	}
+
+	public List<String> getFields() {
+		return Collections.unmodifiableList(_fields);
 	}
 
 	public List<String> getLikeTexts() {
@@ -208,7 +234,7 @@ public class MoreLikeThisQueryImpl
 		sb.append(", documentIdentifiers=");
 		sb.append(_documentIdentifiers);
 		sb.append(", fields=");
-		sb.append(_likeTexts);
+		sb.append(_fields);
 		sb.append(", includeInput=");
 		sb.append(_includeInput);
 		sb.append(", likeTexts=");
@@ -238,7 +264,7 @@ public class MoreLikeThisQueryImpl
 		return sb.toString();
 	}
 
-	public class DocumentIdentifierImpl implements DocumentIdentifier {
+	public static class DocumentIdentifierImpl implements DocumentIdentifier {
 
 		public DocumentIdentifierImpl(String index, String id) {
 			_index = index;
@@ -323,6 +349,7 @@ public class MoreLikeThisQueryImpl
 	private String _analyzer;
 	private final Set<DocumentIdentifier> _documentIdentifiers =
 		new HashSet<>();
+	private final List<String> _fields = new ArrayList<>();
 	private Boolean _includeInput;
 	private final List<String> _likeTexts = new ArrayList<>();
 	private Integer _maxDocFrequency;

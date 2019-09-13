@@ -51,8 +51,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the SiteNavigationMenuItem service. Represents a row in the &quot;SiteNavigationMenuItem&quot; database table, with each column mapped to a property of this class.
  *
@@ -65,12 +63,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class SiteNavigationMenuItemModelImpl
 	extends BaseModelImpl<SiteNavigationMenuItem>
 	implements SiteNavigationMenuItemModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a site navigation menu item model instance should use the <code>SiteNavigationMenuItem</code> interface instead.
@@ -78,10 +75,11 @@ public class SiteNavigationMenuItemModelImpl
 	public static final String TABLE_NAME = "SiteNavigationMenuItem";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR}, {"siteNavigationMenuItemId", Types.BIGINT},
-		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
+		{"siteNavigationMenuItemId", Types.BIGINT}, {"groupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"modifiedDate", Types.TIMESTAMP},
 		{"siteNavigationMenuId", Types.BIGINT},
 		{"parentSiteNavigationMenuItemId", Types.BIGINT},
 		{"name", Types.VARCHAR}, {"type_", Types.VARCHAR},
@@ -93,6 +91,7 @@ public class SiteNavigationMenuItemModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("siteNavigationMenuItemId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -111,7 +110,7 @@ public class SiteNavigationMenuItemModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table SiteNavigationMenuItem (uuid_ VARCHAR(75) null,siteNavigationMenuItemId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,siteNavigationMenuId LONG,parentSiteNavigationMenuItemId LONG,name VARCHAR(255) null,type_ VARCHAR(75) null,typeSettings TEXT null,order_ INTEGER,lastPublishDate DATE null)";
+		"create table SiteNavigationMenuItem (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,siteNavigationMenuItemId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,siteNavigationMenuId LONG,parentSiteNavigationMenuItemId LONG,name VARCHAR(255) null,type_ VARCHAR(75) null,typeSettings TEXT null,order_ INTEGER,lastPublishDate DATE null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table SiteNavigationMenuItem";
@@ -128,21 +127,6 @@ public class SiteNavigationMenuItemModelImpl
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
 
-	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.site.navigation.service.util.ServiceProps.get(
-			"value.object.entity.cache.enabled.com.liferay.site.navigation.model.SiteNavigationMenuItem"),
-		true);
-
-	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.site.navigation.service.util.ServiceProps.get(
-			"value.object.finder.cache.enabled.com.liferay.site.navigation.model.SiteNavigationMenuItem"),
-		true);
-
-	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(
-		com.liferay.site.navigation.service.util.ServiceProps.get(
-			"value.object.column.bitmask.enabled.com.liferay.site.navigation.model.SiteNavigationMenuItem"),
-		true);
-
 	public static final long COMPANYID_COLUMN_BITMASK = 1L;
 
 	public static final long GROUPID_COLUMN_BITMASK = 2L;
@@ -156,6 +140,14 @@ public class SiteNavigationMenuItemModelImpl
 	public static final long UUID_COLUMN_BITMASK = 32L;
 
 	public static final long SITENAVIGATIONMENUITEMID_COLUMN_BITMASK = 64L;
+
+	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
+		_entityCacheEnabled = entityCacheEnabled;
+	}
+
+	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
+		_finderCacheEnabled = finderCacheEnabled;
+	}
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -172,6 +164,7 @@ public class SiteNavigationMenuItemModelImpl
 
 		SiteNavigationMenuItem model = new SiteNavigationMenuItemImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setSiteNavigationMenuItemId(
 			soapModel.getSiteNavigationMenuItemId());
@@ -215,10 +208,6 @@ public class SiteNavigationMenuItemModelImpl
 
 		return models;
 	}
-
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
-		com.liferay.site.navigation.service.util.ServiceProps.get(
-			"lock.expiration.time.com.liferay.site.navigation.model.SiteNavigationMenuItem"));
 
 	public SiteNavigationMenuItemModelImpl() {
 	}
@@ -350,6 +339,12 @@ public class SiteNavigationMenuItemModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<SiteNavigationMenuItem, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", SiteNavigationMenuItem::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<SiteNavigationMenuItem, Long>)
+				SiteNavigationMenuItem::setMvccVersion);
 		attributeGetterFunctions.put("uuid", SiteNavigationMenuItem::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -444,6 +439,17 @@ public class SiteNavigationMenuItemModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -756,7 +762,12 @@ public class SiteNavigationMenuItemModelImpl
 	@Override
 	public SiteNavigationMenuItem toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, SiteNavigationMenuItem>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -768,6 +779,7 @@ public class SiteNavigationMenuItemModelImpl
 		SiteNavigationMenuItemImpl siteNavigationMenuItemImpl =
 			new SiteNavigationMenuItemImpl();
 
+		siteNavigationMenuItemImpl.setMvccVersion(getMvccVersion());
 		siteNavigationMenuItemImpl.setUuid(getUuid());
 		siteNavigationMenuItemImpl.setSiteNavigationMenuItemId(
 			getSiteNavigationMenuItemId());
@@ -837,12 +849,12 @@ public class SiteNavigationMenuItemModelImpl
 
 	@Override
 	public boolean isEntityCacheEnabled() {
-		return ENTITY_CACHE_ENABLED;
+		return _entityCacheEnabled;
 	}
 
 	@Override
 	public boolean isFinderCacheEnabled() {
-		return FINDER_CACHE_ENABLED;
+		return _finderCacheEnabled;
 	}
 
 	@Override
@@ -887,6 +899,8 @@ public class SiteNavigationMenuItemModelImpl
 	public CacheModel<SiteNavigationMenuItem> toCacheModel() {
 		SiteNavigationMenuItemCacheModel siteNavigationMenuItemCacheModel =
 			new SiteNavigationMenuItemCacheModel();
+
+		siteNavigationMenuItemCacheModel.mvccVersion = getMvccVersion();
 
 		siteNavigationMenuItemCacheModel.uuid = getUuid();
 
@@ -1042,9 +1056,17 @@ public class SiteNavigationMenuItemModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, SiteNavigationMenuItem>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
 
+		private static final Function<InvocationHandler, SiteNavigationMenuItem>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
+	private static boolean _entityCacheEnabled;
+	private static boolean _finderCacheEnabled;
+
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _siteNavigationMenuItemId;

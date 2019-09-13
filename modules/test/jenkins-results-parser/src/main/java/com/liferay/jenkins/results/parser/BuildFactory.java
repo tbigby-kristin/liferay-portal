@@ -17,6 +17,7 @@ package com.liferay.jenkins.results.parser;
 import java.io.IOException;
 import java.io.StringReader;
 
+import java.util.Objects;
 import java.util.Properties;
 
 /**
@@ -57,7 +58,7 @@ public class BuildFactory {
 			}
 		}
 
-		TopLevelBuild topLevelBuild = new TopLevelBuild(
+		TopLevelBuild topLevelBuild = new DefaultTopLevelBuild(
 			url, (TopLevelBuild)parentBuild);
 
 		String jobName = topLevelBuild.getJobName();
@@ -65,6 +66,15 @@ public class BuildFactory {
 		if (jobName.equals("root-cause-analysis-tool")) {
 			return new RootCauseAnalysisToolBuild(
 				url, (TopLevelBuild)parentBuild);
+		}
+
+		if (jobName.startsWith("test-portal-acceptance-pullrequest")) {
+			String testSuite = topLevelBuild.getParameterValue("CI_TEST_SUITE");
+
+			if (Objects.equals(testSuite, "bundle")) {
+				return new StandaloneTopLevelBuild(
+					url, (TopLevelBuild)parentBuild);
+			}
 		}
 
 		if ((parentBuild != null) &&

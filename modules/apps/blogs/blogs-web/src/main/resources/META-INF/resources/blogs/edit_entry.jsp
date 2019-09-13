@@ -35,7 +35,7 @@ String description = BeanParamUtil.getString(entry, request, "description");
 boolean customAbstract = ParamUtil.getBoolean(request, "customAbstract", (entry != null) && Validator.isNotNull(entry.getDescription()) ? true : false);
 
 if (!customAbstract) {
-	description = StringUtil.shorten(content, pageAbstractLength);
+	description = StringUtil.shorten(content, PropsValues.BLOGS_PAGE_ABSTRACT_LENGTH);
 }
 
 boolean allowPingbacks = PropsValues.BLOGS_PINGBACK_ENABLED && BeanParamUtil.getBoolean(entry, request, "allowPingbacks", true);
@@ -52,6 +52,10 @@ boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getIni
 if (portletTitleBasedNavigation) {
 	renderResponse.setTitle((entry != null) ? BlogsEntryUtil.getDisplayTitle(resourceBundle, entry) : LanguageUtil.get(request, "new-blog-entry"));
 }
+
+BlogsGroupServiceSettings blogsGroupServiceSettings = BlogsGroupServiceSettings.getInstance(scopeGroupId);
+
+BlogsPortletInstanceConfiguration blogsPortletInstanceConfiguration = BlogsPortletInstanceConfigurationUtil.getBlogsPortletInstanceConfiguration(themeDisplay);
 %>
 
 <liferay-util:buffer
@@ -140,8 +144,8 @@ if (portletTitleBasedNavigation) {
 			<aui:model-context bean="<%= entry %>" model="<%= BlogsEntry.class %>" />
 
 			<%
+			BlogsFileUploadsConfiguration blogsFileUploadsConfiguration = ConfigurationProviderUtil.getSystemConfiguration(BlogsFileUploadsConfiguration.class);
 			BlogsItemSelectorHelper blogsItemSelectorHelper = (BlogsItemSelectorHelper)request.getAttribute(BlogsWebKeys.BLOGS_ITEM_SELECTOR_HELPER);
-			String[] imageExtensions = PrefsPropsUtil.getStringArray(PropsKeys.BLOGS_IMAGE_EXTENSIONS, StringPool.COMMA);
 			RequestBackedPortletURLFactory requestBackedPortletURLFactory = RequestBackedPortletURLFactoryUtil.create(liferayPortletRequest);
 			%>
 
@@ -160,10 +164,10 @@ if (portletTitleBasedNavigation) {
 							fileEntryId="<%= coverImageFileEntryId %>"
 							itemSelectorEventName="<%= coverImageSelectedItemEventName %>"
 							itemSelectorURL="<%= blogsItemSelectorHelper.getItemSelectorURL(requestBackedPortletURLFactory, themeDisplay, coverImageSelectedItemEventName) %>"
-							maxFileSize="<%= PropsValues.BLOGS_IMAGE_MAX_SIZE %>"
+							maxFileSize="<%= blogsFileUploadsConfiguration.imageMaxSize() %>"
 							paramName="coverImageFileEntry"
 							uploadURL="<%= uploadCoverImageURL %>"
-							validExtensions='<%= StringUtil.merge(imageExtensions, ", ") %>'
+							validExtensions="<%= StringUtil.merge(blogsFileUploadsConfiguration.imageExtensions()) %>"
 						/>
 					</div>
 
@@ -185,22 +189,29 @@ if (portletTitleBasedNavigation) {
 
 					<div class="col-md-8 col-md-offset-2">
 						<div class="entry-title form-group">
-							<h1>
-								<liferay-ui:input-editor
-									contents="<%= HtmlUtil.escape(title) %>"
-									editorName="alloyeditor"
-									name="titleEditor"
-									onChangeMethod="OnChangeTitle"
-									placeholder="title"
-									showSource="<%= false %>"
-								/>
-							</h1>
+							<liferay-ui:input-editor
+								contents="<%= HtmlUtil.escape(title) %>"
+								editorName="alloyeditor"
+								name="titleEditor"
+								onChangeMethod="OnChangeTitle"
+								placeholder="title"
+								required="<%= true %>"
+								showSource="<%= false %>"
+							>
+								<aui:validator name="required" />
+							</liferay-ui:input-editor>
 						</div>
 
 						<aui:input name="title" type="hidden" />
 
 						<div class="entry-subtitle">
-							<h4><liferay-ui:input-editor contents="<%= HtmlUtil.escape(subtitle) %>" editorName="alloyeditor" name="subtitleEditor" placeholder="subtitle" showSource="<%= false %>" /> </h4>
+							<liferay-ui:input-editor
+								contents="<%= HtmlUtil.escape(subtitle) %>"
+								editorName="alloyeditor"
+								name="subtitleEditor"
+								placeholder="subtitle"
+								showSource="<%= false %>"
+							/>
 						</div>
 
 						<aui:input name="subtitle" type="hidden" />
@@ -264,9 +275,7 @@ if (portletTitleBasedNavigation) {
 						}
 						%>
 
-						<h4>
-							<liferay-ui:message key="url" />
-						</h4>
+						<label><liferay-ui:message key="url" /></label>
 
 						<div class="form-group" id="<portlet:namespace />urlOptions">
 							<aui:input checked="<%= automaticURL %>" helpMessage="the-url-will-be-based-on-the-entry-title" label="automatic" name="automaticURL" type="radio" value="<%= true %>" />
@@ -285,7 +294,7 @@ if (portletTitleBasedNavigation) {
 						<label><liferay-ui:message key="abstract" /> <liferay-ui:icon-help message="an-abstract-is-a-brief-summary-of-a-blog-entry" /></label>
 
 						<liferay-ui:error exception="<%= EntrySmallImageNameException.class %>">
-							<liferay-ui:message key="image-names-must-end-with-one-of-the-following-extensions" /> <%= StringUtil.merge(imageExtensions, ", ") %>.
+							<liferay-ui:message key="image-names-must-end-with-one-of-the-following-extensions" /> <%= StringUtil.merge(blogsFileUploadsConfiguration.imageExtensions()) %>.
 						</liferay-ui:error>
 
 						<liferay-ui:error exception="<%= EntrySmallImageScaleException.class %>">
@@ -293,7 +302,7 @@ if (portletTitleBasedNavigation) {
 						</liferay-ui:error>
 
 						<div class="form-group" id="<portlet:namespace />entryAbstractOptions">
-							<aui:input checked="<%= !customAbstract %>" label='<%= LanguageUtil.format(request, "use-the-first-x-characters-of-the-entry-content", pageAbstractLength, false) %>' name="customAbstract" type="radio" value="<%= false %>" />
+							<aui:input checked="<%= !customAbstract %>" label='<%= LanguageUtil.format(request, "use-the-first-x-characters-of-the-entry-content", PropsValues.BLOGS_PAGE_ABSTRACT_LENGTH, false) %>' name="customAbstract" type="radio" value="<%= false %>" />
 
 							<aui:input checked="<%= customAbstract %>" label="custom-abstract" name="customAbstract" type="radio" value="<%= true %>" />
 						</div>
@@ -320,10 +329,10 @@ if (portletTitleBasedNavigation) {
 								fileEntryId="<%= smallImageFileEntryId %>"
 								itemSelectorEventName="<%= smallImageSelectedItemEventName %>"
 								itemSelectorURL="<%= blogsItemSelectorHelper.getItemSelectorURL(requestBackedPortletURLFactory, themeDisplay, smallImageSelectedItemEventName) %>"
-								maxFileSize="<%= PropsValues.BLOGS_IMAGE_MAX_SIZE %>"
+								maxFileSize="<%= blogsFileUploadsConfiguration.imageMaxSize() %>"
 								paramName="smallImageFileEntry"
 								uploadURL="<%= uploadSmallImageURL %>"
-								validExtensions='<%= StringUtil.merge(imageExtensions, ", ") %>'
+								validExtensions="<%= StringUtil.merge(blogsFileUploadsConfiguration.imageExtensions()) %>"
 							/>
 						</div>
 					</div>
@@ -491,7 +500,7 @@ if (portletTitleBasedNavigation) {
 					'STATUS_DRAFT': '<%= WorkflowConstants.STATUS_DRAFT %>',
 					'UPDATE': '<%= Constants.UPDATE %>'
 				},
-				descriptionLength: '<%= pageAbstractLength %>',
+				descriptionLength: '<%= PropsValues.BLOGS_PAGE_ABSTRACT_LENGTH %>',
 				editEntryURL: '<%= editEntryURL %>',
 
 				<c:if test="<%= entry != null %>">

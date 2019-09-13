@@ -174,13 +174,18 @@ public class WorkflowTaskDisplayContext {
 	public String getAssetTitle(WorkflowTask workflowTask)
 		throws PortalException {
 
-		long classPK = getWorkflowContextEntryClassPK(workflowTask);
-
 		WorkflowHandler<?> workflowHandler = getWorkflowHandler(workflowTask);
 
-		return HtmlUtil.escape(
-			workflowHandler.getTitle(
-				classPK, _workflowTaskRequestHelper.getLocale()));
+		long classPK = getWorkflowContextEntryClassPK(workflowTask);
+
+		String title = workflowHandler.getTitle(
+			classPK, getTaskContentLocale());
+
+		if (title != null) {
+			return HtmlUtil.escape(title);
+		}
+
+		return getAssetType(workflowTask);
 	}
 
 	public String getAssetType(WorkflowTask workflowTask)
@@ -188,7 +193,7 @@ public class WorkflowTaskDisplayContext {
 
 		WorkflowHandler<?> workflowHandler = getWorkflowHandler(workflowTask);
 
-		return workflowHandler.getType(_workflowTaskRequestHelper.getLocale());
+		return workflowHandler.getType(getTaskContentLocale());
 	}
 
 	public String getAssignedTheTaskMessageKey(WorkflowLog workflowLog)
@@ -319,14 +324,7 @@ public class WorkflowTaskDisplayContext {
 		String taskName = LanguageUtil.get(
 			_workflowTaskRequestHelper.getRequest(), workflowTask.getName());
 
-		WorkflowHandler<?> workflowHandler = getWorkflowHandler(workflowTask);
-
-		long classPK = getWorkflowContextEntryClassPK(workflowTask);
-
-		String title = workflowHandler.getTitle(
-			classPK, _workflowTaskRequestHelper.getLocale());
-
-		return taskName + ": " + title;
+		return taskName + ": " + getAssetTitle(workflowTask);
 	}
 
 	public Date getLastActivityDate(WorkflowTask workflowTask)
@@ -347,7 +345,7 @@ public class WorkflowTaskDisplayContext {
 		String className = _getWorkflowContextEntryClassName(workflowTask);
 
 		String modelResource = ResourceActionsUtil.getModelResource(
-			_workflowTaskRequestHelper.getLocale(), className);
+			getTaskContentLocale(), className);
 
 		return LanguageUtil.format(
 			_workflowTaskRequestHelper.getRequest(), "preview-of-x",
@@ -407,42 +405,21 @@ public class WorkflowTaskDisplayContext {
 	public String getTaglibEditURL(WorkflowTask workflowTask)
 		throws PortalException, PortletException {
 
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("javascript:Liferay.Util.openWindow({id: '");
-		sb.append(_liferayPortletResponse.getNamespace());
-		sb.append("editAsset', title: '");
-
-		AssetRenderer<?> assetRenderer = getAssetRenderer(workflowTask);
-
-		String assetTitle = HtmlUtil.escape(
-			assetRenderer.getTitle(_workflowTaskRequestHelper.getLocale()));
-
-		sb.append(
-			LanguageUtil.format(
-				_workflowTaskRequestHelper.getRequest(), "edit-x", assetTitle));
-
-		sb.append("', uri:'");
-
 		PortletURL editPortletURL = _getEditPortletURL(workflowTask);
 
 		ThemeDisplay themeDisplay =
 			_workflowTaskRequestHelper.getThemeDisplay();
 
+		editPortletURL.setParameter("redirect", themeDisplay.getURLCurrent());
 		editPortletURL.setParameter(
 			"refererPlid", String.valueOf(themeDisplay.getPlid()));
 
 		editPortletURL.setParameter(
 			"workflowTaskId", String.valueOf(workflowTask.getWorkflowTaskId()));
-
 		editPortletURL.setPortletMode(PortletMode.VIEW);
-		editPortletURL.setWindowState(LiferayWindowState.POP_UP);
+		editPortletURL.setWindowState(LiferayWindowState.NORMAL);
 
-		sb.append(HtmlUtil.escapeJS(editPortletURL.toString()));
-
-		sb.append("'});");
-
-		return sb.toString();
+		return editPortletURL.toString();
 	}
 
 	public String getTaglibViewDiffsURL(WorkflowTask workflowTask)
@@ -494,17 +471,6 @@ public class WorkflowTaskDisplayContext {
 		}
 
 		return _workflowTaskRequestHelper.getLocale();
-	}
-
-	public String getTaskContentTitle(WorkflowTask workflowTask)
-		throws PortalException {
-
-		WorkflowHandler<?> workflowHandler = getWorkflowHandler(workflowTask);
-
-		long classPK = getWorkflowContextEntryClassPK(workflowTask);
-
-		return HtmlUtil.escape(
-			workflowHandler.getTitle(classPK, getTaskContentLocale()));
 	}
 
 	public String getTaskInitiallyAssignedMessageArguments(
@@ -748,12 +714,6 @@ public class WorkflowTaskDisplayContext {
 		return false;
 	}
 
-	public boolean isManagementBarDisabled() throws PortalException {
-		WorkflowTaskSearch workflowTaskSearch = getWorkflowTaskSearch();
-
-		return !workflowTaskSearch.hasResults();
-	}
-
 	public boolean isShowEditURL(WorkflowTask workflowTask) {
 		boolean showEditURL = false;
 
@@ -788,8 +748,7 @@ public class WorkflowTaskDisplayContext {
 		for (WorkflowHandler<?> workflowHandler :
 				_getSearchableAssetsWorkflowHandlers()) {
 
-			String assetType = workflowHandler.getType(
-				_workflowTaskRequestHelper.getLocale());
+			String assetType = workflowHandler.getType(getTaskContentLocale());
 
 			if (StringUtil.equalsIgnoreCase(keywords, assetType)) {
 				return new String[] {workflowHandler.getClassName()};

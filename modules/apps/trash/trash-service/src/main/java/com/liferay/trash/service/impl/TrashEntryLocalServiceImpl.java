@@ -15,6 +15,7 @@
 package com.liferay.trash.service.impl;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -31,7 +32,7 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
-import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Sort;
@@ -53,12 +54,19 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * Provides the local service for accessing, adding, checking, and deleting
  * trash entries in the Recycle Bin.
  *
  * @author Zsolt Berentey
  */
+@Component(
+	property = "model.class.name=com.liferay.trash.model.TrashEntry",
+	service = AopService.class
+)
 public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 	/**
@@ -241,10 +249,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 */
 	@Override
 	public TrashEntry deleteEntry(String className, long classPK) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		TrashEntry entry = trashEntryPersistence.fetchByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		return deleteEntry(entry);
 	}
@@ -284,9 +290,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 */
 	@Override
 	public TrashEntry fetchEntry(String className, long classPK) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return trashEntryPersistence.fetchByC_C(classNameId, classPK);
+		return trashEntryPersistence.fetchByC_C(
+			classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	/**
@@ -335,9 +340,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 	@Override
 	public List<TrashEntry> getEntries(long groupId, String className) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return trashEntryPersistence.findByG_C(groupId, classNameId);
+		return trashEntryPersistence.findByG_C(
+			groupId, classNameLocalService.getClassNameId(className));
 	}
 
 	/**
@@ -373,9 +377,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	public TrashEntry getEntry(String className, long classPK)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return trashEntryPersistence.findByC_C(classNameId, classPK);
+		return trashEntryPersistence.findByC_C(
+			classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -384,8 +387,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		int end, Sort sort) {
 
 		try {
-			Indexer<TrashEntry> indexer =
-				IndexerRegistryUtil.nullSafeGetIndexer(TrashEntry.class);
+			Indexer<TrashEntry> indexer = _indexerRegistry.nullSafeGetIndexer(
+				TrashEntry.class);
 
 			SearchContext searchContext = buildSearchContext(
 				companyId, groupId, userId, keywords, start, end, sort);
@@ -403,8 +406,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		int end, Sort sort) {
 
 		try {
-			Indexer<TrashEntry> indexer =
-				IndexerRegistryUtil.nullSafeGetIndexer(TrashEntry.class);
+			Indexer<TrashEntry> indexer = _indexerRegistry.nullSafeGetIndexer(
+				TrashEntry.class);
 
 			SearchContext searchContext = buildSearchContext(
 				companyId, groupId, userId, keywords, start, end, sort);
@@ -524,5 +527,8 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		TrashEntryLocalServiceImpl.class);
+
+	@Reference
+	private IndexerRegistry _indexerRegistry;
 
 }

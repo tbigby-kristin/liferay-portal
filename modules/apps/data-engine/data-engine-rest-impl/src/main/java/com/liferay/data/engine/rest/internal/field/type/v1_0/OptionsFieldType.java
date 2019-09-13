@@ -14,10 +14,11 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
-import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.field.type.FieldTypeTracker;
+import com.liferay.data.engine.rest.internal.field.type.v1_0.util.DataFieldOptionUtil;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.MapUtil;
 
@@ -35,7 +36,7 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"data.engine.field.type.icon=icon-font",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/Options/Options.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Options/Options.es",
 		"data.engine.field.type.system=true"
 	},
 	service = FieldType.class
@@ -43,11 +44,12 @@ import org.osgi.service.component.annotations.Component;
 public class OptionsFieldType extends BaseFieldType {
 
 	@Override
-	public SPIDataDefinitionField deserialize(JSONObject jsonObject)
+	public SPIDataDefinitionField deserialize(
+			FieldTypeTracker fieldTypeTracker, JSONObject jsonObject)
 		throws Exception {
 
 		SPIDataDefinitionField spiDataDefinitionField = super.deserialize(
-			jsonObject);
+			fieldTypeTracker, jsonObject);
 
 		Map<String, Object> customProperties =
 			spiDataDefinitionField.getCustomProperties();
@@ -66,10 +68,12 @@ public class OptionsFieldType extends BaseFieldType {
 
 	@Override
 	public JSONObject toJSONObject(
+			FieldTypeTracker fieldTypeTracker,
 			SPIDataDefinitionField spiDataDefinitionField)
 		throws Exception {
 
-		JSONObject jsonObject = super.toJSONObject(spiDataDefinitionField);
+		JSONObject jsonObject = super.toJSONObject(
+			fieldTypeTracker, spiDataDefinitionField);
 
 		return jsonObject.put(
 			"allowEmptyOptions",
@@ -78,7 +82,7 @@ public class OptionsFieldType extends BaseFieldType {
 				"allowEmptyOptions", false)
 		).put(
 			"value",
-			CustomPropertiesUtil.getDataFieldOptions(
+			DataFieldOptionUtil.toJSONObject(
 				spiDataDefinitionField.getCustomProperties(), "value")
 		);
 	}
@@ -96,7 +100,7 @@ public class OptionsFieldType extends BaseFieldType {
 				"allowEmptyOptions", false));
 		context.put(
 			"value",
-			CustomPropertiesUtil.getDataFieldOptions(
+			DataFieldOptionUtil.toJSONObject(
 				spiDataDefinitionField.getCustomProperties(), "value"));
 	}
 

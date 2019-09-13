@@ -36,6 +36,7 @@ import com.liferay.portal.vulcan.yaml.openapi.Components;
 import com.liferay.portal.vulcan.yaml.openapi.Content;
 import com.liferay.portal.vulcan.yaml.openapi.Info;
 import com.liferay.portal.vulcan.yaml.openapi.Items;
+import com.liferay.portal.vulcan.yaml.openapi.License;
 import com.liferay.portal.vulcan.yaml.openapi.OpenAPIYAML;
 import com.liferay.portal.vulcan.yaml.openapi.Operation;
 import com.liferay.portal.vulcan.yaml.openapi.Parameter;
@@ -60,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * @author Peter Shin
@@ -137,7 +139,9 @@ public class RESTBuilder {
 		context.put("stringUtil", StringUtil_IW.getInstance());
 		context.put("validator", Validator_IW.getInstance());
 
-		_createApplicationFile(context);
+		if (_configYAML.isGenerateREST()) {
+			_createApplicationFile(context);
+		}
 
 		if (Validator.isNotNull(_configYAML.getClientDir())) {
 			_createClientBaseJSONParserFile(context);
@@ -180,9 +184,12 @@ public class RESTBuilder {
 
 			context.put("openAPIYAML", openAPIYAML);
 
-			_createGraphQLMutationFile(context, escapedVersion);
-			_createGraphQLQueryFile(context, escapedVersion);
-			_createGraphQLServletDataFile(context, escapedVersion);
+			if (_configYAML.isGenerateGraphQL()) {
+				_createGraphQLMutationFile(context, escapedVersion);
+				_createGraphQLQueryFile(context, escapedVersion);
+				_createGraphQLServletDataFile(context, escapedVersion);
+			}
+
 			_createOpenAPIResourceFile(context, escapedVersion);
 			_createPropertiesFile(context, escapedVersion, "openapi");
 
@@ -193,7 +200,7 @@ public class RESTBuilder {
 				Schema schema = entry.getValue();
 				String schemaName = entry.getKey();
 
-				_putSchema(context, schema, schemaName);
+				_putSchema(context, schema, schemaName, new HashSet<>());
 
 				_createDTOFile(context, escapedVersion, schemaName);
 
@@ -207,7 +214,8 @@ public class RESTBuilder {
 			for (Map.Entry<String, Schema> entry :
 					globalEnumSchemas.entrySet()) {
 
-				_putSchema(context, entry.getValue(), entry.getKey());
+				_putSchema(
+					context, entry.getValue(), entry.getKey(), new HashSet<>());
 
 				_createEnumFile(context, escapedVersion, entry.getKey());
 
@@ -232,7 +240,9 @@ public class RESTBuilder {
 
 				Schema schema = entry.getValue();
 
-				_putSchema(context, schema, schemaName);
+				_putSchema(
+					context, schema, schemaName,
+					_getRelatedSchemaNames(allSchemas, javaMethodSignatures));
 
 				_createBaseResourceImplFile(
 					context, escapedVersion, schemaName);
@@ -278,7 +288,9 @@ public class RESTBuilder {
 	private void _checkOpenAPIYAMLFile(FreeMarkerTool freeMarkerTool, File file)
 		throws Exception {
 
-		String s = _fixOpenAPIPathParameters(FileUtil.read(file));
+		String s = _fixOpenAPILicense(FileUtil.read(file));
+
+		s = _fixOpenAPIPathParameters(s);
 
 		if (_configYAML.isForcePredictableSchemaPropertyName()) {
 			s = _fixOpenAPISchemaPropertyNames(freeMarkerTool, s);
@@ -980,6 +992,10 @@ public class RESTBuilder {
 
 		Map<String, PathItem> pathItems = openAPIYAML.getPathItems();
 
+		if (pathItems == null) {
+			return s;
+		}
+
 		for (Map.Entry<String, PathItem> entry1 : pathItems.entrySet()) {
 			String path = entry1.getKey();
 
@@ -1020,6 +1036,118 @@ public class RESTBuilder {
 		}
 
 		return s;
+	}
+
+	private String _fixOpenAPILicense(String s) {
+		String licenseName = _configYAML.getLicenseName();
+		String licenseURL = _configYAML.getLicenseURL();
+
+		StringBuilder licenseSB = new StringBuilder();
+
+		licenseSB.append("        name: \"");
+		licenseSB.append(licenseName);
+		licenseSB.append("\"\n");
+		licenseSB.append("        url: \"");
+		licenseSB.append(licenseURL);
+		licenseSB.append("\"");
+
+		OpenAPIYAML openAPIYAML = YAMLUtil.loadOpenAPIYAML(s);
+
+		Info info = openAPIYAML.getInfo();
+
+		if (info == null) {
+			StringBuilder sb = new StringBuilder();
+
+			sb.append("info:\n");
+			sb.append(licenseSB.toString());
+			sb.append('\n');
+			sb.append(s);
+
+			return sb.toString();
+		}
+
+		License license = info.getLicense();
+
+		if ((license != null) && licenseName.equals(license.getName()) &&
+			licenseURL.equals(license.getUrl())) {
+
+			return s;
+		}
+
+		int x = s.indexOf("\ninfo:");
+
+		int y = s.indexOf('\n', x + 1);
+
+		String line = s.substring(y + 1, s.indexOf("\n", y + 1));
+
+		String leadingWhiteSpace = line.replaceAll("^(\\s+).+", "$1");
+
+		Map<String, String> fieldMap = new TreeMap<>();
+
+		String fieldName = "";
+		String fieldValue = "";
+
+		while (line.matches("^" + leadingWhiteSpace + ".*")) {
+			if (line.matches("^" + leadingWhiteSpace + "\\w.*")) {
+				if (Validator.isNotNull(fieldName)) {
+					fieldMap.put(fieldName, fieldValue);
+
+					fieldValue = "";
+				}
+
+				fieldName = line.replaceAll("^\\s+(\\w+):.*", "$1");
+				fieldValue = line.replaceAll("^\\s+\\w+:\\s*(.*)\\s*", "$1");
+			}
+			else if (Validator.isNull(fieldValue)) {
+				fieldValue = line;
+			}
+			else {
+				fieldValue = fieldValue + '\n' + line;
+			}
+
+			if (s.indexOf('\n', y + 1) == -1) {
+				y = s.length();
+
+				break;
+			}
+
+			line = s.substring(y + 1, s.indexOf('\n', y + 1));
+
+			y = s.indexOf('\n', y + 1);
+		}
+
+		if (Validator.isNull(fieldName)) {
+			return s;
+		}
+
+		fieldMap.put(fieldName, fieldValue);
+
+		fieldMap.put("license", licenseSB.toString());
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(s.substring(0, s.indexOf('\n', x + 1) + 1));
+
+		for (Map.Entry<String, String> entry : fieldMap.entrySet()) {
+			sb.append(leadingWhiteSpace);
+			sb.append(entry.getKey());
+
+			String value = entry.getValue();
+
+			if (value.matches("(?s)^\\s*\\w+:.*")) {
+				sb.append(":\n");
+			}
+			else {
+				sb.append(": ");
+			}
+
+			sb.append(value);
+			sb.append('\n');
+		}
+
+		sb.append(s.substring(s.lastIndexOf('\n', y - 1) + 1));
+
+		return sb.toString();
 	}
 
 	private String _fixOpenAPIOperationIds(
@@ -1101,6 +1229,10 @@ public class RESTBuilder {
 		OpenAPIYAML openAPIYAML = YAMLUtil.loadOpenAPIYAML(s);
 
 		Map<String, PathItem> pathItems = openAPIYAML.getPathItems();
+
+		if (pathItems == null) {
+			return s;
+		}
 
 		for (Map.Entry<String, PathItem> entry : pathItems.entrySet()) {
 			String path = entry.getKey();
@@ -1322,8 +1454,34 @@ public class RESTBuilder {
 		return operations;
 	}
 
+	private Set<String> _getRelatedSchemaNames(
+		Map<String, Schema> schemas,
+		List<JavaMethodSignature> javaMethodSignatures) {
+
+		Set<String> relatedSchemaNames = new HashSet<>();
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			String returnType = javaMethodSignature.getReturnType();
+
+			String[] returnTypeParts = returnType.split("\\.");
+
+			if (returnTypeParts.length > 0) {
+				String string = returnTypeParts[returnTypeParts.length - 1];
+
+				if (!string.equals(javaMethodSignature.getSchemaName()) &&
+					schemas.containsKey(string)) {
+
+					relatedSchemaNames.add(string);
+				}
+			}
+		}
+
+		return relatedSchemaNames;
+	}
+
 	private void _putSchema(
-		Map<String, Object> context, Schema schema, String schemaName) {
+		Map<String, Object> context, Schema schema, String schemaName,
+		Set<String> relatedSchemaNames) {
 
 		context.put("schema", schema);
 		context.put("schemaName", schemaName);
@@ -1336,10 +1494,12 @@ public class RESTBuilder {
 		context.put("schemaVarName", schemaVarName);
 		context.put(
 			"schemaVarNames", TextFormatter.formatPlural(schemaVarName));
+
+		context.put("relatedSchemaNames", relatedSchemaNames);
 	}
 
-	private void _validate(String s) {
-		OpenAPIYAML openAPIYAML = YAMLUtil.loadOpenAPIYAML(s);
+	private void _validate(String string) {
+		OpenAPIYAML openAPIYAML = YAMLUtil.loadOpenAPIYAML(string);
 
 		Components components = openAPIYAML.getComponents();
 
@@ -1360,6 +1520,7 @@ public class RESTBuilder {
 				Schema propertySchema = entry2.getValue();
 
 				if (Objects.equals(propertySchema.getType(), "number") &&
+					!Objects.equals(propertySchema.getFormat(), "bigdecimal") &&
 					!Objects.equals(propertySchema.getFormat(), "double") &&
 					!Objects.equals(propertySchema.getFormat(), "float")) {
 

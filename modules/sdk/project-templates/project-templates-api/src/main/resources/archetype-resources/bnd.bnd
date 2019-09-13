@@ -2,3 +2,5 @@ Bundle-Name: ${artifactId}
 Bundle-SymbolicName: ${package}
 Bundle-Version: ${version}
 Export-Package: ${package}.api
+#if (${buildType} != "gradle")
+-metatype: *#end

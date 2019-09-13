@@ -1,50 +1,49 @@
-import Clipboard from 'metal-clipboard';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import ClipboardJS from 'clipboard';
 import Component, {Config} from 'metal-jsx';
 import getCN from 'classnames';
 import Popover from '../Popover/Popover.es';
 import {Align} from 'metal-position';
-import {EventHandler} from 'metal-events';
 import {selectText} from 'dynamic-data-mapping-form-builder/js/util/dom.es';
 
 class ShareFormPopover extends Component {
 	attached() {
-		this._clipboard = new Clipboard(
-			{
-				selector: '.ddm-copy-clipboard'
-			}
-		);
-		this._eventHandler = new EventHandler();
+		this._clipboard = new ClipboardJS('.ddm-copy-clipboard');
 
-		this._eventHandler.add(
-			this._clipboard.on('success', this._handleClipboardSuccess.bind(this))
-		);
+		this._clipboard.on('success', this._handleClipboardSuccess.bind(this));
 	}
 
 	disposeInternal() {
 		super.disposeInternal();
 
-		this._clipboard.dispose();
-		this._eventHandler.removeAllListeners();
+		this._clipboard.destroy();
 	}
 
 	render() {
 		const {alignElement, spritemap, url, visible} = this.props;
 		const {success} = this.state;
 
-		const buttonClasses = getCN(
-			'btn ddm-copy-clipboard',
-			{
-				'btn-default': true,
-				'btn-success': success
-			}
-		);
+		const buttonClasses = getCN('btn ddm-copy-clipboard', {
+			'btn-default': true,
+			'btn-success': success
+		});
 
-		const formClasses = getCN(
-			'form-group m-0',
-			{
-				'has-success': success
-			}
-		);
+		const formClasses = getCN('form-group m-0', {
+			'has-success': success
+		});
 
 		return (
 			<Popover
@@ -61,28 +60,46 @@ class ShareFormPopover extends Component {
 				<div class={formClasses}>
 					<div class="input-group">
 						<div class="input-group-item input-group-prepend">
-							<input class="form-control" readOnly={true} ref="shareFieldURL" type="text" value={url} />
+							<input
+								class="form-control"
+								readOnly={true}
+								ref="shareFieldURL"
+								type="text"
+								value={url}
+							/>
 							{success && (
 								<div class="form-feedback-group">
-									<div class="form-feedback-item">{Liferay.Language.get('copied-to-clipboard')}</div>
+									<div class="form-feedback-item">
+										{Liferay.Language.get(
+											'copied-to-clipboard'
+										)}
+									</div>
 								</div>
 							)}
 						</div>
 						<span class="input-group-append input-group-item input-group-item-shrink">
-							<button class={buttonClasses} data-clipboard data-text={url} type="button">
+							<button
+								class={buttonClasses}
+								data-clipboard-text={url}
+								type="button"
+							>
 								{success ? (
 									<span class="publish-button-success-icon pl-2 pr-2">
 										<svg
 											aria-hidden="true"
-											class={'lexicon-icon lexicon-icon-check'}
+											class={
+												'lexicon-icon lexicon-icon-check'
+											}
 										>
 											<use
-												xlinkHref={`${spritemap}#check`}
+												xlink:href={`${spritemap}#check`}
 											/>
 										</svg>
 									</span>
 								) : (
-									<span class="publish-button-text">{Liferay.Language.get('copy')}</span>
+									<span class="publish-button-text">
+										{Liferay.Language.get('copy')}
+									</span>
 								)}
 							</button>
 						</span>
@@ -96,38 +113,30 @@ class ShareFormPopover extends Component {
 		const {success} = this.state;
 
 		if (success) {
-			setTimeout(
-				() => {
-					const shareFieldURL = this.element.querySelector('input');
+			setTimeout(() => {
+				const shareFieldURL = this.element.querySelector('input');
 
-					selectText(shareFieldURL);
-				},
-				30
-			);
+				selectText(shareFieldURL);
+			}, 30);
 		}
 	}
 
 	_handleClipboardSuccess() {
-		this.setState(
-			{
-				success: true
-			}
-		);
+		this.setState({
+			success: true
+		});
 	}
 
 	_handlePopoverClosed() {
-		this.setState(
-			{
-				success: false
-			}
-		);
+		this.setState({
+			success: false
+		});
 
 		this.emit('popoverClosed');
 	}
 }
 
 ShareFormPopover.PROPS = {
-
 	/**
 	 * The element to align with.
 	 * @default ""

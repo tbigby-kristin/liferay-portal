@@ -37,13 +37,14 @@ import com.liferay.portal.kernel.repository.capabilities.UnsupportedCapabilityEx
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.trash.TrashActionKeys;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.trash.constants.TrashActionKeys;
 import com.liferay.trash.kernel.exception.RestoreEntryException;
 import com.liferay.trash.kernel.model.TrashEntry;
 import com.liferay.trash.kernel.model.TrashEntryConstants;
@@ -93,9 +94,7 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 		TrashCapability trashCapability = documentRepository.getCapability(
 			TrashCapability.class);
 
-		Folder folder = documentRepository.getFolder(classPK);
-
-		trashCapability.deleteFolder(folder);
+		trashCapability.deleteFolder(documentRepository.getFolder(classPK));
 	}
 
 	@Override
@@ -210,6 +209,22 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 	}
 
 	@Override
+	public boolean isMovable(long classPK) throws PortalException {
+		DLFolder dlFolder = fetchDLFolder(classPK);
+
+		if (dlFolder.getParentFolderId() > 0) {
+			DLFolder parentFolder = _dlFolderLocalService.fetchFolder(
+				dlFolder.getParentFolderId());
+
+			if ((parentFolder == null) || parentFolder.isInTrash()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean isRestorable(long classPK) throws PortalException {
 		DLFolder dlFolder = fetchDLFolder(classPK);
 
@@ -217,6 +232,13 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 			((dlFolder.getParentFolderId() > 0) &&
 			 (_dlFolderLocalService.fetchFolder(dlFolder.getParentFolderId()) ==
 				 null))) {
+
+			return false;
+		}
+
+		if (!hasTrashPermission(
+				PermissionThreadLocal.getPermissionChecker(),
+				dlFolder.getGroupId(), classPK, TrashActionKeys.RESTORE)) {
 
 			return false;
 		}
@@ -266,9 +288,8 @@ public class DLFolderTrashHandler extends DLBaseTrashHandler {
 		TrashCapability trashCapability = documentRepository.getCapability(
 			TrashCapability.class);
 
-		Folder folder = documentRepository.getFolder(classPK);
-
-		trashCapability.restoreFolderFromTrash(userId, folder);
+		trashCapability.restoreFolderFromTrash(
+			userId, documentRepository.getFolder(classPK));
 	}
 
 	@Override

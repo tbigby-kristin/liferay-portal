@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import Soy from 'metal-soy';
 import core from 'metal';
@@ -13,7 +27,6 @@ const KEY_CODE_ESC = 27;
  */
 
 class Modal extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -80,8 +93,7 @@ class Modal extends Component {
 			this._eventHandler.add(
 				dom.on(document, 'keyup', this._handleKeyup.bind(this))
 			);
-		}
-		else {
+		} else {
 			this._eventHandler.removeAllListeners();
 		}
 	}
@@ -94,7 +106,9 @@ class Modal extends Component {
 	syncOverlay(overlay) {
 		const willShowOverlay = overlay && this.visible;
 
-		dom[willShowOverlay ? 'enterDocument' : 'exitDocument'](this.overlayElement);
+		dom[willShowOverlay ? 'enterDocument' : 'exitDocument'](
+			this.overlayElement
+		);
 	}
 
 	/**
@@ -105,12 +119,12 @@ class Modal extends Component {
 		this.syncOverlay(this.overlay);
 
 		if (this.visible) {
-			this._lastFocusedElement = this._lastFocusedElement || document.activeElement;
+			this._lastFocusedElement =
+				this._lastFocusedElement || document.activeElement;
 
 			this._autoFocus(this.autoFocus);
 			this._restrictFocus();
-		}
-		else {
+		} else {
 			this._unrestrictFocus();
 			this._shiftFocusBack();
 		}
@@ -214,12 +228,12 @@ class Modal extends Component {
 	 */
 
 	_valueOverlayElementFn() {
-		return dom.buildFragment('<div class="modal-backdrop fade show"></div>').firstChild;
+		return dom.buildFragment('<div class="modal-backdrop fade show"></div>')
+			.firstChild;
 	}
 }
 
 Modal.STATE = {
-
 	/**
 	 * A selector for the element that should be automatically focused when the modal
 	 * becomes visible, or `false` if no auto focus should happen. Defaults to the
@@ -238,8 +252,7 @@ Modal.STATE = {
 	 * @type {string|function()}
 	 */
 
-	body: {
-	},
+	body: {},
 
 	/**
 	 * The id used by the body element.
@@ -265,8 +278,15 @@ Modal.STATE = {
 	 * @type {string|function()}
 	 */
 
-	footer: {
-	},
+	footer: {},
+
+	/**
+	 * Content to be placed inside modal header. Can be either an html string or
+	 * a function that calls incremental-dom to render the header.
+	 * @type {string|function()}
+	 */
+
+	header: {},
 
 	/**
 	 * The id used by the header element.
@@ -275,15 +295,6 @@ Modal.STATE = {
 
 	headerId: {
 		valueFn: () => 'modal-header-' + core.getUid()
-	},
-
-	/**
-	 * Content to be placed inside modal header. Can be either an html string or
-	 * a function that calls incremental-dom to render the header.
-	 * @type {string|function()}
-	 */
-
-	header: {
 	},
 
 	/**

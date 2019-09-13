@@ -86,6 +86,8 @@ definition {
 	@description = "This is a use case for LPS-50557."
 	@priority = "4"
 	test AddListWithXSSWorkflowDefinition {
+		property test.name.skip.portal.instance = "DynamicdatalistUsecase#AddListWithXSSWorkflowDefinition";
+
 		ProductMenu.gotoPortlet(
 			category = "Workflow",
 			panel = "Control Panel",
@@ -1522,6 +1524,8 @@ definition {
 			panel = "Site Administration",
 			portlet = "Pages");
 
+		Refresh();
+
 		SitePages.addPublicPage(pageName = "Data Definition Page Name");
 
 		Navigator.gotoPage(pageName = "Data Definition Page Name");
@@ -2119,6 +2123,7 @@ definition {
 
 	@priority = "4"
 	test FormTemplateUniqueField {
+		property test.name.skip.portal.instance = "DynamicdatalistsUsecase#FormTemplateUniqueField";
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
@@ -2184,6 +2189,7 @@ definition {
 	@description = "This is a use case for LPS-65479."
 	@priority = "4"
 	test RemoveRepeatableDateField {
+		property test.name.skip.portal.instance = "DynamicdatalistsUsecase#RemoveRepeatableDateField";
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
@@ -2479,6 +2485,7 @@ definition {
 	@description = "This is a use case for LPS-52865."
 	@priority = "4"
 	test ViewCannotSaveWithDuplicateFieldNames {
+		property test.name.skip.portal.instance = "DynamicdatalistsUsecase#ViewCannotSaveWithDuplicateFieldNames";
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
@@ -2510,6 +2517,7 @@ definition {
 	@description = "This is a use case for LPS-66228."
 	@priority = "4"
 	test ViewDisplayTemplateClassLinks {
+		property test.name.skip.portal.instance = "DynamicdatalistsUsecase#ViewDisplayTemplateClassLinks";
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
@@ -3163,6 +3171,7 @@ definition {
 	@description = "This is a use case for LPS-51684."
 	@priority = "4"
 	test ViewUniqueFieldLabels {
+		property test.name.skip.portal.instance = "DynamicdatalistsUsecase#ViewUniqueFieldLabels";
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(

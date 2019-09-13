@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the PortalPreferences service. Represents a row in the &quot;PortalPreferences&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,11 +52,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see PortalPreferencesImpl
  * @generated
  */
-@ProviderType
 public class PortalPreferencesModelImpl
 	extends BaseModelImpl<PortalPreferences> implements PortalPreferencesModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a portal preferences model instance should use the <code>PortalPreferences</code> interface instead.
@@ -386,7 +383,12 @@ public class PortalPreferencesModelImpl
 	@Override
 	public PortalPreferences toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, PortalPreferences>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -566,8 +568,12 @@ public class PortalPreferencesModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, PortalPreferences>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, PortalPreferences>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _mvccVersion;
 	private long _portalPreferencesId;

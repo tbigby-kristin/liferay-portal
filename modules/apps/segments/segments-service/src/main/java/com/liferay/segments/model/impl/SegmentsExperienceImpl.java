@@ -14,15 +14,21 @@
 
 package com.liferay.segments.model.impl;
 
-import org.osgi.annotation.versioning.ProviderType;
+import com.liferay.segments.constants.SegmentsExperimentConstants;
+import com.liferay.segments.service.SegmentsExperimentLocalServiceUtil;
 
 /**
  * @author Eduardo García
  */
-@ProviderType
 public class SegmentsExperienceImpl extends SegmentsExperienceBaseImpl {
 
 	public SegmentsExperienceImpl() {
+	}
+
+	public boolean hasSegmentsExperiment() {
+		return SegmentsExperimentLocalServiceUtil.hasSegmentsExperiment(
+			getSegmentsExperienceId(), getClassNameId(), getClassPK(),
+			SegmentsExperimentConstants.Status.getLockedStatusValues());
 	}
 
 }

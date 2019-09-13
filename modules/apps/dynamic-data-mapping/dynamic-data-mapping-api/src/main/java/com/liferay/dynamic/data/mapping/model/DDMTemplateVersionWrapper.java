@@ -21,8 +21,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMTemplateVersion}.
@@ -32,7 +30,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMTemplateVersion
  * @generated
  */
-@ProviderType
 public class DDMTemplateVersionWrapper
 	extends BaseModelWrapper<DDMTemplateVersion>
 	implements DDMTemplateVersion, ModelWrapper<DDMTemplateVersion> {
@@ -45,6 +42,7 @@ public class DDMTemplateVersionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("templateVersionId", getTemplateVersionId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -69,6 +67,12 @@ public class DDMTemplateVersionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long templateVersionId = (Long)attributes.get("templateVersionId");
 
 		if (templateVersionId != null) {
@@ -332,6 +336,16 @@ public class DDMTemplateVersionWrapper
 	@Override
 	public String getLanguage() {
 		return model.getLanguage();
+	}
+
+	/**
+	 * Returns the mvcc version of this ddm template version.
+	 *
+	 * @return the mvcc version of this ddm template version
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -627,6 +641,11 @@ public class DDMTemplateVersionWrapper
 		return model.isScheduled();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm template version model instance should use the <code>DDMTemplateVersion</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -777,6 +796,16 @@ public class DDMTemplateVersionWrapper
 	@Override
 	public void setLanguage(String language) {
 		model.setLanguage(language);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm template version.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm template version
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

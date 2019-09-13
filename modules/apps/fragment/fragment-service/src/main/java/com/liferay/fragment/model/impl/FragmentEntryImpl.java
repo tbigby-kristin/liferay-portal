@@ -42,6 +42,12 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 	}
 
 	@Override
+	public int getGlobalUsageCount() {
+		return FragmentEntryLinkLocalServiceUtil.
+			getFragmentEntryLinksCountByFragmentEntryId(getFragmentEntryId());
+	}
+
+	@Override
 	public String getImagePreviewURL(ThemeDisplay themeDisplay) {
 		if (Validator.isNotNull(_imagePreviewURL)) {
 			return _imagePreviewURL;
@@ -81,6 +87,8 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 		path = path + StringPool.SLASH + getFragmentEntryKey();
 
 		JSONObject jsonObject = JSONUtil.put(
+			"configurationPath", "index.json"
+		).put(
 			"cssPath", "index.css"
 		).put(
 			"htmlPath", "index.html"
@@ -111,6 +119,7 @@ public class FragmentEntryImpl extends FragmentEntryBaseImpl {
 
 		zipWriter.addEntry(path + "/index.css", getCss());
 		zipWriter.addEntry(path + "/index.js", getJs());
+		zipWriter.addEntry(path + "/index.json", getConfiguration());
 		zipWriter.addEntry(path + "/index.html", getHtml());
 
 		if (previewFileEntry != null) {

@@ -17,14 +17,14 @@
 <%@ include file="/message_boards/init.jsp" %>
 
 <%
+String navigation = "banned-users";
+
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("mvcRenderCommandName", "/message_boards/view_banned_users");
 %>
 
-<liferay-util:include page="/message_boards_admin/nav.jsp" servletContext="<%= application %>">
-	<liferay-util:param name="navItemSelected" value="banned-users" />
-</liferay-util:include>
+<%@ include file="/message_boards_admin/nav.jspf" %>
 
 <%
 MBBannedUsersManagementToolbarDisplayContext mbBannedUsersManagementToolbarDisplayContext = new MBBannedUsersManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request);

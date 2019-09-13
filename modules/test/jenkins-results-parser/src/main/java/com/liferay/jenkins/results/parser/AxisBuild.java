@@ -131,9 +131,8 @@ public class AxisBuild extends BaseBuild {
 			Element listItemElement = Dom4JUtil.getNewElement(
 				"li", unorderedListElement);
 
-			String displayName = testResult.getDisplayName();
-
-			Dom4JUtil.getNewElement("strong", listItemElement, displayName);
+			Dom4JUtil.getNewElement(
+				"strong", listItemElement, testResult.getDisplayName());
 
 			Element reportLinksUnorderedListElement = Dom4JUtil.getNewElement(
 				"ul", listItemElement);
@@ -437,8 +436,8 @@ public class AxisBuild extends BaseBuild {
 	}
 
 	@Override
-	protected Pattern getBuildURLPattern() {
-		return buildURLPattern;
+	protected MultiPattern getBuildURLMultiPattern() {
+		return buildURLMultiPattern;
 	}
 
 	@Override
@@ -478,7 +477,11 @@ public class AxisBuild extends BaseBuild {
 			")/*(?<archiveName>.*)/(?<master>[^/]+)/+(?<jobName>[^/]+)/",
 			"(?<axisVariable>AXIS_VARIABLE=[^,]+,[^/]+)/",
 			"(?<buildNumber>\\d+)/?"));
-	protected static final Pattern buildURLPattern = Pattern.compile(
+	protected static final MultiPattern buildURLMultiPattern = new MultiPattern(
+		JenkinsResultsParserUtil.combine(
+			"\\w+://(?<master>[^/]+)/+job/+(?<jobName>[^/]+)/",
+			"(?<buildNumber>\\d+)/",
+			"(?<axisVariable>AXIS_VARIABLE=[^,]+,[^/]+)/?"),
 		JenkinsResultsParserUtil.combine(
 			"\\w+://(?<master>[^/]+)/+job/+(?<jobName>[^/]+)/",
 			"(?<axisVariable>AXIS_VARIABLE=[^,]+,[^/]+)/",
@@ -493,7 +496,7 @@ public class AxisBuild extends BaseBuild {
 	private static final FailureMessageGenerator[] _FAILURE_MESSAGE_GENERATORS =
 		{
 			new ModulesCompilationFailureMessageGenerator(),
-
+			//
 			new CompileFailureMessageGenerator(),
 			new IntegrationTestTimeoutFailureMessageGenerator(),
 			new LocalGitMirrorFailureMessageGenerator(),
@@ -503,9 +506,9 @@ public class AxisBuild extends BaseBuild {
 			new SemanticVersioningFailureMessageGenerator(),
 			new SourceFormatFailureMessageGenerator(),
 			new StartupFailureMessageGenerator(),
-
+			//
 			new GradleTaskFailureMessageGenerator(),
-
+			//
 			new CIFailureMessageGenerator(),
 			new GenericFailureMessageGenerator()
 		};

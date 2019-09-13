@@ -544,6 +544,16 @@ public class VerifyProperties extends VerifyProcess {
 		},
 
 		{
+			"blogs.image.max.size", "blogs.image.max.size",
+			"com.liferay.blogs.api"
+		},
+
+		{
+			"blogs.image.extensions", "blogs.image.extensions",
+			"com.liferay.blogs.api"
+		},
+
+		{
 			"blogs.linkback.job.interval", "linkback.job.interval",
 			"com.liferay.blogs.web"
 		},
@@ -1593,7 +1603,8 @@ public class VerifyProperties extends VerifyProcess {
 		"auth.max.failures.limit", "auto.deploy.blacklist.threshold",
 		"blogs.image.small.max.size", "breadcrumb.display.style.options",
 		"buffered.increment.parallel.queue.size",
-		"buffered.increment.serial.queue.size", "captcha.max.challenges",
+		"buffered.increment.serial.queue.size",
+		"cache.clear.on.context.initialization", "captcha.max.challenges",
 		"captcha.check.portal.create_account",
 		"captcha.check.portal.send_password",
 		"captcha.check.portlet.message_boards.edit_category",
@@ -1796,7 +1807,9 @@ public class VerifyProperties extends VerifyProcess {
 		"social.activity.sets.bundling.enabled", "social.activity.sets.enabled",
 		"social.bookmark.display.styles", "social.bookmark.types",
 		"spring.hibernate.data.source", "spring.hibernate.session.factory",
-		"spring.portlet.configs", "staging.delete.temp.lar.on.failure",
+		"spring.portlet.configs", "spring.remoting.servlet.hosts.allowed",
+		"spring.remoting.servlet.https.required",
+		"staging.delete.temp.lar.on.failure",
 		"staging.delete.temp.lar.on.success",
 		"struts.portlet.ignored.parameters.regexp",
 		"struts.portlet.request.processor",

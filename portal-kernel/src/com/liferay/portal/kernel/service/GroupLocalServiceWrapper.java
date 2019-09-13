@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.service;
 
-import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * Provides a wrapper for {@link GroupLocalService}.
@@ -23,7 +22,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see GroupLocalService
  * @generated
  */
-@ProviderType
 public class GroupLocalServiceWrapper
 	implements GroupLocalService, ServiceWrapper<GroupLocalService> {
 
@@ -46,11 +44,12 @@ public class GroupLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.model.Group addGroup(
-			long userId, long parentGroupId, String className, long classPK,
-			long liveGroupId, java.util.Map<java.util.Locale, String> nameMap,
-			java.util.Map<java.util.Locale, String> descriptionMap, int type,
-			boolean manualMembership, int membershipRestriction,
-			String friendlyURL, boolean site, boolean inheritContent,
+			long userId, long parentGroupId, java.lang.String className,
+			long classPK, long liveGroupId,
+			java.util.Map<java.util.Locale, java.lang.String> nameMap,
+			java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+			int type, boolean manualMembership, int membershipRestriction,
+			java.lang.String friendlyURL, boolean site, boolean inheritContent,
 			boolean active, ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -62,11 +61,12 @@ public class GroupLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.kernel.model.Group addGroup(
-			long userId, long parentGroupId, String className, long classPK,
-			long liveGroupId, java.util.Map<java.util.Locale, String> nameMap,
-			java.util.Map<java.util.Locale, String> descriptionMap, int type,
-			boolean manualMembership, int membershipRestriction,
-			String friendlyURL, boolean site, boolean active,
+			long userId, long parentGroupId, java.lang.String className,
+			long classPK, long liveGroupId,
+			java.util.Map<java.util.Locale, java.lang.String> nameMap,
+			java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+			int type, boolean manualMembership, int membershipRestriction,
+			java.lang.String friendlyURL, boolean site, boolean active,
 			ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -511,7 +511,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group fetchFriendlyURLGroup(
-		long companyId, String friendlyURL) {
+		long companyId, java.lang.String friendlyURL) {
 
 		return _groupLocalService.fetchFriendlyURLGroup(companyId, friendlyURL);
 	}
@@ -519,6 +519,13 @@ public class GroupLocalServiceWrapper
 	@Override
 	public com.liferay.portal.kernel.model.Group fetchGroup(long groupId) {
 		return _groupLocalService.fetchGroup(groupId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.Group fetchGroup(
+		long companyId, long classNameId, long classPK) {
+
+		return _groupLocalService.fetchGroup(companyId, classNameId, classPK);
 	}
 
 	/**
@@ -532,7 +539,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group fetchGroup(
-		long companyId, String groupKey) {
+		long companyId, java.lang.String groupKey) {
 
 		return _groupLocalService.fetchGroup(companyId, groupKey);
 	}
@@ -546,7 +553,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group fetchGroupByUuidAndCompanyId(
-		String uuid, long companyId) {
+		java.lang.String uuid, long companyId) {
 
 		return _groupLocalService.fetchGroupByUuidAndCompanyId(uuid, companyId);
 	}
@@ -589,7 +596,7 @@ public class GroupLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<Long> getActiveGroupIds(long userId) {
+	public java.util.List<java.lang.Long> getActiveGroupIds(long userId) {
 		return _groupLocalService.getActiveGroupIds(userId);
 	}
 
@@ -767,7 +774,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group getFriendlyURLGroup(
-			long companyId, String friendlyURL)
+			long companyId, java.lang.String friendlyURL)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.getFriendlyURLGroup(companyId, friendlyURL);
@@ -797,7 +804,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group getGroup(
-			long companyId, String groupKey)
+			long companyId, java.lang.String groupKey)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.getGroup(companyId, groupKey);
@@ -813,7 +820,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group getGroupByUuidAndCompanyId(
-			String uuid, long companyId)
+			java.lang.String uuid, long companyId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.getGroupByUuidAndCompanyId(uuid, companyId);
@@ -872,7 +879,7 @@ public class GroupLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> getGroups(
-		long companyId, long parentGroupId, String name, boolean site,
+		long companyId, long parentGroupId, java.lang.String name, boolean site,
 		int start, int end) {
 
 		return _groupLocalService.getGroups(
@@ -881,7 +888,7 @@ public class GroupLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> getGroups(
-		long companyId, String treePath, boolean site) {
+		long companyId, java.lang.String treePath, boolean site) {
 
 		return _groupLocalService.getGroups(companyId, treePath, site);
 	}
@@ -898,7 +905,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> getGroups(
-		long companyId, String className, long parentGroupId) {
+		long companyId, java.lang.String className, long parentGroupId) {
 
 		return _groupLocalService.getGroups(
 			companyId, className, parentGroupId);
@@ -917,8 +924,8 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> getGroups(
-		long companyId, String className, long parentGroupId, int start,
-		int end) {
+		long companyId, java.lang.String className, long parentGroupId,
+		int start, int end) {
 
 		return _groupLocalService.getGroups(
 			companyId, className, parentGroupId, start, end);
@@ -968,7 +975,8 @@ public class GroupLocalServiceWrapper
 
 	@Override
 	public int getGroupsCount(
-		long companyId, long parentGroupId, String name, boolean site) {
+		long companyId, long parentGroupId, java.lang.String name,
+		boolean site) {
 
 		return _groupLocalService.getGroupsCount(
 			companyId, parentGroupId, name, site);
@@ -985,7 +993,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int getGroupsCount(
-		long companyId, String className, long parentGroupId) {
+		long companyId, java.lang.String className, long parentGroupId) {
 
 		return _groupLocalService.getGroupsCount(
 			companyId, className, parentGroupId);
@@ -1194,7 +1202,8 @@ public class GroupLocalServiceWrapper
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group>
 		getNoLayoutsGroups(
-			String className, boolean privateLayout, int start, int end) {
+			java.lang.String className, boolean privateLayout, int start,
+			int end) {
 
 		return _groupLocalService.getNoLayoutsGroups(
 			className, privateLayout, start, end);
@@ -1311,7 +1320,7 @@ public class GroupLocalServiceWrapper
 	 * @return the OSGi service identifier
 	 */
 	@Override
-	public String getOSGiServiceIdentifier() {
+	public java.lang.String getOSGiServiceIdentifier() {
 		return _groupLocalService.getOSGiServiceIdentifier();
 	}
 
@@ -1755,7 +1764,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group loadFetchGroup(
-		long companyId, String groupKey) {
+		long companyId, java.lang.String groupKey) {
 
 		return _groupLocalService.loadFetchGroup(companyId, groupKey);
 	}
@@ -1770,7 +1779,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group loadGetGroup(
-			long companyId, String groupKey)
+			long companyId, java.lang.String groupKey)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.loadGetGroup(companyId, groupKey);
@@ -1824,7 +1833,8 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, java.util.LinkedHashMap<String, Object> params,
+		long companyId,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
 		int start, int end) {
 
 		return _groupLocalService.search(companyId, params, start, end);
@@ -1862,8 +1872,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long parentGroupId, String keywords,
-		java.util.LinkedHashMap<String, Object> params, int start, int end) {
+		long companyId, long parentGroupId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end) {
 
 		return _groupLocalService.search(
 			companyId, parentGroupId, keywords, params, start, end);
@@ -1903,8 +1914,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long parentGroupId, String keywords,
-		java.util.LinkedHashMap<String, Object> params, int start, int end,
+		long companyId, long parentGroupId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
 
@@ -1947,9 +1959,10 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long parentGroupId, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator,
-		int start, int end) {
+		long companyId, long parentGroupId, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end) {
 
 		return _groupLocalService.search(
 			companyId, parentGroupId, name, description, params, andOperator,
@@ -1993,9 +2006,10 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long parentGroupId, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator,
-		int start, int end,
+		long companyId, long parentGroupId, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
 
@@ -2040,7 +2054,8 @@ public class GroupLocalServiceWrapper
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
 		long companyId, long[] classNameIds, long parentGroupId,
-		String keywords, java.util.LinkedHashMap<String, Object> params,
+		java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
 		int start, int end) {
 
 		return _groupLocalService.search(
@@ -2086,7 +2101,8 @@ public class GroupLocalServiceWrapper
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
 		long companyId, long[] classNameIds, long parentGroupId,
-		String keywords, java.util.LinkedHashMap<String, Object> params,
+		java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
@@ -2134,8 +2150,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long[] classNameIds, long parentGroupId, String name,
-		String description, java.util.LinkedHashMap<String, Object> params,
+		long companyId, long[] classNameIds, long parentGroupId,
+		java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
 		boolean andOperator, int start, int end) {
 
 		return _groupLocalService.search(
@@ -2183,8 +2200,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long[] classNameIds, long parentGroupId, String name,
-		String description, java.util.LinkedHashMap<String, Object> params,
+		long companyId, long[] classNameIds, long parentGroupId,
+		java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
 		boolean andOperator, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
@@ -2227,8 +2245,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long[] classNameIds, String keywords,
-		java.util.LinkedHashMap<String, Object> params, int start, int end) {
+		long companyId, long[] classNameIds, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end) {
 
 		return _groupLocalService.search(
 			companyId, classNameIds, keywords, params, start, end);
@@ -2269,8 +2288,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long[] classNameIds, String keywords,
-		java.util.LinkedHashMap<String, Object> params, int start, int end,
+		long companyId, long[] classNameIds, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
 
@@ -2315,9 +2335,10 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long[] classNameIds, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator,
-		int start, int end) {
+		long companyId, long[] classNameIds, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end) {
 
 		return _groupLocalService.search(
 			companyId, classNameIds, name, description, params, andOperator,
@@ -2363,9 +2384,10 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, long[] classNameIds, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator,
-		int start, int end,
+		long companyId, long[] classNameIds, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
 
@@ -2404,8 +2426,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, String keywords,
-		java.util.LinkedHashMap<String, Object> params, int start, int end) {
+		long companyId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end) {
 
 		return _groupLocalService.search(
 			companyId, keywords, params, start, end);
@@ -2443,8 +2466,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, String keywords,
-		java.util.LinkedHashMap<String, Object> params, int start, int end,
+		long companyId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
 
@@ -2486,9 +2510,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator,
-		int start, int end) {
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end) {
 
 		return _groupLocalService.search(
 			companyId, name, description, params, andOperator, start, end);
@@ -2530,9 +2554,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public java.util.List<com.liferay.portal.kernel.model.Group> search(
-		long companyId, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator,
-		int start, int end,
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<com.liferay.portal.kernel.model.Group> obc) {
 
@@ -2559,8 +2583,8 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, long parentGroupId, String keywords,
-		java.util.LinkedHashMap<String, Object> params) {
+		long companyId, long parentGroupId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params) {
 
 		return _groupLocalService.searchCount(
 			companyId, parentGroupId, keywords, params);
@@ -2589,8 +2613,10 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, long parentGroupId, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator) {
+		long companyId, long parentGroupId, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator) {
 
 		return _groupLocalService.searchCount(
 			companyId, parentGroupId, name, description, params, andOperator);
@@ -2619,7 +2645,8 @@ public class GroupLocalServiceWrapper
 	@Override
 	public int searchCount(
 		long companyId, long[] classNameIds, long parentGroupId,
-		String keywords, java.util.LinkedHashMap<String, Object> params) {
+		java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params) {
 
 		return _groupLocalService.searchCount(
 			companyId, classNameIds, parentGroupId, keywords, params);
@@ -2650,8 +2677,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, long[] classNameIds, long parentGroupId, String name,
-		String description, java.util.LinkedHashMap<String, Object> params,
+		long companyId, long[] classNameIds, long parentGroupId,
+		java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
 		boolean andOperator) {
 
 		return _groupLocalService.searchCount(
@@ -2679,8 +2707,8 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, long[] classNameIds, String keywords,
-		java.util.LinkedHashMap<String, Object> params) {
+		long companyId, long[] classNameIds, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params) {
 
 		return _groupLocalService.searchCount(
 			companyId, classNameIds, keywords, params);
@@ -2709,8 +2737,10 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, long[] classNameIds, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator) {
+		long companyId, long[] classNameIds, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator) {
 
 		return _groupLocalService.searchCount(
 			companyId, classNameIds, name, description, params, andOperator);
@@ -2734,8 +2764,8 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, String keywords,
-		java.util.LinkedHashMap<String, Object> params) {
+		long companyId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params) {
 
 		return _groupLocalService.searchCount(companyId, keywords, params);
 	}
@@ -2762,8 +2792,9 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public int searchCount(
-		long companyId, String name, String description,
-		java.util.LinkedHashMap<String, Object> params, boolean andOperator) {
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator) {
 
 		return _groupLocalService.searchCount(
 			companyId, name, description, params, andOperator);
@@ -2824,7 +2855,7 @@ public class GroupLocalServiceWrapper
 	@Override
 	public void updateAsset(
 			long userId, com.liferay.portal.kernel.model.Group group,
-			long[] assetCategoryIds, String[] assetTagNames)
+			long[] assetCategoryIds, java.lang.String[] assetTagNames)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_groupLocalService.updateAsset(
@@ -2842,7 +2873,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group updateFriendlyURL(
-			long groupId, String friendlyURL)
+			long groupId, java.lang.String friendlyURL)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.updateFriendlyURL(groupId, friendlyURL);
@@ -2864,11 +2895,11 @@ public class GroupLocalServiceWrapper
 	@Override
 	public com.liferay.portal.kernel.model.Group updateGroup(
 			long groupId, long parentGroupId,
-			java.util.Map<java.util.Locale, String> nameMap,
-			java.util.Map<java.util.Locale, String> descriptionMap, int type,
-			boolean manualMembership, int membershipRestriction,
-			String friendlyURL, boolean inheritContent, boolean active,
-			ServiceContext serviceContext)
+			java.util.Map<java.util.Locale, java.lang.String> nameMap,
+			java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+			int type, boolean manualMembership, int membershipRestriction,
+			java.lang.String friendlyURL, boolean inheritContent,
+			boolean active, ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.updateGroup(
@@ -2888,7 +2919,7 @@ public class GroupLocalServiceWrapper
 	 */
 	@Override
 	public com.liferay.portal.kernel.model.Group updateGroup(
-			long groupId, String typeSettings)
+			long groupId, java.lang.String typeSettings)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _groupLocalService.updateGroup(groupId, typeSettings);
@@ -2912,8 +2943,8 @@ public class GroupLocalServiceWrapper
 
 	@Override
 	public void validateRemote(
-			long groupId, String remoteAddress, int remotePort,
-			String remotePathContext, boolean secureConnection,
+			long groupId, java.lang.String remoteAddress, int remotePort,
+			java.lang.String remotePathContext, boolean secureConnection,
 			long remoteGroupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 

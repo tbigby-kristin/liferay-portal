@@ -141,6 +141,7 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 			<arg value="-Dbuild.profile=portal" />
 			<arg value="-Dlicense.report.enabled=true" />
 			<arg value="-Dlicense.report.output.dir=${project.dir}/tmp/license-reports" />
+			<arg value="-Dlicense.report.override.properties.file=${project.dir}/lib/license-override.properties" />
 		</gradle-execute>
 
 		<pathconvert pathsep="," property="modules.lib.versions.files">
@@ -174,7 +175,8 @@ svn://svn.liferay.com/repos/public/alloy/trunk/sandbox/taglibs.
 				>
 					<jvmarg if:true="${jvm.debug}" value="${jpda.settings}" />
 					<jvmarg value="-Dexternal-properties=com/liferay/portal/tools/dependencies/portal-tools.properties" />
-					<arg value="${project.dir}/lib/spdx.rdf" />
+					<arg value="license.override.properties.file=${project.dir}/lib/license-override.properties" />
+					<arg value="spdx.file=${project.dir}/lib/spdx.rdf" />
 				</java>
 			</then>
 		</if>
@@ -713,62 +715,47 @@ Please run the following command from ${source.formatter.modules.dir.absolute.pa
 
 		<delete file="ServiceBuilder.temp" />
 
-		<var name="source.formatter.npm.script" value="format" />
-		<var name="source.formatter.npm.task" value="npmRunFormat" />
-
 		<if>
 			<and>
-				<isset property="source.auto.fix" />
-				<isfalse value="${source.auto.fix}" />
+				<not>
+					<or>
+						<isset property="skip.node.task" />
+						<isset property="source.file.extensions" />
+						<isset property="source.files" />
+					</or>
+				</not>
+				<resourcecount count="0" when="greater">
+					<fileset
+						dir="${project.dir}/modules"
+						excludes="**/.gradle/,**/bin/,**/build/,**/classes/,**/node_modules/,**/tmp/"
+						includes="**/yarn-*.js"
+					/>
+				</resourcecount>
 			</and>
 			<then>
-				<var name="source.formatter.npm.script" value="checkFormat" />
-				<var name="source.formatter.npm.task" value="npmRunCheckFormat" />
+				<if>
+					<and>
+						<isset property="source.auto.fix" />
+						<isfalse value="${source.auto.fix}" />
+					</and>
+					<then>
+						<gradle-execute dir="${project.dir}/modules" task=":yarnCheckFormat">
+							<env key="LIFERAY_NPM_SCRIPTS_WORKING_BRANCH_NAME" value="${git.working.branch.name}" />
+						</gradle-execute>
+					</then>
+					<else>
+						<gradle-execute dir="${project.dir}/modules" task=":yarnFormat">
+							<env key="LIFERAY_NPM_SCRIPTS_WORKING_BRANCH_NAME" value="${git.working.branch.name}" />
+						</gradle-execute>
+					</else>
+				</if>
 			</then>
-		</if>
-
-		<if>
-			<or>
-				<istrue value="${format.current.branch}" />
-				<istrue value="${format.latest.author}" />
-				<istrue value="${format.local.changes}" />
-			</or>
-			<then>
-				<echo>
-This target does not format .es.js files. Please run the following command from ${source.formatter.modules.dir.absolute.path} to do so:
-
-../gradlew ${source.formatter.npm.task}
-				</echo>
-			</then>
-			<elseif>
-				<and>
-					<not>
-						<or>
-							<isset property="skip.npm" />
-							<isset property="source.file.extensions" />
-							<isset property="source.files" />
-						</or>
-					</not>
-					<resourcecount count="0" when="greater">
-						<fileset
-							dir="${project.dir}/modules"
-							excludes="**/.gradle/,**/bin/,**/build/,**/classes/,**/node_modules/,**/tmp/"
-							includes="**/package.json"
-						>
-							<contains text="&quot;${source.formatter.npm.script}&quot;:" />
-						</fileset>
-					</resourcecount>
-				</and>
-				<then>
-					<gradle-execute dir="${project.dir}/modules" task="${source.formatter.npm.task}" />
-				</then>
-			</elseif>
 		</if>
 	</target>
 
 	<target name="format-source-bnd">
 		<antcall target="format-source-all">
-			<param name="source.file.extensions" value="bnd,gradle" />
+			<param name="source.file.extensions" value="bnd,gradle,json" />
 		</antcall>
 	</target>
 

@@ -1,0 +1,104 @@
+{
+	"fieldSets": [
+		{
+			"fields": [
+				{
+					"defaultValue": "",
+					"label": "URL",
+					"name": "url",
+					"type": "text"
+				},
+				{
+					"defaultValue": "",
+					"label": "Width",
+					"name": "width",
+					"type": "text"
+				},
+				{
+					"defaultValue": "",
+					"label": "Height",
+					"name": "height",
+					"type": "text"
+				},
+				{
+					"dataType": "string",
+					"defaultValue": "flex-start",
+					"label": "Align",
+					"name": "align",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"label": "left",
+								"value": "flex-start"
+							},
+							{
+								"label": "center",
+								"value": "center"
+							},
+							{
+								"label": "right",
+								"value": "flex-end"
+							}
+						]
+					}
+				},
+				{
+					"defaultValue": false,
+					"label": "Autoplay",
+					"name": "autoPlay",
+					"type": "checkbox"
+				},
+				{
+					"defaultValue": false,
+					"label": "Loop",
+					"name": "loop",
+					"type": "checkbox"
+				},
+				{
+					"defaultValue": true,
+					"label": "Mute",
+					"name": "mute",
+					"type": "checkbox"
+				},
+				{
+					"defaultValue": false,
+					"label": "Hide controls",
+					"name": "hideControls",
+					"type": "checkbox"
+				},
+				{
+					"dataType": "string",
+					"defaultValue": "3",
+					"label": "margin-bottom",
+					"name": "marginBottom",
+					"type": "select",
+					"typeOptions": {
+						"validValues": [
+							{
+								"label": "no-margin",
+								"value": "0"
+							},
+							{
+								"label": "small",
+								"value": "2"
+							},
+							{
+								"label": "medium",
+								"value": "3"
+							},
+							{
+								"label": "large",
+								"value": "4"
+							},
+							{
+								"label": "extra-large",
+								"value": "5"
+							}
+						]
+					}
+				}
+			]
+		}
+	]
+}

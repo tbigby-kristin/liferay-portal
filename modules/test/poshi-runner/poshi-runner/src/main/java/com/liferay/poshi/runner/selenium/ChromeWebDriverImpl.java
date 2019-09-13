@@ -146,21 +146,21 @@ public class ChromeWebDriverImpl extends BaseWebDriverImpl {
 	private void _refreshFrameWebElements() {
 		Stack<WebElement> frameWebElements = getFrameWebElements();
 
-		if (!frameWebElements.isEmpty()) {
-			if (frameWebElements.peek() instanceof RetryWebElementImpl) {
-				RetryWebElementImpl frameWebElement =
-					(RetryWebElementImpl)frameWebElements.peek();
+		if (!frameWebElements.isEmpty() &&
+			(frameWebElements.peek() instanceof RetryWebElementImpl)) {
 
-				String frameWebElementLocator = frameWebElement.getLocator();
+			RetryWebElementImpl frameWebElement =
+				(RetryWebElementImpl)frameWebElements.peek();
 
-				frameWebElements.pop();
+			String frameWebElementLocator = frameWebElement.getLocator();
 
-				frameWebElements.push(getWebElement(frameWebElementLocator));
+			frameWebElements.pop();
 
-				WebDriver.TargetLocator targetLocator = switchTo();
+			frameWebElements.push(getWebElement(frameWebElementLocator));
 
-				targetLocator.frame(frameWebElements.peek());
-			}
+			WebDriver.TargetLocator targetLocator = switchTo();
+
+			targetLocator.frame(frameWebElements.peek());
 		}
 	}
 

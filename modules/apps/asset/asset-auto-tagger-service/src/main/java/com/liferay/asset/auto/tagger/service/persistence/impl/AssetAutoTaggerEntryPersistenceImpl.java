@@ -32,10 +32,9 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
-import com.liferay.portal.kernel.service.persistence.CompanyProvider;
-import com.liferay.portal.kernel.service.persistence.CompanyProviderWrapper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -52,7 +51,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -69,12 +67,11 @@ import org.osgi.service.component.annotations.Reference;
  * @generated
  */
 @Component(service = AssetAutoTaggerEntryPersistence.class)
-@ProviderType
 public class AssetAutoTaggerEntryPersistenceImpl
 	extends BasePersistenceImpl<AssetAutoTaggerEntry>
 	implements AssetAutoTaggerEntryPersistence {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>AssetAutoTaggerEntryUtil</code> to access the asset auto tagger entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -159,14 +156,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	 * @param start the lower bound of the range of asset auto tagger entries
 	 * @param end the upper bound of the range of asset auto tagger entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset auto tagger entries
 	 */
 	@Override
 	public List<AssetAutoTaggerEntry> findByAssetEntryId(
 		long assetEntryId, int start, int end,
 		OrderByComparator<AssetAutoTaggerEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -176,10 +173,13 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByAssetEntryId;
-			finderArgs = new Object[] {assetEntryId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByAssetEntryId;
+				finderArgs = new Object[] {assetEntryId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByAssetEntryId;
 			finderArgs = new Object[] {
 				assetEntryId, start, end, orderByComparator
@@ -188,7 +188,7 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 		List<AssetAutoTaggerEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<AssetAutoTaggerEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -256,10 +256,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -680,14 +684,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	 * @param start the lower bound of the range of asset auto tagger entries
 	 * @param end the upper bound of the range of asset auto tagger entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset auto tagger entries
 	 */
 	@Override
 	public List<AssetAutoTaggerEntry> findByAssetTagId(
 		long assetTagId, int start, int end,
 		OrderByComparator<AssetAutoTaggerEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -697,10 +701,13 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByAssetTagId;
-			finderArgs = new Object[] {assetTagId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByAssetTagId;
+				finderArgs = new Object[] {assetTagId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByAssetTagId;
 			finderArgs = new Object[] {
 				assetTagId, start, end, orderByComparator
@@ -709,7 +716,7 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 		List<AssetAutoTaggerEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<AssetAutoTaggerEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -775,10 +782,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1189,18 +1200,22 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	 *
 	 * @param assetEntryId the asset entry ID
 	 * @param assetTagId the asset tag ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset auto tagger entry, or <code>null</code> if a matching asset auto tagger entry could not be found
 	 */
 	@Override
 	public AssetAutoTaggerEntry fetchByA_A(
-		long assetEntryId, long assetTagId, boolean retrieveFromCache) {
+		long assetEntryId, long assetTagId, boolean useFinderCache) {
 
-		Object[] finderArgs = new Object[] {assetEntryId, assetTagId};
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {assetEntryId, assetTagId};
+		}
 
 		Object result = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			result = finderCache.getResult(
 				_finderPathFetchByA_A, finderArgs, this);
 		}
@@ -1243,8 +1258,10 @@ public class AssetAutoTaggerEntryPersistenceImpl
 				List<AssetAutoTaggerEntry> list = q.list();
 
 				if (list.isEmpty()) {
-					finderCache.putResult(
-						_finderPathFetchByA_A, finderArgs, list);
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByA_A, finderArgs, list);
+					}
 				}
 				else {
 					AssetAutoTaggerEntry assetAutoTaggerEntry = list.get(0);
@@ -1255,7 +1272,9 @@ public class AssetAutoTaggerEntryPersistenceImpl
 				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(_finderPathFetchByA_A, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(_finderPathFetchByA_A, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1510,7 +1529,7 @@ public class AssetAutoTaggerEntryPersistenceImpl
 		assetAutoTaggerEntry.setNew(true);
 		assetAutoTaggerEntry.setPrimaryKey(assetAutoTaggerEntryId);
 
-		assetAutoTaggerEntry.setCompanyId(companyProvider.getCompanyId());
+		assetAutoTaggerEntry.setCompanyId(CompanyThreadLocal.getCompanyId());
 
 		return assetAutoTaggerEntry;
 	}
@@ -1864,14 +1883,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 	 * @param start the lower bound of the range of asset auto tagger entries
 	 * @param end the upper bound of the range of asset auto tagger entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of asset auto tagger entries
 	 */
 	@Override
 	public List<AssetAutoTaggerEntry> findAll(
 		int start, int end,
 		OrderByComparator<AssetAutoTaggerEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -1881,17 +1900,20 @@ public class AssetAutoTaggerEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindAll;
-			finderArgs = FINDER_ARGS_EMPTY;
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindAll;
+				finderArgs = FINDER_ARGS_EMPTY;
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<AssetAutoTaggerEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<AssetAutoTaggerEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 		}
@@ -1942,10 +1964,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -2117,7 +2143,7 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 	@Override
 	@Reference(
-		target = AssetAutoTaggerPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = AssetAutoTaggerPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -2149,9 +2175,6 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 	private boolean _columnBitmaskEnabled;
 
-	@Reference(service = CompanyProviderWrapper.class)
-	protected CompanyProvider companyProvider;
-
 	@Reference
 	protected EntityCache entityCache;
 
@@ -2181,5 +2204,14 @@ public class AssetAutoTaggerEntryPersistenceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AssetAutoTaggerEntryPersistenceImpl.class);
+
+	static {
+		try {
+			Class.forName(AssetAutoTaggerPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

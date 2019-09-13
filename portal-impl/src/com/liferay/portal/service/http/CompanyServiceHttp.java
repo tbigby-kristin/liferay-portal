@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.service.http.TunnelUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the HTTP utility for the
  * <code>CompanyServiceUtil</code> service
@@ -51,7 +49,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CompanyServiceSoap
  * @generated
  */
-@ProviderType
 public class CompanyServiceHttp {
 
 	public static com.liferay.portal.kernel.model.Company addCompany(
@@ -457,7 +454,7 @@ public class CompanyServiceHttp {
 
 	public static com.liferay.portal.kernel.model.Company updateCompany(
 			HttpPrincipal httpPrincipal, long companyId, String virtualHost,
-			String mx, String homeURL, boolean logo, byte[] logoBytes,
+			String mx, String homeURL, boolean hasLogo, byte[] logoBytes,
 			String name, String legalName, String legalId, String legalType,
 			String sicCode, String tickerSymbol, String industry, String type,
 			String size)
@@ -469,9 +466,9 @@ public class CompanyServiceHttp {
 				_updateCompanyParameterTypes11);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, companyId, virtualHost, mx, homeURL, logo, logoBytes,
-				name, legalName, legalId, legalType, sicCode, tickerSymbol,
-				industry, type, size);
+				methodKey, companyId, virtualHost, mx, homeURL, hasLogo,
+				logoBytes, name, legalName, legalId, legalType, sicCode,
+				tickerSymbol, industry, type, size);
 
 			Object returnObj = null;
 
@@ -501,7 +498,7 @@ public class CompanyServiceHttp {
 
 	public static com.liferay.portal.kernel.model.Company updateCompany(
 			HttpPrincipal httpPrincipal, long companyId, String virtualHost,
-			String mx, String homeURL, boolean logo, byte[] logoBytes,
+			String mx, String homeURL, boolean hasLogo, byte[] logoBytes,
 			String name, String legalName, String legalId, String legalType,
 			String sicCode, String tickerSymbol, String industry, String type,
 			String size, String languageId, String timeZoneId,
@@ -519,10 +516,10 @@ public class CompanyServiceHttp {
 				_updateCompanyParameterTypes12);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, companyId, virtualHost, mx, homeURL, logo, logoBytes,
-				name, legalName, legalId, legalType, sicCode, tickerSymbol,
-				industry, type, size, languageId, timeZoneId, addresses,
-				emailAddresses, phones, websites, properties);
+				methodKey, companyId, virtualHost, mx, homeURL, hasLogo,
+				logoBytes, name, legalName, legalId, legalType, sicCode,
+				tickerSymbol, industry, type, size, languageId, timeZoneId,
+				addresses, emailAddresses, phones, websites, properties);
 
 			Object returnObj = null;
 

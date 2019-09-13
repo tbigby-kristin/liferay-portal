@@ -73,10 +73,10 @@ List<KBFolder> kbFolders = KBUtil.getAlternateRootKBFolders(scopeGroupId, kbDisp
 	</div>
 
 	<aui:script>
-		var <portlet:namespace />form = document.querySelector('#<portlet:namespace />updateRootKBFolderIdFm');
+		var <portlet:namespace />form = document.getElementById('<portlet:namespace />updateRootKBFolderIdFm');
 
 		if (<portlet:namespace />form) {
-			<portlet:namespace />form.querySelector('#<portlet:namespace />rootKBFolderId').addEventListener(
+			document.getElementById('<portlet:namespace />rootKBFolderId').addEventListener(
 				'change',
 				function() {
 					<portlet:namespace />form.submit();

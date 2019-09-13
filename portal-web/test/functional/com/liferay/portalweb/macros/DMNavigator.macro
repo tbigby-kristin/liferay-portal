@@ -2,8 +2,16 @@ definition {
 
 	var dmDocumentTypeName = "File Upload";
 
-	macro gotoAddDocumentType {
+	macro gotoAddDocumentTypeCP {
 		LexiconEntry.gotoAdd();
+
+		var key_dmDocumentTypeName = "${dmDocumentTypeName}";
+
+		MenuItem.click(menuItem = "${dmDocumentTypeName}");
+	}
+
+	macro gotoAddDocumentTypePG {
+		Portlet.clickPortletPlusIconPG(portletName = "Documents and Media");
 
 		var key_dmDocumentTypeName = "${dmDocumentTypeName}";
 
@@ -160,16 +168,32 @@ definition {
 		var key_text = "Share";
 
 		AssertClick(
-			locator1 = "Button#ANY",
+			locator1 = "Button#SHARE_SIDENAV",
 			value1 = "Share");
 	}
 
-	macro gotoShareViaSharedAssets {
+	macro gotoShareInfoPanel {
 		var key_dmDocumentTitle = "${dmDocumentTitle}";
 
-		Click(
-			locator1 = "DocumentsAndMediaShare#SHARED_ASSETS_DOCUMENT_OPTIONS",
+		AssertClick(
+			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_TITLE",
 			value1 = "${dmDocumentTitle}");
+
+		DMDocument.viewDocumentTitleCmdPG(dmDocumentTitle = "${dmDocumentTitle}");
+
+		Click.clickAt(locator1 = "Icon#INFO");
+
+		AssertElementPresent(locator1 = "Button#SHARE_SIDEBAR");
+
+		Click(locator1 = "Button#SHARE_SIDEBAR");
+	}
+
+	macro gotoShareViaSharedContent {
+		var key_contentTitle = "${dmDocumentTitle}";
+
+		Click(
+			locator1 = "Sharing#SHARED_CONTENT_CONTENT_OPTIONS",
+			value1 = "${contentTitle}");
 
 		MenuItem.click(menuItem = "Share");
 	}
@@ -178,6 +202,10 @@ definition {
 		DMDocument.expandInfo();
 
 		Click(locator1 = "DocumentsAndMediaDocument#DETAILS_URL");
+	}
+
+	macro openDocumentsAndMediaAdmin {
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_document_library_web_portlet_DLAdminPortlet");
 	}
 
 }

@@ -14,6 +14,11 @@
 
 package com.liferay.data.engine.rest.internal.renderer.v1_0;
 
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.field.type.FieldTypeTracker;
+import com.liferay.data.engine.field.type.util.LocalizedValueUtil;
+import com.liferay.data.engine.renderer.DataLayoutRenderer;
+import com.liferay.data.engine.renderer.DataLayoutRendererContext;
 import com.liferay.data.engine.rest.dto.v1_0.DataDefinition;
 import com.liferay.data.engine.rest.dto.v1_0.DataDefinitionField;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayout;
@@ -23,30 +28,32 @@ import com.liferay.data.engine.rest.dto.v1_0.DataLayoutRow;
 import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataDefinitionFieldUtil;
 import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataDefinitionUtil;
 import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataLayoutUtil;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.FieldTypeTracker;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
-import com.liferay.data.engine.spi.renderer.DataLayoutRenderer;
+import com.liferay.data.engine.rest.internal.field.type.v1_0.FieldSetFieldType;
+import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
+import com.liferay.portal.kernel.servlet.taglib.DynamicIncludeUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.template.soy.renderer.ComponentDescriptor;
 import com.liferay.portal.template.soy.renderer.SoyComponentRenderer;
 
 import java.io.Writer;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -64,16 +71,9 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 
 	@Override
 	public String render(
-			Long dataLayoutId, HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
+			Long dataLayoutId,
+			DataLayoutRendererContext dataLayoutRendererContext)
 		throws Exception {
-
-		Writer writer = new UnsyncStringWriter();
-
-		ComponentDescriptor componentDescriptor = new ComponentDescriptor(
-			_TEMPLATE_NAMESPACE, _npmResolver.resolveModuleName(_MODULE_NAME));
-
-		Map<String, Object> context = new HashMap<>();
 
 		DDMStructureLayout ddmStructureLayout =
 			_ddmStructureLayoutLocalService.getStructureLayout(dataLayoutId);
@@ -82,32 +82,64 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 			_ddmStructureVersionLocalService.getDDMStructureVersion(
 				ddmStructureLayout.getStructureVersionId());
 
-		DataLayout dataLayout = DataLayoutUtil.toDataLayout(
-			ddmStructureLayout.getDefinition());
+		return _render(
+			DataDefinitionUtil.toDataDefinition(
+				ddmStructureVersion.getStructure(), _fieldTypeTracker),
+			DataLayoutUtil.toDataLayout(ddmStructureLayout.getDefinition()),
+			dataLayoutRendererContext);
+	}
 
-		context.put(
-			"pages",
-			_createDataLayoutPageContexts(
-				_getDataDefinitionFieldsMap(
-					DataDefinitionUtil.toDataDefinition(
-						ddmStructureVersion.getStructure())),
-				dataLayout.getDataLayoutPages(), _fieldTypeTracker,
-				httpServletRequest, httpServletResponse));
+	private Object _createDataDefinitionFieldContext(
+		DataDefinitionField dataDefinitionField,
+		FieldTypeTracker fieldTypeTracker,
+		HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse) {
 
-		context.put("paginationMode", dataLayout.getPaginationMode());
+		FieldType fieldType = fieldTypeTracker.getFieldType(
+			dataDefinitionField.getFieldType());
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
+		if (fieldType instanceof FieldSetFieldType) {
+			Map<String, Object> customProperties =
+				dataDefinitionField.getCustomProperties();
 
-		String pathThemeImages = themeDisplay.getPathThemeImages();
+			DataDefinitionField[] nestedDataDefinitionFields =
+				(DataDefinitionField[])customProperties.get("nestedFields");
 
-		context.put("spritemap", pathThemeImages.concat("/clay/icons.svg"));
+			customProperties.put(
+				"nestedFields",
+				Stream.of(
+					nestedDataDefinitionFields
+				).map(
+					nestedDataDefinitionField ->
+						_createDataDefinitionFieldContext(
+							nestedDataDefinitionField, fieldTypeTracker,
+							httpServletRequest, httpServletResponse)
+				).collect(
+					Collectors.toList()
+				));
+		}
 
-		_soyComponentRenderer.renderSoyComponent(
-			httpServletRequest, writer, componentDescriptor, context);
+		return fieldType.includeContext(
+			httpServletRequest, httpServletResponse,
+			DataDefinitionFieldUtil.toSPIDataDefinitionField(
+				dataDefinitionField));
+	}
 
-		return writer.toString();
+	private List<Object> _createDataDefinitionFieldContexts(
+		Map<String, DataDefinitionField> dataDefinitionFields,
+		String[] fieldNames, FieldTypeTracker fieldTypeTracker,
+		HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse) {
+
+		return Stream.of(
+			fieldNames
+		).map(
+			fieldName -> _createDataDefinitionFieldContext(
+				dataDefinitionFields.get(fieldName), fieldTypeTracker,
+				httpServletRequest, httpServletResponse)
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	private List<Object> _createDataLayoutColumnContexts(
@@ -116,23 +148,23 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
 
-		List<Object> dataLayoutColumnContexts = new ArrayList<>();
-
-		for (DataLayoutColumn dataLayoutColumn : dataLayoutColumns) {
-			Map<String, Object> dataLayoutColumnsContext = new HashMap<>();
-
-			dataLayoutColumnsContext.put(
-				"fields",
-				_createFieldTypeContexts(
-					dataDefinitionFields, dataLayoutColumn.getFieldNames(),
-					fieldTypeTracker, httpServletRequest, httpServletResponse));
-			dataLayoutColumnsContext.put(
-				"size", dataLayoutColumn.getColumnSize());
-
-			dataLayoutColumnContexts.add(dataLayoutColumnsContext);
-		}
-
-		return dataLayoutColumnContexts;
+		return Stream.of(
+			dataLayoutColumns
+		).map(
+			dataLayoutColumn -> new HashMap() {
+				{
+					put(
+						"fields",
+						_createDataDefinitionFieldContexts(
+							dataDefinitionFields,
+							dataLayoutColumn.getFieldNames(), fieldTypeTracker,
+							httpServletRequest, httpServletResponse));
+					put("size", dataLayoutColumn.getColumnSize());
+				}
+			}
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	private List<Object> _createDataLayoutPageContexts(
@@ -141,35 +173,35 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
 
-		List<Object> dataLayoutPageContexts = new ArrayList<>();
-
-		for (DataLayoutPage dataLayoutPage : dataLayoutPages) {
-			Map<String, Object> dataLayoutPageContext = new HashMap<>();
-
-			dataLayoutPageContext.put(
-				"description",
-				GetterUtil.getString(
-					LocalizedValueUtil.getLocalizedValue(
-						httpServletRequest.getLocale(),
-						dataLayoutPage.getDescription())));
-
-			dataLayoutPageContext.put(
-				"rows",
-				_createDataLayoutRowContexts(
-					dataDefinitionFields, dataLayoutPage.getDataLayoutRows(),
-					fieldTypeTracker, httpServletRequest, httpServletResponse));
-
-			dataLayoutPageContext.put(
-				"title",
-				GetterUtil.getString(
-					LocalizedValueUtil.getLocalizedValue(
-						httpServletRequest.getLocale(),
-						dataLayoutPage.getTitle())));
-
-			dataLayoutPageContexts.add(dataLayoutPageContext);
-		}
-
-		return dataLayoutPageContexts;
+		return Stream.of(
+			dataLayoutPages
+		).map(
+			dataLayoutPage -> new HashMap() {
+				{
+					put(
+						"description",
+						GetterUtil.getString(
+							LocalizedValueUtil.getLocalizedValue(
+								httpServletRequest.getLocale(),
+								dataLayoutPage.getDescription())));
+					put(
+						"rows",
+						_createDataLayoutRowContexts(
+							dataDefinitionFields,
+							dataLayoutPage.getDataLayoutRows(),
+							fieldTypeTracker, httpServletRequest,
+							httpServletResponse));
+					put(
+						"title",
+						GetterUtil.getString(
+							LocalizedValueUtil.getLocalizedValue(
+								httpServletRequest.getLocale(),
+								dataLayoutPage.getTitle())));
+				}
+			}
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	private List<Object> _createDataLayoutRowContexts(
@@ -178,52 +210,27 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
 
-		List<Object> dataLayoutRowContexts = new ArrayList<>();
-
-		for (DataLayoutRow dataLayoutRow : dataLayoutRows) {
-			Map<String, Object> dataLayoutRowContext = new HashMap<>();
-
-			dataLayoutRowContext.put(
-				"columns",
-				_createDataLayoutColumnContexts(
-					dataDefinitionFields, dataLayoutRow.getDataLayoutColums(),
-					fieldTypeTracker, httpServletRequest, httpServletResponse));
-
-			dataLayoutRowContexts.add(dataLayoutRowContext);
-		}
-
-		return dataLayoutRowContexts;
-	}
-
-	private List<Object> _createFieldTypeContexts(
-		Map<String, DataDefinitionField> dataDefinitionFields,
-		String[] fieldNames, FieldTypeTracker fieldTypeTracker,
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
-
-		List<Object> fieldTypeContexts = new ArrayList<>();
-
-		for (String fieldName : fieldNames) {
-			DataDefinitionField dataDefinitionField = dataDefinitionFields.get(
-				fieldName);
-
-			FieldType fieldType = fieldTypeTracker.getFieldType(
-				dataDefinitionField.getFieldType());
-
-			if (fieldType != null) {
-				fieldTypeContexts.add(
-					fieldType.includeContext(
-						httpServletRequest, httpServletResponse,
-						DataDefinitionFieldUtil.toSPIDataDefinitionField(
-							dataDefinitionField)));
+		return Stream.of(
+			dataLayoutRows
+		).map(
+			dataLayoutRow -> new HashMap() {
+				{
+					put(
+						"columns",
+						_createDataLayoutColumnContexts(
+							dataDefinitionFields,
+							dataLayoutRow.getDataLayoutColumns(),
+							fieldTypeTracker, httpServletRequest,
+							httpServletResponse));
+				}
 			}
-		}
-
-		return fieldTypeContexts;
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	private Map<String, DataDefinitionField> _getDataDefinitionFieldsMap(
-		DataDefinition dataDefinition) {
+		DataDefinition dataDefinition, Map<String, Object> dataRecordValues) {
 
 		List<DataDefinitionField> dataDefinitionFields = Arrays.asList(
 			dataDefinition.getDataDefinitionFields());
@@ -231,11 +238,122 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 		Stream<DataDefinitionField> stream = dataDefinitionFields.stream();
 
 		return stream.collect(
-			Collectors.toMap(field -> field.getName(), Function.identity()));
+			Collectors.toMap(
+				dataDefinitionField -> dataDefinitionField.getName(),
+				definitionField -> {
+					if (MapUtil.isEmpty(dataRecordValues)) {
+						return definitionField;
+					}
+
+					Map<String, Object> customProperties =
+						definitionField.getCustomProperties();
+
+					customProperties.put(
+						"value",
+						dataRecordValues.get(definitionField.getName()));
+
+					return definitionField;
+				}));
+	}
+
+	private Set<String> _getDependencies() {
+		Collection<FieldType> fieldTypes = _fieldTypeTracker.getFieldTypes();
+
+		Stream<FieldType> stream = fieldTypes.stream();
+
+		return stream.filter(
+			this::_hasJavascriptModule
+		).map(
+			this::_resolveFieldTypeModule
+		).collect(
+			Collectors.toSet()
+		);
+	}
+
+	private String _getJavaScriptModule(String moduleName) {
+		if (Validator.isNull(moduleName)) {
+			return StringPool.BLANK;
+		}
+
+		return _npmResolver.resolveModuleName(moduleName);
+	}
+
+	private String _getSpriteMap(HttpServletRequest httpServletRequest) {
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		String pathThemeImages = themeDisplay.getPathThemeImages();
+
+		return pathThemeImages.concat("/clay/icons.svg");
+	}
+
+	private boolean _hasJavascriptModule(FieldType fieldType) {
+		Map<String, Object> fieldTypeProperties =
+			_fieldTypeTracker.getFieldTypeProperties(fieldType.getName());
+
+		return fieldTypeProperties.containsKey(
+			"data.engine.field.type.js.module");
+	}
+
+	private String _render(
+			DataDefinition dataDefinition, DataLayout dataLayout,
+			DataLayoutRendererContext dataLayoutRendererContext)
+		throws Exception {
+
+		Writer writer = new UnsyncStringWriter();
+
+		_soyComponentRenderer.renderSoyComponent(
+			dataLayoutRendererContext.getHttpServletRequest(), writer,
+			new ComponentDescriptor(
+				_TEMPLATE_NAMESPACE,
+				_npmResolver.resolveModuleName(_MODULE_NAME),
+				dataLayoutRendererContext.getContainerId(), _getDependencies()),
+			new HashMap() {
+				{
+					put(
+						"pages",
+						_createDataLayoutPageContexts(
+							_getDataDefinitionFieldsMap(
+								dataDefinition,
+								dataLayoutRendererContext.
+									getDataRecordValues()),
+							dataLayout.getDataLayoutPages(), _fieldTypeTracker,
+							dataLayoutRendererContext.getHttpServletRequest(),
+							dataLayoutRendererContext.
+								getHttpServletResponse()));
+					put(
+						"paginationMode",
+						GetterUtil.getString(
+							dataLayout.getPaginationMode(), "single-page"));
+					put(
+						"portletNamespace",
+						dataLayoutRendererContext.getPortletNamespace());
+					put("showSubmitButton", false);
+					put(
+						"spritemap",
+						_getSpriteMap(
+							dataLayoutRendererContext.getHttpServletRequest()));
+				}
+			});
+
+		DynamicIncludeUtil.include(
+			dataLayoutRendererContext.getHttpServletRequest(),
+			dataLayoutRendererContext.getHttpServletResponse(),
+			DDMFormRenderer.class.getName() + "#formRendered", true);
+
+		return writer.toString();
+	}
+
+	private String _resolveFieldTypeModule(FieldType fieldType) {
+		return _getJavaScriptModule(
+			MapUtil.getString(
+				_fieldTypeTracker.getFieldTypeProperties(fieldType.getName()),
+				"data.engine.field.type.js.module"));
 	}
 
 	private static final String _MODULE_NAME =
-		"dynamic-data-mapping-form-renderer/js/metal/containers/Form/Form.es";
+		"dynamic-data-mapping-form-renderer/js/containers/Form/Form.es";
 
 	private static final String _TEMPLATE_NAMESPACE = "FormRenderer.render";
 

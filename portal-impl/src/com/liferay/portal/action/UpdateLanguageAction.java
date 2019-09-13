@@ -111,32 +111,31 @@ public class UpdateLanguageAction implements Action {
 			layoutURL = redirect;
 		}
 
+		if (themeDisplay.isI18n()) {
+			String i18nPath = themeDisplay.getI18nPath();
+
+			layoutURL = redirect.substring(i18nPath.length());
+		}
+
 		Layout layout = themeDisplay.getLayout();
 
 		if (isFriendlyURLResolver(layoutURL)) {
 			redirect = layoutURL;
-
-			if (themeDisplay.isI18n()) {
-				String i18nPath = themeDisplay.getI18nPath();
-
-				redirect = redirect.substring(i18nPath.length());
-			}
 		}
-		else if (isGroupFriendlyURL(
-					layout.getGroup(), layout, layoutURL, locale)) {
+		else if (layoutURL.equals(StringPool.SLASH) ||
+				 isGroupFriendlyURL(
+					 layout.getGroup(), layout, layoutURL, locale)) {
 
 			if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 0) {
 				redirect = layoutURL;
-
-				if (themeDisplay.isI18n()) {
-					String i18nPath = themeDisplay.getI18nPath();
-
-					redirect = redirect.substring(i18nPath.length());
-				}
 			}
 			else {
 				redirect = PortalUtil.getGroupFriendlyURL(
 					layout.getLayoutSet(), themeDisplay, locale);
+			}
+
+			if (!redirect.endsWith(StringPool.SLASH)) {
+				redirect += StringPool.SLASH;
 			}
 		}
 		else if (layout.isTypeControlPanel() && themeDisplay.isI18n()) {

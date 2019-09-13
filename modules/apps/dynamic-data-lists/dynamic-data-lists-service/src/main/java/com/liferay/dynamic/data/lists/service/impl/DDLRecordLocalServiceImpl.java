@@ -163,11 +163,9 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Asset
 
-		Locale locale = serviceContext.getLocale();
-
 		updateAsset(
 			userId, record, recordVersion, serviceContext.getAssetCategoryIds(),
-			serviceContext.getAssetTagNames(), locale,
+			serviceContext.getAssetTagNames(), serviceContext.getLocale(),
 			serviceContext.getAssetPriority());
 
 		// Workflow
@@ -792,9 +790,8 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 			Hits hits = indexer.search(searchContext, DDL.SELECTED_FIELD_NAMES);
 
-			List<DDLRecord> records = getRecords(hits);
-
-			return new BaseModelSearchResult<>(records, hits.getLength());
+			return new BaseModelSearchResult<>(
+				getRecords(hits), hits.getLength());
 		}
 		catch (Exception e) {
 			throw new SystemException(e);
@@ -949,10 +946,8 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			storageEngine.update(
 				recordVersion.getDDMStorageId(), ddmFormValues, serviceContext);
 
-			String version = recordVersion.getVersion();
-
 			updateRecordVersion(
-				user, recordVersion, version, displayIndex,
+				user, recordVersion, recordVersion.getVersion(), displayIndex,
 				recordVersion.getStatus(), serviceContext);
 		}
 
@@ -1160,9 +1155,10 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 			recordVersion.getRecordId());
 
 		if (status == WorkflowConstants.STATUS_APPROVED) {
-			if (DLUtil.compareVersions(
-					record.getVersion(), recordVersion.getVersion()) <= 0) {
+			int compare = DLUtil.compareVersions(
+				record.getVersion(), recordVersion.getVersion());
 
+			if (compare <= 0) {
 				record.setDDMStorageId(recordVersion.getDDMStorageId());
 				record.setVersion(recordVersion.getVersion());
 				record.setRecordSetId(recordVersion.getRecordSetId());
@@ -1200,11 +1196,9 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 
 		// Asset
 
-		Locale locale = serviceContext.getLocale();
-
 		updateAsset(
 			userId, record, recordVersion, serviceContext.getAssetCategoryIds(),
-			serviceContext.getAssetTagNames(), locale,
+			serviceContext.getAssetTagNames(), serviceContext.getLocale(),
 			serviceContext.getAssetPriority());
 
 		return record;
@@ -1299,9 +1293,7 @@ public class DDLRecordLocalServiceImpl extends DDLRecordLocalServiceBaseImpl {
 					com.liferay.portal.kernel.search.Field.ENTRY_CLASS_PK));
 
 			try {
-				DDLRecord record = getRecord(recordId);
-
-				records.add(record);
+				records.add(getRecord(recordId));
 			}
 			catch (NoSuchRecordException nsre) {
 				if (_log.isWarnEnabled()) {

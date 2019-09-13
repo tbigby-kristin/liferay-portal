@@ -12,7 +12,6 @@
 
 package ${packagePath}.model.impl;
 
-import ${serviceBuilder.getCompatJavaClassName("ProviderType")};
 import ${serviceBuilder.getCompatJavaClassName("StringBundler")};
 
 <#if entity.hasCompoundPK()>
@@ -124,11 +123,9 @@ import java.util.function.Function;
 <#if entity.jsonEnabled>
 	@JSON(strict = true)
 </#if>
-
-@ProviderType
 public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> implements ${entity.name}Model {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ${entity.humanName} model instance should use the <code>${apiPackagePath}.model.${entity.name}</code> interface instead.
@@ -1419,7 +1416,9 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 	@Override
 	public ${entity.name} toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(new AutoEscapeBeanHandler(this));
+			Function<InvocationHandler, ${entity.name}> escapedModelProxyProviderFunction = EscapedModelProxyProviderFunctionHolder._escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(new AutoEscapeBeanHandler(this));
 		}
 
 		return _escapedModel;
@@ -1762,7 +1761,11 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 		}
 	</#if>
 
-	private static final Function<InvocationHandler, ${entity.name}> _escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, ${entity.name}> _escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	<#if dependencyInjectorDS>
 		private static boolean _entityCacheEnabled;

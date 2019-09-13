@@ -1,22 +1,23 @@
-const strings = {
-	'copied-to-clipboard': 'Copied to clipboard.',
-	'publish-form': 'Publish Form',
-	'the-form-was-published-successfully-access-it-with-this-url-x': 'the-form-was-published-successfully-access-it-with-this-url-x',
-	'unpublish-form': 'Unpublish Form'
-};
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
 
-window.Liferay = {
-	DDM: {
-		FormSettings: {
-			spritemap: '/lexicon/icons.svg'
-		}
-	},
-	Language: {
-		get: arg => strings[arg]
-	},
-	Session: {
-		get: arg => 'active'
+Liferay.DDM = {
+	FormSettings: {
+		spritemap: '/lexicon/icons.svg'
 	}
 };
 
-window.themeDisplay = window.Liferay.ThemeDisplay;
+Liferay.Session = {
+	get: () => 'active'
+};

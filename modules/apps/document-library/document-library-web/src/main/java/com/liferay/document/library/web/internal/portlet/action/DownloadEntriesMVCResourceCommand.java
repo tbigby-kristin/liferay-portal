@@ -122,8 +122,9 @@ public class DownloadEntriesMVCResourceCommand implements MVCResourceCommand {
 
 				return;
 			}
-			else if ((fileEntries.size() == 1) && fileShortcuts.isEmpty() &&
-					 folders.isEmpty()) {
+
+			if ((fileEntries.size() == 1) && fileShortcuts.isEmpty() &&
+				folders.isEmpty()) {
 
 				FileEntry fileEntry = fileEntries.get(0);
 
@@ -312,9 +313,7 @@ public class DownloadEntriesMVCResourceCommand implements MVCResourceCommand {
 			return false;
 		}
 
-		Folder folder = _dlAppService.getFolder(folderId);
-
-		if (_isExternalRepositoryFolder(folder)) {
+		if (_isExternalRepositoryFolder(_dlAppService.getFolder(folderId))) {
 			return true;
 		}
 

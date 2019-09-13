@@ -43,6 +43,10 @@ public class BaseClayCardTag extends BaseClayTag {
 		putValue("actionItems", actionDropdownItems);
 	}
 
+	public void setAspectRatioCssClasses(String aspectRatioCssClasses) {
+		putValue("aspectRatioClasses", aspectRatioCssClasses);
+	}
+
 	public void setBaseClayCard(BaseClayCard baseClayCard) {
 		_baseClayCard = baseClayCard;
 	}

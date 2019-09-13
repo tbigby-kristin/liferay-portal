@@ -29,7 +29,7 @@
 	<td></td>
 </tr>
 <tr>
-	<td>JAVASCRIPT_EDITOR</td>
+	<td>JS_EDITOR</td>
 	<td>//div[contains(@class,'fragment-editor')]/div[contains(@class,'source-editor')][3]//textarea</td>
 	<td></td>
 </tr>
@@ -41,6 +41,26 @@
 <tr>
 	<td>FRAGMENTS_TOOLKIT_LINK</td>
 	<td>//a[@title='Fragments Toolkit']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIGURATION_EDITOR</td>
+	<td>//div[contains(@class,'fragment-editor')]/div[contains(@class,'source-editor json')]//textarea</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENTS_EDITOR_FLOATING_TOOLBAR_CONFIGURATION</td>
+	<td>//button[@data-title='Fragment Configuration']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENTS_EDITOR_FLOATING_TOOLBAR_DELETE</td>
+	<td>//button[@data-title='Remove Fragment']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT</td>
+	<td>//select[contains(@class,'form-control')]</td>
 	<td></td>
 </tr>
 </tbody>

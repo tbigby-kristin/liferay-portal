@@ -1,7 +1,6 @@
-@import "bourbon";
-@import "mixins";
+@import 'atlas-variables';
 
-@import "common_main";
+@import 'common_main';
 
 .portlet-blogs {
 	.entry-options {
@@ -50,7 +49,7 @@
 			margin-top: 1em;
 			text-align: center;
 
-			@include respond-to(desktop) {
+			@include media-breakpoint-up(lg) {
 				float: right;
 				margin-top: 0;
 			}
@@ -91,7 +90,9 @@
 	.entry-footer {
 		vertical-align: middle;
 
-		.entry-social, .flags, .social-bookmarks {
+		.entry-social,
+		.flags,
+		.social-bookmarks {
 			display: inline-block;
 		}
 
@@ -126,7 +127,7 @@
 				vertical-align: middle;
 			}
 
-			@include respond-to(phone, tablet) {
+			@include media-breakpoint-down(md) {
 				clear: both;
 				display: block;
 
@@ -154,14 +155,14 @@
 			width: 100%;
 		}
 
-		.entry-title h1 p {
+		.entry-title p {
 			line-height: 80px;
 		}
 
 		.entry-subtitle {
 			margin-bottom: 30px;
 
-			h4 p {
+			p {
 				line-height: 45px;
 			}
 		}
@@ -176,7 +177,9 @@
 		}
 	}
 
-	.entry.draft, .entry.pending, .entry.scheduled {
+	.entry.draft,
+	.entry.pending,
+	.entry.scheduled {
 		border: 1px solid transparent;
 		padding: 5px;
 
@@ -209,7 +212,7 @@
 
 	.entry-card {
 		.aspect-ratio.aspect-ratio-bg-cover {
-			@include media-query(null, $screen-xs-max) {
+			@include media-breakpoint-down(sm) {
 				padding-bottom: 50%;
 			}
 		}
@@ -218,12 +221,6 @@
 	.entry-title {
 		display: block;
 		position: relative;
-
-		h1 {
-			font-size: 60px;
-			line-height: 80px;
-			margin-bottom: 25px;
-		}
 
 		h2 {
 			margin-right: 30px;
@@ -237,7 +234,7 @@
 		.social-bookmarks {
 			z-index: 1;
 
-			@include respond-to(desktop) {
+			@include media-breakpoint-up(lg) {
 				display: inline-block;
 				right: 35px;
 				top: 0;
@@ -256,7 +253,7 @@
 	.info-bar-container.affix + .entry-body {
 		margin-top: 47px;
 
-		@include sm() {
+		@include media-breakpoint-up(sm) {
 			margin-top: 59px;
 		}
 	}
@@ -327,15 +324,22 @@
 
 .portlet-blogs {
 	.border-top {
-		border-color: #EDEEF0;
+		border-color: #edeef0;
 	}
 
 	.edit-entry {
 		.cover-image-caption .alloy-editor {
-			color: #A7A9BC;
+			color: #a7a9bc;
 		}
 
-		.entry-title, .entry-content {
+		.entry-title {
+			font-size: 60px;
+			line-height: 80px;
+			margin-bottom: 25px;
+		}
+
+		.entry-title,
+		.entry-content {
 			.alloy-editor-placeholder {
 				color: #272833;
 			}
@@ -343,13 +347,15 @@
 
 		.entry-subtitle {
 			.alloy-editor-placeholder {
-				color: #A7A9BC;
+				color: #a7a9bc;
 			}
 		}
 	}
 
-	.entry.draft, .entry.pending, .entry.scheduled {
-		border-color: #CCC;
+	.entry.draft,
+	.entry.pending,
+	.entry.scheduled {
+		border-color: #ccc;
 	}
 
 	.entry-footer .entry-social {
@@ -378,8 +384,10 @@
 		}
 	}
 
-	.entry.draft, .entry.pending, .entry.scheduled {
-		background: #EEE;
+	.entry.draft,
+	.entry.pending,
+	.entry.scheduled {
+		background: #eee;
 		color: #555;
 	}
 

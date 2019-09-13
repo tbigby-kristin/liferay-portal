@@ -18,7 +18,6 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.headless.delivery.client.dto.v1_0.Comment;
-import com.liferay.headless.delivery.client.resource.v1_0.CommentResource;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.petra.string.StringBundler;
@@ -54,10 +53,15 @@ public class CommentResourceTest extends BaseCommentResourceTestCase {
 	}
 
 	@Override
+	protected String[] getIgnoredEntityFieldNames() {
+		return new String[] {"creatorId"};
+	}
+
+	@Override
 	protected Comment testDeleteComment_addComment() throws Exception {
 		BlogsEntry blogsEntry = _addBlogsEntry();
 
-		return CommentResource.postBlogPostingComment(
+		return commentResource.postBlogPostingComment(
 			blogsEntry.getEntryId(), randomComment());
 	}
 
@@ -74,7 +78,7 @@ public class CommentResourceTest extends BaseCommentResourceTestCase {
 	protected Comment testGetComment_addComment() throws Exception {
 		BlogsEntry blogsEntry = _addBlogsEntry();
 
-		return CommentResource.postBlogPostingComment(
+		return commentResource.postBlogPostingComment(
 			blogsEntry.getEntryId(), randomComment());
 	}
 
@@ -84,7 +88,7 @@ public class CommentResourceTest extends BaseCommentResourceTestCase {
 
 		BlogsEntry blogsEntry = _addBlogsEntry();
 
-		Comment comment = CommentResource.postBlogPostingComment(
+		Comment comment = commentResource.postBlogPostingComment(
 			blogsEntry.getEntryId(), randomComment());
 
 		return comment.getId();
@@ -109,13 +113,18 @@ public class CommentResourceTest extends BaseCommentResourceTestCase {
 	}
 
 	@Override
+	protected Comment testGraphQLComment_addComment() throws Exception {
+		return testGetComment_addComment();
+	}
+
+	@Override
 	protected Comment testPutComment_addComment() throws Exception {
 		BlogsEntry blogsEntry = _addBlogsEntry();
 
-		Comment comment = CommentResource.postBlogPostingComment(
+		Comment comment = commentResource.postBlogPostingComment(
 			blogsEntry.getEntryId(), randomComment());
 
-		return CommentResource.postCommentComment(
+		return commentResource.postCommentComment(
 			comment.getId(), randomComment());
 	}
 

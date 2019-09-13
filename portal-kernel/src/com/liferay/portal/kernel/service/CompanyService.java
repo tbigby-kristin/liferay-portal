@@ -53,7 +53,7 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 public interface CompanyService extends BaseService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link CompanyServiceUtil} to access the company remote service. Add custom service methods to <code>com.liferay.portal.service.impl.CompanyServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -184,7 +184,7 @@ public interface CompanyService extends BaseService {
 	 * @param virtualHost the company's virtual host name
 	 * @param mx the company's mail domain
 	 * @param homeURL the company's home URL (optionally <code>null</code>)
-	 * @param logo whether to update the company's logo
+	 * @param hasLogo if the company has a custom logo
 	 * @param logoBytes the new logo image data
 	 * @param name the company's account name (optionally <code>null</code>)
 	 * @param legalName the company's account legal name (optionally
@@ -205,7 +205,7 @@ public interface CompanyService extends BaseService {
 	 */
 	public Company updateCompany(
 			long companyId, String virtualHost, String mx, String homeURL,
-			boolean logo, byte[] logoBytes, String name, String legalName,
+			boolean hasLogo, byte[] logoBytes, String name, String legalName,
 			String legalId, String legalType, String sicCode,
 			String tickerSymbol, String industry, String type, String size)
 		throws PortalException;
@@ -217,7 +217,7 @@ public interface CompanyService extends BaseService {
 	 * @param virtualHost the company's virtual host name
 	 * @param mx the company's mail domain
 	 * @param homeURL the company's home URL (optionally <code>null</code>)
-	 * @param logo if the company has a custom logo
+	 * @param hasLogo if the company has a custom logo
 	 * @param logoBytes the new logo image data
 	 * @param name the company's account name (optionally <code>null</code>)
 	 * @param legalName the company's account legal name (optionally
@@ -246,7 +246,7 @@ public interface CompanyService extends BaseService {
 	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
 	public Company updateCompany(
 			long companyId, String virtualHost, String mx, String homeURL,
-			boolean logo, byte[] logoBytes, String name, String legalName,
+			boolean hasLogo, byte[] logoBytes, String name, String legalName,
 			String legalId, String legalType, String sicCode,
 			String tickerSymbol, String industry, String type, String size,
 			String languageId, String timeZoneId, List<Address> addresses,

@@ -44,8 +44,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the SocialActivityAchievement service. Represents a row in the &quot;SocialActivityAchievement&quot; database table, with each column mapped to a property of this class.
  *
@@ -57,12 +55,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SocialActivityAchievementImpl
  * @generated
  */
-@ProviderType
 public class SocialActivityAchievementModelImpl
 	extends BaseModelImpl<SocialActivityAchievement>
 	implements SocialActivityAchievementModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a social activity achievement model instance should use the <code>SocialActivityAchievement</code> interface instead.
@@ -481,7 +478,12 @@ public class SocialActivityAchievementModelImpl
 	@Override
 	public SocialActivityAchievement toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, SocialActivityAchievement>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -681,8 +683,14 @@ public class SocialActivityAchievementModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, SocialActivityAchievement>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function
+			<InvocationHandler, SocialActivityAchievement>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
 
 	private long _activityAchievementId;
 	private long _groupId;

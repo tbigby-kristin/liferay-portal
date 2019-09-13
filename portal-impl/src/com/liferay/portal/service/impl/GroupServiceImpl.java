@@ -190,20 +190,18 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 
 	@Override
 	public void disableStaging(long groupId) throws PortalException {
-		Group group = groupLocalService.getGroup(groupId);
-
 		GroupPermissionUtil.check(
-			getPermissionChecker(), group, ActionKeys.UPDATE);
+			getPermissionChecker(), groupLocalService.getGroup(groupId),
+			ActionKeys.UPDATE);
 
 		groupLocalService.disableStaging(groupId);
 	}
 
 	@Override
 	public void enableStaging(long groupId) throws PortalException {
-		Group group = groupLocalService.getGroup(groupId);
-
 		GroupPermissionUtil.check(
-			getPermissionChecker(), group, ActionKeys.UPDATE);
+			getPermissionChecker(), groupLocalService.getGroup(groupId),
+			ActionKeys.UPDATE);
 
 		groupLocalService.enableStaging(groupId);
 	}
@@ -427,11 +425,7 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			int size)
 		throws PortalException {
 
-		PermissionChecker permissionChecker = getPermissionChecker();
-
-		if (!permissionChecker.isCompanyAdmin(companyId)) {
-			throw new PrincipalException.MustBeCompanyAdmin(permissionChecker);
-		}
+		GroupPermissionUtil.check(getPermissionChecker(), ActionKeys.VIEW);
 
 		return groupPersistence.findByG_C_P_S(
 			gtGroupId, companyId, parentGroupId, site, 0, size,
@@ -642,19 +636,18 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			};
 		}
 
-		if (ArrayUtil.contains(classNames, User.class.getName())) {
-			if (PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_ENABLED ||
-				PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_ENABLED) {
+		if (ArrayUtil.contains(classNames, User.class.getName()) &&
+			(PropsValues.LAYOUT_USER_PRIVATE_LAYOUTS_ENABLED ||
+			 PropsValues.LAYOUT_USER_PUBLIC_LAYOUTS_ENABLED)) {
 
-				userSiteGroups.add(user.getGroup());
+			userSiteGroups.add(user.getGroup());
 
-				if (userSiteGroups.size() == max) {
-					if (checkPermissions) {
-						return filterGroups(new ArrayList<>(userSiteGroups));
-					}
-
-					return new ArrayList<>(userSiteGroups);
+			if (userSiteGroups.size() == max) {
+				if (checkPermissions) {
+					return filterGroups(new ArrayList<>(userSiteGroups));
 				}
+
+				return new ArrayList<>(userSiteGroups);
 			}
 		}
 
@@ -682,18 +675,15 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			if (ArrayUtil.contains(classNames, Group.class.getName())) {
 				for (Group group : userBag.getUserGroups()) {
 					if (groupLocalService.isLiveGroupActive(group) &&
-						group.isSite()) {
+						group.isSite() && userSiteGroups.add(group) &&
+						(userSiteGroups.size() == max)) {
 
-						if (userSiteGroups.add(group) &&
-							(userSiteGroups.size() == max)) {
-
-							if (checkPermissions) {
-								return filterGroups(
-									new ArrayList<>(userSiteGroups));
-							}
-
-							return new ArrayList<>(userSiteGroups);
+						if (checkPermissions) {
+							return filterGroups(
+								new ArrayList<>(userSiteGroups));
 						}
+
+						return new ArrayList<>(userSiteGroups);
 					}
 				}
 			}
@@ -701,18 +691,15 @@ public class GroupServiceImpl extends GroupServiceBaseImpl {
 			if (ArrayUtil.contains(classNames, Organization.class.getName())) {
 				for (Group group : userBag.getUserOrgGroups()) {
 					if (groupLocalService.isLiveGroupActive(group) &&
-						group.isSite()) {
+						group.isSite() && userSiteGroups.add(group) &&
+						(userSiteGroups.size() == max)) {
 
-						if (userSiteGroups.add(group) &&
-							(userSiteGroups.size() == max)) {
-
-							if (checkPermissions) {
-								return filterGroups(
-									new ArrayList<>(userSiteGroups));
-							}
-
-							return new ArrayList<>(userSiteGroups);
+						if (checkPermissions) {
+							return filterGroups(
+								new ArrayList<>(userSiteGroups));
 						}
+
+						return new ArrayList<>(userSiteGroups);
 					}
 				}
 			}

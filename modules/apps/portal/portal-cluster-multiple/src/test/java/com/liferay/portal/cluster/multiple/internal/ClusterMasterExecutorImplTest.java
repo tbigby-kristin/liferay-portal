@@ -15,6 +15,7 @@
 package com.liferay.portal.cluster.multiple.internal;
 
 import com.liferay.petra.reflect.ReflectionUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.cluster.multiple.configuration.ClusterExecutorConfiguration;
 import com.liferay.portal.kernel.cluster.Address;
 import com.liferay.portal.kernel.cluster.ClusterEvent;
@@ -448,9 +449,10 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 					LogRecord logRecord = logRecords.get(0);
 
 					Assert.assertEquals(
-						"Unable to get cluster node information for " +
-							"coordinator address " + _TEST_ADDRESS +
-								". Trying again.",
+						StringBundler.concat(
+							"Unable to get cluster node information for ",
+							"coordinator address ", _TEST_ADDRESS,
+							". Trying again."),
 						logRecord.getMessage());
 				}
 			}
@@ -731,11 +733,24 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 
 		@Override
 		public FutureClusterResponses execute(ClusterRequest clusterRequest) {
+			if (!_enabled) {
+				return null;
+			}
+
 			if (clusterRequest.getPayload() == _BAD_METHOD_HANDLER) {
 				throw new RuntimeException();
 			}
 
 			return super.execute(clusterRequest);
+		}
+
+		@Override
+		public List<ClusterNode> getClusterNodes() {
+			if (!isEnabled()) {
+				return Collections.emptyList();
+			}
+
+			return super.getClusterNodes();
 		}
 
 		public Address getCoordinatorAddress() {
@@ -745,6 +760,15 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 				clusterChannel.getClusterReceiver();
 
 			return clusterReceiver.getCoordinatorAddress();
+		}
+
+		@Override
+		public ClusterNode getLocalClusterNode() {
+			if (!_enabled) {
+				return null;
+			}
+
+			return super.getLocalClusterNode();
 		}
 
 		public String getLocalClusterNodeId() {
@@ -757,6 +781,10 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 		public boolean isClusterNodeAlive(String clusterNodeId) {
 			if (Validator.isNull(clusterNodeId)) {
 				throw new NullPointerException();
+			}
+
+			if (!_enabled) {
+				return false;
 			}
 
 			return super.isClusterNodeAlive(clusterNodeId);
@@ -829,13 +857,13 @@ public class ClusterMasterExecutorImplTest extends BaseClusterTestCase {
 
 			setProps(PropsTestUtil.setProps(Collections.emptyMap()));
 
-			initialize(
-				"test-channel-logic-name-mock", "test-channel-properties-mock",
-				"test-channel-name-mock");
-
 			_clusterNodes = new ConcurrentHashMap<>();
 
 			if (enabled) {
+				initialize(
+					"test-channel-logic-name-mock",
+					"test-channel-properties-mock", "test-channel-name-mock");
+
 				ClusterChannel clusterChannel = getClusterChannel();
 
 				_clusterNodes.put(

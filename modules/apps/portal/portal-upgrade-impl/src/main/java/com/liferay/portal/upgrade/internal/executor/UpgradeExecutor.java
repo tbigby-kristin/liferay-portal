@@ -27,18 +27,15 @@ import com.liferay.portal.kernel.service.ReleaseLocalService;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.output.stream.container.OutputStreamContainer;
-import com.liferay.portal.output.stream.container.OutputStreamContainerFactory;
-import com.liferay.portal.output.stream.container.OutputStreamContainerFactoryTracker;
 import com.liferay.portal.upgrade.internal.graph.ReleaseGraphManager;
 import com.liferay.portal.upgrade.internal.index.updater.IndexUpdaterUtil;
 import com.liferay.portal.upgrade.internal.registry.UpgradeInfo;
 import com.liferay.portal.upgrade.internal.release.ReleasePublisher;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -90,31 +87,17 @@ public class UpgradeExecutor {
 	public void executeUpgradeInfos(
 		String bundleSymbolicName, List<UpgradeInfo> upgradeInfos) {
 
-		OutputStreamContainerFactory outputStreamContainerFactory =
-			_outputStreamContainerFactoryTracker.
-				getOutputStreamContainerFactory();
-
-		OutputStreamContainer outputStreamContainer =
-			outputStreamContainerFactory.create(
-				"upgrade-" + bundleSymbolicName);
-
 		Release release = _releaseLocalService.fetchRelease(bundleSymbolicName);
 
 		if (release != null) {
 			_releasePublisher.publishInProgress(release);
 		}
 
-		try (OutputStream outputStream =
-				outputStreamContainer.getOutputStream()) {
-
-			_outputStreamContainerFactoryTracker.runWithSwappedLog(
-				new UpgradeInfosRunnable(
-					bundleSymbolicName, upgradeInfos, outputStream),
-				outputStreamContainer.getDescription(), outputStream);
-		}
-		catch (IOException ioe) {
-			throw new RuntimeException(ioe);
-		}
+		_swappedLogExecutor.execute(
+			bundleSymbolicName,
+			new UpgradeInfosRunnable(
+				bundleSymbolicName, upgradeInfos,
+				() -> _swappedLogExecutor.getOutputStream()));
 
 		release = _releaseLocalService.fetchRelease(bundleSymbolicName);
 
@@ -134,14 +117,13 @@ public class UpgradeExecutor {
 	private BundleContext _bundleContext;
 
 	@Reference
-	private OutputStreamContainerFactoryTracker
-		_outputStreamContainerFactoryTracker;
-
-	@Reference
 	private ReleaseLocalService _releaseLocalService;
 
 	@Reference
 	private ReleasePublisher _releasePublisher;
+
+	@Reference
+	private SwappedLogExecutor _swappedLogExecutor;
 
 	private class UpgradeInfosRunnable implements Runnable {
 
@@ -166,7 +148,7 @@ public class UpgradeExecutor {
 
 							@Override
 							public OutputStream getOutputStream() {
-								return _outputStream;
+								return _outputStreamSupplier.get();
 							}
 
 						});
@@ -216,11 +198,11 @@ public class UpgradeExecutor {
 
 		private UpgradeInfosRunnable(
 			String bundleSymbolicName, List<UpgradeInfo> upgradeInfos,
-			OutputStream outputStream) {
+			Supplier<OutputStream> outputStreamSupplier) {
 
 			_bundleSymbolicName = bundleSymbolicName;
 			_upgradeInfos = upgradeInfos;
-			_outputStream = outputStream;
+			_outputStreamSupplier = outputStreamSupplier;
 		}
 
 		private boolean _requiresUpdateIndexes(Bundle bundle) {
@@ -267,7 +249,7 @@ public class UpgradeExecutor {
 		private static final int _STATE_IN_PROGRESS = -1;
 
 		private final String _bundleSymbolicName;
-		private final OutputStream _outputStream;
+		private final Supplier<OutputStream> _outputStreamSupplier;
 		private final List<UpgradeInfo> _upgradeInfos;
 
 	}

@@ -6,7 +6,6 @@
 		name: string,
 		description: string,
 		detailsLink: string,
-		percentage: int,
 		state: string,
 		timestamp: string,
 		userInitials: string,
@@ -14,11 +13,11 @@
 	]>}
 	{@param? loaded: bool}
 
-	<div id="change-list-history">
+	<div id="change-list-history" {if not $processEntries or length($processEntries) == 0}class="container-fluid-1280"{/if} >
 		{if not $loaded}
 			{call .loading /}
 		{else}
-			{if $processEntries}
+			{if $processEntries and length($processEntries) > 0}
 				{foreach $processEntry in $processEntries}
 
 					{let $cardState: ($processEntry.state == 'published') ? 'border-left-green' : (($processEntry.state == 'in-progress') ? 'border-left-orange' : 'border-left-red') /}
@@ -32,7 +31,6 @@
 						{param changeListDetailsLink: $processEntry.detailsLink /}
 						{param labelState: $labelState /}
 						{param labelText: $processEntry.state /}
-						{param percentage: $processEntry.percentage /}
 						{param spritemap: $spritemap /}
 						{param timestamp: $processEntry.timestamp /}
 						{param userName: $processEntry.userName /}
@@ -40,6 +38,13 @@
 						{param userPortraitURL: '' /}
 					{/call}
 				{/foreach}
+			{else}
+				<div class="no-left-padding sheet taglib-empty-result-message">
+					<div class="taglib-empty-result-message-header"></div>
+					<div class="sheet-text text-center">
+						{msg desc=""}no-processes-were-found{/msg}
+					</div>
+				</div>
 			{/if}
 		{/if}
 	</div>
@@ -53,7 +58,6 @@
 	{@param? changeListDetailsLink: string}
 	{@param? labelState: string}
 	{@param? labelText: string}
-	{@param? percentage: int}
 	{@param? timestamp: string}
 	{@param? userName: string}
 	{@param? userInitials: string}
@@ -79,13 +83,6 @@
 				</div>
 
 				<div class="col-sm-6">
-					{if $percentage and $labelText == 'in-progress'}
-						{call ClayProgressBar.render}
-							{param spritemap: $spritemap /}
-							{param value: $percentage /}
-						{/call}
-					{/if}
-
 					<div class="text-bottom text-rigth">
 						{$timestamp} {msg desc=""}by{/msg} {$userName}
 

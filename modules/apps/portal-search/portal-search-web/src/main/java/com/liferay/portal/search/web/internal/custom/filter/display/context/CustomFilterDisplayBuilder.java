@@ -37,6 +37,7 @@ public class CustomFilterDisplayBuilder {
 
 		customFilterDisplayContext.setFilterValue(getFilterValue());
 		customFilterDisplayContext.setHeading(getHeading());
+		customFilterDisplayContext.setImmutable(_immutable);
 		customFilterDisplayContext.setParameterName(_parameterName);
 		customFilterDisplayContext.setRenderNothing(isRenderNothing());
 		customFilterDisplayContext.setSearchURL(getURLCurrentPath());
@@ -48,6 +49,12 @@ public class CustomFilterDisplayBuilder {
 		Optional<String> customHeadingOptional) {
 
 		_customHeadingOptional = customHeadingOptional;
+
+		return this;
+	}
+
+	public CustomFilterDisplayBuilder disabled(boolean disabled) {
+		_disabled = disabled;
 
 		return this;
 	}
@@ -76,12 +83,6 @@ public class CustomFilterDisplayBuilder {
 
 	public CustomFilterDisplayBuilder immutable(boolean immutable) {
 		_immutable = immutable;
-
-		return this;
-	}
-
-	public CustomFilterDisplayBuilder invisible(boolean invisible) {
-		_invisible = invisible;
 
 		return this;
 	}
@@ -115,6 +116,11 @@ public class CustomFilterDisplayBuilder {
 	}
 
 	protected String getFilterValue() {
+		if (_immutable) {
+			return SearchOptionalUtil.findFirstPresent(
+				Stream.of(_filterValueOptional), StringPool.BLANK);
+		}
+
 		return SearchOptionalUtil.findFirstPresent(
 			Stream.of(_parameterValueOptional, _filterValueOptional),
 			StringPool.BLANK);
@@ -133,7 +139,7 @@ public class CustomFilterDisplayBuilder {
 	}
 
 	protected boolean isRenderNothing() {
-		if (_immutable || _invisible) {
+		if (_disabled) {
 			return true;
 		}
 
@@ -141,11 +147,11 @@ public class CustomFilterDisplayBuilder {
 	}
 
 	private Optional<String> _customHeadingOptional = Optional.empty();
+	private boolean _disabled;
 	private Optional<String> _filterFieldOptional = Optional.empty();
 	private Optional<String> _filterValueOptional = Optional.empty();
 	private Http _http;
 	private boolean _immutable;
-	private boolean _invisible;
 	private String _parameterName;
 	private Optional<String> _parameterValueOptional = Optional.empty();
 	private Optional<String> _queryNameOptional = Optional.empty();

@@ -37,6 +37,7 @@ public class ArchiveUtil {
 		String targetFileName = targetFile.getName();
 
 		if (!(targetFileName.endsWith(".jar") ||
+			  targetFileName.endsWith(".lar") ||
 			  targetFileName.endsWith(".war") ||
 			  targetFileName.endsWith(".zip"))) {
 
@@ -66,8 +67,14 @@ public class ArchiveUtil {
 							Path targetFilePath = sourceFilePath.relativize(
 								file);
 
+							String targetFilePathString =
+								targetFilePath.toString();
+
+							targetFilePathString = targetFilePathString.replace(
+								"\\", "/");
+
 							zipOutputStream.putNextEntry(
-								new ZipEntry(targetFilePath.toString()));
+								new ZipEntry(targetFilePathString));
 
 							byte[] bytes = Files.readAllBytes(file);
 

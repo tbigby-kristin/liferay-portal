@@ -95,10 +95,6 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 
 	@Reference(unbind = "-")
 	public void setPortal(Portal portal) {
-		String pathContext = portal.getPathContext();
-
-		_comboContextPath = pathContext.concat("/combo");
-
 		_portal = portal;
 
 		_rebuild();
@@ -169,7 +165,7 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 		String[] fileNames = JavaScriptBundleUtil.getFileNames(propsKey);
 
 		for (String fileName : fileNames) {
-			urls.add(_jsContextPath + StringPool.SLASH + fileName);
+			urls.add(fileName);
 		}
 	}
 
@@ -179,11 +175,6 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 
 			return;
 		}
-
-		_jsContextPath = _portal.getPathProxy();
-
-		_jsContextPath = _jsContextPath.concat(
-			_portalWebResources.getContextPath());
 
 		_allJsResourceURLs.clear();
 
@@ -203,10 +194,8 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 					topHeadResourcesServiceReference);
 
 				try {
-					String proxyPath = _portal.getPathProxy();
-
-					String servletContextPath = proxyPath.concat(
-						topHeadResources.getServletContextPath());
+					String servletContextPath =
+						topHeadResources.getServletContextPath();
 
 					for (String jsResourcePath :
 							topHeadResources.getJsResourcePaths()) {
@@ -249,36 +238,32 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 		}
 
 		String comboURL = _portal.getStaticResourceURL(
-			httpServletRequest, _comboContextPath, "minifierType=js",
-			jsLastModified);
+			httpServletRequest, "/combo", "minifierType=js", jsLastModified);
 
 		for (String url : urls) {
+			if ((sb.length() + url.length() + 1) >= 2000) {
+				_renderScriptURL(printWriter, sb.toString());
+
+				sb = new StringBundler();
+			}
+
 			if (sb.length() == 0) {
-				sb.append("<script data-senna-track=\"permanent\" src=\"");
+				AbsolutePortalURLBuilder absolutePortalURLBuilder =
+					_absolutePortalURLBuilderFactory.
+						getAbsolutePortalURLBuilder(httpServletRequest);
 
-				ThemeDisplay themeDisplay =
-					(ThemeDisplay)httpServletRequest.getAttribute(
-						WebKeys.THEME_DISPLAY);
-
-				sb.append(themeDisplay.getCDNBaseURL() + comboURL);
+				sb.append(
+					absolutePortalURLBuilder.forResource(
+						comboURL
+					).build());
 			}
 
 			sb.append(StringPool.AMPERSAND);
 			sb.append(url);
-
-			if (sb.length() >= 2048) {
-				sb.append("\" type = \"text/javascript\"></script>");
-
-				printWriter.println(sb.toString());
-
-				sb = new StringBundler();
-			}
 		}
 
 		if (sb.length() > 0) {
-			sb.append("\" type = \"text/javascript\"></script>");
-
-			printWriter.println(sb.toString());
+			_renderScriptURL(printWriter, sb.toString());
 		}
 	}
 
@@ -290,19 +275,22 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 		PrintWriter printWriter = httpServletResponse.getWriter();
 
 		for (String url : urls) {
-			printWriter.print("<script data-senna-track=\"permanent\" src=\"");
-
 			AbsolutePortalURLBuilder absolutePortalURLBuilder =
 				_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
 					httpServletRequest);
 
-			printWriter.print(
-				absolutePortalURLBuilder.forResource(
-					url
-				).build());
+			url = absolutePortalURLBuilder.forResource(
+				url
+			).build();
 
-			printWriter.println("\" type=\"text/javascript\"></script>");
+			_renderScriptURL(printWriter, url);
 		}
+	}
+
+	private void _renderScriptURL(PrintWriter printWriter, String url) {
+		printWriter.print("<script data-senna-track=\"permanent\" src=\"");
+		printWriter.print(url);
+		printWriter.println("\" type=\"text/javascript\"></script>");
 	}
 
 	@Reference
@@ -310,8 +298,6 @@ public class TopHeadDynamicInclude implements DynamicInclude {
 
 	private volatile List<String> _allJsResourceURLs = new ArrayList<>();
 	private BundleContext _bundleContext;
-	private String _comboContextPath;
-	private String _jsContextPath = StringPool.BLANK;
 	private volatile List<String> _jsResourceURLs = new ArrayList<>();
 	private Portal _portal;
 	private PortalWebResources _portalWebResources;

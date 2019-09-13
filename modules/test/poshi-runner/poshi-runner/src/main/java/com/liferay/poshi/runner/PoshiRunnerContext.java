@@ -450,10 +450,10 @@ public class PoshiRunnerContext {
 			return commandElement.attributeValue("summary");
 		}
 
-		if (classType.equals("function")) {
-			if (Validator.isNotNull(rootElement.attributeValue("summary"))) {
-				return rootElement.attributeValue("summary");
-			}
+		if (classType.equals("function") &&
+			Validator.isNotNull(rootElement.attributeValue("summary"))) {
+
+			return rootElement.attributeValue("summary");
 		}
 
 		return classCommandName;
@@ -597,7 +597,7 @@ public class PoshiRunnerContext {
 		Map<Properties, Collection<String>> map = multimap.asMap();
 
 		for (Collection<String> value : map.values()) {
-			List<String> classCommandNameGroup = new ArrayList(value);
+			List<String> classCommandNameGroup = new ArrayList<>(value);
 
 			Collections.sort(classCommandNameGroup);
 
@@ -930,7 +930,7 @@ public class PoshiRunnerContext {
 				List<Element> baseVarElements = getRootVarElements(
 					classType, className, baseNamespace);
 
-				Map<String, Element> overriddenVarElementMap = new HashMap();
+				Map<String, Element> overriddenVarElementMap = new HashMap<>();
 
 				for (Element baseVarElement : baseVarElements) {
 					overriddenVarElementMap.put(

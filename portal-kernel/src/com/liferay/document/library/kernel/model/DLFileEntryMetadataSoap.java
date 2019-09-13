@@ -19,15 +19,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DLFileEntryMetadataSoap implements Serializable {
 
 	public static DLFileEntryMetadataSoap toSoapModel(
@@ -35,6 +32,7 @@ public class DLFileEntryMetadataSoap implements Serializable {
 
 		DLFileEntryMetadataSoap soapModel = new DLFileEntryMetadataSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setFileEntryMetadataId(model.getFileEntryMetadataId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -104,6 +102,14 @@ public class DLFileEntryMetadataSoap implements Serializable {
 		setFileEntryMetadataId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public String getUuid() {
 		return _uuid;
 	}
@@ -160,6 +166,7 @@ public class DLFileEntryMetadataSoap implements Serializable {
 		_fileVersionId = fileVersionId;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _fileEntryMetadataId;
 	private long _companyId;

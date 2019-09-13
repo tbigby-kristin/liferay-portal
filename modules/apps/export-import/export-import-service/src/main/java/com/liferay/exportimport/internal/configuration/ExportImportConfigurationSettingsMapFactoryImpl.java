@@ -42,7 +42,6 @@ import java.util.TimeZone;
 
 import javax.portlet.PortletRequest;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -59,7 +58,6 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	service = ExportImportConfigurationSettingsMapFactory.class
 )
-@ProviderType
 public class ExportImportConfigurationSettingsMapFactoryImpl
 	implements ExportImportConfigurationSettingsMapFactory {
 
@@ -252,10 +250,9 @@ public class ExportImportConfigurationSettingsMapFactoryImpl
 			portletRequest);
 
 		if (type == ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT) {
-			long[] layoutIds = _exportImportHelper.getLayoutIds(layoutIdMap);
-
 			return buildExportLayoutSettingsMap(
-				themeDisplay.getUserId(), groupId, privateLayout, layoutIds,
+				themeDisplay.getUserId(), groupId, privateLayout,
+				_exportImportHelper.getLayoutIds(layoutIdMap),
 				portletRequest.getParameterMap(), themeDisplay.getLocale(),
 				themeDisplay.getTimeZone());
 		}

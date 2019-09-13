@@ -103,10 +103,10 @@ kbArticlePortletInstanceConfiguration = ParameterMapUtil.setParameterMap(KBArtic
 </liferay-frontend:edit-form>
 
 <aui:script>
-	var <portlet:namespace />form = document.querySelector('#<portlet:namespace />fm');
+	var <portlet:namespace />form = document.getElementById('<portlet:namespace />fm');
 
 	if (<portlet:namespace />form) {
-		<portlet:namespace />form.querySelector('#<portlet:namespace />selectKBArticleButton').addEventListener(
+		document.getElementById('<portlet:namespace />selectKBArticleButton').addEventListener(
 			'click',
 			function(event) {
 				Liferay.Util.selectEntity(

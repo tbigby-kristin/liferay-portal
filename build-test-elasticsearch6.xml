@@ -329,9 +329,26 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 			</exec>
 
 			<echo>${curl.output}</echo>
+		</sequential>
+	</macrodef>
+
+	<macrodef name="start-x-pack-trial">
+		<sequential>
+			<exec executable="curl" outputproperty="curl.output.trial">
+				<arg value="-k" />
+				<arg value="-X POST" />
+				<arg value="-ku" />
+				<arg value="elastic:${elastic.xpack.elastic.user.password}" />
+				<arg value="https://localhost:9200/_xpack/license/start_trial?acknowledge=true&amp;pretty" />
+			</exec>
+
+			<echo>${curl.output.trial}</echo>
 
 			<if>
-				<contains string="${curl.output}" substring="You Know, for Search" />
+				<and>
+					<contains string="${curl.output}" substring="You Know, for Search" />
+					<contains string="${curl.output.trial}" substring="&quot;trial_was_started&quot; : true" />
+				</and>
 				<then>
 					<echo>Elasticsearch started with X-Pack Security.</echo>
 				</then>
@@ -342,15 +359,25 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		</sequential>
 	</macrodef>
 
-	<macrodef name="start-x-pack-trial">
+	<macrodef name="unzip-boston-dataset-index">
 		<sequential>
-			<exec executable="curl" outputproperty="curl.output.trial">
-				<arg value="-k" />
-				<arg value="-X POST" />
-				<arg value="https://localhost:9200/_xpack/license/start_trial?acknowledge=true" />
-			</exec>
+			<if>
+				<not>
+					<available file="${liferay.home}/${elasticsearch.boston-dataset-index.zip.name}" />
+				</not>
+				<then>
+					<mirrors-get
+						dest="${liferay.home}/${elasticsearch.boston-dataset-index.zip.name}"
+						skipChecksum="true"
+						src="${elasticsearch.boston-dataset-index.zip.url}"
+					/>
+				</then>
+			</if>
 
-			<echo>${curl.output.trial}</echo>
+			<unzip
+				dest="${liferay.home}/data/elasticsearch6/repo"
+				src="${liferay.home}/${elasticsearch.boston-dataset-index.zip.name}"
+			/>
 		</sequential>
 	</macrodef>
 
@@ -480,6 +507,24 @@ ${line.separator}CATALINA_OPTS="${CATALINA_OPTS} -Djavax.net.ssl.trustStore=${el
 		</sequential>
 	</macrodef>
 
+	<target name="add-boston-dataset-index">
+		<unzip-boston-dataset-index />
+
+		<exec executable="curl" outputproperty="curl.output">
+			<arg line="-X PUT &quot;localhost:9200/_snapshot/my_backup&quot; -H &apos;Content-Type: application/json&apos; -d&apos;{&quot;type&quot;: &quot;fs&quot;,&quot;settings&quot;: {&quot;location&quot;: &quot;${liferay.home}/data/elasticsearch6/repo&quot;}}&apos;" />
+		</exec>
+
+		<echo>Defining snapshot repository.${line.separator}${curl.output}</echo>
+
+		<exec executable="curl" outputproperty="curl.output">
+			<arg line="-X POST &quot;localhost:9200/_snapshot/my_backup/snapshot_2/_restore&quot; -H &apos;Content-Type: application/json&apos; -d&apos;{&quot;indices&quot;: &quot;boston311&quot;,&quot;ignore_unavailable&quot;: true,&quot;include_global_state&quot;: true,&quot;rename_pattern&quot;: &quot;index_(.+)&quot;,&quot;rename_replacement&quot;: &quot;restored_index_$1&quot;}&apos;" />
+		</exec>
+
+		<echo>Restoring Boston dataset snapshot.${line.separator}${curl.output}</echo>
+
+		<echo>Finished adding Boston dataset index.</echo>
+	</target>
+
 	<target name="configure-elasticsearch-cluster-properties">
 		<math
 			datatype="int"
@@ -571,9 +616,9 @@ xpack.monitoring.collection.enabled: true</echo>
 			<then>
 				<sleep seconds="30" />
 
-				<start-x-pack-trial />
-
 				<set-x-pack-user-passwords />
+
+				<start-x-pack-trial />
 
 				<configure-portal-x-pack-osgi-properties />
 

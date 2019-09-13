@@ -20,6 +20,7 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemList;
+import com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration;
 import com.liferay.layout.admin.web.internal.constants.LayoutAdminWebKeys;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -27,8 +28,12 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLoca
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUtil;
 import com.liferay.layout.page.template.util.comparator.LayoutPageTemplateCollectionNameComparator;
+import com.liferay.layout.seo.model.LayoutSEOEntry;
+import com.liferay.layout.seo.service.LayoutSEOEntryLocalServiceUtil;
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.layout.util.comparator.LayoutCreateDateComparator;
+import com.liferay.layout.util.template.LayoutConverter;
+import com.liferay.layout.util.template.LayoutConverterRegistry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
@@ -48,6 +53,7 @@ import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetBranch;
 import com.liferay.portal.kernel.model.LayoutType;
 import com.liferay.portal.kernel.model.LayoutTypeController;
+import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
@@ -119,9 +125,16 @@ public class LayoutsAdminDisplayContext {
 		_groupDisplayContextHelper = new GroupDisplayContextHelper(
 			_httpServletRequest);
 
+		_layoutConverterConfiguration =
+			(LayoutConverterConfiguration)_liferayPortletRequest.getAttribute(
+				LayoutConverterConfiguration.class.getName());
+
 		_layoutCopyHelper =
 			(LayoutCopyHelper)_liferayPortletRequest.getAttribute(
 				LayoutAdminWebKeys.LAYOUT_COPY_HELPER);
+		_layoutConverterRegistry =
+			(LayoutConverterRegistry)_liferayPortletRequest.getAttribute(
+				LayoutAdminWebKeys.LAYOUT_TEMPLATE_CONVERTER_REGISTRY);
 	}
 
 	public List<DropdownItem> getAddLayoutDropdownItems() {
@@ -299,6 +312,19 @@ public class LayoutsAdminDisplayContext {
 		return configureLayoutURL.toString();
 	}
 
+	public String getConvertLayoutURL(Layout layout) {
+		PortletURL convertLayoutURL = _liferayPortletResponse.createActionURL();
+
+		convertLayoutURL.setParameter(
+			ActionRequest.ACTION_NAME, "/layout/convert_layout");
+		convertLayoutURL.setParameter(
+			"redirect", _themeDisplay.getURLCurrent());
+		convertLayoutURL.setParameter(
+			"selPlid", String.valueOf(layout.getPlid()));
+
+		return convertLayoutURL.toString();
+	}
+
 	public String getCopyLayoutRenderURL(Layout layout) throws Exception {
 		PortletURL copyLayoutRenderURL =
 			_liferayPortletResponse.createActionURL();
@@ -325,6 +351,8 @@ public class LayoutsAdminDisplayContext {
 			"stagingGroupId", String.valueOf(getStagingGroupId()));
 		copyLayoutURL.setParameter(
 			"privateLayout", String.valueOf(isPrivateLayout()));
+		copyLayoutURL.setParameter(
+			"explicitCreation", String.valueOf(Boolean.TRUE));
 
 		return copyLayoutURL.toString();
 	}
@@ -1049,6 +1077,18 @@ public class LayoutsAdminDisplayContext {
 		return _selLayout;
 	}
 
+	public LayoutSEOEntry getSelLayoutSEOEntry() {
+		Layout layout = getSelLayout();
+
+		if (layout == null) {
+			return null;
+		}
+
+		return LayoutSEOEntryLocalServiceUtil.fetchLayoutSEOEntry(
+			layout.getGroupId(), layout.isPrivateLayout(),
+			layout.getLayoutId());
+	}
+
 	public LayoutSet getSelLayoutSet() throws PortalException {
 		if (_selLayoutSet != null) {
 			return _selLayoutSet;
@@ -1254,6 +1294,33 @@ public class LayoutsAdminDisplayContext {
 			_themeDisplay.getPermissionChecker(), layout, ActionKeys.UPDATE);
 	}
 
+	public boolean isShowConvertLayoutAction(Layout layout) {
+		if (!_layoutConverterConfiguration.enabled()) {
+			return false;
+		}
+
+		if (!Objects.equals(layout.getType(), LayoutConstants.TYPE_PORTLET)) {
+			return false;
+		}
+
+		UnicodeProperties typeSettingsProperties =
+			layout.getTypeSettingsProperties();
+
+		String layoutTemplateId = typeSettingsProperties.getProperty(
+			LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID);
+
+		LayoutConverter layoutConverter =
+			_layoutConverterRegistry.getLayoutConverter(layoutTemplateId);
+
+		if ((layoutConverter == null) ||
+			!layoutConverter.isConvertible(layout)) {
+
+			return false;
+		}
+
+		return true;
+	}
+
 	public boolean isShowCopyLayoutAction(Layout layout)
 		throws PortalException {
 
@@ -1377,6 +1444,10 @@ public class LayoutsAdminDisplayContext {
 
 		if (isShowConfigureAction(layout)) {
 			jsonObject.put("configureURL", getConfigureLayoutURL(layout));
+		}
+
+		if (isShowConvertLayoutAction(layout)) {
+			jsonObject.put("convertLayoutURL", getConvertLayoutURL(layout));
 		}
 
 		if (isShowCopyLayoutAction(layout)) {
@@ -1697,6 +1768,8 @@ public class LayoutsAdminDisplayContext {
 	private final GroupDisplayContextHelper _groupDisplayContextHelper;
 	private final HttpServletRequest _httpServletRequest;
 	private String _keywords;
+	private final LayoutConverterConfiguration _layoutConverterConfiguration;
+	private final LayoutConverterRegistry _layoutConverterRegistry;
 	private final LayoutCopyHelper _layoutCopyHelper;
 	private List<LayoutDescription> _layoutDescriptions;
 	private Long _layoutId;

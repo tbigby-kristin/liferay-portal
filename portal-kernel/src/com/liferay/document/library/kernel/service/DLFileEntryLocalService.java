@@ -72,7 +72,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface DLFileEntryLocalService
 	extends BaseLocalService, PersistedModelLocalService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DLFileEntryLocalServiceUtil} to access the document library file entry local service. Add custom service methods to <code>com.liferay.portlet.documentlibrary.service.impl.DLFileEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -756,6 +756,12 @@ public interface DLFileEntryLocalService
 		throws PortalException;
 
 	public void updateSmallImage(long smallImageId, long largeImageId)
+		throws PortalException;
+
+	public DLFileEntry updateStatus(
+			long userId, DLFileEntry dlFileEntry, DLFileVersion dlFileVersion,
+			int status, ServiceContext serviceContext,
+			Map<String, Serializable> workflowContext)
 		throws PortalException;
 
 	public DLFileEntry updateStatus(

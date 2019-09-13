@@ -20,15 +20,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DLOpenerFileEntryReferenceSoap implements Serializable {
 
 	public static DLOpenerFileEntryReferenceSoap toSoapModel(
@@ -46,6 +43,7 @@ public class DLOpenerFileEntryReferenceSoap implements Serializable {
 		soapModel.setCreateDate(model.getCreateDate());
 		soapModel.setModifiedDate(model.getModifiedDate());
 		soapModel.setReferenceKey(model.getReferenceKey());
+		soapModel.setReferenceType(model.getReferenceType());
 		soapModel.setFileEntryId(model.getFileEntryId());
 		soapModel.setType(model.getType());
 
@@ -177,6 +175,14 @@ public class DLOpenerFileEntryReferenceSoap implements Serializable {
 		_referenceKey = referenceKey;
 	}
 
+	public String getReferenceType() {
+		return _referenceType;
+	}
+
+	public void setReferenceType(String referenceType) {
+		_referenceType = referenceType;
+	}
+
 	public long getFileEntryId() {
 		return _fileEntryId;
 	}
@@ -201,6 +207,7 @@ public class DLOpenerFileEntryReferenceSoap implements Serializable {
 	private Date _createDate;
 	private Date _modifiedDate;
 	private String _referenceKey;
+	private String _referenceType;
 	private long _fileEntryId;
 	private int _type;
 

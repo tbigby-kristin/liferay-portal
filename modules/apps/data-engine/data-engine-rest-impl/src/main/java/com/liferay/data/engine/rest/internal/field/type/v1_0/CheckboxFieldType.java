@@ -14,13 +14,13 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
-import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.field.type.FieldTypeTracker;
+import com.liferay.data.engine.field.type.util.LocalizedValueUtil;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 
 import java.util.Map;
@@ -41,7 +41,7 @@ import org.osgi.service.component.annotations.Component;
 		"data.engine.field.type.display.order:Integer=6",
 		"data.engine.field.type.group=basic",
 		"data.engine.field.type.icon=check-circle",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/Checkbox/Checkbox.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Checkbox/Checkbox.es",
 		"data.engine.field.type.label=checkbox-field-type-label",
 		"data.engine.field.type.system=true"
 	},
@@ -50,21 +50,18 @@ import org.osgi.service.component.annotations.Component;
 public class CheckboxFieldType extends BaseFieldType {
 
 	@Override
-	public SPIDataDefinitionField deserialize(JSONObject jsonObject)
+	public SPIDataDefinitionField deserialize(
+			FieldTypeTracker fieldTypeTracker, JSONObject jsonObject)
 		throws Exception {
 
 		SPIDataDefinitionField spiDataDefinitionField = super.deserialize(
-			jsonObject);
+			fieldTypeTracker, jsonObject);
 
 		Map<String, Object> customProperties =
 			spiDataDefinitionField.getCustomProperties();
 
 		customProperties.put(
 			"showAsSwitcher", jsonObject.getBoolean("showAsSwitcher"));
-
-		spiDataDefinitionField.setDefaultValue(
-			LocalizedValueUtil.toLocalizedValues(
-				jsonObject.getJSONObject("predefinedValue")));
 
 		return spiDataDefinitionField;
 	}
@@ -76,21 +73,18 @@ public class CheckboxFieldType extends BaseFieldType {
 
 	@Override
 	public JSONObject toJSONObject(
+			FieldTypeTracker fieldTypeTracker,
 			SPIDataDefinitionField spiDataDefinitionField)
 		throws Exception {
 
-		JSONObject jsonObject = super.toJSONObject(spiDataDefinitionField);
+		JSONObject jsonObject = super.toJSONObject(
+			fieldTypeTracker, spiDataDefinitionField);
 
 		return jsonObject.put(
-			"predefinedValue",
-			LocalizedValueUtil.toJSONObject(
-				spiDataDefinitionField.getDefaultValue())
-		).put(
 			"showAsSwitcher",
 			MapUtil.getBoolean(
 				spiDataDefinitionField.getCustomProperties(), "showAsSwitcher",
-				true)
-		);
+				true));
 	}
 
 	@Override
@@ -101,11 +95,10 @@ public class CheckboxFieldType extends BaseFieldType {
 
 		context.put(
 			"predefinedValue",
-			MapUtil.getString(
-				CustomPropertiesUtil.getMap(
-					spiDataDefinitionField.getCustomProperties(),
-					"predefinedValue"),
-				LanguageUtil.getLanguageId(httpServletRequest)));
+			GetterUtil.getBoolean(
+				LocalizedValueUtil.getLocalizedValue(
+					httpServletRequest.getLocale(),
+					spiDataDefinitionField.getDefaultValue())));
 		context.put(
 			"showAsSwitcher",
 			MapUtil.getBoolean(context, "showAsSwitcher", false));

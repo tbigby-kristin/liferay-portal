@@ -31,7 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface AssetListEntry extends AssetListEntryModel, PersistedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.asset.list.model.impl.AssetListEntryImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -56,25 +56,73 @@ public interface AssetListEntry extends AssetListEntryModel, PersistedModel {
 
 		};
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long)}
+	 */
+	@Deprecated
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long segmentsEntryId);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long, int, int)}
+	 */
+	@Deprecated
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long segmentsEntryId, int start, int end);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long[])}
+	 */
+	@Deprecated
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long[] segmentsEntryIds);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long[], int, int)}
+	 */
+	@Deprecated
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long[] segmentsEntryIds, int start, int end);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntriesCount(
+	 AssetListEntry, long)}
+	 */
+	@Deprecated
 	public int getAssetEntriesCount(long segmentsEntryId);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntriesCount(
+	 AssetListEntry, long[])}
+	 */
+	@Deprecated
 	public int getAssetEntriesCount(long[] segmentsEntryIds);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntryQuery(
+	 AssetListEntry, long)}
+	 */
+	@Deprecated
 	public com.liferay.asset.kernel.service.persistence.AssetEntryQuery
 		getAssetEntryQuery(long segmentsEntryId);
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntryQuery(
+	 AssetListEntry, long[])}
+	 */
+	@Deprecated
 	public com.liferay.asset.kernel.service.persistence.AssetEntryQuery
 		getAssetEntryQuery(long[] segmentsEntryIds);
 

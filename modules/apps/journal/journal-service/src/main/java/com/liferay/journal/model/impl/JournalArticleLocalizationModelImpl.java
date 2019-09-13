@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the JournalArticleLocalization service. Represents a row in the &quot;JournalArticleLocalization&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,12 +52,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalArticleLocalizationImpl
  * @generated
  */
-@ProviderType
 public class JournalArticleLocalizationModelImpl
 	extends BaseModelImpl<JournalArticleLocalization>
 	implements JournalArticleLocalizationModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a journal article localization model instance should use the <code>JournalArticleLocalization</code> interface instead.
@@ -67,15 +64,17 @@ public class JournalArticleLocalizationModelImpl
 	public static final String TABLE_NAME = "JournalArticleLocalization";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"articleLocalizationId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"articlePK", Types.BIGINT}, {"title", Types.VARCHAR},
-		{"description", Types.VARCHAR}, {"languageId", Types.VARCHAR}
+		{"mvccVersion", Types.BIGINT}, {"articleLocalizationId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"articlePK", Types.BIGINT},
+		{"title", Types.VARCHAR}, {"description", Types.VARCHAR},
+		{"languageId", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("articleLocalizationId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("articlePK", Types.BIGINT);
@@ -85,7 +84,7 @@ public class JournalArticleLocalizationModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table JournalArticleLocalization (articleLocalizationId LONG not null primary key,companyId LONG,articlePK LONG,title VARCHAR(400) null,description STRING null,languageId VARCHAR(75) null)";
+		"create table JournalArticleLocalization (mvccVersion LONG default 0 not null,articleLocalizationId LONG not null primary key,companyId LONG,articlePK LONG,title VARCHAR(400) null,description STRING null,languageId VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table JournalArticleLocalization";
@@ -250,6 +249,12 @@ public class JournalArticleLocalizationModelImpl
 					<String, BiConsumer<JournalArticleLocalization, ?>>();
 
 		attributeGetterFunctions.put(
+			"mvccVersion", JournalArticleLocalization::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<JournalArticleLocalization, Long>)
+				JournalArticleLocalization::setMvccVersion);
+		attributeGetterFunctions.put(
 			"articleLocalizationId",
 			JournalArticleLocalization::getArticleLocalizationId);
 		attributeSetterBiConsumers.put(
@@ -291,6 +296,16 @@ public class JournalArticleLocalizationModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -411,7 +426,12 @@ public class JournalArticleLocalizationModelImpl
 	@Override
 	public JournalArticleLocalization toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, JournalArticleLocalization>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -423,6 +443,7 @@ public class JournalArticleLocalizationModelImpl
 		JournalArticleLocalizationImpl journalArticleLocalizationImpl =
 			new JournalArticleLocalizationImpl();
 
+		journalArticleLocalizationImpl.setMvccVersion(getMvccVersion());
 		journalArticleLocalizationImpl.setArticleLocalizationId(
 			getArticleLocalizationId());
 		journalArticleLocalizationImpl.setCompanyId(getCompanyId());
@@ -512,6 +533,8 @@ public class JournalArticleLocalizationModelImpl
 		JournalArticleLocalizationCacheModel
 			journalArticleLocalizationCacheModel =
 				new JournalArticleLocalizationCacheModel();
+
+		journalArticleLocalizationCacheModel.mvccVersion = getMvccVersion();
 
 		journalArticleLocalizationCacheModel.articleLocalizationId =
 			getArticleLocalizationId();
@@ -614,11 +637,19 @@ public class JournalArticleLocalizationModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, JournalArticleLocalization>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function
+			<InvocationHandler, JournalArticleLocalization>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 
+	private long _mvccVersion;
 	private long _articleLocalizationId;
 	private long _companyId;
 	private long _articlePK;

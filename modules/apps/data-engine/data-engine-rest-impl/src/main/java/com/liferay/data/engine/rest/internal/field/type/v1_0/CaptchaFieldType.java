@@ -15,9 +15,9 @@
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
 import com.liferay.captcha.taglib.servlet.taglib.CaptchaTag;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.log.Log;
@@ -39,7 +39,11 @@ import org.osgi.service.component.annotations.Reference;
  * @author Marcela Cunha
  */
 @Component(
-	immediate = true, property = "data.engine.field.type.system=true",
+	immediate = true,
+	property = {
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Captcha/Captcha.es",
+		"data.engine.field.type.system=true"
+	},
 	service = FieldType.class
 )
 public class CaptchaFieldType extends BaseFieldType {
@@ -65,7 +69,7 @@ public class CaptchaFieldType extends BaseFieldType {
 			_log.error(e, e);
 		}
 
-		context.put("html", _soyDataFactory.createSoyHTMLData(html));
+		context.put("html", _soyDataFactory.createSoyRawData(html));
 	}
 
 	private String _renderCaptchaTag(

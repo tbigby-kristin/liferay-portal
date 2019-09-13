@@ -58,9 +58,8 @@ public class OpenIdConnectFilter extends BaseFilter {
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
 
-		long companyId = _portal.getCompanyId(httpServletRequest);
-
-		return _openIdConnect.isEnabled(companyId);
+		return _openIdConnect.isEnabled(
+			_portal.getCompanyId(httpServletRequest));
 	}
 
 	@Override
@@ -130,7 +129,10 @@ public class OpenIdConnectFilter extends BaseFilter {
 				clazz.getSimpleName(), httpServletRequest, httpServletResponse);
 		}
 		catch (Exception e) {
-			_log.error("Unable to process the OpenID login", e);
+			_log.error(
+				"Unable to process OpenID Connect authentication response: " +
+					e.getMessage(),
+				e);
 
 			httpSession.removeAttribute(
 				OpenIdConnectWebKeys.OPEN_ID_CONNECT_SESSION);

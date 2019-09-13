@@ -1,9 +1,24 @@
-import {Config} from 'metal-state';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import 'frontend-js-web/liferay/compat/modal/Modal.es';
+import {fetch} from 'frontend-js-web';
 import Component from 'metal-component';
 import dom from 'metal-dom';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
 
-import 'frontend-js-web/liferay/compat/modal/Modal.es';
 import templates from './LayoutFinder.soy';
 
 /**
@@ -11,15 +26,18 @@ import templates from './LayoutFinder.soy';
  * @review
  */
 class LayoutFinder extends Component {
-
 	/**
 	 * @inheritDoc
- 	 * @review
+	 * @review
 	 */
 	created() {
 		this._handleDocumentClick = this._handleDocumentClick.bind(this);
 
-		this._documentClickHandler = dom.on(document, 'click', this._handleDocumentClick);
+		this._documentClickHandler = dom.on(
+			document,
+			'click',
+			this._handleDocumentClick
+		);
 	}
 
 	/**
@@ -86,8 +104,7 @@ class LayoutFinder extends Component {
 			this.layouts = [];
 			this.totalCount = 0;
 			this._keywords = '';
-		}
-		else if (keywords !== this._keywords) {
+		} else if (keywords !== this._keywords) {
 			this._keywords = keywords;
 
 			this._updatePageResults(this._keywords);
@@ -104,41 +121,35 @@ class LayoutFinder extends Component {
 	_updatePageResults(keywords) {
 		let promise = Promise.resolve();
 
-		if (!this._loading && (keywords.length >= 2)) {
+		if (!this._loading && keywords.length >= 2) {
 			this._loading = true;
 
 			const formData = new FormData();
 
 			formData.append(`${this.namespace}keywords`, keywords);
 
-			promise = fetch(
-				this.findLayoutsURL,
-				{
-					body: formData,
-					credentials: 'include',
-					method: 'post'
-				}
-			).then(
-				response => {
-					return response.ok ?
-						response.json() :
-						{
-							layouts: [],
-							totalCount: 0
-						};
-				}
-			).then(
-				response => {
+			promise = fetch(this.findLayoutsURL, {
+				body: formData,
+				method: 'post'
+			})
+				.then(response => {
+					return response.ok
+						? response.json()
+						: {
+								layouts: [],
+								totalCount: 0
+						  };
+				})
+				.then(response => {
 					this.layouts = response.layouts;
 					this.totalCount = response.totalCount;
 					this._loading = false;
 					this._viewInPageAdministrationURL = `${this.administrationPortletURL}&${this.administrationPortletNamespace}keywords=${keywords}`;
 
-					if (this._showFinder && (keywords !== this._keywords)) {
+					if (this._showFinder && keywords !== this._keywords) {
 						this._updatePageResults(this._keywords);
 					}
-				}
-			);
+				});
 		}
 
 		return promise;
@@ -152,7 +163,6 @@ class LayoutFinder extends Component {
 	_toggleDialog() {
 		this._showFinder = !this._showFinder;
 	}
-
 }
 
 /**
@@ -162,110 +172,6 @@ class LayoutFinder extends Component {
  * @type {!Object}
  */
 LayoutFinder.STATE = {
-
-	/**
-	 * Namespace for Pages Administration portlet
-	 * @default undefined
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {!string}
-	 */
-	administrationPortletNamespace: Config
-		.string()
-		.required(),
-
-	/**
-	 * URL to access Pages Administration portlet
-	 * @default undefined
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {!string}
-	 */
-	administrationPortletURL: Config
-		.string()
-		.required(),
-
-	/**
-	 * URL to find layouts by keywords
-	 * @default undefined
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {!string}
-	 */
-	findLayoutsURL: Config
-		.string()
-		.required(),
-
-	/**
-	 * Layouts found by current keywords
-	 * @default []
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {!Array}
-	 */
-	layouts: Config
-		.arrayOf(
-			Config.shapeOf(
-				{
-					name: Config.string().required(),
-					url: Config.string().required()
-				}
-			)
-		)
-		.required(),
-
-	/**
-	 * Current portlet max items
-	 * @default undefined
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {number}
-	 */
-	maxItems: Config
-		.number()
-		.value(10),
-
-	/**
-	 * Current portlet namespace
-	 * @default undefined
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {!string}
-	 */
-	namespace: Config
-		.string()
-		.required(),
-
-	/**
-	 * Path of the available icons
-	 * @default undefined
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {!string}
-	 */
-	spritemap: Config
-		.string()
-		.required(),
-
-	/**
-	 * Total count of layouts found
-	 * @default 0
-	 * @instance
-	 * @memberOf LayoutFinder
-	 * @review
-	 * @type {number}
-	 */
-	totalCount: Config
-		.number()
-		.value(0),
-
 	/**
 	 * Document click handler
 	 * @default null
@@ -274,8 +180,7 @@ LayoutFinder.STATE = {
 	 * @review
 	 * @type {Object}
 	 */
-	_documentClickHandler: Config
-		.object()
+	_documentClickHandler: Config.object()
 		.internal()
 		.value(null),
 
@@ -288,9 +193,7 @@ LayoutFinder.STATE = {
 	 * @review
 	 * @type {string}
 	 */
-	_keywords: Config
-		.string()
-		.value(''),
+	_keywords: Config.string().value(''),
 
 	/**
 	 * True when it's loading page results
@@ -301,9 +204,7 @@ LayoutFinder.STATE = {
 	 * @review
 	 * @type {boolean}
 	 */
-	_loading: Config
-		.bool()
-		.value(false),
+	_loading: Config.bool().value(false),
 
 	/**
 	 * Show layout finder dialog
@@ -313,9 +214,7 @@ LayoutFinder.STATE = {
 	 * @review
 	 * @type {boolean}
 	 */
-	_showFinder: Config
-		.bool()
-		.value(false),
+	_showFinder: Config.bool().value(false),
 
 	/**
 	 * URL to access Pages Administration portlet with keywords parameter
@@ -325,9 +224,92 @@ LayoutFinder.STATE = {
 	 * @review
 	 * @type {string}
 	 */
-	_viewInPageAdministrationURL: Config
-		.string()
+	_viewInPageAdministrationURL: Config.string(),
 
+	/**
+	 * Namespace for Pages Administration portlet
+	 * @default undefined
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {!string}
+	 */
+	administrationPortletNamespace: Config.string().required(),
+
+	/**
+	 * URL to access Pages Administration portlet
+	 * @default undefined
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {!string}
+	 */
+	administrationPortletURL: Config.string().required(),
+
+	/**
+	 * URL to find layouts by keywords
+	 * @default undefined
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {!string}
+	 */
+	findLayoutsURL: Config.string().required(),
+
+	/**
+	 * Layouts found by current keywords
+	 * @default []
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {!Array}
+	 */
+	layouts: Config.arrayOf(
+		Config.shapeOf({
+			name: Config.string().required(),
+			url: Config.string().required()
+		})
+	).required(),
+
+	/**
+	 * Current portlet max items
+	 * @default undefined
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {number}
+	 */
+	maxItems: Config.number().value(10),
+
+	/**
+	 * Current portlet namespace
+	 * @default undefined
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {!string}
+	 */
+	namespace: Config.string().required(),
+
+	/**
+	 * Path of the available icons
+	 * @default undefined
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {!string}
+	 */
+	spritemap: Config.string().required(),
+
+	/**
+	 * Total count of layouts found
+	 * @default 0
+	 * @instance
+	 * @memberOf LayoutFinder
+	 * @review
+	 * @type {number}
+	 */
+	totalCount: Config.number().value(0)
 };
 
 Soy.register(LayoutFinder, templates);

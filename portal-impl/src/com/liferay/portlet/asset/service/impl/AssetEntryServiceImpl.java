@@ -137,6 +137,18 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 	}
 
 	@Override
+	public AssetEntry getEntry(String className, long classPK)
+		throws PortalException {
+
+		AssetEntry entry = assetEntryLocalService.getEntry(className, classPK);
+
+		AssetEntryPermission.check(
+			getPermissionChecker(), entry, ActionKeys.VIEW);
+
+		return entry;
+	}
+
+	@Override
 	public void incrementViewCounter(AssetEntry assetEntry)
 		throws PortalException {
 
@@ -310,12 +322,12 @@ public class AssetEntryServiceImpl extends AssetEntryServiceBaseImpl {
 			PermissionChecker permissionChecker = getPermissionChecker();
 
 			for (AssetEntry entry : entries) {
-				String className = entry.getClassName();
 				long classPK = entry.getClassPK();
 
 				AssetRendererFactory<?> assetRendererFactory =
 					AssetRendererFactoryRegistryUtil.
-						getAssetRendererFactoryByClassName(className);
+						getAssetRendererFactoryByClassName(
+							entry.getClassName());
 
 				try {
 					if (assetRendererFactory.hasPermission(

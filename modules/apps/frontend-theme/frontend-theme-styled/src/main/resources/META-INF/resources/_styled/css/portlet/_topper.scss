@@ -1,13 +1,12 @@
 %display-portlet-topper {
-	@include media-query(sm) {
+	@include media-breakpoint-up(sm) {
 		opacity: 1;
-
-		@include transform(translateY(-97%));
+		transform: translateY(-97%);
 	}
 }
 
 %display-portlet-content-editable {
-	@include media-query(sm) {
+	@include media-breakpoint-up(sm) {
 		border-color: $portlet-topper-border;
 		border-top-left-radius: 0;
 		border-top-right-radius: 0;
@@ -25,9 +24,8 @@
 	> .portlet-topper {
 		display: none;
 
-		@include media-query(sm) {
-			@include display(flex);
-
+		@include media-breakpoint-up(sm) {
+			display: flex;
 			left: 0;
 			opacity: 0;
 			position: absolute;
@@ -51,7 +49,8 @@
 }
 
 .portlet {
-	&:hover, &.focus {
+	&:hover,
+	&.focus {
 		> .portlet-content-editable {
 			@extend %display-portlet-content-editable;
 		}
@@ -90,8 +89,9 @@
 	-ms-flex: 1 1 auto;
 	flex: 1 1 auto;
 	line-height: 2;
-
-	@include text-overflow;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .portlet-title-menu {
@@ -127,25 +127,30 @@
 	margin: 0;
 	padding-left: 0;
 
-	> a, > span > a, .lfr-icon-menu > a {
+	> a,
+	> span > a,
+	.lfr-icon-menu > a {
 		color: $portlet-topper-link-color;
 	}
 
 	> a {
-		&:focus, &:hover {
+		&:focus,
+		&:hover {
 			text-decoration: none;
 		}
 	}
 }
 
 .lfr-configurator-visibility {
-	@include media-query(null, $screen-xs-max) {
+	@include media-breakpoint-down(sm) {
 		opacity: 0.5;
 	}
 
-	@include media-query(sm) {
+	@include media-breakpoint-up(sm) {
 		.portlet {
-			&:hover, &.focus, &.open {
+			&:hover,
+			&.focus,
+			&.open {
 				.portlet-topper {
 					opacity: 0.5;
 				}
@@ -162,7 +167,7 @@
 
 .controls-visible {
 	.portlet-content-editable {
-		@include media-query(null, $screen-xs-max) {
+		@include media-breakpoint-down(sm) {
 			border-color: $portlet-topper-border;
 			border-top-left-radius: 0;
 			border-top-right-radius: 0;
@@ -170,7 +175,7 @@
 	}
 
 	.portlet-topper {
-		@include media-query(null, $screen-xs-max) {
+		@include media-breakpoint-down(sm) {
 			display: -webkit-box;
 			display: -moz-box;
 			display: box;

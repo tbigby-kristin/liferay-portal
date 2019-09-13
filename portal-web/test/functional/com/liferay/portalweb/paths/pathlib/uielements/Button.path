@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADD_ADDRESS</td>
+	<td>//a[contains(@class,'add-address')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADD_ANNOUNCEMENT</td>
 	<td>//span[contains(.,'Add Announcement')]</td>
 	<td></td>
@@ -169,6 +174,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>COMMENT</td>
+	<td>//button/span[contains(.,'Comment')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>COMPARE_VERSIONS</td>
 	<td>//button[contains(@id,'compare')]</td>
 	<td></td>
@@ -200,7 +210,7 @@
 </tr>
 <tr>
 	<td>DELETE</td>
-	<td>//*[@data-qa-id='deleteButton'] | //button[contains(.,'Delete')] | //button[contains(.,'delete')]</td>
+	<td>//*[@data-qa-id='deleteButton'] | //div[contains(@class,'show')]//button[contains(.,'Delete')] | //button[contains(.,'delete')] | //button[contains(@class,'delete-logo')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -211,6 +221,16 @@
 <tr>
 	<td>DELETE_ENTRY</td>
 	<td>//li[contains(@class,'nav-item navbar-breakpoint')]//a/*[name()='svg'][contains(@class,'lexicon-icon')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DELETE_FRAGMENT_COMMENT</td>
+	<td>//button[contains(@class,'fragments-editor')]/span[contains(.,'Delete')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DELETE_LAYOUT_LOGO</td>
+	<td>//button[contains(@class,'delete-logo')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -404,6 +424,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PLUS_IE</td>
+	<td>//a[contains(@class,'nav-btn-monospaced')] | //button[@data-title='New' or @title='New']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>POST</td>
 	<td>//div[@class='button-holder']/button[contains(@id,'MicroblogsPortlet')]/span[contains(.,'Post')]</td>
 	<td></td>
@@ -449,6 +474,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REOPEN</td>
+	<td>//button/span[*[name()='svg'][contains(@class,'lexicon-icon-check-circle-full')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>REPLACE_CERTIFICATE</td>
 	<td>//button[contains(@onclick,'${key_certificateUsage}')]/span[contains(.,'Replace Certificate')]</td>
 	<td></td>
@@ -464,6 +494,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>REPLY_DISABLED</td>
+	<td>//button[contains(.,'Reply')][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>REPORT</td>
 	<td>//button[contains(.,'Report')]</td>
 	<td></td>
@@ -471,6 +506,11 @@
 <tr>
 	<td>RESET_CHANGES</td>
 	<td>//button[contains(.,'Reset Changes')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESOLVE</td>
+	<td>//button/span[*[name()='svg'][contains(@class,'lexicon-icon-check-circle')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -566,6 +606,16 @@
 <tr>
 	<td>SEND_PASSWORD_RESET_LINK</td>
 	<td>//button[contains(.,'Send Password Reset Link')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SHARE_SIDEBAR</td>
+	<td>//div[contains(@class,'btn-group-item')]/button[contains(@class,'btn') and contains(.,'Share')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SHARE_SIDENAV</td>
+	<td>//a[contains(@class,'btn')][contains(.,'Share')]</td>
 	<td></td>
 </tr>
 <tr>

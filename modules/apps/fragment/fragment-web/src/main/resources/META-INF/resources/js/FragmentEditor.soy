@@ -8,10 +8,13 @@
 		approved: string,
 		draft: string
 	]}
+	{@param initialConfiguration: string}
 	{@param initialCSS: string}
 	{@param initialHTML: string}
 	{@param initialJS: string}
 	{@param portletNamespace: string}
+	{@param propagationEnabled: bool}
+	{@param readOnly: bool}
 	{@param spritemap: string}
 	{@param status: string}
 	{@param urls: [
@@ -23,7 +26,9 @@
 		content: string,
 		name: string
 	]>}
+	{@param? _configuration: string}
 	{@param? _css: string}
+	{@param? _handleConfigurationChanged: any}
 	{@param? _handleCSSChanged: any}
 	{@param? _handleHTMLChanged: any}
 	{@param? _handleJSChanged: any}
@@ -37,100 +42,148 @@
 			<div class="navbar navbar-default">
 				<div class="container">
 					<div class="navbar navbar-collapse-absolute navbar-expand-md navbar-underline navigation-bar navigation-bar-light">
-						<ul class="navbar-nav">
+						<ul class="nav nav-underline" role="tablist">
 							<li class="nav-item">
-								<a class="active nav-link" href="{$urls.current}">
+								<a aria-controls="code" aria-expanded="true" class="active nav-link" data-toggle="tab" href="#code" id="codeTab" role="tab">
 									{msg desc=""}code{/msg}
+								</a>
+							</li>
+							<li class="nav-item">
+								<a aria-controls="configuration" class="nav-link" data-toggle="tab" href="#configuration" id="configurationTab" role="tab">
+									{msg desc=""}configuration{/msg}
 								</a>
 							</li>
 						</ul>
 					</div>
 
 					<div class="btn-group btn-group-nowrap mt-1 pull-right">
-						{if $status == $allowedStatus.draft}
-							{let $draftButtonAttributes kind="attributes"}
-								class="btn btn-default btn-sm"
-								type="button"
-								value="{$allowedStatus.draft}"
-								data-onclick="{$_handleSaveButtonClick}"
+						{if $readOnly}
+							<span class="pr-3 pt-1 text-info">
+								{call ClayIcon.render}
+									{param spritemap: $spritemap /}
+									{param symbol: 'exclamation-circle' /}
+								{/call}
+								{sp}
+								<span>{msg desc=""}read-only-view{/msg}</span>
+							</span>
+						{else}
+							{if $propagationEnabled}
+								<span class="lfr-portal-tooltip pr-3 pt-1 text-info" data-title="{msg desc=""}automatic-propagation-enabled-help{/msg}">
+									{call ClayIcon.render}
+										{param spritemap: $spritemap /}
+										{param symbol: 'exclamation-circle' /}
+									{/call}
+									{sp}
+									<span>{msg desc=""}automatic-propagation-enabled{/msg}</span>
+								</span>
+							{/if}
 
-								{if $_saving}
-									{sp}disabled
-								{/if}
-							{/let}
+							{if $status == $allowedStatus.draft}
+								{let $draftButtonAttributes kind="attributes"}
+									class="btn btn-default btn-sm"
+									type="button"
+									value="{$allowedStatus.draft}"
+									data-onclick="{$_handleSaveButtonClick}"
+
+									{if $_saving}
+										{sp}disabled
+									{/if}
+								{/let}
+
+								<div class="btn-group-item">
+									<button {$draftButtonAttributes}>
+										<span class="lfr-btn-label">
+											{msg desc=""}save-as-draft{/msg}
+										</span>
+									</button>
+								</div>
+							{/if}
 
 							<div class="btn-group-item">
-								<button {$draftButtonAttributes}>
+								{let $publishButtonAttributes kind="attributes"}
+									class="btn btn-primary btn-sm"
+									type="button"
+									value="{$allowedStatus.approved}"
+									data-onclick="{$_handleSaveButtonClick}"
+
+									{if $_saving}
+										{sp}disabled
+									{/if}
+								{/let}
+
+								<button {$publishButtonAttributes}>
 									<span class="lfr-btn-label">
-										{msg desc=""}save-as-draft{/msg}
+										{msg desc=""}publish{/msg}
 									</span>
 								</button>
 							</div>
 						{/if}
-
-						<div class="btn-group-item">
-							{let $publishButtonAttributes kind="attributes"}
-								class="btn btn-primary btn-sm"
-								type="button"
-								value="{$allowedStatus.approved}"
-								data-onclick="{$_handleSaveButtonClick}"
-
-								{if $_saving}
-									{sp}disabled
-								{/if}
-							{/let}
-
-							<button {$publishButtonAttributes}>
-								<span class="lfr-btn-label">
-									{msg desc=""}publish{/msg}
-								</span>
-							</button>
-						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div class="fragment-editor">
-			{call com.liferay.fragment.web.SourceEditor.render}
-				{param autocompleteTags: $autocompleteTags /}
-				{param events: ['contentChanged': $_handleHTMLChanged] /}
-				{param initialContent: $initialHTML /}
-				{param spritemap: $spritemap /}
-				{param syntax: 'html' /}
-			{/call}
+		<div class="tab-content">
+			<div aria-labelledby="codeTab" class="active fade show tab-pane" id="code" role="tabpanel">
+				<div class="fragment-editor">
+					{call com.liferay.fragment.web.SourceEditor.render}
+						{param autocompleteTags: $autocompleteTags /}
+						{param events: ['contentChanged': $_handleHTMLChanged] /}
+						{param initialContent: $initialHTML /}
+						{param readOnly: $readOnly /}
+						{param spritemap: $spritemap /}
+						{param syntax: 'html' /}
+					{/call}
 
-			{call com.liferay.fragment.web.SourceEditor.render}
-				{param events: ['contentChanged': $_handleCSSChanged] /}
-				{param initialContent: $initialCSS /}
-				{param spritemap: $spritemap /}
-				{param syntax: 'css' /}
-			{/call}
+					{call com.liferay.fragment.web.SourceEditor.render}
+						{param events: ['contentChanged': $_handleCSSChanged] /}
+						{param initialContent: $initialCSS /}
+						{param readOnly: $readOnly /}
+						{param spritemap: $spritemap /}
+						{param syntax: 'css' /}
+					{/call}
 
-			{let $element kind="text"}
-				fragmentElement
-			{/let}
+					{let $element kind="text"}
+						fragmentElement
+					{/let}
 
-			{call com.liferay.fragment.web.SourceEditor.render}
-				{param codeHeader: 'function(fragmentElement) {' /}
-				{param codeHeaderHelp kind="html"}
-					{msg desc=""}parameter-{$element}-provides-access-to-the-current-fragment-node-use-it-to-manipulate-fragment-components{/msg}
-				{/param}
-				{param codeFooter: '}' /}
-				{param events: ['contentChanged': $_handleJSChanged] /}
-				{param initialContent: $initialJS /}
-				{param spritemap: $spritemap /}
-				{param syntax: 'javascript' /}
-			{/call}
+					{call com.liferay.fragment.web.SourceEditor.render}
+						{param codeHeader: 'function(fragmentElement, configuration) {' /}
+						{param codeHeaderHelp kind="html"}
+							{msg desc=""}parameter-{$element}-provides-access-to-the-current-fragment-node-use-it-to-manipulate-fragment-components{/msg}
+						{/param}
+						{param codeFooter: '}' /}
+						{param events: ['contentChanged': $_handleJSChanged] /}
+						{param initialContent: $initialJS /}
+						{param readOnly: $readOnly /}
+						{param spritemap: $spritemap /}
+						{param syntax: 'javascript' /}
+					{/call}
 
-			{call com.liferay.fragment.web.FragmentPreview.render}
-				{param css: $_css /}
-				{param html: $_html /}
-				{param js: $_js /}
-				{param portletNamespace: $portletNamespace /}
-				{param spritemap: $spritemap /}
-				{param urls: $urls /}
-			{/call}
+					{call com.liferay.fragment.web.FragmentPreview.render}
+						{param configuration: $_configuration /}
+						{param css: $_css /}
+						{param html: $_html /}
+						{param js: $_js /}
+						{param portletNamespace: $portletNamespace /}
+						{param spritemap: $spritemap /}
+						{param urls: $urls /}
+					{/call}
+				</div>
+			</div>
+
+			<div aria-labelledby="configurationTab" class="fade tab-pane"
+				 id="configuration" role="tabpanel">
+				<div class="fragment-editor">
+					{call com.liferay.fragment.web.SourceEditor.render}
+						{param events: ['contentChanged': $_handleConfigurationChanged] /}
+						{param initialContent: $initialConfiguration /}
+						{param readOnly: $readOnly /}
+						{param spritemap: $spritemap /}
+						{param syntax: 'json' /}
+					{/call}
+				</div>
+			</div>
 		</div>
 	</div>
 {/template}

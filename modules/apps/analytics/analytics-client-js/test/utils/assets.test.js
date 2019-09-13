@@ -1,11 +1,26 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {getNumberOfWords} from '../../src/utils/assets';
 import {expect} from 'chai';
 
 describe('getNumberOfWords', () => {
-	it('should return the number of words', () => {
+	it('returns the number of words', () => {
 		const content = {
-			description: 'Build portals, intranets, websites and connected experiences on the most flexible platform around.',
-			title: 'Digital Experience Software Tailored to Your Needs',
+			description:
+				'Build portals, intranets, websites and connected experiences on the most flexible platform around.',
+			title: 'Digital Experience Software Tailored to Your Needs'
 		};
 
 		const markup = `<header class="header">
@@ -21,7 +36,7 @@ describe('getNumberOfWords', () => {
 		expect(numberOfWords).to.equal(20);
 	});
 
-	it('should return 0 if the number of words is empty', () => {
+	it('returns 0 if the number of words is empty', () => {
 		const element = document.createElement('div');
 
 		element.innerText = '';

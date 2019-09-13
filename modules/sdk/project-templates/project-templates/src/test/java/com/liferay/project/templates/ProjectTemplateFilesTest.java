@@ -17,7 +17,6 @@ package com.liferay.project.templates;
 import aQute.bnd.osgi.Constants;
 import aQute.bnd.version.VersionRange;
 
-import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.Validator;
 import com.liferay.project.templates.util.FileTestUtil;
 import com.liferay.project.templates.util.StringTestUtil;
@@ -498,8 +497,6 @@ public class ProjectTemplateFilesTest {
 	}
 
 	private void _testLanguageProperties(Path path) throws IOException {
-		boolean portlet = false;
-
 		try (BufferedReader bufferedReader = Files.newBufferedReader(
 				path, StandardCharsets.UTF_8)) {
 
@@ -532,49 +529,8 @@ public class ProjectTemplateFilesTest {
 					(_languagePropertiesKeyComparator.compare(
 						key, previousKey) > 0));
 
-				if (key.startsWith("javax.portlet.")) {
-					portlet = true;
-				}
-
 				previousKey = key;
 			}
-		}
-
-		if (portlet) {
-			Properties properties = FileUtil.readProperties(path);
-
-			String keywords = properties.getProperty(
-				"javax.portlet.keywords.${className.toLowerCase()}");
-
-			Assert.assertTrue(
-				"Value of \"javax.portlet.keywords.${className.toLowerCase()}" +
-					"\" in " + path + " must be \"${className}\"",
-				(keywords != null) && keywords.equals("${className}"));
-
-			String title = properties.getProperty(
-				"javax.portlet.title.${className.toLowerCase()}");
-
-			Assert.assertTrue(
-				"Value of \"javax.portlet.title.${className.toLowerCase()}" +
-					"\" in " + path + " must be \"${className}\"",
-				(title != null) && title.equals("${className}"));
-
-			String expectedShortTitle = "${className}";
-
-			Assert.assertEquals(
-				"Incorrect value of " +
-					"\"javax.portlet.display-name.${className.toLowerCase()}" +
-						"\" in " + path,
-				expectedShortTitle,
-				properties.getProperty(
-					"javax.portlet.display-name.${className.toLowerCase()}"));
-
-			Assert.assertEquals(
-				"Incorrect value of \"javax.portlet.short-title.${className." +
-					"toLowerCase()}\" in " + path,
-				expectedShortTitle,
-				properties.getProperty(
-					"javax.portlet.short-title.${className.toLowerCase()}"));
 		}
 	}
 
@@ -589,9 +545,6 @@ public class ProjectTemplateFilesTest {
 			String line = null;
 
 			while ((line = bufferedReader.readLine()) != null) {
-				Assert.assertFalse(
-					"Forbidden empty line in " + path, line.isEmpty());
-
 				if (line.startsWith("#set")) {
 					continue;
 				}
@@ -752,12 +705,6 @@ public class ProjectTemplateFilesTest {
 					pomXmlPath, dependencyElementString,
 					dependencyChildElements, 3, "scope", "provided");
 			}
-			else {
-				Assert.assertEquals(
-					"Incorrect number of child nodes of " +
-						dependencyElementString + " in " + pomXmlPath,
-					dependencyChildElements.size(), 3);
-			}
 		}
 
 		_testPomXmlVersions(pomXmlPath, projectElement, "dependency");
@@ -868,7 +815,7 @@ public class ProjectTemplateFilesTest {
 
 		String pathString = archetypeResourcesDirPath.toString();
 
-		if (!pathString.contains("ext")) {
+		if (!pathString.contains("ext") & !pathString.contains("spring-mvc")) {
 			_testPomXml(archetypeResourcesDirPath, documentBuilder);
 		}
 
@@ -1010,7 +957,12 @@ public class ProjectTemplateFilesTest {
 				text.contains("* @author ${author}"));
 		}
 
-		if (extension.equals("xml") && Validator.isNotNull(text)) {
+		String pathString = path.toString();
+
+		if (!pathString.contains("spring-mvc-portlet") &&
+			!fileName.equals("portlet") && extension.equals("xml") &&
+			Validator.isNotNull(text)) {
+
 			String xmlDeclaration = _xmlDeclarations.get(fileName);
 
 			if (xmlDeclaration == null) {

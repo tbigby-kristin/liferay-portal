@@ -17,22 +17,19 @@ package com.liferay.headless.delivery.resource.v1_0.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.headless.delivery.client.dto.v1_0.BlogPostingImage;
+import com.liferay.headless.delivery.client.http.HttpInvoker;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.odata.entity.EntityField;
 
 import java.io.File;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -42,6 +39,30 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class BlogPostingImageResourceTest
 	extends BaseBlogPostingImageResourceTestCase {
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLDeleteBlogPostingImage() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetBlogPostingImage() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetSiteBlogPostingImagesPage() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLPostSiteBlogPostingImage() {
+	}
 
 	@Test
 	public void testPostSiteBlogPostingImageRollback() throws Exception {
@@ -56,7 +77,8 @@ public class BlogPostingImageResourceTest
 		blogPostingImage.setTitle("*,?");
 
 		try {
-			testPostSiteBlogPostingImage_addBlogPostingImage(blogPostingImage);
+			testPostSiteBlogPostingImage_addBlogPostingImage(
+				blogPostingImage, getMultipartFiles());
 
 			Assert.fail();
 		}
@@ -72,19 +94,18 @@ public class BlogPostingImageResourceTest
 	}
 
 	@Override
-	protected List<EntityField> getEntityFields(EntityField.Type type)
+	protected void assertValid(
+			BlogPostingImage blogPostingImage, Map<String, File> multipartFiles)
 		throws Exception {
 
-		List<EntityField> entityFields = super.getEntityFields(type);
+		Assert.assertEquals(
+			new String(FileUtil.getBytes(multipartFiles.get("file"))),
+			_read("http://localhost:8080" + blogPostingImage.getContentUrl()));
+	}
 
-		Stream<EntityField> stream = entityFields.stream();
-
-		return stream.filter(
-			entityField -> !StringUtil.equals(
-				"fileExtension", entityField.getName())
-		).collect(
-			Collectors.toList()
-		);
+	@Override
+	protected String[] getIgnoredEntityFieldNames() {
+		return new String[] {"fileExtension"};
 	}
 
 	@Override
@@ -96,6 +117,18 @@ public class BlogPostingImageResourceTest
 		files.put("file", FileUtil.createTempFile(randomString.getBytes()));
 
 		return files;
+	}
+
+	private String _read(String url) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+		httpInvoker.path(url);
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
 	}
 
 }

@@ -16,6 +16,7 @@ package com.liferay.fragment.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 
@@ -36,9 +37,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface FragmentCollectionModel
-	extends BaseModel<FragmentCollection>, ShardedModel, StagedGroupedModel {
+	extends BaseModel<FragmentCollection>, MVCCModel, ShardedModel,
+			StagedGroupedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a fragment collection model instance should use the {@link FragmentCollection} interface instead.
@@ -57,6 +59,22 @@ public interface FragmentCollectionModel
 	 * @param primaryKey the primary key of this fragment collection
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this fragment collection.
+	 *
+	 * @return the mvcc version of this fragment collection
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this fragment collection.
+	 *
+	 * @param mvccVersion the mvcc version of this fragment collection
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this fragment collection.

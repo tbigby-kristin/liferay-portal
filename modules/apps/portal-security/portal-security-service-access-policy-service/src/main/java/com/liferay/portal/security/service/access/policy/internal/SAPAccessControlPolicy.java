@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.security.access.control.BaseAccessControlPolicy
 import com.liferay.portal.kernel.security.auth.AccessControlContext;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierResult;
+import com.liferay.portal.kernel.security.service.access.policy.ServiceAccessPolicy;
 import com.liferay.portal.kernel.security.service.access.policy.ServiceAccessPolicyThreadLocal;
 import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
 import com.liferay.portal.kernel.util.Validator;
@@ -122,6 +123,29 @@ public class SAPAccessControlPolicy extends BaseAccessControlPolicy {
 
 			ServiceAccessPolicyThreadLocal.setActiveServiceAccessPolicyNames(
 				activeServiceAccessPolicyNames);
+		}
+
+		AccessControlContext accessControlContext =
+			AccessControlUtil.getAccessControlContext();
+
+		if (accessControlContext == null) {
+			return activeServiceAccessPolicyNames;
+		}
+
+		AuthVerifierResult authVerifierResult =
+			accessControlContext.getAuthVerifierResult();
+
+		if (authVerifierResult == null) {
+			return activeServiceAccessPolicyNames;
+		}
+
+		Map<String, Object> settings = authVerifierResult.getSettings();
+
+		List<String> serviceAccessPolicyNames = (List<String>)settings.get(
+			ServiceAccessPolicy.SERVICE_ACCESS_POLICY_NAMES);
+
+		if (serviceAccessPolicyNames != null) {
+			activeServiceAccessPolicyNames.addAll(serviceAccessPolicyNames);
 		}
 
 		return activeServiceAccessPolicyNames;

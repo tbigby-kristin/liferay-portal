@@ -23,17 +23,26 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import com.liferay.headless.form.client.dto.v1_0.Form;
+import com.liferay.headless.form.client.dto.v1_0.FormContext;
+import com.liferay.headless.form.client.dto.v1_0.FormDocument;
 import com.liferay.headless.form.client.http.HttpInvoker;
 import com.liferay.headless.form.client.pagination.Page;
 import com.liferay.headless.form.client.pagination.Pagination;
 import com.liferay.headless.form.client.resource.v1_0.FormResource;
 import com.liferay.headless.form.client.serdes.v1_0.FormSerDes;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -48,9 +57,8 @@ import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -93,7 +101,17 @@ public abstract class BaseFormResourceTestCase {
 	public void setUp() throws Exception {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
-		testLocale = LocaleUtil.getDefault();
+
+		testCompany = CompanyLocalServiceUtil.getCompany(
+			testGroup.getCompanyId());
+
+		_formResource.setContextCompany(testCompany);
+
+		FormResource.Builder builder = FormResource.builder();
+
+		formResource = builder.locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	@After
@@ -180,7 +198,7 @@ public abstract class BaseFormResourceTestCase {
 	public void testGetForm() throws Exception {
 		Form postForm = testGetForm_addForm();
 
-		Form getForm = FormResource.getForm(postForm.getId());
+		Form getForm = formResource.getForm(postForm.getId());
 
 		assertEquals(postForm, getForm);
 		assertValid(getForm);
@@ -192,17 +210,38 @@ public abstract class BaseFormResourceTestCase {
 	}
 
 	@Test
-	public void testPostFormEvaluateContext() throws Exception {
-		Assert.assertTrue(true);
-	}
+	public void testGraphQLGetForm() throws Exception {
+		Form form = testGraphQLForm_addForm();
 
-	@Test
-	public void testPostFormFormDocument() throws Exception {
-		Assert.assertTrue(true);
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"form",
+				new HashMap<String, Object>() {
+					{
+						put("formId", form.getId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			equalsJSONObject(form, dataJSONObject.getJSONObject("form")));
 	}
 
 	@Test
 	public void testGetSiteFormsPage() throws Exception {
+		Page<Form> page = formResource.getSiteFormsPage(
+			testGetSiteFormsPage_getSiteId(), Pagination.of(1, 2));
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long siteId = testGetSiteFormsPage_getSiteId();
 		Long irrelevantSiteId = testGetSiteFormsPage_getIrrelevantSiteId();
 
@@ -210,7 +249,7 @@ public abstract class BaseFormResourceTestCase {
 			Form irrelevantForm = testGetSiteFormsPage_addForm(
 				irrelevantSiteId, randomIrrelevantForm());
 
-			Page<Form> page = FormResource.getSiteFormsPage(
+			page = formResource.getSiteFormsPage(
 				irrelevantSiteId, Pagination.of(1, 2));
 
 			Assert.assertEquals(1, page.getTotalCount());
@@ -224,8 +263,7 @@ public abstract class BaseFormResourceTestCase {
 
 		Form form2 = testGetSiteFormsPage_addForm(siteId, randomForm());
 
-		Page<Form> page = FormResource.getSiteFormsPage(
-			siteId, Pagination.of(1, 2));
+		page = formResource.getSiteFormsPage(siteId, Pagination.of(1, 2));
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -244,14 +282,14 @@ public abstract class BaseFormResourceTestCase {
 
 		Form form3 = testGetSiteFormsPage_addForm(siteId, randomForm());
 
-		Page<Form> page1 = FormResource.getSiteFormsPage(
+		Page<Form> page1 = formResource.getSiteFormsPage(
 			siteId, Pagination.of(1, 2));
 
 		List<Form> forms1 = (List<Form>)page1.getItems();
 
 		Assert.assertEquals(forms1.toString(), 2, forms1.size());
 
-		Page<Form> page2 = FormResource.getSiteFormsPage(
+		Page<Form> page2 = formResource.getSiteFormsPage(
 			siteId, Pagination.of(2, 2));
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -260,14 +298,11 @@ public abstract class BaseFormResourceTestCase {
 
 		Assert.assertEquals(forms2.toString(), 1, forms2.size());
 
+		Page<Form> page3 = formResource.getSiteFormsPage(
+			siteId, Pagination.of(1, 3));
+
 		assertEqualsIgnoringOrder(
-			Arrays.asList(form1, form2, form3),
-			new ArrayList<Form>() {
-				{
-					addAll(forms1);
-					addAll(forms2);
-				}
-			});
+			Arrays.asList(form1, form2, form3), (List<Form>)page3.getItems());
 	}
 
 	protected Form testGetSiteFormsPage_addForm(Long siteId, Form form)
@@ -283,6 +318,72 @@ public abstract class BaseFormResourceTestCase {
 
 	protected Long testGetSiteFormsPage_getIrrelevantSiteId() throws Exception {
 		return irrelevantGroup.getGroupId();
+	}
+
+	@Test
+	public void testGraphQLGetSiteFormsPage() throws Exception {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		List<GraphQLField> itemsGraphQLFields = getGraphQLFields();
+
+		graphQLFields.add(
+			new GraphQLField(
+				"items", itemsGraphQLFields.toArray(new GraphQLField[0])));
+
+		graphQLFields.add(new GraphQLField("page"));
+		graphQLFields.add(new GraphQLField("totalCount"));
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"forms",
+				new HashMap<String, Object>() {
+					{
+						put("page", 1);
+						put("pageSize", 2);
+						put("siteId", testGroup.getGroupId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		JSONObject formsJSONObject = dataJSONObject.getJSONObject("forms");
+
+		Assert.assertEquals(0, formsJSONObject.get("totalCount"));
+
+		Form form1 = testGraphQLForm_addForm();
+		Form form2 = testGraphQLForm_addForm();
+
+		jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		dataJSONObject = jsonObject.getJSONObject("data");
+
+		formsJSONObject = dataJSONObject.getJSONObject("forms");
+
+		Assert.assertEquals(2, formsJSONObject.get("totalCount"));
+
+		assertEqualsJSONArray(
+			Arrays.asList(form1, form2), formsJSONObject.getJSONArray("items"));
+	}
+
+	@Test
+	public void testPostFormEvaluateContext() throws Exception {
+		Assert.assertTrue(true);
+	}
+
+	@Test
+	public void testPostFormFormDocument() throws Exception {
+		Assert.assertTrue(true);
+	}
+
+	protected Form testGraphQLForm_addForm() throws Exception {
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -309,6 +410,22 @@ public abstract class BaseFormResourceTestCase {
 		}
 	}
 
+	protected void assertEquals(
+		FormContext formContext1, FormContext formContext2) {
+
+		Assert.assertTrue(
+			formContext1 + " does not equal " + formContext2,
+			equals(formContext1, formContext2));
+	}
+
+	protected void assertEquals(
+		FormDocument formDocument1, FormDocument formDocument2) {
+
+		Assert.assertTrue(
+			formDocument1 + " does not equal " + formDocument2,
+			equals(formDocument1, formDocument2));
+	}
+
 	protected void assertEqualsIgnoringOrder(
 		List<Form> forms1, List<Form> forms2) {
 
@@ -326,6 +443,25 @@ public abstract class BaseFormResourceTestCase {
 			}
 
 			Assert.assertTrue(forms2 + " does not contain " + form1, contains);
+		}
+	}
+
+	protected void assertEqualsJSONArray(
+		List<Form> forms, JSONArray jsonArray) {
+
+		for (Form form : forms) {
+			boolean contains = false;
+
+			for (Object object : jsonArray) {
+				if (equalsJSONObject(form, (JSONObject)object)) {
+					contains = true;
+
+					break;
+				}
+			}
+
+			Assert.assertTrue(
+				jsonArray + " does not contain " + form, contains);
 		}
 	}
 
@@ -444,7 +580,7 @@ public abstract class BaseFormResourceTestCase {
 	protected void assertValid(Page<Form> page) {
 		boolean valid = false;
 
-		Collection<Form> forms = page.getItems();
+		java.util.Collection<Form> forms = page.getItems();
 
 		int size = forms.size();
 
@@ -458,7 +594,165 @@ public abstract class BaseFormResourceTestCase {
 		Assert.assertTrue(valid);
 	}
 
+	protected void assertValid(FormContext formContext) {
+		boolean valid = true;
+
+		for (String additionalAssertFieldName :
+				getAdditionalFormContextAssertFieldNames()) {
+
+			if (Objects.equals("formFieldValues", additionalAssertFieldName)) {
+				if (formContext.getFormFieldValues() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("formPageContexts", additionalAssertFieldName)) {
+				if (formContext.getFormPageContexts() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("readOnly", additionalAssertFieldName)) {
+				if (formContext.getReadOnly() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"showRequiredFieldsWarning", additionalAssertFieldName)) {
+
+				if (formContext.getShowRequiredFieldsWarning() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("showSubmitButton", additionalAssertFieldName)) {
+				if (formContext.getShowSubmitButton() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid additional assert field name " +
+					additionalAssertFieldName);
+		}
+
+		Assert.assertTrue(valid);
+	}
+
+	protected void assertValid(FormDocument formDocument) {
+		boolean valid = true;
+
+		if (formDocument.getId() == null) {
+			valid = false;
+		}
+
+		if (!Objects.equals(formDocument.getSiteId(), testGroup.getGroupId())) {
+			valid = false;
+		}
+
+		for (String additionalAssertFieldName :
+				getAdditionalFormDocumentAssertFieldNames()) {
+
+			if (Objects.equals("contentUrl", additionalAssertFieldName)) {
+				if (formDocument.getContentUrl() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("description", additionalAssertFieldName)) {
+				if (formDocument.getDescription() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("encodingFormat", additionalAssertFieldName)) {
+				if (formDocument.getEncodingFormat() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("fileExtension", additionalAssertFieldName)) {
+				if (formDocument.getFileExtension() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("folderId", additionalAssertFieldName)) {
+				if (formDocument.getFolderId() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("sizeInBytes", additionalAssertFieldName)) {
+				if (formDocument.getSizeInBytes() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("title", additionalAssertFieldName)) {
+				if (formDocument.getTitle() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid additional assert field name " +
+					additionalAssertFieldName);
+		}
+
+		Assert.assertTrue(valid);
+	}
+
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected String[] getAdditionalFormContextAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected String[] getAdditionalFormDocumentAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected List<GraphQLField> getGraphQLFields() {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		}
+
+		return graphQLFields;
+	}
+
+	protected String[] getIgnoredEntityFieldNames() {
 		return new String[0];
 	}
 
@@ -612,7 +906,260 @@ public abstract class BaseFormResourceTestCase {
 		return true;
 	}
 
-	protected Collection<EntityField> getEntityFields() throws Exception {
+	protected boolean equals(
+		FormContext formContext1, FormContext formContext2) {
+
+		if (formContext1 == formContext2) {
+			return true;
+		}
+
+		for (String additionalAssertFieldName :
+				getAdditionalFormContextAssertFieldNames()) {
+
+			if (Objects.equals("formFieldValues", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formContext1.getFormFieldValues(),
+						formContext2.getFormFieldValues())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("formPageContexts", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formContext1.getFormPageContexts(),
+						formContext2.getFormPageContexts())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("readOnly", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formContext1.getReadOnly(),
+						formContext2.getReadOnly())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"showRequiredFieldsWarning", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						formContext1.getShowRequiredFieldsWarning(),
+						formContext2.getShowRequiredFieldsWarning())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("showSubmitButton", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formContext1.getShowSubmitButton(),
+						formContext2.getShowSubmitButton())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid additional assert field name " +
+					additionalAssertFieldName);
+		}
+
+		return true;
+	}
+
+	protected boolean equals(
+		FormDocument formDocument1, FormDocument formDocument2) {
+
+		if (formDocument1 == formDocument2) {
+			return true;
+		}
+
+		for (String additionalAssertFieldName :
+				getAdditionalFormDocumentAssertFieldNames()) {
+
+			if (Objects.equals("contentUrl", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getContentUrl(),
+						formDocument2.getContentUrl())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("description", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getDescription(),
+						formDocument2.getDescription())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("encodingFormat", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getEncodingFormat(),
+						formDocument2.getEncodingFormat())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("fileExtension", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getFileExtension(),
+						formDocument2.getFileExtension())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("folderId", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getFolderId(),
+						formDocument2.getFolderId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getId(), formDocument2.getId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("siteId", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getSiteId(), formDocument2.getSiteId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("sizeInBytes", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getSizeInBytes(),
+						formDocument2.getSizeInBytes())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("title", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						formDocument1.getTitle(), formDocument2.getTitle())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid additional assert field name " +
+					additionalAssertFieldName);
+		}
+
+		return true;
+	}
+
+	protected boolean equalsJSONObject(Form form, JSONObject jsonObject) {
+		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("defaultLanguage", fieldName)) {
+				if (!Objects.deepEquals(
+						form.getDefaultLanguage(),
+						jsonObject.getString("defaultLanguage"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("description", fieldName)) {
+				if (!Objects.deepEquals(
+						form.getDescription(),
+						jsonObject.getString("description"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", fieldName)) {
+				if (!Objects.deepEquals(
+						form.getId(), jsonObject.getLong("id"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("name", fieldName)) {
+				if (!Objects.deepEquals(
+						form.getName(), jsonObject.getString("name"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("structureId", fieldName)) {
+				if (!Objects.deepEquals(
+						form.getStructureId(),
+						jsonObject.getLong("structureId"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid field name " + fieldName);
+		}
+
+		return true;
+	}
+
+	protected java.util.Collection<EntityField> getEntityFields()
+		throws Exception {
+
 		if (!(_formResource instanceof EntityModelResource)) {
 			throw new UnsupportedOperationException(
 				"Resource is not an instance of EntityModelResource");
@@ -633,12 +1180,15 @@ public abstract class BaseFormResourceTestCase {
 	protected List<EntityField> getEntityFields(EntityField.Type type)
 		throws Exception {
 
-		Collection<EntityField> entityFields = getEntityFields();
+		java.util.Collection<EntityField> entityFields = getEntityFields();
 
 		Stream<EntityField> stream = entityFields.stream();
 
 		return stream.filter(
-			entityField -> Objects.equals(entityField.getType(), type)
+			entityField ->
+				Objects.equals(entityField.getType(), type) &&
+				!ArrayUtil.contains(
+					getIgnoredEntityFieldNames(), entityField.getName())
 		).collect(
 			Collectors.toList()
 		);
@@ -818,6 +1368,23 @@ public abstract class BaseFormResourceTestCase {
 			"Invalid entity field " + entityFieldName);
 	}
 
+	protected String invoke(String query) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(
+			JSONUtil.put(
+				"query", query
+			).toString(),
+			"application/json");
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		httpInvoker.path("http://localhost:8080/o/graphql");
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
+	}
+
 	protected Form randomForm() throws Exception {
 		return new Form() {
 			{
@@ -846,10 +1413,94 @@ public abstract class BaseFormResourceTestCase {
 		return randomForm();
 	}
 
+	protected FormContext randomFormContext() throws Exception {
+		return new FormContext() {
+			{
+				readOnly = RandomTestUtil.randomBoolean();
+				showRequiredFieldsWarning = RandomTestUtil.randomBoolean();
+				showSubmitButton = RandomTestUtil.randomBoolean();
+			}
+		};
+	}
+
+	protected FormDocument randomFormDocument() throws Exception {
+		return new FormDocument() {
+			{
+				contentUrl = RandomTestUtil.randomString();
+				description = RandomTestUtil.randomString();
+				encodingFormat = RandomTestUtil.randomString();
+				fileExtension = RandomTestUtil.randomString();
+				folderId = RandomTestUtil.randomLong();
+				id = RandomTestUtil.randomLong();
+				siteId = RandomTestUtil.randomLong();
+				sizeInBytes = RandomTestUtil.randomLong();
+				title = RandomTestUtil.randomString();
+			}
+		};
+	}
+
+	protected FormResource formResource;
 	protected Group irrelevantGroup;
+	protected Company testCompany;
 	protected Group testGroup;
-	protected Locale testLocale;
-	protected String testUserNameAndPassword = "test@liferay.com:test";
+
+	protected class GraphQLField {
+
+		public GraphQLField(String key, GraphQLField... graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = graphQLFields;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(_key);
+
+			if (!_parameterMap.isEmpty()) {
+				sb.append("(");
+
+				for (Map.Entry<String, Object> entry :
+						_parameterMap.entrySet()) {
+
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append(")");
+			}
+
+			if (_graphQLFields.length > 0) {
+				sb.append("{");
+
+				for (GraphQLField graphQLField : _graphQLFields) {
+					sb.append(graphQLField.toString());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append("}");
+			}
+
+			return sb.toString();
+		}
+
+		private final GraphQLField[] _graphQLFields;
+		private final String _key;
+		private final Map<String, Object> _parameterMap;
+
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseFormResourceTestCase.class);

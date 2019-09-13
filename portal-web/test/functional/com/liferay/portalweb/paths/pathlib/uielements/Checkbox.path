@@ -274,6 +274,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MAKE_PRIMARY</td>
+	<td>//label[contains(.,'Primary')]/input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MARK_AS_A_QUESTION</td>
 	<td>//label[contains(.,'Mark as a Question')]/input[@type='checkbox']</td>
 	<td></td>
@@ -391,11 +396,6 @@
 <tr>
 	<td>SITE_ADMINISTRATOR</td>
 	<td>xpath=(//input[contains(@name,'rowIds')])[1]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>SITE_OWNER</td>
-	<td>//tr[contains(.,'Site Owner')]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>

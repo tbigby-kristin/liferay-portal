@@ -30,9 +30,12 @@ import com.liferay.blogs.exception.NoSuchEntryException;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.service.BlogsEntryLocalService;
 import com.liferay.blogs.service.BlogsEntryService;
+import com.liferay.blogs.web.internal.bulk.selection.BlogsEntryBulkSelectionFactory;
 import com.liferay.blogs.web.internal.util.BlogsEntryImageSelectorHelper;
+import com.liferay.bulk.selection.BulkSelection;
 import com.liferay.document.library.kernel.exception.FileSizeException;
 import com.liferay.friendly.url.exception.DuplicateFriendlyURLEntryException;
+import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.editor.EditorConstants;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -46,7 +49,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -113,31 +116,14 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
-		long[] deleteEntryIds = null;
-
-		long entryId = ParamUtil.getLong(actionRequest, "entryId");
-
-		if (entryId > 0) {
-			deleteEntryIds = new long[] {entryId};
-		}
-		else {
-			deleteEntryIds = StringUtil.split(
-				ParamUtil.getString(actionRequest, "deleteEntryIds"), 0L);
-		}
-
 		List<TrashedModel> trashedModels = new ArrayList<>();
 
-		for (long deleteEntryId : deleteEntryIds) {
-			if (moveToTrash) {
-				BlogsEntry entry = _blogsEntryService.moveEntryToTrash(
-					deleteEntryId);
+		BulkSelection<BlogsEntry> blogsEntryBulkSelection =
+			_blogsEntryBulkSelectionFactory.create(
+				_getParameterMap(actionRequest));
 
-				trashedModels.add(entry);
-			}
-			else {
-				_blogsEntryService.deleteEntry(deleteEntryId);
-			}
-		}
+		blogsEntryBulkSelection.forEach(
+			blogsEntry -> _deleteEntry(blogsEntry, moveToTrash, trashedModels));
 
 		if (moveToTrash && !trashedModels.isEmpty()) {
 			Map<String, Object> data = new HashMap<>();
@@ -520,7 +506,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 				themeDisplay.getUserId(), entry.getGroupId(),
 				entry.getEntryId(), coverImageImageSelector);
 
-			PortletFileRepositoryUtil.deletePortletFileEntry(
+			_portletFileRepository.deletePortletFileEntry(
 				coverImageFileEntryId);
 		}
 
@@ -529,7 +515,7 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 				themeDisplay.getUserId(), entry.getGroupId(),
 				entry.getEntryId(), smallImageImageSelector);
 
-			PortletFileRepositoryUtil.deletePortletFileEntry(
+			_portletFileRepository.deletePortletFileEntry(
 				smallImageFileEntryId);
 		}
 
@@ -545,6 +531,39 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 		}
 
 		return entry;
+	}
+
+	private void _deleteEntry(
+		BlogsEntry entry, boolean moveToTrash,
+		List<TrashedModel> trashedModels) {
+
+		try {
+			if (moveToTrash) {
+				trashedModels.add(
+					_blogsEntryService.moveEntryToTrash(entry.getEntryId()));
+			}
+			else {
+				_blogsEntryService.deleteEntry(entry.getEntryId());
+			}
+		}
+		catch (PortalException pe) {
+			ReflectionUtil.throwException(pe);
+		}
+	}
+
+	private Map<String, String[]> _getParameterMap(ActionRequest actionRequest)
+		throws PortalException {
+
+		Map<String, String[]> parameterMap = new HashMap<>(
+			actionRequest.getParameterMap());
+
+		parameterMap.put(
+			"groupId",
+			new String[] {
+				String.valueOf(_portal.getScopeGroupId(actionRequest))
+			});
+
+		return parameterMap;
 	}
 
 	private String _updateContent(
@@ -573,6 +592,9 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 	private AttachmentContentUpdater _attachmentContentUpdater;
 
 	@Reference
+	private BlogsEntryBulkSelectionFactory _blogsEntryBulkSelectionFactory;
+
+	@Reference
 	private BlogsEntryLocalService _blogsEntryLocalService;
 
 	@Reference
@@ -583,6 +605,9 @@ public class EditEntryMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private PortletFileRepository _portletFileRepository;
 
 	@Reference
 	private TrashEntryService _trashEntryService;

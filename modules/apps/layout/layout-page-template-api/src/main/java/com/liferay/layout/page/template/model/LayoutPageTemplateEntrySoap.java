@@ -20,15 +20,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.layout.page.template.service.http.LayoutPageTemplateEntryServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class LayoutPageTemplateEntrySoap implements Serializable {
 
 	public static LayoutPageTemplateEntrySoap toSoapModel(
@@ -37,6 +34,7 @@ public class LayoutPageTemplateEntrySoap implements Serializable {
 		LayoutPageTemplateEntrySoap soapModel =
 			new LayoutPageTemplateEntrySoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setLayoutPageTemplateEntryId(
 			model.getLayoutPageTemplateEntryId());
@@ -122,6 +120,14 @@ public class LayoutPageTemplateEntrySoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setLayoutPageTemplateEntryId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -306,6 +312,7 @@ public class LayoutPageTemplateEntrySoap implements Serializable {
 		_statusDate = statusDate;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _layoutPageTemplateEntryId;
 	private long _groupId;

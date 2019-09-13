@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the DLFileEntryMetadata service. Represents a row in the &quot;DLFileEntryMetadata&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,12 +52,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLFileEntryMetadataImpl
  * @generated
  */
-@ProviderType
 public class DLFileEntryMetadataModelImpl
 	extends BaseModelImpl<DLFileEntryMetadata>
 	implements DLFileEntryMetadataModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a document library file entry metadata model instance should use the <code>DLFileEntryMetadata</code> interface instead.
@@ -67,16 +64,17 @@ public class DLFileEntryMetadataModelImpl
 	public static final String TABLE_NAME = "DLFileEntryMetadata";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR}, {"fileEntryMetadataId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"DDMStorageId", Types.BIGINT},
-		{"DDMStructureId", Types.BIGINT}, {"fileEntryId", Types.BIGINT},
-		{"fileVersionId", Types.BIGINT}
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
+		{"fileEntryMetadataId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"DDMStorageId", Types.BIGINT}, {"DDMStructureId", Types.BIGINT},
+		{"fileEntryId", Types.BIGINT}, {"fileVersionId", Types.BIGINT}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("fileEntryMetadataId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -87,7 +85,7 @@ public class DLFileEntryMetadataModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DLFileEntryMetadata (uuid_ VARCHAR(75) null,fileEntryMetadataId LONG not null primary key,companyId LONG,DDMStorageId LONG,DDMStructureId LONG,fileEntryId LONG,fileVersionId LONG)";
+		"create table DLFileEntryMetadata (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,fileEntryMetadataId LONG not null primary key,companyId LONG,DDMStorageId LONG,DDMStructureId LONG,fileEntryId LONG,fileVersionId LONG)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table DLFileEntryMetadata";
@@ -263,6 +261,12 @@ public class DLFileEntryMetadataModelImpl
 			attributeSetterBiConsumers =
 				new LinkedHashMap<String, BiConsumer<DLFileEntryMetadata, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", DLFileEntryMetadata::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<DLFileEntryMetadata, Long>)
+				DLFileEntryMetadata::setMvccVersion);
 		attributeGetterFunctions.put("uuid", DLFileEntryMetadata::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -309,6 +313,16 @@ public class DLFileEntryMetadataModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -465,7 +479,12 @@ public class DLFileEntryMetadataModelImpl
 	@Override
 	public DLFileEntryMetadata toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, DLFileEntryMetadata>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -477,6 +496,7 @@ public class DLFileEntryMetadataModelImpl
 		DLFileEntryMetadataImpl dlFileEntryMetadataImpl =
 			new DLFileEntryMetadataImpl();
 
+		dlFileEntryMetadataImpl.setMvccVersion(getMvccVersion());
 		dlFileEntryMetadataImpl.setUuid(getUuid());
 		dlFileEntryMetadataImpl.setFileEntryMetadataId(
 			getFileEntryMetadataId());
@@ -578,6 +598,8 @@ public class DLFileEntryMetadataModelImpl
 		DLFileEntryMetadataCacheModel dlFileEntryMetadataCacheModel =
 			new DLFileEntryMetadataCacheModel();
 
+		dlFileEntryMetadataCacheModel.mvccVersion = getMvccVersion();
+
 		dlFileEntryMetadataCacheModel.uuid = getUuid();
 
 		String uuid = dlFileEntryMetadataCacheModel.uuid;
@@ -665,9 +687,14 @@ public class DLFileEntryMetadataModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, DLFileEntryMetadata>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
 
+		private static final Function<InvocationHandler, DLFileEntryMetadata>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _fileEntryMetadataId;

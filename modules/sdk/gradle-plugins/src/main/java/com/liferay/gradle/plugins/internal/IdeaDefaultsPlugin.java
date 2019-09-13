@@ -87,13 +87,13 @@ public class IdeaDefaultsPlugin extends BaseDefaultsPlugin<IdeaPlugin> {
 			SourceSet sourceSet = GradleUtil.getSourceSet(
 				project, SourceSet.MAIN_SOURCE_SET_NAME);
 
-			SourceSetOutput sourceSetOutput = sourceSet.getOutput();
+			File javaClassesDir = FileUtil.getJavaClassesDir(sourceSet);
 
-			File classesDir = sourceSetOutput.getClassesDir();
-
-			if (!FileUtil.isChild(classesDir, project.getBuildDir())) {
-				excludeDirs.add(classesDir);
+			if (!FileUtil.isChild(javaClassesDir, project.getBuildDir())) {
+				excludeDirs.add(javaClassesDir);
 			}
+
+			SourceSetOutput sourceSetOutput = sourceSet.getOutput();
 
 			File resourcesDir = sourceSetOutput.getResourcesDir();
 

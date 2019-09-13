@@ -14,22 +14,16 @@
 
 package com.liferay.asset.auto.tagger.internal.osgi.commands;
 
-import com.liferay.asset.auto.tagger.AssetAutoTagProvider;
 import com.liferay.asset.auto.tagger.AssetAutoTagger;
 import com.liferay.asset.auto.tagger.configuration.AssetAutoTaggerConfiguration;
 import com.liferay.asset.auto.tagger.configuration.AssetAutoTaggerConfigurationFactory;
+import com.liferay.asset.auto.tagger.internal.AssetAutoTaggerImpl;
 import com.liferay.asset.auto.tagger.model.AssetAutoTaggerEntry;
 import com.liferay.asset.auto.tagger.service.AssetAutoTaggerEntryLocalService;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Criterion;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -41,10 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -63,7 +54,7 @@ public class AssetAutoTaggerOSGiCommands {
 
 	public void commitAutoTags(String companyId, String... classNames) {
 		_forEachAssetEntry(
-			companyId, classNames,
+			companyId,
 			assetEntry -> {
 				List<AssetAutoTaggerEntry> assetAutoTaggerEntries =
 					_assetAutoTaggerEntryLocalService.getAssetAutoTaggerEntries(
@@ -99,7 +90,7 @@ public class AssetAutoTaggerOSGiCommands {
 
 		if (ArrayUtil.isEmpty(classNames)) {
 			Set<String> classNamesSet = new HashSet<>(
-				_serviceTrackerMap.keySet());
+				_assetAutoTaggerImpl.getClassNames());
 
 			classNamesSet.remove("*");
 
@@ -107,7 +98,7 @@ public class AssetAutoTaggerOSGiCommands {
 		}
 
 		_forEachAssetEntry(
-			companyId, classNames,
+			companyId,
 			assetEntry -> {
 				String[] oldAssetTagNames = assetEntry.getTagNames();
 
@@ -131,7 +122,7 @@ public class AssetAutoTaggerOSGiCommands {
 
 	public void untagAll(String companyId, String... classNames) {
 		_forEachAssetEntry(
-			companyId, classNames,
+			companyId,
 			assetEntry -> {
 				String[] oldAssetTagNames = assetEntry.getTagNames();
 
@@ -149,30 +140,13 @@ public class AssetAutoTaggerOSGiCommands {
 			});
 	}
 
-	@Activate
-	protected void activate(BundleContext bundleContext) {
-		_serviceTrackerMap = ServiceTrackerMapFactory.openMultiValueMap(
-			bundleContext, AssetAutoTagProvider.class, "model.class.name");
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		_serviceTrackerMap.close();
-	}
-
 	private void _forEachAssetEntry(
-		String companyId, String[] classNames,
+		String companyId,
 		UnsafeConsumer<AssetEntry, PortalException> consumer) {
 
 		try {
 			ActionableDynamicQuery actionableDynamicQuery =
 				_assetEntryLocalService.getActionableDynamicQuery();
-
-			if (!ArrayUtil.isEmpty(classNames)) {
-				actionableDynamicQuery.setAddCriteriaMethod(
-					dynamicQuery -> dynamicQuery.add(
-						_getClassNameIdCriterion(classNames)));
-			}
 
 			if (Validator.isNotNull(companyId)) {
 				actionableDynamicQuery.setCompanyId(Long.valueOf(companyId));
@@ -186,23 +160,6 @@ public class AssetAutoTaggerOSGiCommands {
 		catch (Exception pe) {
 			_log.error(pe, pe);
 		}
-	}
-
-	private Criterion _getClassNameIdCriterion(String[] classNames) {
-		Property property = PropertyFactoryUtil.forName("classNameId");
-
-		Criterion criterion = property.eq(
-			_classNameLocalService.getClassNameId(classNames[0]));
-
-		for (int i = 1; i < classNames.length; i++) {
-			long classNameId = _classNameLocalService.getClassNameId(
-				classNames[i]);
-
-			criterion = RestrictionsFactoryUtil.or(
-				criterion, property.eq(classNameId));
-		}
-
-		return criterion;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -219,12 +176,12 @@ public class AssetAutoTaggerOSGiCommands {
 	private AssetAutoTaggerEntryLocalService _assetAutoTaggerEntryLocalService;
 
 	@Reference
+	private AssetAutoTaggerImpl _assetAutoTaggerImpl;
+
+	@Reference
 	private AssetEntryLocalService _assetEntryLocalService;
 
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
-
-	private ServiceTrackerMap<String, List<AssetAutoTagProvider>>
-		_serviceTrackerMap;
 
 }

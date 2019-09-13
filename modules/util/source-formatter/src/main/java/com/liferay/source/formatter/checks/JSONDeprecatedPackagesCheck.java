@@ -22,6 +22,11 @@ import com.liferay.source.formatter.checks.util.SourceUtil;
 public class JSONDeprecatedPackagesCheck extends BaseFileCheck {
 
 	@Override
+	public boolean isLiferaySourceCheck() {
+		return true;
+	}
+
+	@Override
 	protected String doProcess(
 		String fileName, String absolutePath, String content) {
 
@@ -54,7 +59,7 @@ public class JSONDeprecatedPackagesCheck extends BaseFileCheck {
 	}
 
 	private static final String[] _DEPRECATED_PACKAGE_NAMES = {
-		"liferay-module-config-generator", "metal-cli"
+		"@clayui/checkbox", "liferay-module-config-generator", "metal-cli"
 	};
 
 }

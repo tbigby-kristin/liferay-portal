@@ -14,7 +14,6 @@
 
 package com.liferay.portal.workflow.kaleo.service;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -31,10 +30,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see KaleoTaskAssignmentInstanceLocalService
  * @generated
  */
-@ProviderType
 public class KaleoTaskAssignmentInstanceLocalServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.workflow.kaleo.service.impl.KaleoTaskAssignmentInstanceLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -298,6 +296,18 @@ public class KaleoTaskAssignmentInstanceLocalServiceUtil {
 
 		return getService().fetchFirstKaleoTaskAssignmentInstance(
 			kaleoTaskInstanceTokenId, orderByComparator);
+	}
+
+	public static
+		com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentInstance
+			fetchFirstKaleoTaskAssignmentInstance(
+				long kaleoTaskInstanceTokenId, String assigneeClassName,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.workflow.kaleo.model.
+						KaleoTaskAssignmentInstance> orderByComparator) {
+
+		return getService().fetchFirstKaleoTaskAssignmentInstance(
+			kaleoTaskInstanceTokenId, assigneeClassName, orderByComparator);
 	}
 
 	public static

@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.mapping.storage.Fields;
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
 import com.liferay.dynamic.data.mapping.util.FieldsToDDMFormValuesConverter;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
+import com.liferay.journal.internal.util.JournalUtil;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleDisplay;
 import com.liferay.journal.model.JournalArticleResource;
@@ -28,7 +29,6 @@ import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.journal.util.JournalContent;
 import com.liferay.journal.util.JournalConverter;
-import com.liferay.journal.util.impl.JournalUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
@@ -460,7 +460,8 @@ public class JournalArticleIndexer extends BaseIndexer<JournalArticle> {
 		for (String languageId : languageIds) {
 			String content = extractDDMContent(journalArticle, languageId);
 
-			String description = journalArticle.getDescription(languageId);
+			String description = _html.stripHtml(
+				journalArticle.getDescription(languageId));
 
 			String title = journalArticle.getTitle(languageId);
 
@@ -709,9 +710,7 @@ public class JournalArticleIndexer extends BaseIndexer<JournalArticle> {
 		}
 
 		for (JournalArticle curArticle : articles) {
-			Document document = getDocument(curArticle);
-
-			documents.add(document);
+			documents.add(getDocument(curArticle));
 		}
 
 		return documents;
@@ -822,9 +821,8 @@ public class JournalArticleIndexer extends BaseIndexer<JournalArticle> {
 			indexableActionableDynamicQuery.setPerformActionMethod(
 				(JournalArticle article) -> {
 					try {
-						Document document = getDocument(article);
-
-						indexableActionableDynamicQuery.addDocuments(document);
+						indexableActionableDynamicQuery.addDocuments(
+							getDocument(article));
 					}
 					catch (PortalException pe) {
 						if (_log.isWarnEnabled()) {
@@ -856,9 +854,8 @@ public class JournalArticleIndexer extends BaseIndexer<JournalArticle> {
 					}
 
 					try {
-						Document document = getDocument(latestIndexableArticle);
-
-						indexableActionableDynamicQuery.addDocuments(document);
+						indexableActionableDynamicQuery.addDocuments(
+							getDocument(latestIndexableArticle));
 					}
 					catch (PortalException pe) {
 						if (_log.isWarnEnabled()) {

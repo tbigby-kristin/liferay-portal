@@ -3,7 +3,7 @@
 }
 
 .dialog-content {
-	border: 1px solid #C8C9CA;
+	border: 1px solid #c8c9ca;
 	padding: 5px;
 }
 
@@ -40,10 +40,12 @@
 	.portlet-configuration-body-content,
 	.process-list,
 	.roles-selector-body {
-		> .container-fluid-1280, .container-view {
+		> .container-fluid-1280,
+		.container-view {
 			padding-top: 20px;
 
-			> .nav-tabs-default, .nav-tabs-underline {
+			> .nav-tabs-default,
+			.nav-tabs-underline {
 				margin-left: -$grid-gutter-width / 2;
 				margin-right: -$grid-gutter-width / 2;
 				margin-top: -20px;
@@ -73,7 +75,7 @@
 		height: calc(100% - #{$dialog-navbar-height});
 		position: relative;
 
-		@include sm {
+		@include media-breakpoint-up(sm) {
 			height: calc(100% - #{$dialog-desktop-navbar-height});
 		}
 	}
@@ -108,7 +110,7 @@
 			padding-left: 3px;
 			padding-right: 3px;
 
-			@include sm {
+			@include media-breakpoint-up(sm) {
 				padding-left: 8px;
 				padding-right: 8px;
 			}
@@ -126,7 +128,7 @@
 		top: $dialog-navbar-height;
 		-webkit-overflow-scrolling: touch;
 
-		@include sm {
+		@include media-breakpoint-up(sm) {
 			top: $dialog-desktop-navbar-height;
 		}
 	}
@@ -137,13 +139,15 @@
 }
 
 .dialog-with-footer {
-	#main-content, #wrapper {
-		@include md {
+	#main-content,
+	#wrapper {
+		@include media-breakpoint-up(md) {
 			height: calc(100% - #{$dialog-footer-height});
 		}
 	}
 
-	.button-holder, .sheet-footer {
+	.button-holder,
+	.sheet-footer {
 		&.dialog-footer {
 			background-color: $dialog-footer-bg;
 			border-top: 1px solid $dialog-footer-border-color;
@@ -160,7 +164,7 @@
 			padding: 10px 24px;
 			width: 100%;
 
-			@include md {
+			@include media-breakpoint-up(md) {
 				position: fixed;
 			}
 
@@ -176,7 +180,7 @@
 	.lfr-form-content,
 	.portlet-configuration-body-content,
 	.roles-selector-body {
-		@include md {
+		@include media-breakpoint-up(md) {
 			padding-bottom: $dialog-footer-height;
 		}
 	}
@@ -201,7 +205,8 @@
 				overflow: auto;
 			}
 
-			.table-responsive, .table-responsive-lg {
+			.table-responsive,
+			.table-responsive-lg {
 				overflow: visible;
 			}
 		}

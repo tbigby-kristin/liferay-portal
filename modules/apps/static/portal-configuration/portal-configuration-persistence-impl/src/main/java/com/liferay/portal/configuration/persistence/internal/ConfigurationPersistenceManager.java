@@ -14,11 +14,11 @@
 
 package com.liferay.portal.configuration.persistence.internal;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.reflect.ReflectionUtil;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.persistence.ReloadablePersistenceManager;
-import com.liferay.portal.configuration.persistence.internal.listener.ConfigurationModelListenerProvider;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -32,10 +32,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import java.net.URI;
-
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -51,7 +47,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Consumer;
 
 import javax.sql.DataSource;
 
@@ -59,6 +54,7 @@ import org.apache.felix.cm.NotCachablePersistenceManager;
 import org.apache.felix.cm.PersistenceManager;
 import org.apache.felix.cm.file.ConfigurationHandler;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationAdmin;
 
@@ -70,28 +66,55 @@ public class ConfigurationPersistenceManager
 	implements NotCachablePersistenceManager, PersistenceManager,
 			   ReloadablePersistenceManager {
 
+	public ConfigurationPersistenceManager(
+		BundleContext bundleContext, DataSource dataSource) {
+
+		_bundleContext = bundleContext;
+		_dataSource = dataSource;
+	}
+
 	@Override
-	public void delete(final String pid) throws IOException {
-		if (System.getSecurityManager() != null) {
-			try {
-				AccessController.doPrivileged(
-					new PrivilegedExceptionAction<Void>() {
+	public void delete(String pid) throws IOException {
+		ConfigurationModelListener configurationModelListener = null;
 
-						@Override
-						public Void run() throws Exception {
-							doDelete(pid);
+		if (!pid.endsWith("factory") && hasPid(pid)) {
+			Dictionary dictionary = getDictionary(pid);
 
-							return null;
-						}
+			String pidKey = (String)dictionary.get(
+				ConfigurationAdmin.SERVICE_FACTORYPID);
 
-					});
+			if (pidKey == null) {
+				pidKey = (String)dictionary.get(Constants.SERVICE_PID);
 			}
-			catch (PrivilegedActionException pae) {
-				throw (IOException)pae.getException();
+
+			if (pidKey == null) {
+				pidKey = pid;
+			}
+
+			configurationModelListener = _getConfigurationModelListener(pidKey);
+		}
+
+		if (configurationModelListener != null) {
+			configurationModelListener.onBeforeDelete(pid);
+		}
+
+		Lock lock = _readWriteLock.writeLock();
+
+		try {
+			lock.lock();
+
+			Dictionary<?, ?> dictionary = _dictionaries.remove(pid);
+
+			if ((dictionary != null) && hasPid(pid)) {
+				deleteFromDatabase(pid);
 			}
 		}
-		else {
-			doDelete(pid);
+		finally {
+			lock.unlock();
+		}
+
+		if (configurationModelListener != null) {
+			configurationModelListener.onAfterDelete(pid);
 		}
 	}
 
@@ -147,9 +170,7 @@ public class ConfigurationPersistenceManager
 			_dictionaries.remove(pid);
 
 			if (hasPid(pid)) {
-				Dictionary<?, ?> dictionary = getDictionary(pid);
-
-				_dictionaries.put(pid, dictionary);
+				_dictionaries.put(pid, getDictionary(pid));
 			}
 		}
 		finally {
@@ -157,214 +178,25 @@ public class ConfigurationPersistenceManager
 		}
 	}
 
-	public void setDataSource(DataSource dataSource) {
-		_dataSource = dataSource;
-	}
-
 	public void start() {
-		Lock readLock = _readWriteLock.readLock();
-		Lock writeLock = _readWriteLock.writeLock();
-
 		try {
-			readLock.lock();
-
-			if (hasConfigurationTable()) {
-				readLock.unlock();
-				writeLock.lock();
-
-				try {
-					_verifyConfigurations();
-				}
-				finally {
-					readLock.lock();
-					writeLock.unlock();
-				}
-			}
-			else {
-				readLock.unlock();
-				writeLock.lock();
-
-				try {
-					createConfigurationTable();
-				}
-				finally {
-					readLock.lock();
-					writeLock.unlock();
-				}
-			}
-
-			populateDictionaries();
+			createConfigurationTable();
 		}
-		finally {
-			readLock.unlock();
+		catch (IOException | SQLException e) {
+			populateDictionaries();
 		}
 	}
 
 	public void stop() {
 		_dictionaries.clear();
+
+		if (_serviceTrackerMap != null) {
+			_serviceTrackerMap.close();
+		}
 	}
 
 	@Override
 	public void store(
-			final String pid,
-			@SuppressWarnings("rawtypes") final Dictionary dictionary)
-		throws IOException {
-
-		if (System.getSecurityManager() != null) {
-			try {
-				AccessController.doPrivileged(
-					new PrivilegedExceptionAction<Void>() {
-
-						@Override
-						public Void run() throws Exception {
-							doStore(pid, dictionary);
-
-							return null;
-						}
-
-					});
-			}
-			catch (PrivilegedActionException pae) {
-				throw (IOException)pae.getException();
-			}
-		}
-		else {
-			doStore(pid, dictionary);
-		}
-	}
-
-	protected String buildSQL(String sql) throws IOException {
-		DB db = DBManagerUtil.getDB();
-
-		return db.buildSQL(sql);
-	}
-
-	protected void cleanUp(
-		Connection connection, Statement statement, ResultSet resultSet) {
-
-		try {
-			if (resultSet != null) {
-				resultSet.close();
-			}
-		}
-		catch (SQLException sqle) {
-			ReflectionUtil.throwException(sqle);
-		}
-		finally {
-			try {
-				if (statement != null) {
-					statement.close();
-				}
-			}
-			catch (SQLException sqle) {
-				ReflectionUtil.throwException(sqle);
-			}
-			finally {
-				try {
-					if (connection != null) {
-						connection.close();
-					}
-				}
-				catch (SQLException sqle) {
-					ReflectionUtil.throwException(sqle);
-				}
-			}
-		}
-	}
-
-	protected void createConfigurationTable() {
-		Connection connection = null;
-		Statement statement = null;
-		ResultSet resultSet = null;
-
-		try {
-			connection = _dataSource.getConnection();
-
-			statement = connection.createStatement();
-
-			statement.executeUpdate(
-				buildSQL(
-					"create table Configuration_ (configurationId " +
-						"VARCHAR(255) not null primary key, dictionary TEXT)"));
-		}
-		catch (IOException | SQLException e) {
-			ReflectionUtil.throwException(e);
-		}
-		finally {
-			cleanUp(connection, statement, resultSet);
-		}
-	}
-
-	protected void deleteFromDatabase(String pid) throws IOException {
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-
-		try {
-			connection = _dataSource.getConnection();
-
-			preparedStatement = prepareStatement(
-				connection,
-				"delete from Configuration_ where configurationId = ?");
-
-			preparedStatement.setString(1, pid);
-
-			preparedStatement.executeUpdate();
-		}
-		catch (SQLException sqle) {
-			throw new IOException(sqle);
-		}
-		finally {
-			cleanUp(connection, preparedStatement, null);
-		}
-	}
-
-	protected void doDelete(String pid) throws IOException {
-		ConfigurationModelListener configurationModelListener = null;
-
-		if (!pid.endsWith("factory") && hasPid(pid)) {
-			Dictionary dictionary = getDictionary(pid);
-
-			String pidKey = (String)dictionary.get(
-				ConfigurationAdmin.SERVICE_FACTORYPID);
-
-			if (pidKey == null) {
-				pidKey = (String)dictionary.get(Constants.SERVICE_PID);
-			}
-
-			if (pidKey == null) {
-				pidKey = pid;
-			}
-
-			configurationModelListener =
-				ConfigurationModelListenerProvider.
-					getConfigurationModelListener(pidKey);
-		}
-
-		if (configurationModelListener != null) {
-			configurationModelListener.onBeforeDelete(pid);
-		}
-
-		Lock lock = _readWriteLock.writeLock();
-
-		try {
-			lock.lock();
-
-			Dictionary<?, ?> dictionary = _dictionaries.remove(pid);
-
-			if ((dictionary != null) && hasPid(pid)) {
-				deleteFromDatabase(pid);
-			}
-		}
-		finally {
-			lock.unlock();
-		}
-
-		if (configurationModelListener != null) {
-			configurationModelListener.onAfterDelete(pid);
-		}
-	}
-
-	protected void doStore(
 			String pid, @SuppressWarnings("rawtypes") Dictionary dictionary)
 		throws IOException {
 
@@ -380,9 +212,7 @@ public class ConfigurationPersistenceManager
 				pidKey = pid;
 			}
 
-			configurationModelListener =
-				ConfigurationModelListenerProvider.
-					getConfigurationModelListener(pidKey);
+			configurationModelListener = _getConfigurationModelListener(pidKey);
 		}
 
 		if (configurationModelListener != null) {
@@ -422,25 +252,45 @@ public class ConfigurationPersistenceManager
 		}
 	}
 
-	protected Dictionary<?, ?> getDictionary(String pid) throws IOException {
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
+	protected void createConfigurationTable() throws IOException, SQLException {
+		try (Connection connection = _dataSource.getConnection();
+			Statement statement = connection.createStatement()) {
 
-		try {
-			connection = _dataSource.getConnection();
+			statement.executeUpdate(
+				_db.buildSQL(
+					"create table Configuration_ (configurationId " +
+						"VARCHAR(255) not null primary key, dictionary TEXT)"));
+		}
+	}
 
-			preparedStatement = prepareStatement(
-				connection,
-				"select dictionary from Configuration_ where configurationId " +
-					"= ?");
+	protected void deleteFromDatabase(String pid) throws IOException {
+		try (Connection connection = _dataSource.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				_db.buildSQL(
+					"delete from Configuration_ where configurationId = ?"))) {
 
 			preparedStatement.setString(1, pid);
 
-			resultSet = preparedStatement.executeQuery();
+			preparedStatement.executeUpdate();
+		}
+		catch (SQLException sqle) {
+			throw new IOException(sqle);
+		}
+	}
 
-			if (resultSet.next()) {
-				return toDictionary(resultSet.getString(1));
+	protected Dictionary<?, ?> getDictionary(String pid) throws IOException {
+		try (Connection connection = _dataSource.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				_db.buildSQL(
+					"select dictionary from Configuration_ where " +
+						"configurationId = ?"))) {
+
+			preparedStatement.setString(1, pid);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return toDictionary(resultSet.getString(1));
+				}
 			}
 
 			return _emptyDictionary;
@@ -448,69 +298,27 @@ public class ConfigurationPersistenceManager
 		catch (SQLException sqle) {
 			return ReflectionUtil.throwException(sqle);
 		}
-		finally {
-			cleanUp(connection, preparedStatement, resultSet);
-		}
-	}
-
-	protected boolean hasConfigurationTable() {
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-			connection = _dataSource.getConnection();
-
-			preparedStatement = prepareStatement(
-				connection, "select count(*) from Configuration_");
-
-			resultSet = preparedStatement.executeQuery();
-
-			int count = 0;
-
-			if (resultSet.next()) {
-				count = resultSet.getInt(1);
-			}
-
-			if (count >= 0) {
-				return true;
-			}
-
-			return false;
-		}
-		catch (IOException | SQLException e) {
-			return false;
-		}
-		finally {
-			cleanUp(connection, preparedStatement, resultSet);
-		}
 	}
 
 	protected boolean hasPid(String pid) {
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-			connection = _dataSource.getConnection();
-
-			preparedStatement = prepareStatement(
-				connection,
-				"select count(*) from Configuration_ where configurationId = " +
-					"?");
+		try (Connection connection = _dataSource.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				_db.buildSQL(
+					"select count(*) from Configuration_ where " +
+						"configurationId = ?"))) {
 
 			preparedStatement.setString(1, pid);
 
-			resultSet = preparedStatement.executeQuery();
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				int count = 0;
 
-			int count = 0;
+				if (resultSet.next()) {
+					count = resultSet.getInt(1);
+				}
 
-			if (resultSet.next()) {
-				count = resultSet.getInt(1);
-			}
-
-			if (count > 0) {
-				return true;
+				if (count > 0) {
+					return true;
+				}
 			}
 
 			return false;
@@ -518,47 +326,30 @@ public class ConfigurationPersistenceManager
 		catch (IOException | SQLException e) {
 			return ReflectionUtil.throwException(e);
 		}
-		finally {
-			cleanUp(connection, preparedStatement, resultSet);
-		}
 	}
 
 	protected void populateDictionaries() {
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-			connection = _dataSource.getConnection();
-
-			preparedStatement = connection.prepareStatement(
-				buildSQL(
-					"select configurationId, dictionary from Configuration_ " +
-						"ORDER BY configurationId ASC"),
+		try (Connection connection = _dataSource.getConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				_db.buildSQL(
+					"select configurationId, dictionary from Configuration_"),
 				ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-
-			resultSet = preparedStatement.executeQuery();
+			ResultSet resultSet = preparedStatement.executeQuery()) {
 
 			while (resultSet.next()) {
 				String pid = resultSet.getString(1);
-				String dictionaryString = resultSet.getString(2);
 
-				_dictionaries.putIfAbsent(pid, toDictionary(dictionaryString));
+				Dictionary<String, String> dictionary = _verifyDictionary(
+					pid, resultSet.getString(2));
+
+				if (dictionary != null) {
+					_dictionaries.putIfAbsent(pid, dictionary);
+				}
 			}
 		}
 		catch (IOException | SQLException e) {
 			ReflectionUtil.throwException(e);
 		}
-		finally {
-			cleanUp(connection, preparedStatement, resultSet);
-		}
-	}
-
-	protected PreparedStatement prepareStatement(
-			Connection connection, String sql)
-		throws IOException, SQLException {
-
-		return connection.prepareStatement(buildSQL(sql));
 	}
 
 	protected void store(ResultSet resultSet, Dictionary<?, ?> dictionary)
@@ -579,33 +370,30 @@ public class ConfigurationPersistenceManager
 
 		ConfigurationHandler.write(outputStream, dictionary);
 
-		Connection connection = null;
-		PreparedStatement preparedStatement = null;
-		ResultSet resultSet = null;
-
-		try {
-			connection = _dataSource.getConnection();
-
+		try (Connection connection = _dataSource.getConnection()) {
 			connection.setAutoCommit(false);
 
-			preparedStatement = connection.prepareStatement(
-				buildSQL(
-					"update Configuration_ set dictionary = ? where " +
-						"configurationId = ?"));
+			try (PreparedStatement ps1 = connection.prepareStatement(
+					_db.buildSQL(
+						"update Configuration_ set dictionary = ? where " +
+							"configurationId = ?"))) {
 
-			preparedStatement.setString(1, outputStream.toString());
-			preparedStatement.setString(2, pid);
+				ps1.setString(1, outputStream.toString());
+				ps1.setString(2, pid);
 
-			if (preparedStatement.executeUpdate() == 0) {
-				preparedStatement = prepareStatement(
-					connection,
-					"insert into Configuration_ (configurationId, " +
-						"dictionary) values (?, ?)");
+				if (ps1.executeUpdate() == 0) {
+					try (PreparedStatement ps2 = connection.prepareStatement(
+							_db.buildSQL(
+								"insert into Configuration_ (" +
+									"configurationId, dictionary) values (?, " +
+										"?)"))) {
 
-				preparedStatement.setString(1, pid);
-				preparedStatement.setString(2, outputStream.toString());
+						ps2.setString(1, pid);
+						ps2.setString(2, outputStream.toString());
 
-				preparedStatement.executeUpdate();
+						ps2.executeUpdate();
+					}
+				}
 			}
 
 			connection.commit();
@@ -613,26 +401,21 @@ public class ConfigurationPersistenceManager
 		catch (SQLException sqle) {
 			ReflectionUtil.throwException(sqle);
 		}
-		finally {
-			cleanUp(connection, preparedStatement, resultSet);
-
-			outputStream.close();
-		}
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Dictionary<?, ?> toDictionary(String dictionaryString)
+	protected Dictionary<String, String> toDictionary(String dictionaryString)
 		throws IOException {
 
 		if (dictionaryString == null) {
 			return new HashMapDictionary<>();
 		}
 
-		Dictionary<Object, Object> dictionary = ConfigurationHandler.read(
+		Dictionary<String, String> dictionary = ConfigurationHandler.read(
 			new UnsyncByteArrayInputStream(
 				dictionaryString.getBytes(StringPool.UTF8)));
 
-		String fileName = (String)dictionary.get(_FELIX_FILE_INSTALL_FILENAME);
+		String fileName = dictionary.get(_FELIX_FILE_INSTALL_FILENAME);
 
 		if (fileName != null) {
 			File file = new File(
@@ -664,91 +447,99 @@ public class ConfigurationPersistenceManager
 		return newDictionary;
 	}
 
-	private void _verifyConfigurations() {
-		_verifyConfigurationsBundleLocation();
-		_verifyConfigurationsFileName();
-	}
+	private ConfigurationModelListener _getConfigurationModelListener(
+		String configurationModelClassName) {
 
-	private void _verifyConfigurations(
-		String sql, Consumer<Dictionary<Object, Object>> dictionaryConsumer) {
-
-		try (Connection connection = _dataSource.getConnection();
-			PreparedStatement selectPS = connection.prepareStatement(
-				buildSQL(sql));
-			PreparedStatement updatePS = connection.prepareStatement(
-				buildSQL(
-					"update Configuration_ set dictionary = ? where " +
-						"configurationId = ?"));
-			ResultSet rs = selectPS.executeQuery()) {
-
-			while (rs.next()) {
-				String pid = rs.getString(1);
-
-				String dictionaryString = rs.getString(2);
-
-				@SuppressWarnings("unchecked")
-				Dictionary<Object, Object> dictionary =
-					ConfigurationHandler.read(
-						new UnsyncByteArrayInputStream(
-							dictionaryString.getBytes(StringPool.UTF8)));
-
-				dictionaryConsumer.accept(dictionary);
-
-				UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
-					new UnsyncByteArrayOutputStream();
-
-				ConfigurationHandler.write(
-					unsyncByteArrayOutputStream, dictionary);
-
-				updatePS.setString(1, unsyncByteArrayOutputStream.toString());
-
-				updatePS.setString(2, pid);
-
-				updatePS.executeUpdate();
-			}
+		if (_serviceTrackerMap == null) {
+			_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+				_bundleContext, ConfigurationModelListener.class,
+				"model.class.name");
 		}
-		catch (Exception e) {
-			ReflectionUtil.throwException(e);
+
+		return _serviceTrackerMap.getService(configurationModelClassName);
+	}
+
+	private Dictionary<String, String> _verifyDictionary(
+			String pid, String dictionaryString)
+		throws IOException {
+
+		Dictionary<String, String> dictionary = ConfigurationHandler.read(
+			new UnsyncByteArrayInputStream(
+				dictionaryString.getBytes(StringPool.UTF8)));
+
+		String felixFileInstallFileName = dictionary.get(
+			_FELIX_FILE_INSTALL_FILENAME);
+
+		if (felixFileInstallFileName == null) {
+			return dictionary;
 		}
-	}
 
-	private void _verifyConfigurationsBundleLocation() {
-		_verifyConfigurations(
-			StringBundler.concat(
-				"select configurationId, dictionary from Configuration_ where ",
-				"dictionary like '%felix.fileinstall.filename=%' and ",
-				"dictionary not like '%",
-				ConfigurationAdmin.SERVICE_BUNDLELOCATION, "=\"%'"),
-			dictionary -> dictionary.put(
-				ConfigurationAdmin.SERVICE_BUNDLELOCATION, "?"));
-	}
+		boolean needSave = false;
 
-	private void _verifyConfigurationsFileName() {
-		_verifyConfigurations(
-			StringBundler.concat(
-				"select configurationId, dictionary from Configuration_ where ",
-				"dictionary like '%", _FELIX_FILE_INSTALL_FILENAME,
-				"=\"file:%'"),
-			dictionary -> {
-				String fileName = (String)dictionary.get(
-					_FELIX_FILE_INSTALL_FILENAME);
+		if (dictionary.get(_SERVIE_BUNDLE_LOCATION) == null) {
+			dictionary.put(_SERVIE_BUNDLE_LOCATION, "?");
 
-				File file = new File(URI.create(fileName));
+			needSave = true;
+		}
 
-				dictionary.put(_FELIX_FILE_INSTALL_FILENAME, file.getName());
-			});
+		File configFile = null;
+
+		if (felixFileInstallFileName.startsWith("file:")) {
+			configFile = new File(URI.create(felixFileInstallFileName));
+
+			dictionary.put(_FELIX_FILE_INSTALL_FILENAME, configFile.getName());
+
+			storeInDatabase(pid, dictionary);
+
+			dictionary.put(
+				_FELIX_FILE_INSTALL_FILENAME, felixFileInstallFileName);
+
+			needSave = false;
+		}
+		else {
+			configFile = new File(
+				PropsValues.MODULE_FRAMEWORK_CONFIGS_DIR,
+				felixFileInstallFileName);
+
+			configFile = configFile.getAbsoluteFile();
+
+			URI uri = configFile.toURI();
+
+			dictionary.put(_FELIX_FILE_INSTALL_FILENAME, uri.toString());
+		}
+
+		if (needSave) {
+			storeInDatabase(pid, dictionary);
+		}
+
+		String ignore = dictionary.get("configuration.cleaner.ignore");
+
+		if (!Boolean.valueOf(ignore) && !configFile.exists()) {
+			deleteFromDatabase(pid);
+
+			return null;
+		}
+
+		return dictionary;
 	}
 
 	private static final String _FELIX_FILE_INSTALL_FILENAME =
 		"felix.fileinstall.filename";
 
+	private static final String _SERVIE_BUNDLE_LOCATION =
+		"service.bundleLocation";
+
 	private static final Dictionary<?, ?> _emptyDictionary =
 		new HashMapDictionary<>();
 
-	private DataSource _dataSource;
+	private final BundleContext _bundleContext;
+	private final DataSource _dataSource;
+	private DB _db = DBManagerUtil.getDB();
 	private final ConcurrentMap<String, Dictionary<?, ?>> _dictionaries =
 		new ConcurrentHashMap<>();
 	private final ReadWriteLock _readWriteLock = new ReentrantReadWriteLock(
 		true);
+	private ServiceTrackerMap<String, ConfigurationModelListener>
+		_serviceTrackerMap;
 
 }

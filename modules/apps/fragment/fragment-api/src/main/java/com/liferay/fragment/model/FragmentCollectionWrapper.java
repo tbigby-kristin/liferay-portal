@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link FragmentCollection}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see FragmentCollection
  * @generated
  */
-@ProviderType
 public class FragmentCollectionWrapper
 	extends BaseModelWrapper<FragmentCollection>
 	implements FragmentCollection, ModelWrapper<FragmentCollection> {
@@ -46,6 +43,7 @@ public class FragmentCollectionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("fragmentCollectionId", getFragmentCollectionId());
 		attributes.put("groupId", getGroupId());
@@ -64,6 +62,12 @@ public class FragmentCollectionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -220,6 +224,16 @@ public class FragmentCollectionWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this fragment collection.
+	 *
+	 * @return the mvcc version of this fragment collection
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this fragment collection.
 	 *
 	 * @return the name of this fragment collection
@@ -308,6 +322,11 @@ public class FragmentCollectionWrapper
 		return model.hasResources();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a fragment collection model instance should use the <code>FragmentCollection</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -399,6 +418,16 @@ public class FragmentCollectionWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this fragment collection.
+	 *
+	 * @param mvccVersion the mvcc version of this fragment collection
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

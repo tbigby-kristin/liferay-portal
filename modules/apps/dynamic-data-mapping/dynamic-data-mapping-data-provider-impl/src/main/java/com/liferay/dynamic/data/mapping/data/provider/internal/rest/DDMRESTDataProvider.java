@@ -25,6 +25,7 @@ import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderOutputParam
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderRequest;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponse;
 import com.liferay.dynamic.data.mapping.data.provider.DDMDataProviderResponseStatus;
+import com.liferay.dynamic.data.mapping.data.provider.settings.DDMDataProviderSettingsProvider;
 import com.liferay.dynamic.data.mapping.model.DDMDataProviderInstance;
 import com.liferay.dynamic.data.mapping.service.DDMDataProviderInstanceService;
 import com.liferay.petra.string.CharPool;
@@ -90,6 +91,10 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 			Throwable cause = he.getCause();
 
 			if (cause instanceof ConnectException) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(cause, cause);
+				}
+
 				DDMDataProviderResponse.Builder builder =
 					DDMDataProviderResponse.Builder.newBuilder();
 
@@ -107,7 +112,7 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 
 	@Override
 	public Class<?> getSettings() {
-		return DDMRESTDataProviderSettings.class;
+		return ddmDataProviderSettingsProvider.getSettings();
 	}
 
 	protected String buildURL(
@@ -150,7 +155,7 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 		for (DDMDataProviderOutputParametersSettings outputParameterSettings :
 				outputParameterSettingsArray) {
 
-			String name = outputParameterSettings.outputParameterName();
+			String id = outputParameterSettings.outputParameterId();
 			String type = outputParameterSettings.outputParameterType();
 			String path = outputParameterSettings.outputParameterPath();
 
@@ -158,13 +163,13 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 				String value = documentContext.read(
 					normalizePath(path), String.class);
 
-				builder = builder.withOutput(name, value);
+				builder = builder.withOutput(id, value);
 			}
 			else if (Objects.equals(type, "number")) {
 				Number value = documentContext.read(
 					normalizePath(path), Number.class);
 
-				builder = builder.withOutput(name, value);
+				builder = builder.withOutput(id, value);
 			}
 			else if (Objects.equals(type, "list")) {
 				String[] paths = StringUtil.split(path, CharPool.SEMICOLON);
@@ -214,11 +219,11 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 						List<KeyValuePair> sublist = ListUtil.subList(
 							keyValuePairs, start, end);
 
-						builder = builder.withOutput(name, sublist);
+						builder = builder.withOutput(id, sublist);
 					}
 				}
 				else {
-					builder = builder.withOutput(name, keyValuePairs);
+					builder = builder.withOutput(id, keyValuePairs);
 				}
 			}
 		}
@@ -281,7 +286,7 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 
 		Map<String, Object> proxySettings = getProxySettings();
 
-		if (proxySettings.isEmpty()) {
+		if (_isNonproxyHost(httpRequest.host(), proxySettings)) {
 			httpResponse = httpRequest.send();
 		}
 		else {
@@ -387,6 +392,12 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 		Map<String, Object> proxySettings = new HashMap<>(2);
 
 		try {
+			String nonProxyHosts = SystemProperties.get("http.nonProxyHosts");
+
+			if (Validator.isNotNull(nonProxyHosts)) {
+				proxySettings.put("nonProxyHosts", nonProxyHosts);
+			}
+
 			String proxyAddress = SystemProperties.get("http.proxyHost");
 			String proxyPort = SystemProperties.get("http.proxyPort");
 
@@ -503,17 +514,35 @@ public class DDMRESTDataProvider implements DDMDataProvider {
 	@Reference
 	protected DDMDataProviderInstanceSettings ddmDataProviderInstanceSettings;
 
+	@Reference(target = "(ddm.data.provider.type=rest)")
+	protected DDMDataProviderSettingsProvider ddmDataProviderSettingsProvider;
+
 	@Reference
 	protected Portal portal;
 
 	@Reference
 	protected UserLocalService userLocalService;
 
+	private boolean _isNonproxyHost(
+		String host, Map<String, Object> proxySettings) {
+
+		if (proxySettings.isEmpty()) {
+			return true;
+		}
+
+		Pattern pattern = Pattern.compile(
+			GetterUtil.getString(proxySettings.get("nonProxyHosts")));
+
+		Matcher matcher = pattern.matcher(host);
+
+		return matcher.matches();
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMRESTDataProvider.class);
 
 	private static final Pattern _pathParameterPattern = Pattern.compile(
-		"\\{(.*)\\}");
+		"\\{(.+?)\\}");
 
 	private PortalCache<String, DDMDataProviderResponse> _portalCache;
 

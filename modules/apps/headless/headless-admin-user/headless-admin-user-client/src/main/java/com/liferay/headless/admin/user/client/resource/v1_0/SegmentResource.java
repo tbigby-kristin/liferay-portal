@@ -20,6 +20,9 @@ import com.liferay.headless.admin.user.client.pagination.Page;
 import com.liferay.headless.admin.user.client.pagination.Pagination;
 import com.liferay.headless.admin.user.client.serdes.v1_0.SegmentSerDes;
 
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Generated;
@@ -29,86 +32,210 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class SegmentResource {
+public interface SegmentResource {
 
-	public static Page<Segment> getSiteSegmentsPage(
-			Long siteId, Pagination pagination)
-		throws Exception {
-
-		HttpInvoker.HttpResponse httpResponse = getSiteSegmentsPageHttpResponse(
-			siteId, pagination);
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine(
-			"HTTP response status code: " + httpResponse.getStatusCode());
-
-		return Page.of(content, SegmentSerDes::toDTO);
+	public static Builder builder() {
+		return new Builder();
 	}
 
-	public static HttpInvoker.HttpResponse getSiteSegmentsPageHttpResponse(
+	public Page<Segment> getSiteSegmentsPage(Long siteId, Pagination pagination)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse getSiteSegmentsPageHttpResponse(
 			Long siteId, Pagination pagination)
-		throws Exception {
+		throws Exception;
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+	public Page<Segment> getSiteUserAccountSegmentsPage(
+			Long siteId, Long userAccountId)
+		throws Exception;
 
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+	public HttpInvoker.HttpResponse getSiteUserAccountSegmentsPageHttpResponse(
+			Long siteId, Long userAccountId)
+		throws Exception;
 
-		if (pagination != null) {
-			httpInvoker.parameter("page", String.valueOf(pagination.getPage()));
-			httpInvoker.parameter(
-				"pageSize", String.valueOf(pagination.getPageSize()));
+	public static class Builder {
+
+		public Builder authentication(String login, String password) {
+			_login = login;
+			_password = password;
+
+			return this;
 		}
 
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-admin-user/v1.0/sites/{siteId}/segments",
-			siteId);
+		public SegmentResource build() {
+			return new SegmentResourceImpl(this);
+		}
 
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
+		public Builder endpoint(String host, int port, String scheme) {
+			_host = host;
+			_port = port;
+			_scheme = scheme;
 
-		return httpInvoker.invoke();
+			return this;
+		}
+
+		public Builder header(String key, String value) {
+			_headers.put(key, value);
+
+			return this;
+		}
+
+		public Builder locale(Locale locale) {
+			_locale = locale;
+
+			return this;
+		}
+
+		public Builder parameter(String key, String value) {
+			_parameters.put(key, value);
+
+			return this;
+		}
+
+		private Builder() {
+		}
+
+		private Map<String, String> _headers = new LinkedHashMap<>();
+		private String _host = "localhost";
+		private Locale _locale;
+		private String _login = "test@liferay.com";
+		private String _password = "test";
+		private Map<String, String> _parameters = new LinkedHashMap<>();
+		private int _port = 8080;
+		private String _scheme = "http";
+
 	}
 
-	public static Page<Segment> getSiteUserAccountSegmentsPage(
-			Long siteId, Long userAccountId)
-		throws Exception {
+	public static class SegmentResourceImpl implements SegmentResource {
 
-		HttpInvoker.HttpResponse httpResponse =
-			getSiteUserAccountSegmentsPageHttpResponse(siteId, userAccountId);
+		public Page<Segment> getSiteSegmentsPage(
+				Long siteId, Pagination pagination)
+			throws Exception {
 
-		String content = httpResponse.getContent();
+			HttpInvoker.HttpResponse httpResponse =
+				getSiteSegmentsPageHttpResponse(siteId, pagination);
 
-		_logger.fine("HTTP response content: " + content);
+			String content = httpResponse.getContent();
 
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine(
-			"HTTP response status code: " + httpResponse.getStatusCode());
+			_logger.fine("HTTP response content: " + content);
 
-		return Page.of(content, SegmentSerDes::toDTO);
-	}
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
 
-	public static HttpInvoker.HttpResponse
-			getSiteUserAccountSegmentsPageHttpResponse(
+			return Page.of(content, SegmentSerDes::toDTO);
+		}
+
+		public HttpInvoker.HttpResponse getSiteSegmentsPageHttpResponse(
+				Long siteId, Pagination pagination)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (pagination != null) {
+				httpInvoker.parameter(
+					"page", String.valueOf(pagination.getPage()));
+				httpInvoker.parameter(
+					"pageSize", String.valueOf(pagination.getPageSize()));
+			}
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-user/v1.0/sites/{siteId}/segments",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public Page<Segment> getSiteUserAccountSegmentsPage(
 				Long siteId, Long userAccountId)
-		throws Exception {
+			throws Exception {
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+			HttpInvoker.HttpResponse httpResponse =
+				getSiteUserAccountSegmentsPageHttpResponse(
+					siteId, userAccountId);
 
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+			String content = httpResponse.getContent();
 
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-admin-user/v1.0/sites/{siteId}/user-accounts/{userAccountId}/segments",
-			siteId, userAccountId);
+			_logger.fine("HTTP response content: " + content);
 
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
 
-		return httpInvoker.invoke();
+			return Page.of(content, SegmentSerDes::toDTO);
+		}
+
+		public HttpInvoker.HttpResponse
+				getSiteUserAccountSegmentsPageHttpResponse(
+					Long siteId, Long userAccountId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-admin-user/v1.0/sites/{siteId}/user-accounts/{userAccountId}/segments",
+				siteId, userAccountId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		private SegmentResourceImpl(Builder builder) {
+			_builder = builder;
+		}
+
+		private static final Logger _logger = Logger.getLogger(
+			SegmentResource.class.getName());
+
+		private Builder _builder;
+
 	}
-
-	private static final Logger _logger = Logger.getLogger(
-		SegmentResource.class.getName());
 
 }

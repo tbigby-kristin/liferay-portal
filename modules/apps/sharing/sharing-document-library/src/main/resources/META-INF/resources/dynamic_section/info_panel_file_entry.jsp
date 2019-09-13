@@ -16,8 +16,8 @@
 
 <%@ include file="/dynamic_section/init.jsp" %>
 
-<div class="autofit-row widget-metadata">
-	<div class="autofit-col inline-item-before">
+<div class="autofit-row manage-collaborators sidebar-panel">
+	<div class="autofit-col manage-collaborators-owner">
 
 		<%
 		FileEntry fileEntry = (FileEntry)request.getAttribute("info_panel.jsp-fileEntry");
@@ -27,13 +27,12 @@
 
 		<div class="lfr-portal-tooltip" data-title="<%= LanguageUtil.format(resourceBundle, "x-is-the-owner", owner.getFullName()) %>">
 			<liferay-ui:user-portrait
-				size="lg"
 				user="<%= owner %>"
 			/>
 		</div>
 	</div>
 
-	<div class="autofit-col autofit-col-expand inline-item-after">
+	<div class="autofit-col autofit-col-expand">
 		<div class="autofit-row">
 
 			<%
@@ -42,10 +41,9 @@
 			for (User sharingEntryToUser : sharingEntryToUsers) {
 			%>
 
-				<div class="autofit-col">
+				<div class="autofit-col manage-collaborators-collaborator">
 					<div class="lfr-portal-tooltip" data-title="<%= sharingEntryToUser.getFullName() %>">
 						<liferay-ui:user-portrait
-							size="lg"
 							user="<%= sharingEntryToUser %>"
 						/>
 					</div>
@@ -63,13 +61,12 @@
 				int moreCollaboratorsCount = sharingEntriesCount - 4;
 				%>
 
-				<div class="autofit-col">
+				<div class="autofit-col manage-collaborators-collaborator">
 					<div class="lfr-portal-tooltip" data-title="<%= LanguageUtil.format(resourceBundle, (moreCollaboratorsCount == 1) ? "x-more-collaborator" : "x-more-collaborators", moreCollaboratorsCount) %>">
 						<clay:sticker
 							elementClasses="user-icon-color-0"
 							icon="users"
 							shape="circle"
-							size="lg"
 						/>
 					</div>
 				</div>

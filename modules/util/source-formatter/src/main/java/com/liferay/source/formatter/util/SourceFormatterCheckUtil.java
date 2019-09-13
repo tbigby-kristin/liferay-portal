@@ -49,7 +49,12 @@ public class SourceFormatterCheckUtil {
 		String keyPrefix = _getKeyPrefix(checkType, checkName);
 
 		for (Map.Entry<String, Properties> entry : propertiesMap.entrySet()) {
-			JSONObject propertiesAttributesJSONObject = new JSONObjectImpl();
+			JSONObject propertiesAttributesJSONObject =
+				attributesJSONObject.getJSONObject(entry.getKey());
+
+			if (propertiesAttributesJSONObject == null) {
+				propertiesAttributesJSONObject = new JSONObjectImpl();
+			}
 
 			Properties properties = entry.getValue();
 
@@ -89,7 +94,12 @@ public class SourceFormatterCheckUtil {
 		String... keys) {
 
 		for (Map.Entry<String, Properties> entry : propertiesMap.entrySet()) {
-			JSONObject propertiesAttributesJSONObject = new JSONObjectImpl();
+			JSONObject propertiesAttributesJSONObject =
+				attributesJSONObject.getJSONObject(entry.getKey());
+
+			if (propertiesAttributesJSONObject == null) {
+				propertiesAttributesJSONObject = new JSONObjectImpl();
+			}
 
 			Properties properties = entry.getValue();
 
@@ -283,7 +293,10 @@ public class SourceFormatterCheckUtil {
 					cacheValues = false;
 				}
 
-				if (!absolutePath.startsWith(fileLocation)) {
+				if (!absolutePath.startsWith(fileLocation) &&
+					!absolutePath.contains(
+						SourceFormatterUtil.SOURCE_FORMATTER_TEST_PATH)) {
+
 					continue;
 				}
 			}

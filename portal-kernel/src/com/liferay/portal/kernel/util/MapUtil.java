@@ -461,21 +461,20 @@ public class MapUtil {
 		sb.append(StringPool.OPEN_CURLY_BRACE);
 
 		for (Map.Entry<?, ?> entry : map.entrySet()) {
-			Object key = entry.getKey();
 			Object value = entry.getValue();
 
-			String keyString = String.valueOf(key);
+			String keyString = String.valueOf(entry.getKey());
 
-			if (hideIncludesRegex != null) {
-				if (!keyString.matches(hideIncludesRegex)) {
-					value = "********";
-				}
+			if ((hideIncludesRegex != null) &&
+				!keyString.matches(hideIncludesRegex)) {
+
+				value = "********";
 			}
 
-			if (hideExcludesRegex != null) {
-				if (keyString.matches(hideExcludesRegex)) {
-					value = "********";
-				}
+			if ((hideExcludesRegex != null) &&
+				keyString.matches(hideExcludesRegex)) {
+
+				value = "********";
 			}
 
 			sb.append(keyString);

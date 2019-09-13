@@ -39,8 +39,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the ExpandoRow service. Represents a row in the &quot;ExpandoRow&quot; database table, with each column mapped to a property of this class.
  *
@@ -52,11 +50,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see ExpandoRowImpl
  * @generated
  */
-@ProviderType
 public class ExpandoRowModelImpl
 	extends BaseModelImpl<ExpandoRow> implements ExpandoRowModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a expando row model instance should use the <code>ExpandoRow</code> interface instead.
@@ -350,7 +347,12 @@ public class ExpandoRowModelImpl
 	@Override
 	public ExpandoRow toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, ExpandoRow>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -526,8 +528,12 @@ public class ExpandoRowModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, ExpandoRow>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, ExpandoRow>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _rowId;
 	private long _companyId;

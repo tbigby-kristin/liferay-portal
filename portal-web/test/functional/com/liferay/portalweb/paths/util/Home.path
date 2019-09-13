@@ -95,17 +95,12 @@
 </tr>
 <tr>
 	<td>SITE_NAME</td>
-	<td>//a[contains(@class,'logo')]//h1</td>
+	<td>//a[contains(@class,'logo')]//h2</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SITE_WRAPPER</td>
 	<td>//div[contains(@id,'wrapper')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>USER_NAME_HEADER</td>
-	<td>//a[contains(@title,'Go to')]/h1 | //div[@id='heading']//div[contains(@class,'site-name')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -243,7 +238,7 @@
 </tr>
 <tr>
 	<td>PAGE_1</td>
-	<td>//div[contains(@id,'navbar')]/ul/li[1]/a</td>
+	<td>//section[@class='portlet']//div[contains(@id,'navbar')]/ul/li[1]/a</td>
 	<td>1st Page</td>
 </tr>
 <tr>
@@ -278,7 +273,7 @@
 </tr>
 <tr>
 	<td>PAGE_2</td>
-	<td>//div[contains(@id,'navbar')]/ul/li[2]/a</td>
+	<td>//section[@class='portlet']//div[contains(@id,'navbar')]/ul/li[2]/a</td>
 	<td>2nd Page</td>
 </tr>
 <tr>
@@ -305,6 +300,11 @@
 	<td>PAGE_3_STAGING_LIVE</td>
 	<td>//ul/li[@id='layout_3']/a</td>
 	<td></td>
+</tr>
+<tr>
+	<td>PAGE_4</td>
+	<td>//div[contains(@id,'navbar')]/ul/li[4]/a</td>
+	<td>4th Page</td>
 </tr>
 <tr>
 	<td>PAGE_TEMPLATE_3</td>
@@ -607,7 +607,7 @@
 </tr>
 <tr>
 	<td>SITE_ADMINISTRATION_PORTLET_TITLE</td>
-	<td>//*[@class='header-title' and contains(.,'${key_portletTitle}')] | //*[@data-qa-id='headerTitle' and contains(.,'${key_portletTitle}')]</td>
+	<td>//*[@class='header-title' and contains(.,'${key_portletTitle}')] | //*[@data-qa-id='headerTitle' and contains(.,'${key_portletTitle}')] | //*[@class='portlet-title-text' and contains(.,'${key_portletTitle}')]</td>
 	<td></td>
 </tr>
 <tr>

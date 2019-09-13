@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import AnalyticsClient from '../../src/analytics';
 import dom from 'metal-dom';
 import {expect} from 'chai';
@@ -14,7 +28,8 @@ const createWebContentElement = () => {
 	webContentElement.dataset.analyticsAssetId = 'assetId';
 	webContentElement.dataset.analyticsAssetTitle = 'Web Content Title 1';
 	webContentElement.dataset.analyticsAssetType = 'web-content';
-	webContentElement.innerText = 'Lorem ipsum dolor, sit amet consectetur adipisicing elit.';
+	webContentElement.innerText =
+		'Lorem ipsum dolor, sit amet consectetur adipisicing elit.';
 	document.body.appendChild(webContentElement);
 	return webContentElement;
 };
@@ -29,7 +44,7 @@ describe('WebContent Plugin', () => {
 		// Force attaching DOM Content Loaded event
 		Object.defineProperty(document, 'readyState', {
 			value: 'loading',
-			writable: false,
+			writable: false
 		});
 
 		fetchMock.mock('*', () => 200);
@@ -37,7 +52,7 @@ describe('WebContent Plugin', () => {
 	});
 
 	describe('webContentViewed event', () => {
-		it('should be fired for every webContent on the page', () => {
+		it('is fired for every webContent on the page', () => {
 			const webContentElement = createWebContentElement();
 
 			const domContentLoaded = new Event('DOMContentLoaded');
@@ -47,11 +62,14 @@ describe('WebContent Plugin', () => {
 				({eventId}) => eventId === 'webContentViewed'
 			);
 
-			expect(events.length).to.be.at.least(1, 'At least one event should have been fired');
+			expect(events.length).to.be.at.least(
+				1,
+				'At least one event should have been fired'
+			);
 
 			events[0].should.deep.include({
 				applicationId,
-				eventId: 'webContentViewed',
+				eventId: 'webContentViewed'
 			});
 
 			expect(events[0].properties.articleId).to.equal('assetId');
@@ -61,7 +79,7 @@ describe('WebContent Plugin', () => {
 	});
 
 	describe('webContentClicked event', () => {
-		it('should be fired when clicking an image inside a webContent', () => {
+		it('is fired when clicking an image inside a webContent', () => {
 			const webContentElement = createWebContentElement();
 
 			const imageInsideWebContent = document.createElement('img');
@@ -73,19 +91,19 @@ describe('WebContent Plugin', () => {
 
 			Analytics.events[0].should.deep.include({
 				applicationId,
-				eventId: 'webContentClicked',
+				eventId: 'webContentClicked'
 			});
 
 			Analytics.events[0].properties.should.deep.include({
 				articleId: 'assetId',
 				src: googleUrl,
-				tagName: 'img',
+				tagName: 'img'
 			});
 
 			document.body.removeChild(webContentElement);
 		});
 
-		it('should be fired when clicking a link inside a webContent', () => {
+		it('is fired when clicking a link inside a webContent', () => {
 			const webContentElement = createWebContentElement();
 			const text = 'Link inside a WebContent';
 
@@ -99,25 +117,26 @@ describe('WebContent Plugin', () => {
 
 			Analytics.events[0].should.deep.include({
 				applicationId,
-				eventId: 'webContentClicked',
+				eventId: 'webContentClicked'
 			});
 
 			Analytics.events[0].properties.should.deep.include({
 				articleId: 'assetId',
 				href: googleUrl,
 				tagName: 'a',
-				text,
+				text
 			});
 
 			document.body.removeChild(webContentElement);
 		});
 
-		it('should be fired when clicking any other element inside a webContent', () => {
+		it('is fired when clicking any other element inside a webContent', () => {
 			const webContentElement = createWebContentElement();
 
 			const paragraphInsideWebContent = document.createElement('p');
 			paragraphInsideWebContent.href = googleUrl;
-			paragraphInsideWebContent.innerHTML = 'Paragraph inside a WebContent';
+			paragraphInsideWebContent.innerHTML =
+				'Paragraph inside a WebContent';
 			webContentElement.appendChild(paragraphInsideWebContent);
 			dom.triggerEvent(paragraphInsideWebContent, 'click');
 
@@ -125,12 +144,12 @@ describe('WebContent Plugin', () => {
 
 			Analytics.events[0].should.deep.include({
 				applicationId,
-				eventId: 'webContentClicked',
+				eventId: 'webContentClicked'
 			});
 
 			Analytics.events[0].properties.should.deep.include({
 				articleId: 'assetId',
-				tagName: 'p',
+				tagName: 'p'
 			});
 
 			document.body.removeChild(webContentElement);

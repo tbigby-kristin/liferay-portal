@@ -32,6 +32,7 @@ import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil;
 import com.liferay.exportimport.kernel.service.ExportImportLocalServiceUtil;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -52,7 +53,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Time;
-import com.liferay.portal.util.test.LayoutTestUtil;
 import com.liferay.portlet.dynamicdatamapping.util.test.DDMTemplateTestUtil;
 
 import java.io.Serializable;
@@ -561,12 +561,12 @@ public abstract class BasePortletExportImportTestCase
 			return;
 		}
 
-		String className = templateHandler.getClassName();
 		long resourceClassNameId = PortalUtil.getClassNameId(
 			"com.liferay.portlet.display.template.PortletDisplayTemplate");
 
 		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
-			displayStyleGroupId, PortalUtil.getClassNameId(className), 0,
+			displayStyleGroupId,
+			PortalUtil.getClassNameId(templateHandler.getClassName()), 0,
 			resourceClassNameId);
 
 		Map<String, String[]> preferenceMap = new HashMap<>();

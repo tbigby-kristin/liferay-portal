@@ -34,7 +34,28 @@ portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
 
 renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? LanguageUtil.get(request, "new-custom-field") : expandoColumn.getName()));
+
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "custom-field"), String.valueOf(renderResponse.createRenderURL()));
+
+PortletURL viewAttributesURL = renderResponse.createRenderURL();
+
+viewAttributesURL.setParameter("mvcPath", "/view_attributes.jsp");
+viewAttributesURL.setParameter("redirect", redirect);
+viewAttributesURL.setParameter("modelResource", modelResource);
+
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "view-attributes"), viewAttributesURL.toString());
+
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "new-custom-field"), null);
 %>
+
+<div class="container-fluid container-fluid-max-xl">
+	<liferay-ui:breadcrumb
+		showCurrentGroup="<%= false %>"
+		showGuestGroup="<%= false %>"
+		showLayout="<%= false %>"
+		showPortletBreadcrumb="<%= true %>"
+	/>
+</div>
 
 <liferay-frontend:edit-form>
 	<liferay-frontend:edit-form-body>
@@ -54,7 +75,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createTextAreaURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.STRING) %>" />
@@ -74,7 +95,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createInputFieldURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_INPUT_FIELD %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.STRING) %>" />
@@ -100,7 +121,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createDropdownURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_SELECTION_LIST %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.STRING_ARRAY) %>" />
@@ -120,7 +141,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createCheckboxURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_CHECKBOX %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.STRING_ARRAY) %>" />
@@ -144,7 +165,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createRadioURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_RADIO %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.STRING_ARRAY) %>" />
@@ -174,7 +195,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createGeolocationURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_GEOLOCATION %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.GEOLOCATION) %>" />
@@ -196,7 +217,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createDateURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_DATE %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.DATE) %>" />
@@ -228,7 +249,7 @@ renderResponse.setTitle(modelResourceName + ": " + ((expandoColumn == null) ? La
 			<aui:col span="<%= 4 %>">
 				<portlet:renderURL var="createBooleanURL">
 					<portlet:param name="mvcPath" value="/edit/expando.jsp" />
-					<portlet:param name="redirect" value="<%= redirect %>" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
 					<portlet:param name="modelResource" value="<%= modelResource %>" />
 					<portlet:param name="displayType" value="<%= ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_BOOLEAN %>" />
 					<portlet:param name="type" value="<%= String.valueOf(ExpandoColumnConstants.BOOLEAN) %>" />

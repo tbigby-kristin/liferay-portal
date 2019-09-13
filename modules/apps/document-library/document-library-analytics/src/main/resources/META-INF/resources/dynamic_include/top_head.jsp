@@ -26,56 +26,44 @@
 	var pathnameRegexp = /\/documents\/(\d+)\/(\d+)\/(.+?)\/([^&]+)/;
 
 	function handleDownloadClick(event) {
-		if (event.target.nodeName.toLowerCase() === 'a') {
-			if (window.Analytics) {
-				var anchor = event.target;
-				var match = pathnameRegexp.exec(anchor.pathname);
+		if (event.target.nodeName.toLowerCase() === 'a' && window.Analytics) {
+			var anchor = event.target;
+			var match = pathnameRegexp.exec(anchor.pathname);
 
-				if (match) {
-					var getParameterValue = function(parameterName) {
-						var result = null;
-						var tmp = [];
+			var fileEntryId = anchor.dataset.analyticsFileEntryId || (anchor.parentElement && anchor.parentElement.dataset.analyticsFileEntryId);
 
-						anchor
-							.search
-							.substr(1)
-							.split("&")
-							.forEach(
-								function(item) {
-									tmp = item.split("=");
-									if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+			if (fileEntryId && match) {
+				var getParameterValue = function(parameterName) {
+					var result = null;
+
+					anchor
+						.search
+						.substr(1)
+						.split("&")
+						.forEach(
+							function(item) {
+								var tmp = item.split("=");
+
+								if (tmp[0] === parameterName) {
+									result = decodeURIComponent(tmp[1]);
 								}
-							);
-						return result;
-					}
-
-					var groupId = match[1];
-					var fileEntryUUID = match[4];
-
-					fetch(
-						'<%= PortalUtil.getPortalURL(request) %><%= Portal.PATH_MODULE %><%= DocumentLibraryAnalyticsConstants.PATH_RESOLVE_FILE_ENTRY %>?groupId=' + encodeURIComponent(groupId) + '&uuid=' + encodeURIComponent(fileEntryUUID),
-						{
-							credentials: 'include',
-							method: 'GET'
-						}
-					).then(function(response) {
-						return response.json();
-					}).then(function(response) {
-						Analytics.send(
-							'documentDownloaded',
-							'Document',
-							{
-								groupId: groupId,
-								fileEntryId: response.fileEntryId,
-								preview: !!window.<%= DocumentLibraryAnalyticsConstants.JS_PREFIX %>isViewFileEntry,
-								title: decodeURIComponent(match[3].replace(/\+/ig, ' ')),
-								version: getParameterValue('version')
 							}
 						);
-					}).catch(function() {
-						return;
-					});
+
+					return result;
 				}
+
+				Analytics.send(
+					'documentDownloaded',
+					'Document',
+					{
+						groupId: match[1],
+						fileEntryId: fileEntryId,
+						preview: !!window.<%= DocumentLibraryAnalyticsConstants.JS_PREFIX %>isViewFileEntry,
+						title: decodeURIComponent(match[3].replace(/\+/ig, ' ')),
+						version: getParameterValue('version')
+					}
+				);
 			}
 		}
 	}

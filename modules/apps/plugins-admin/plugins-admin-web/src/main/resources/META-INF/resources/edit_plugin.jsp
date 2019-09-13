@@ -67,7 +67,7 @@ renderResponse.setTitle(title);
 						<aui:field-wrapper helpMessage="edit-plugin-permissions-help" label="permissions">
 
 							<%
-							List curActions = ResourceActionsUtil.getResourceActions(portlet.getPortletId(), null);
+							List resourceActions = ResourceActionsUtil.getResourceActions(portlet.getPortletId(), null);
 
 							int maxNumberOfRolesChecked = 500;
 
@@ -77,14 +77,14 @@ renderResponse.setTitle(title);
 							List<Role> addToPageRoles = null;
 							List<Role> accessInControlPanelRoles = null;
 
-							if (curActions.contains(ActionKeys.ADD_TO_PAGE)) {
+							if (resourceActions.contains(ActionKeys.ADD_TO_PAGE)) {
 								addToPageRoles = _filterRoles(roles, portlet.getPortletId(), ActionKeys.ADD_TO_PAGE);
 							}
 							else {
 								addToPageRoles = new ArrayList<Role>();
 							}
 
-							if (curActions.contains(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
+							if (resourceActions.contains(ActionKeys.ACCESS_IN_CONTROL_PANEL)) {
 								accessInControlPanelRoles = _filterRoles(roles, portlet.getPortletId(), ActionKeys.ACCESS_IN_CONTROL_PANEL);
 							}
 							else {
@@ -116,8 +116,9 @@ renderResponse.setTitle(title);
 												name="role"
 											>
 												<liferay-ui:icon
-													iconCssClass="<%= RolesAdminUtil.getIconCssClass(role) %>"
+													icon="<%= RolesAdminUtil.getIconCssClass(role) %>"
 													label="<%= true %>"
+													markupView="lexicon"
 													message="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
 												/>
 											</liferay-ui:search-container-column-text>
@@ -137,8 +138,9 @@ renderResponse.setTitle(title);
 												%>
 
 												<liferay-ui:icon
-													iconCssClass="icon-edit"
+													icon="pencil"
 													label="<%= true %>"
+													markupView="lexicon"
 													message="change"
 													url="<%= editURL.toString() %>"
 												/>
@@ -170,8 +172,9 @@ renderResponse.setTitle(title);
 												name="role"
 											>
 												<liferay-ui:icon
-													iconCssClass="<%= RolesAdminUtil.getIconCssClass(role) %>"
+													icon="<%= RolesAdminUtil.getIconCssClass(role) %>"
 													label="<%= true %>"
+													markupView="lexicon"
 													message="<%= HtmlUtil.escape(role.getTitle(locale)) %>"
 												/>
 											</liferay-ui:search-container-column-text>
@@ -190,8 +193,9 @@ renderResponse.setTitle(title);
 												%>
 
 												<liferay-ui:icon
-													iconCssClass="icon-edit"
+													icon="pencil"
 													label="<%= true %>"
+													markupView="lexicon"
 													message="change"
 													url="<%= editURL.toString() %>"
 												/>

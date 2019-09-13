@@ -1,9 +1,10 @@
-@component-name = "portal-staging"
+@component-name = "portal-change-list"
+@ignore = "true"
 definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property testray.main.component.name = "Change Lists";
+	property testray.main.component.name = "Change List";
 
 	setUp {
 		TestCase.setUpPortalInstance();
@@ -32,9 +33,9 @@ definition {
 				panel = "Control Panel",
 				portlet = "Settings");
 
-			ChangeList.disableChangeList();
-
 			ChangeList.changeUserSettingsPopuConfirmation(changeUserPopupConfirmation = "enable");
+
+			ChangeList.disableChangeList();
 		}
 	}
 

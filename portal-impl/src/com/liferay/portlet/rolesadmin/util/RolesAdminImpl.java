@@ -16,7 +16,7 @@ package com.liferay.portlet.rolesadmin.util;
 
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.roles.admin.kernel.util.RolesAdmin;
 
 /**
@@ -62,19 +62,19 @@ public class RolesAdminImpl implements RolesAdmin {
 		int roleType = role.getType();
 
 		if (roleName.equals(RoleConstants.GUEST)) {
-			iconCssClass = "icon-user guest";
+			iconCssClass = "user";
 		}
 		else if (roleType == RoleConstants.TYPE_ORGANIZATION) {
-			iconCssClass = "icon-globe";
+			iconCssClass = "globe";
 		}
 		else if (roleType == RoleConstants.TYPE_REGULAR) {
-			iconCssClass = "icon-user";
+			iconCssClass = "user";
 		}
 		else if (roleType == RoleConstants.TYPE_SITE) {
-			iconCssClass = "icon-globe";
+			iconCssClass = "globe";
 		}
 		else if (role.isTeam()) {
-			iconCssClass = "icon-group";
+			iconCssClass = "community";
 		}
 
 		return iconCssClass;

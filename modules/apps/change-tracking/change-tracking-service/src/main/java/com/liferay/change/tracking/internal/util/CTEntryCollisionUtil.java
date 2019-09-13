@@ -15,11 +15,10 @@
 package com.liferay.change.tracking.internal.util;
 
 import com.liferay.change.tracking.model.CTEntry;
-import com.liferay.change.tracking.service.CTEntryLocalServiceUtil;
+import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.List;
@@ -29,41 +28,36 @@ import java.util.List;
  */
 public class CTEntryCollisionUtil {
 
-	public static void checkCollidingCTEntries(CTEntry ctEntry) {
-		List<CTEntry> collidingCTEntries = _getCollidingCTEntries(ctEntry);
+	public static void checkCollidingCTEntries(
+		CTEntryLocalService ctEntryLocalService, long companyId,
+		long modelClassPK, long modelResourcePrimKey) {
 
-		if (ListUtil.isEmpty(collidingCTEntries)) {
-			return;
-		}
-
-		collidingCTEntries.forEach(
-			collidingCTEntry -> CTEntryLocalServiceUtil.updateCollision(
-				collidingCTEntry.getCtEntryId(), true));
-	}
-
-	private static List<CTEntry> _getCollidingCTEntries(CTEntry ctEntry) {
-		DynamicQuery dynamicQuery = CTEntryLocalServiceUtil.dynamicQuery();
+		DynamicQuery dynamicQuery = ctEntryLocalService.dynamicQuery();
 
 		Property companyIdProperty = PropertyFactoryUtil.forName("companyId");
 
-		dynamicQuery.add(companyIdProperty.eq(ctEntry.getCompanyId()));
+		dynamicQuery.add(companyIdProperty.eq(companyId));
 
 		Property modelClassPKProperty = PropertyFactoryUtil.forName(
 			"modelClassPK");
 
-		dynamicQuery.add(modelClassPKProperty.lt(ctEntry.getModelClassPK()));
+		dynamicQuery.add(modelClassPKProperty.lt(modelClassPK));
 
 		Property modelResourcePrimKeyProperty = PropertyFactoryUtil.forName(
 			"modelResourcePrimKey");
 
-		dynamicQuery.add(
-			modelResourcePrimKeyProperty.eq(ctEntry.getModelResourcePrimKey()));
+		dynamicQuery.add(modelResourcePrimKeyProperty.eq(modelResourcePrimKey));
 
 		Property statusProperty = PropertyFactoryUtil.forName("status");
 
 		dynamicQuery.add(statusProperty.eq(WorkflowConstants.STATUS_DRAFT));
 
-		return CTEntryLocalServiceUtil.dynamicQuery(dynamicQuery);
+		List<CTEntry> collidingCTEntries = ctEntryLocalService.dynamicQuery(
+			dynamicQuery);
+
+		for (CTEntry ctEntry : collidingCTEntries) {
+			ctEntryLocalService.updateCollision(ctEntry.getCtEntryId(), true);
+		}
 	}
 
 }

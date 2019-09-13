@@ -14,13 +14,12 @@
 
 package com.liferay.change.tracking.change.lists.history.web.internal.portlet;
 
-import com.liferay.change.tracking.configuration.CTPortalConfiguration;
+import com.liferay.change.tracking.change.lists.history.web.internal.constants.CTHistoryConstants;
+import com.liferay.change.tracking.change.lists.history.web.internal.display.context.ChangeListsHistoryDisplayContext;
+import com.liferay.change.tracking.configuration.CTConfiguration;
 import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.constants.CTWebKeys;
-import com.liferay.change.tracking.model.CTCollection;
-import com.liferay.change.tracking.model.CTProcess;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
-import com.liferay.change.tracking.service.CTProcessLocalService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Role;
@@ -32,6 +31,7 @@ import com.liferay.portal.kernel.security.permission.UserBag;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 
 import java.io.IOException;
 
@@ -53,7 +53,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Laszlo Pap
  */
 @Component(
-	configurationPid = "com.liferay.change.tracking.configuration.CTPortalConfiguration",
+	configurationPid = "com.liferay.change.tracking.configuration.CTConfiguration",
 	configurationPolicy = ConfigurationPolicy.OPTIONAL, immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=false",
@@ -72,8 +72,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CTPortletKeys.CHANGE_LISTS_HISTORY,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator"
 	},
 	service = Portlet.class
 )
@@ -92,25 +91,27 @@ public class ChangeListsHistoryPortlet extends MVCPortlet {
 				"Unable to check permissions: " + e.getMessage(), e);
 		}
 
-		long ctProcessId = ParamUtil.getLong(
-			renderRequest, CTWebKeys.CT_PROCESS_ID);
+		long ctCollectionId = ParamUtil.getLong(
+			renderRequest, "ctCollectionId");
 
-		if (ctProcessId > 0) {
-			try {
-				CTProcess ctProcess = _ctProcessLocalService.getCTProcess(
-					ctProcessId);
-
-				CTCollection ctCollection =
-					_ctCollectionLocalService.getCTCollection(
-						ctProcess.getCtCollectionId());
-
+		try {
+			if (ctCollectionId > 0) {
 				renderRequest.setAttribute(
-					CTWebKeys.CT_COLLECTION, ctCollection);
-			}
-			catch (PortalException pe) {
-				SessionErrors.add(renderRequest, pe.getClass());
+					CTWebKeys.CT_COLLECTION,
+					_ctCollectionLocalService.getCTCollection(ctCollectionId));
 			}
 		}
+		catch (PortalException pe) {
+			SessionErrors.add(renderRequest, pe.getClass());
+		}
+
+		ChangeListsHistoryDisplayContext changeListsHistoryDisplayContext =
+			new ChangeListsHistoryDisplayContext(
+				_portal.getHttpServletRequest(renderRequest), renderResponse);
+
+		renderRequest.setAttribute(
+			CTHistoryConstants.CHANGE_LISTS_HISTORY_DISPLAY_CONTEXT,
+			changeListsHistoryDisplayContext);
 
 		super.render(renderRequest, renderResponse);
 	}
@@ -118,21 +119,8 @@ public class ChangeListsHistoryPortlet extends MVCPortlet {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_ctPortalConfiguration = ConfigurableUtil.createConfigurable(
-			CTPortalConfiguration.class, properties);
-	}
-
-	protected void checkOmniAdmin() throws PortletException {
-		PermissionChecker permissionChecker =
-			PermissionThreadLocal.getPermissionChecker();
-
-		if (!permissionChecker.isOmniadmin()) {
-			PrincipalException principalException =
-				new PrincipalException.MustBeCompanyAdmin(
-					permissionChecker.getUserId());
-
-			throw new PortletException(principalException);
-		}
+		_ctConfiguration = ConfigurableUtil.createConfigurable(
+			CTConfiguration.class, properties);
 	}
 
 	@Override
@@ -147,7 +135,7 @@ public class ChangeListsHistoryPortlet extends MVCPortlet {
 		}
 
 		String[] administratorRoleNames =
-			_ctPortalConfiguration.administratorRoleNames();
+			_ctConfiguration.administratorRoleNames();
 
 		UserBag userBag = permissionChecker.getUserBag();
 
@@ -166,9 +154,9 @@ public class ChangeListsHistoryPortlet extends MVCPortlet {
 	@Reference
 	private CTCollectionLocalService _ctCollectionLocalService;
 
-	private CTPortalConfiguration _ctPortalConfiguration;
+	private CTConfiguration _ctConfiguration;
 
 	@Reference
-	private CTProcessLocalService _ctProcessLocalService;
+	private Portal _portal;
 
 }

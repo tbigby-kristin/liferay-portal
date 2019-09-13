@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author André de Oliveira
@@ -56,14 +57,14 @@ public class ComplexQueryBuilderImpl implements ComplexQueryBuilder {
 
 	@Override
 	public Query build() {
-		Map<String, ComplexQueryPart> complexQueryPartsMap =
-			_complexQueryParts.stream(
-			).filter(
-				filterQueryDefinition -> !Validator.isBlank(
-					filterQueryDefinition.getName())
-			).collect(
-				Collectors.toMap(ComplexQueryPart::getName, Function.identity())
-			);
+		Stream<ComplexQueryPart> stream = _complexQueryParts.stream();
+
+		Map<String, ComplexQueryPart> complexQueryPartsMap = stream.filter(
+			filterQueryDefinition -> !Validator.isBlank(
+				filterQueryDefinition.getName())
+		).collect(
+			Collectors.toMap(ComplexQueryPart::getName, Function.identity())
+		);
 
 		Build build = new Build(complexQueryPartsMap, _getRootBooleanQuery());
 
@@ -107,7 +108,7 @@ public class ComplexQueryBuilderImpl implements ComplexQueryBuilder {
 		}
 
 		protected Query addQuery(ComplexQueryPart complexQueryPart) {
-			Query query = buildQuery(complexQueryPart);
+			Query query = getQuery(complexQueryPart);
 
 			if (query == null) {
 				return null;
@@ -135,23 +136,6 @@ public class ComplexQueryBuilderImpl implements ComplexQueryBuilder {
 			else if (Objects.equals("should", occur)) {
 				booleanQuery.addShouldQueryClauses(query);
 			}
-		}
-
-		protected Query buildQuery(ComplexQueryPart complexQueryPart) {
-			if (complexQueryPart.isDisabled()) {
-				return null;
-			}
-
-			Query query = getQuery(complexQueryPart);
-
-			if (query == null) {
-				return null;
-			}
-
-			query.setBoost(complexQueryPart.getBoost());
-			query.setQueryName(complexQueryPart.getName());
-
-			return query;
 		}
 
 		protected Query buildQuery(String type, String field, String value) {
@@ -298,15 +282,30 @@ public class ComplexQueryBuilderImpl implements ComplexQueryBuilder {
 		}
 
 		protected Query getQuery(ComplexQueryPart complexQueryPart) {
+			if (complexQueryPart.isDisabled()) {
+				return null;
+			}
+
 			if (complexQueryPart.getQuery() != null) {
 				return complexQueryPart.getQuery();
 			}
 
-			String field = GetterUtil.getString(complexQueryPart.getField());
 			String type = GetterUtil.getString(complexQueryPart.getType());
+
+			String field = GetterUtil.getString(complexQueryPart.getField());
+
 			String value = GetterUtil.getString(complexQueryPart.getValue());
 
-			return buildQuery(type, field, value);
+			Query query = buildQuery(type, field, value);
+
+			if (query == null) {
+				return null;
+			}
+
+			query.setBoost(complexQueryPart.getBoost());
+			query.setQueryName(complexQueryPart.getName());
+
+			return query;
 		}
 
 		protected BooleanQuery getRootBooleanQuery() {

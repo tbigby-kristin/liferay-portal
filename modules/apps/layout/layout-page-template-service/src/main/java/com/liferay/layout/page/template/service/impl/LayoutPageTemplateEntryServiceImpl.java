@@ -14,28 +14,37 @@
 
 package com.liferay.layout.page.template.service.impl;
 
-import com.liferay.fragment.service.FragmentEntryService;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateActionKeys;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.base.LayoutPageTemplateEntryServiceBaseImpl;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionFactory;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.util.List;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Jürgen Kappler
  */
+@Component(
+	property = {
+		"json.web.service.context.name=layout",
+		"json.web.service.context.path=LayoutPageTemplateEntry"
+	},
+	service = AopService.class
+)
 public class LayoutPageTemplateEntryServiceImpl
 	extends LayoutPageTemplateEntryServiceBaseImpl {
 
@@ -57,6 +66,30 @@ public class LayoutPageTemplateEntryServiceImpl
 	@Override
 	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
 			long groupId, long layoutPageTemplateCollectionId, String name,
+			int status, long classNameId, long classTypeId,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), groupId,
+			LayoutPageTemplateActionKeys.ADD_LAYOUT_PAGE_TEMPLATE_ENTRY);
+
+		return layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
+			getUserId(), groupId, layoutPageTemplateCollectionId, classNameId,
+			classTypeId, name,
+			LayoutPageTemplateEntryTypeConstants.TYPE_DISPLAY_PAGE, status,
+			serviceContext);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addLayoutPageTemplateEntry(long, long, String, int, int,
+	 *             ServiceContext)} ()}
+	 */
+	@Deprecated
+	@Override
+	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
+			long groupId, long layoutPageTemplateCollectionId, String name,
 			int type, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -69,6 +102,12 @@ public class LayoutPageTemplateEntryServiceImpl
 			WorkflowConstants.STATUS_DRAFT, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addLayoutPageTemplateEntry(long, long, String, int, int,
+	 *             ServiceContext)} ()}
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateEntry addLayoutPageTemplateEntry(
 			long groupId, long layoutPageTemplateCollectionId, String name,
@@ -81,7 +120,8 @@ public class LayoutPageTemplateEntryServiceImpl
 
 		return layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
 			getUserId(), groupId, layoutPageTemplateCollectionId, name,
-			serviceContext);
+			LayoutPageTemplateEntryTypeConstants.TYPE_BASIC,
+			WorkflowConstants.STATUS_DRAFT, serviceContext);
 	}
 
 	@Override
@@ -475,23 +515,24 @@ public class LayoutPageTemplateEntryServiceImpl
 
 	@Override
 	public int getLayoutPageTemplateEntriesCount(
-		long groupId, long layoutPageTemplateFolderId) {
+		long groupId, long layoutPageTemplateCollectionId) {
 
 		return getLayoutPageTemplateEntriesCount(
-			groupId, layoutPageTemplateFolderId, WorkflowConstants.STATUS_ANY);
+			groupId, layoutPageTemplateCollectionId,
+			WorkflowConstants.STATUS_ANY);
 	}
 
 	@Override
 	public int getLayoutPageTemplateEntriesCount(
-		long groupId, long layoutPageTemplateFolderId, int status) {
+		long groupId, long layoutPageTemplateCollectionId, int status) {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
 			return layoutPageTemplateEntryPersistence.filterCountByG_L(
-				groupId, layoutPageTemplateFolderId);
+				groupId, layoutPageTemplateCollectionId);
 		}
 
 		return layoutPageTemplateEntryPersistence.filterCountByG_L_S(
-			groupId, layoutPageTemplateFolderId, status);
+			groupId, layoutPageTemplateCollectionId, status);
 	}
 
 	@Override
@@ -548,26 +589,26 @@ public class LayoutPageTemplateEntryServiceImpl
 
 	@Override
 	public int getLayoutPageTemplateEntriesCount(
-		long groupId, long layoutPageTemplateFolderId, String name) {
+		long groupId, long layoutPageTemplateCollectionId, String name) {
 
 		return getLayoutPageTemplateEntriesCount(
-			groupId, layoutPageTemplateFolderId, name,
+			groupId, layoutPageTemplateCollectionId, name,
 			WorkflowConstants.STATUS_ANY);
 	}
 
 	@Override
 	public int getLayoutPageTemplateEntriesCount(
-		long groupId, long layoutPageTemplateFolderId, String name,
+		long groupId, long layoutPageTemplateCollectionId, String name,
 		int status) {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
 			return layoutPageTemplateEntryPersistence.filterCountByG_L_LikeN(
-				groupId, layoutPageTemplateFolderId,
+				groupId, layoutPageTemplateCollectionId,
 				_customSQL.keywords(name, false, WildcardMode.SURROUND)[0]);
 		}
 
 		return layoutPageTemplateEntryPersistence.filterCountByG_L_LikeN_S(
-			groupId, layoutPageTemplateFolderId,
+			groupId, layoutPageTemplateCollectionId,
 			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], status);
 	}
 
@@ -631,6 +672,10 @@ public class LayoutPageTemplateEntryServiceImpl
 				layoutPageTemplateEntryId, previewFileEntryId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	@Override
 	public LayoutPageTemplateEntry updateLayoutPageTemplateEntry(
 			long layoutPageTemplateEntryId, long classNameId, long classTypeId)
@@ -702,24 +747,18 @@ public class LayoutPageTemplateEntryServiceImpl
 			getUserId(), layoutPageTemplateEntryId, status);
 	}
 
-	private static volatile ModelResourcePermission<LayoutPageTemplateEntry>
-		_layoutPageTemplateEntryModelResourcePermission =
-			ModelResourcePermissionFactory.getInstance(
-				LayoutPageTemplateEntryServiceImpl.class,
-				"_layoutPageTemplateEntryModelResourcePermission",
-				LayoutPageTemplateEntry.class);
-
-	@ServiceReference(
-		filterString = "(component.name=com.liferay.layout.page.template.internal.security.permission.resource.LayoutPageTemplatePortletResourcePermission)",
-		type = PortletResourcePermission.class
-	)
-	private static volatile PortletResourcePermission
-		_portletResourcePermission;
-
-	@ServiceReference(type = CustomSQL.class)
+	@Reference
 	private CustomSQL _customSQL;
 
-	@ServiceReference(type = FragmentEntryService.class)
-	private FragmentEntryService _fragmentEntryService;
+	@Reference(
+		target = "(model.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateEntry)"
+	)
+	private ModelResourcePermission<LayoutPageTemplateEntry>
+		_layoutPageTemplateEntryModelResourcePermission;
+
+	@Reference(
+		target = "(component.name=com.liferay.layout.page.template.internal.security.permission.resource.LayoutPageTemplatePortletResourcePermission)"
+	)
+	private PortletResourcePermission _portletResourcePermission;
 
 }

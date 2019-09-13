@@ -3,7 +3,7 @@ definition {
 
 	property osgi.app.includes = "portal-search-solr7";
 	property osgi.module.configuration.file.names = "com.liferay.portal.bundle.blacklist.internal.BundleBlacklistConfiguration.config";
-	property osgi.module.configurations = "blacklistBundleSymbolicNames=&quot;com.liferay.portal.mobile.device.detection.fiftyonedegrees.api,com.liferay.portal.mobile.device.detection.fiftyonedegrees.enterprise,com.liferay.portal.mobile.device.detection.fiftyonedegrees.enterprise.test.data,com.liferay.portal.mobile.device.detection.fiftyonedegrees,com.liferay.portal.search.elasticsearch6.api,com.liferay.portal.search.elasticsearch6.impl,com.liferay.portal.search.elasticsearch6.xpack.security.impl,com.liferay.portal.search.elasticsearch6.xpack.monitoring.web&quot;";
+	property osgi.module.configurations = "blacklistBundleSymbolicNames=&quot;com.liferay.portal.mobile.device.detection.fiftyonedegrees.api,com.liferay.portal.mobile.device.detection.fiftyonedegrees.enterprise,com.liferay.portal.mobile.device.detection.fiftyonedegrees.enterprise.test.data,com.liferay.portal.mobile.device.detection.fiftyonedegrees,com.liferay.portal.search.elasticsearch6.api,com.liferay.portal.search.elasticsearch6.impl,com.liferay.portal.search.elasticsearch6.xpack.security.impl,com.liferay.portal.search.elasticsearch6.xpack.monitoring.web,com.liferay.portal.search.tuning.rankings.web,com.liferay.portal.search.tuning.synonyms.web,com.liferay.portal.search.tuning.web.api,com.liferay.portal.search.tuning.web&quot;";
 	property portal.release = "true";
 	property portal.suite.search.engine = "solr";
 	property portal.upstream = "true";
@@ -637,7 +637,7 @@ definition {
 
 		Site.addBlankCP(siteName = "Test Site");
 
-		ProductMenu.gotoSite(site = "Test Site");
+		SitePages.openPagesAdmin(siteURLKey = "Test Site");
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
@@ -1164,6 +1164,122 @@ definition {
 			searchAssetType = "Wiki Page");
 	}
 
+	test SearchWithModifiedFacet {
+		JSONWebcontent.addWebContent(
+			content = "WC Content",
+			groupName = "Guest",
+			title = "WC Title");
+
+		SearchPortlets.searchEmbedded(searchTerm = "WC Title");
+
+		Portlet.gotoPortletOptions(
+			portletName = "Modified Facet",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		Click(locator1 = "Button#ADD_ROW");
+
+		Type(
+			key_fieldLabel = "Label",
+			locator1 = "Search#MODIFIED_FACET_CONFIG_EMPTY_FIELD",
+			value1 = "Past 23 Hours");
+
+		Type(
+			key_fieldLabel = "Range",
+			locator1 = "Search#MODIFIED_FACET_CONFIG_EMPTY_FIELD",
+			value1 = "[past-24-hours TO past-hour]");
+
+		PortletEntry.save();
+
+		IFrame.closeFrame();
+
+		// Workaround for LPS-97383
+
+		Refresh();
+
+		AssertTextEquals.assertPartialText(
+			locator1 = "Search#MODIFIED_FACET_SELECTION",
+			range = "Past 23 Hours",
+			value1 = "Past 23 Hours");
+
+		Click(
+			locator1 = "Search#MODIFIED_FACET_SELECTION",
+			range = "Past 23 Hours");
+
+		SearchResultPortlet.viewNoSearchResults(searchTerm = "WC Title");
+
+		Portlet.gotoPortletOptions(
+			portletName = "Modified Facet",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		Click(
+			key_rowIndexNumber = "2",
+			locator1 = "Button#DELETE_ROW_N");
+
+		PortletEntry.save();
+
+		IFrame.closeFrame();
+
+		// Workaround for LPS-97383
+
+		Refresh();
+
+		AssertElementNotPresent(
+			locator1 = "Search#MODIFIED_FACET_SELECTION",
+			range = "Past 23 Hours");
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "WC Title",
+			searchAssetType = "Web Content Article",
+			searchTerm = "WC Title");
+
+		Click(
+			locator1 = "Search#MODIFIED_FACET_SELECTION",
+			range = "Custom Range");
+
+		Click(locator1 = "Search#CUSTOM_RANGE_FROM");
+
+		Click(locator1 = "YUICalendarWidget#NEXT_MONTH_ARROW");
+
+		Click(locator1 = "YUICalendarWidget#NEXT_MONTH_ARROW");
+
+		Click(
+			key_day = "1",
+			locator1 = "YUICalendarWidget#DATEPICKER_SPECIFIC_DAY");
+
+		Click(locator1 = "Button#SEARCH");
+
+		SearchResultPortlet.viewNoSearchResults(searchTerm = "WC Title");
+
+		// Workaround for LPS-82584
+
+		Click(locator1 = "Link#CLEAR");
+
+		Click(
+			locator1 = "Search#MODIFIED_FACET_SELECTION",
+			range = "Custom Range");
+
+		Click(locator1 = "Search#CUSTOM_RANGE_FROM");
+
+		Click(locator1 = "YUICalendarWidget#PREVIOUS_MONTH_ARROW");
+
+		Click(locator1 = "YUICalendarWidget#PREVIOUS_MONTH_ARROW");
+
+		Click(
+			key_day = "1",
+			locator1 = "YUICalendarWidget#DATEPICKER_SPECIFIC_DAY");
+
+		Click(locator1 = "Button#SEARCH");
+
+		SearchResultPortlet.viewSearchResults(
+			searchAssetTitle = "WC Title",
+			searchAssetType = "Web Content Article",
+			searchTerm = "WC Title");
+	}
+
 	@priority = "4"
 	test SearchXSSAsset {
 		ProductMenu.gotoPortlet(
@@ -1427,26 +1543,11 @@ definition {
 			title = "organic",
 			vocabularyName = "Fruit Vocabulary");
 
-		var liferaySiteId = JSONGroup._getSiteIdByGroupName(groupName = "Guest");
-		var portalURL = PropsUtil.get("portal.url");
 		var webContentFolderName1 = "WC Folder Name 1";
 
-		var curl = '''
-			${portalURL}/api/jsonws/journal.journalfolder/add-folder \
-				-u test@liferay.com:test \
-				-d groupId=${liferaySiteId} \
-				-d parentFolderId=0 \
-				-d name=${webContentFolderName1} \
-				-d description=''
-		''';
-
-		var webContentFolderId1 = JSONCurlUtil.post(
-			"${curl}",
-			"$.[?(@['name'] == '${webContentFolderName1}')]['folderId']"
-		);
-
-		var webContentFolderId1 = StringUtil.replace("${webContentFolderId1}", "[&quot;", "");
-		var webContentFolderId1 = StringUtil.replace("${webContentFolderId1}", "&quot;]", "");
+		JSONWebcontent.addFolder(
+			folderName = "${webContentFolderName1}",
+			groupName = "Guest");
 
 		var organicCategoryId = JSONCategory.getCategoryId(
 			categoryName = "organic",
@@ -1458,44 +1559,29 @@ definition {
 
 		JSONWebcontent.addWebContent(
 			content = "WC WebContent Content 1",
-			folderId = "${webContentFolderId1}",
+			folderName = "${webContentFolderName1}",
 			groupName = "Guest",
 			serviceContext = "${webContentserviceContext1}",
 			title = "apple");
 
 		var webContentFolderName2 = "WC Folder Name 2";
 
-		var curl = '''
-			${portalURL}/api/jsonws/journal.journalfolder/add-folder \
-				-u test@liferay.com:test \
-				-d groupId=${liferaySiteId} \
-				-d parentFolderId=0 \
-				-d name=${webContentFolderName2} \
-				-d description=''
-		''';
-
-		var webContentFolderId2 = JSONCurlUtil.post(
-			"${curl}",
-			"$.[?(@['name'] == '${webContentFolderName2}')]['folderId']"
-		);
-
-		var webContentFolderId2 = StringUtil.replace("${webContentFolderId2}", "[&quot;", "");
-		var webContentFolderId2 = StringUtil.replace("${webContentFolderId2}", "&quot;]", "");
+		JSONWebcontent.addFolder(
+			folderName = "${webContentFolderName2}",
+			groupName = "Guest");
 
 		var webContentserviceContext1 = '''{"assetTagNames": ["fresh"]}''';
 
 		JSONWebcontent.addWebContent(
 			content = "WC WebContent Content 2",
-			folderId = "${webContentFolderId2}",
+			folderName = "${webContentFolderName2}",
 			groupName = "Guest",
 			serviceContext = "${webContentserviceContext1}",
 			title = "orange");
 
 		JSONGroup.addGroup(groupName = "New Site");
 
-		var newSiteId = JSONGroup._getSiteIdByGroupName(groupName = "New Site");
-
-		ProductMenu.gotoSite(site = "New Site");
+		SitePages.openPagesAdmin(siteURLKey = "New Site");
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
@@ -1693,6 +1779,8 @@ definition {
 
 		SearchResultPortlet.viewMultipleSearchResultsNotPresent(noResultsList = "apple/Web Content Article");
 
+		var liferaySiteId = JSONGroupAPI._getGroupIdByName(groupName = "Guest");
+
 		var siteName = TestCase.getSiteName();
 
 		var testSearchURL = SearchFacetPortlet.checkFacetAndViewURL(
@@ -1701,6 +1789,8 @@ definition {
 			facetValueName = "${siteName}",
 			searchURL = "${testSearchURL}"
 		);
+
+		var newSiteId = JSONGroupAPI._getGroupIdByName(groupName = "New Site");
 
 		var testSearchURL = SearchFacetPortlet.checkFacetAndViewURL(
 			facetClass = "site",
@@ -1728,10 +1818,14 @@ definition {
 
 		SearchResultPortlet.viewMultipleSearchResultsNotPresent(noResultsList = "apple/Blogs Entry,apple/Web Content Article");
 
+		var webContentFolderId2 = JSONWebcontent.getFolderIdByFolderName(
+			folderName = "${webContentFolderName2}",
+			groupName = "Guest");
+
 		var testSearchURL = SearchFacetPortlet.checkFacetAndViewURL(
 			facetClass = "folder",
 			facetValue = "${webContentFolderId2}",
-			facetValueName = "WC Folder Name 2",
+			facetValueName = "${webContentFolderName2}",
 			searchURL = "${testSearchURL}"
 		);
 
@@ -1756,7 +1850,7 @@ definition {
 		var testSearchURL = SearchFacetPortlet.uncheckFacetAndViewURL(
 			facetClass = "folder",
 			facetValue = "${webContentFolderId2}",
-			facetValueName = "WC Folder Name 2",
+			facetValueName = "${webContentFolderName2}",
 			searchURL = "${testSearchURL}"
 		);
 
@@ -1788,10 +1882,14 @@ definition {
 			searchURL = "${testSearchURL}"
 		);
 
+		var webContentFolderId1 = JSONWebcontent.getFolderIdByFolderName(
+			folderName = "${webContentFolderName1}",
+			groupName = "Guest");
+
 		var testSearchURL = SearchFacetPortlet.checkFacetAndViewURL(
 			facetClass = "folder",
 			facetValue = "${webContentFolderId1}",
-			facetValueName = "WC Folder Name 1",
+			facetValueName = "${webContentFolderName1}",
 			searchURL = "${testSearchURL}"
 		);
 

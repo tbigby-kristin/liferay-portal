@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.rmi.RemoteException;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the SOAP utility for the
  * <code>FragmentCollectionServiceUtil</code> service
@@ -61,7 +59,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see FragmentCollectionServiceHttp
  * @generated
  */
-@ProviderType
 public class FragmentCollectionServiceSoap {
 
 	public static com.liferay.fragment.model.FragmentCollectionSoap
@@ -237,6 +234,26 @@ public class FragmentCollectionServiceSoap {
 				returnValue =
 					FragmentCollectionServiceUtil.getFragmentCollections(
 						groupId, name, start, end, orderByComparator);
+
+			return com.liferay.fragment.model.FragmentCollectionSoap.
+				toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.fragment.model.FragmentCollectionSoap[]
+			getFragmentCollections(long[] groupIds)
+		throws RemoteException {
+
+		try {
+			java.util.List<com.liferay.fragment.model.FragmentCollection>
+				returnValue =
+					FragmentCollectionServiceUtil.getFragmentCollections(
+						groupIds);
 
 			return com.liferay.fragment.model.FragmentCollectionSoap.
 				toSoapModels(returnValue);

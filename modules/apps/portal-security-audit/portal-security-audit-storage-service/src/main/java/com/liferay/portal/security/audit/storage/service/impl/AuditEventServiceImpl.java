@@ -14,7 +14,9 @@
 
 package com.liferay.portal.security.audit.storage.service.impl;
 
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -24,9 +26,18 @@ import com.liferay.portal.security.audit.storage.service.base.AuditEventServiceB
 import java.util.Date;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Brian Wing Shun Chan
  */
+@Component(
+	property = {
+		"json.web.service.context.name=audit",
+		"json.web.service.context.path=AuditEvent"
+	},
+	service = AopService.class
+)
 public class AuditEventServiceImpl extends AuditEventServiceBaseImpl {
 
 	@Override
@@ -35,7 +46,11 @@ public class AuditEventServiceImpl extends AuditEventServiceBaseImpl {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
-		if (!permissionChecker.isCompanyAdmin()) {
+		if (!(permissionChecker.isCompanyAdmin() ||
+			  userLocalService.hasRoleUser(
+				  companyId, RoleConstants.ANALYTICS_ADMINISTRATOR,
+				  permissionChecker.getUserId(), true))) {
+
 			throw new PrincipalException();
 		}
 
@@ -50,7 +65,11 @@ public class AuditEventServiceImpl extends AuditEventServiceBaseImpl {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
-		if (!permissionChecker.isCompanyAdmin()) {
+		if (!(permissionChecker.isCompanyAdmin() ||
+			  userLocalService.hasRoleUser(
+				  companyId, RoleConstants.ANALYTICS_ADMINISTRATOR,
+				  permissionChecker.getUserId(), true))) {
+
 			throw new PrincipalException();
 		}
 
@@ -69,7 +88,11 @@ public class AuditEventServiceImpl extends AuditEventServiceBaseImpl {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
-		if (!permissionChecker.isCompanyAdmin()) {
+		if (!(permissionChecker.isCompanyAdmin() ||
+			  userLocalService.hasRoleUser(
+				  companyId, RoleConstants.ANALYTICS_ADMINISTRATOR,
+				  permissionChecker.getUserId(), true))) {
+
 			throw new PrincipalException();
 		}
 
@@ -91,7 +114,11 @@ public class AuditEventServiceImpl extends AuditEventServiceBaseImpl {
 
 		PermissionChecker permissionChecker = getPermissionChecker();
 
-		if (!permissionChecker.isCompanyAdmin()) {
+		if (!(permissionChecker.isCompanyAdmin() ||
+			  userLocalService.hasRoleUser(
+				  companyId, RoleConstants.ANALYTICS_ADMINISTRATOR,
+				  permissionChecker.getUserId(), true))) {
+
 			throw new PrincipalException();
 		}
 

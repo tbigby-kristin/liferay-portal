@@ -57,9 +57,9 @@ public class PortletDecoratorImpl implements PortletDecorator {
 
 		PortletDecorator portletDecorator = (PortletDecorator)obj;
 
-		String portletDecoratorId = portletDecorator.getPortletDecoratorId();
+		if (getPortletDecoratorId().equals(
+				portletDecorator.getPortletDecoratorId())) {
 
-		if (getPortletDecoratorId().equals(portletDecoratorId)) {
 			return true;
 		}
 
@@ -92,16 +92,15 @@ public class PortletDecoratorImpl implements PortletDecorator {
 
 			int pos = _cssClass.indexOf(CharPool.SPACE);
 
-			if (pos > 0) {
-				if (_portletDecoratorThumbnailPath.endsWith(
-						_cssClass.substring(0, pos))) {
+			if ((pos > 0) &&
+				_portletDecoratorThumbnailPath.endsWith(
+					_cssClass.substring(0, pos))) {
 
-					String subclassPath = StringUtil.replace(
-						_cssClass, CharPool.SPACE, CharPool.SLASH);
+				String subclassPath = StringUtil.replace(
+					_cssClass, CharPool.SPACE, CharPool.SLASH);
 
-					return _portletDecoratorThumbnailPath +
-						subclassPath.substring(pos);
-				}
+				return _portletDecoratorThumbnailPath +
+					subclassPath.substring(pos);
 			}
 		}
 

@@ -64,9 +64,9 @@ import com.liferay.portal.kernel.zip.ZipReaderFactoryUtil;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactoryUtil;
 import com.liferay.portal.service.test.ServiceTestUtil;
-import com.liferay.portlet.ratings.util.test.RatingsTestUtil;
 import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalServiceUtil;
+import com.liferay.ratings.test.util.RatingsTestUtil;
 
 import java.io.Serializable;
 
@@ -300,9 +300,8 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 		StagedModelDataHandlerUtil.importStagedModel(
 			portletDataContext, exportedStagedModel);
 
-		String uuid = exportedStagedModel.getUuid();
-
-		StagedModel importedModel = getStagedModel(uuid, liveGroup);
+		StagedModel importedModel = getStagedModel(
+			exportedStagedModel.getUuid(), liveGroup);
 
 		Assert.assertNotNull(importedModel);
 	}

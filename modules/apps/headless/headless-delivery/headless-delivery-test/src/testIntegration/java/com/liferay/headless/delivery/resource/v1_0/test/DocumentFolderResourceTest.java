@@ -16,7 +16,6 @@ package com.liferay.headless.delivery.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.delivery.client.dto.v1_0.DocumentFolder;
-import com.liferay.headless.delivery.client.resource.v1_0.DocumentFolderResource;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
@@ -39,11 +38,16 @@ public class DocumentFolderResourceTest
 	}
 
 	@Override
+	protected String[] getIgnoredEntityFieldNames() {
+		return new String[] {"creatorId"};
+	}
+
+	@Override
 	protected DocumentFolder testGetDocumentFolder_addDocumentFolder()
 		throws Exception {
 
 		DocumentFolder postDocumentFolder =
-			DocumentFolderResource.postSiteDocumentFolder(
+			documentFolderResource.postSiteDocumentFolder(
 				testGroup.getGroupId(), randomDocumentFolder());
 
 		Assert.assertEquals(
@@ -56,7 +60,7 @@ public class DocumentFolderResourceTest
 			new ServiceContext());
 
 		DocumentFolder getDocumentFolder =
-			DocumentFolderResource.getDocumentFolder(
+			documentFolderResource.getDocumentFolder(
 				postDocumentFolder.getId());
 
 		Assert.assertEquals(
@@ -71,7 +75,7 @@ public class DocumentFolderResourceTest
 		throws Exception {
 
 		DocumentFolder documentFolder =
-			DocumentFolderResource.postSiteDocumentFolder(
+			documentFolderResource.postSiteDocumentFolder(
 				testGroup.getGroupId(), randomDocumentFolder());
 
 		return documentFolder.getId();

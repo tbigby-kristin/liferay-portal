@@ -18,7 +18,6 @@ import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.engine.CTEngineManager;
 import com.liferay.change.tracking.engine.CTManager;
 import com.liferay.change.tracking.engine.exception.CTEngineException;
-import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.model.DDMTemplateVersion;
@@ -26,6 +25,7 @@ import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceWrapper;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService;
 import com.liferay.journal.model.JournalArticle;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -33,14 +33,17 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.Portal;
 
 import java.io.File;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -79,6 +82,10 @@ public class CTDDMTemplateLocalServiceWrapper
 				script, cacheable, smallImage, smallImageURL, smallImageFile,
 				serviceContext));
 
+		if (!_isChangeTrackingEnabled(ddmTemplate)) {
+			return ddmTemplate;
+		}
+
 		if (!_isClassNameChangeTracked(classNameId)) {
 			return ddmTemplate;
 		}
@@ -96,6 +103,10 @@ public class CTDDMTemplateLocalServiceWrapper
 	public DDMTemplate fetchDDMTemplate(long templateId) {
 		DDMTemplate ddmTemplate = super.fetchDDMTemplate(templateId);
 
+		if (!_isChangeTrackingEnabled(ddmTemplate)) {
+			return ddmTemplate;
+		}
+
 		if (_isRetrievable(ddmTemplate)) {
 			return _populateDDMTemplate(ddmTemplate);
 		}
@@ -106,6 +117,10 @@ public class CTDDMTemplateLocalServiceWrapper
 	@Override
 	public DDMTemplate fetchTemplate(long templateId) {
 		DDMTemplate ddmTemplate = super.fetchTemplate(templateId);
+
+		if (!_isChangeTrackingEnabled(ddmTemplate)) {
+			return ddmTemplate;
+		}
 
 		if (_isRetrievable(ddmTemplate)) {
 			return _populateDDMTemplate(ddmTemplate);
@@ -121,6 +136,10 @@ public class CTDDMTemplateLocalServiceWrapper
 
 		DDMTemplate ddmTemplate = super.fetchTemplate(
 			groupId, classNameId, templateKey, includeAncestorTemplates);
+
+		if (!_isChangeTrackingEnabled(ddmTemplate)) {
+			return ddmTemplate;
+		}
 
 		if (_isRetrievable(ddmTemplate)) {
 			return _populateDDMTemplate(ddmTemplate);
@@ -144,6 +163,10 @@ public class CTDDMTemplateLocalServiceWrapper
 				mode, language, script, cacheable, smallImage, smallImageURL,
 				smallImageFile, serviceContext));
 
+		if (!_isChangeTrackingEnabled(ddmTemplate)) {
+			return ddmTemplate;
+		}
+
 		if (!_isClassNameChangeTracked(ddmTemplate.getClassNameId())) {
 			return ddmTemplate;
 		}
@@ -165,8 +188,44 @@ public class CTDDMTemplateLocalServiceWrapper
 
 	}
 
+	private Optional<DDMTemplateVersion> _getRetrievableVersionOptional(
+		DDMTemplate ddmTemplate) {
+
+		List<DDMTemplateVersion> ddmTemplateVersions =
+			_ddmTemplateVersionLocalService.getTemplateVersions(
+				ddmTemplate.getTemplateId(), QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS,
+				OrderByComparatorFactoryUtil.create(
+					"DDMTemplateVersion", "createDate", false));
+
+		Stream<DDMTemplateVersion> ddmTemplateVersionStream =
+			ddmTemplateVersions.stream();
+
+		return ddmTemplateVersionStream.filter(
+			ddmTemplateVersion -> _ctManager.isRetrievableVersion(
+				ddmTemplateVersion.getCompanyId(),
+				PrincipalThreadLocal.getUserId(),
+				_portal.getClassNameId(DDMTemplateVersion.class.getName()),
+				ddmTemplateVersion.getTemplateVersionId())
+		).findFirst();
+	}
+
 	private boolean _isBasicWebContent(DDMTemplate ddmTemplate) {
 		if (Objects.equals(ddmTemplate.getTemplateKey(), "BASIC-WEB-CONTENT")) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _isChangeTrackingEnabled(DDMTemplate ddmTemplate) {
+		if (ddmTemplate == null) {
+			return false;
+		}
+
+		if (_ctEngineManager.isChangeTrackingEnabled(
+				ddmTemplate.getCompanyId())) {
+
 			return true;
 		}
 
@@ -199,10 +258,7 @@ public class CTDDMTemplateLocalServiceWrapper
 			return false;
 		}
 
-		if (!_ctEngineManager.isChangeTrackingEnabled(
-				ddmTemplate.getCompanyId()) ||
-			_isBasicWebContent(ddmTemplate)) {
-
+		if (_isBasicWebContent(ddmTemplate)) {
 			return true;
 		}
 
@@ -210,30 +266,14 @@ public class CTDDMTemplateLocalServiceWrapper
 			return true;
 		}
 
-		Optional<CTEntry> ctEntryOptional =
-			_ctManager.getLatestModelChangeCTEntryOptional(
-				ddmTemplate.getCompanyId(), PrincipalThreadLocal.getUserId(),
-				ddmTemplate.getTemplateId());
-
-		return ctEntryOptional.isPresent();
+		return _getRetrievableVersionOptional(
+			ddmTemplate
+		).isPresent();
 	}
 
 	private DDMTemplate _populateDDMTemplate(DDMTemplate ddmTemplate) {
-		Optional<CTEntry> ctEntryOptional =
-			_ctManager.getLatestModelChangeCTEntryOptional(
-				ddmTemplate.getCompanyId(), PrincipalThreadLocal.getUserId(),
-				ddmTemplate.getTemplateId());
-
-		if (!ctEntryOptional.isPresent()) {
-			return ddmTemplate;
-		}
-
 		Optional<DDMTemplateVersion> ddmTemplateVersionOptional =
-			ctEntryOptional.map(
-				CTEntry::getModelClassPK
-			).map(
-				_ddmTemplateVersionLocalService::fetchDDMTemplateVersion
-			);
+			_getRetrievableVersionOptional(ddmTemplate);
 
 		if (!ddmTemplateVersionOptional.isPresent()) {
 			return ddmTemplate;

@@ -125,6 +125,7 @@ public class UpgradeLayout extends UpgradeProcess {
 						PortalUtil.getClassNameId(Layout.class),
 						draftLayout.getPlid(), fragmentEntryLink.getCss(),
 						fragmentEntryLink.getHtml(), fragmentEntryLink.getJs(),
+						fragmentEntryLink.getConfiguration(),
 						fragmentEntryLink.getEditableValues(), StringPool.BLANK,
 						fragmentEntryLink.getPosition(), null, serviceContext);
 				}
@@ -157,25 +158,27 @@ public class UpgradeLayout extends UpgradeProcess {
 			return layout.getPlid();
 		}
 
-		Map<Locale, String> titleMap = Collections.singletonMap(
-			LocaleUtil.getSiteDefault(), name);
-
+		boolean privateLayout = false;
 		String layoutType = LayoutConstants.TYPE_ASSET_DISPLAY;
 
 		if (type == LayoutPageTemplateEntryTypeConstants.TYPE_BASIC) {
 			layoutType = LayoutConstants.TYPE_CONTENT;
+			privateLayout = true;
 		}
+
+		Map<Locale, String> titleMap = Collections.singletonMap(
+			LocaleUtil.getSiteDefault(), name);
 
 		serviceContext.setAttribute(
 			"layout.instanceable.allowed", Boolean.TRUE);
 
 		Layout layout = _layoutLocalService.addLayout(
-			userId, groupId, true, 0, titleMap, titleMap, null, null, null,
-			layoutType, StringPool.BLANK, true, true, new HashMap<>(),
+			userId, groupId, privateLayout, 0, titleMap, titleMap, null, null,
+			null, layoutType, StringPool.BLANK, true, true, new HashMap<>(),
 			serviceContext);
 
 		_layoutLocalService.addLayout(
-			layout.getUserId(), layout.getGroupId(), layout.isPrivateLayout(),
+			layout.getUserId(), layout.getGroupId(), privateLayout,
 			layout.getParentLayoutId(), PortalUtil.getClassNameId(Layout.class),
 			layout.getPlid(), layout.getNameMap(), layout.getTitleMap(),
 			layout.getDescriptionMap(), layout.getKeywordsMap(),

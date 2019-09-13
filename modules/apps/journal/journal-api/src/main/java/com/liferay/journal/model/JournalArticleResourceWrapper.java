@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link JournalArticleResource}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalArticleResource
  * @generated
  */
-@ProviderType
 public class JournalArticleResourceWrapper
 	extends BaseModelWrapper<JournalArticleResource>
 	implements JournalArticleResource, ModelWrapper<JournalArticleResource> {
@@ -46,6 +43,7 @@ public class JournalArticleResourceWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("resourcePrimKey", getResourcePrimKey());
 		attributes.put("groupId", getGroupId());
@@ -57,6 +55,12 @@ public class JournalArticleResourceWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -124,6 +128,16 @@ public class JournalArticleResourceWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this journal article resource.
+	 *
+	 * @return the mvcc version of this journal article resource
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this journal article resource.
 	 *
 	 * @return the primary key of this journal article resource
@@ -153,6 +167,11 @@ public class JournalArticleResourceWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a journal article resource model instance should use the <code>JournalArticleResource</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -186,6 +205,16 @@ public class JournalArticleResourceWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the mvcc version of this journal article resource.
+	 *
+	 * @param mvccVersion the mvcc version of this journal article resource
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

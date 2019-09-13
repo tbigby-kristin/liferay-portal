@@ -1,6 +1,20 @@
-import * as FormSupport from '../../Form/FormSupport.es';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
 import {generateFieldName, getFieldLocalizedValue} from '../util/fields.es';
-import {PagesVisitor} from '../../../util/visitors.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
 import {sub} from '../../../util/strings.es';
 
 const handleFieldDuplicated = (state, editingLanguageId, event) => {
@@ -9,12 +23,13 @@ const handleFieldDuplicated = (state, editingLanguageId, event) => {
 
 	const field = FormSupport.getField(pages, pageIndex, rowIndex, columnIndex);
 
-	const localizedLabel = getFieldLocalizedValue(field.settingsContext.pages, 'label', editingLanguageId);
-
-	const label = sub(
-		Liferay.Language.get('copy-of-x'),
-		[localizedLabel]
+	const localizedLabel = getFieldLocalizedValue(
+		field.settingsContext.pages,
+		'label',
+		editingLanguageId
 	);
+
+	const label = sub(Liferay.Language.get('copy-of-x'), [localizedLabel]);
 	const newFieldName = generateFieldName(pages, label);
 	const visitor = new PagesVisitor(field.settingsContext.pages);
 
@@ -25,29 +40,26 @@ const handleFieldDuplicated = (state, editingLanguageId, event) => {
 		name: newFieldName,
 		settingsContext: {
 			...field.settingsContext,
-			pages: visitor.mapFields(
-				field => {
-					if (field.fieldName === 'name') {
-						field = {
-							...field,
-							value: newFieldName
-						};
-					}
-					else if (field.fieldName === 'label') {
-						field = {
-							...field,
-							localizedValue: {
-								...field.localizedValue,
-								[editingLanguageId]: label
-							},
-							value: label
-						};
-					}
-					return {
-						...field
+			pages: visitor.mapFields(field => {
+				if (field.fieldName === 'name') {
+					field = {
+						...field,
+						value: newFieldName
+					};
+				} else if (field.fieldName === 'label') {
+					field = {
+						...field,
+						localizedValue: {
+							...field.localizedValue,
+							[editingLanguageId]: label
+						},
+						value: label
 					};
 				}
-			)
+				return {
+					...field
+				};
+			})
 		}
 	};
 	const newRowIndex = rowIndex + 1;

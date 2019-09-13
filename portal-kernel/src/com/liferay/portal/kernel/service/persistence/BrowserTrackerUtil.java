@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the browser tracker service. This utility wraps <code>com.liferay.portal.service.persistence.impl.BrowserTrackerPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see BrowserTrackerPersistence
  * @generated
  */
-@ProviderType
 public class BrowserTrackerUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -151,13 +148,13 @@ public class BrowserTrackerUtil {
 	 * Returns the browser tracker where userId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param userId the user ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching browser tracker, or <code>null</code> if a matching browser tracker could not be found
 	 */
 	public static BrowserTracker fetchByUserId(
-		long userId, boolean retrieveFromCache) {
+		long userId, boolean useFinderCache) {
 
-		return getPersistence().fetchByUserId(userId, retrieveFromCache);
+		return getPersistence().fetchByUserId(userId, useFinderCache);
 	}
 
 	/**
@@ -306,15 +303,15 @@ public class BrowserTrackerUtil {
 	 * @param start the lower bound of the range of browser trackers
 	 * @param end the upper bound of the range of browser trackers (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of browser trackers
 	 */
 	public static List<BrowserTracker> findAll(
 		int start, int end, OrderByComparator<BrowserTracker> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

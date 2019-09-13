@@ -33,7 +33,7 @@ import com.liferay.knowledge.base.web.internal.upload.KBArticleAttachmentKBUploa
 import com.liferay.portal.kernel.exception.NoSuchSubscriptionException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Release;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -111,8 +111,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.resource-bundle=content.Language",
 		"javax.portlet.security-role-ref=administrator,guest,power-user,user",
 		"javax.portlet.supported-public-render-parameter=categoryId",
-		"javax.portlet.supported-public-render-parameter=tag",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.supported-public-render-parameter=tag"
 	},
 	service = Portlet.class
 )
@@ -253,15 +252,13 @@ public class AdminPortlet extends BaseKBPortlet {
 
 		if (resourceID.equals("infoPanel")) {
 			try {
-				List<KBArticle> kbArticles = getKBArticles(httpServletRequest);
+				resourceRequest.setAttribute(
+					KBWebKeys.KNOWLEDGE_BASE_KB_ARTICLES,
+					getKBArticles(httpServletRequest));
 
 				resourceRequest.setAttribute(
-					KBWebKeys.KNOWLEDGE_BASE_KB_ARTICLES, kbArticles);
-
-				List<KBFolder> kbFolders = getKBFolders(httpServletRequest);
-
-				resourceRequest.setAttribute(
-					KBWebKeys.KNOWLEDGE_BASE_KB_FOLDERS, kbFolders);
+					KBWebKeys.KNOWLEDGE_BASE_KB_FOLDERS,
+					getKBFolders(httpServletRequest));
 
 				PortletSession portletSession =
 					resourceRequest.getPortletSession();
@@ -292,10 +289,9 @@ public class AdminPortlet extends BaseKBPortlet {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			KBWebKeys.THEME_DISPLAY);
 
-		String portletId = _portal.getPortletId(actionRequest);
-
 		kbArticleService.subscribeGroupKBArticles(
-			themeDisplay.getScopeGroupId(), portletId);
+			themeDisplay.getScopeGroupId(),
+			_portal.getPortletId(actionRequest));
 	}
 
 	public void unsubscribeGroupKBArticles(
@@ -305,10 +301,9 @@ public class AdminPortlet extends BaseKBPortlet {
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			KBWebKeys.THEME_DISPLAY);
 
-		String portletId = _portal.getPortletId(actionRequest);
-
 		kbArticleService.unsubscribeGroupKBArticles(
-			themeDisplay.getScopeGroupId(), portletId);
+			themeDisplay.getScopeGroupId(),
+			_portal.getPortletId(actionRequest));
 	}
 
 	public void updateKBArticlesPriorities(
@@ -387,10 +382,9 @@ public class AdminPortlet extends BaseKBPortlet {
 			KBTemplate.class.getName(), actionRequest);
 
 		if (cmd.equals(Constants.ADD)) {
-			String portletId = _portal.getPortletId(actionRequest);
-
 			kbTemplateService.addKBTemplate(
-				portletId, title, content, serviceContext);
+				_portal.getPortletId(actionRequest), title, content,
+				serviceContext);
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
 			long kbTemplateId = ParamUtil.getLong(
@@ -573,9 +567,7 @@ public class AdminPortlet extends BaseKBPortlet {
 		List<KBFolder> kbFolders = new ArrayList<>();
 
 		for (long kbFolderId : kbFolderIds) {
-			KBFolder kbFolder = kbFolderService.getKBFolder(kbFolderId);
-
-			kbFolders.add(kbFolder);
+			kbFolders.add(kbFolderService.getKBFolder(kbFolderId));
 		}
 
 		return kbFolders;

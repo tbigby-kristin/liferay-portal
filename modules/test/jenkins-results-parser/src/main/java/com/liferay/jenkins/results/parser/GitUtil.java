@@ -78,6 +78,34 @@ public class GitUtil {
 		return defaultBranchName;
 	}
 
+	public static String getPrivateRepositoryName(String repositoryName) {
+		if (repositoryName.endsWith("-ee") ||
+			repositoryName.endsWith("-private")) {
+
+			return repositoryName;
+		}
+
+		if (repositoryName.startsWith("com-liferay")) {
+			return repositoryName + "-private";
+		}
+
+		return repositoryName + "-ee";
+	}
+
+	public static String getPublicRepositoryName(String repositoryName) {
+		if (!repositoryName.endsWith("-ee") &&
+			!repositoryName.endsWith("-private")) {
+
+			return repositoryName;
+		}
+
+		if (repositoryName.startsWith("com-liferay")) {
+			return repositoryName.replace("-private", "");
+		}
+
+		return repositoryName.replace("-ee", "");
+	}
+
 	public static RemoteGitBranch getRemoteGitBranch(
 		String remoteGitBranchName, File workingDirectory, String remoteURL) {
 
@@ -353,6 +381,12 @@ public class GitUtil {
 						modifiedCommands[i]);
 
 					String modifiedCommand = modifiedCommands[i];
+
+					if (!modifiedCommand.contains(
+							_HOSTNAME_GITHUB_CACHE_PROXY)) {
+
+						continue;
+					}
 
 					if (matcher != null) {
 						while (matcher.find()) {

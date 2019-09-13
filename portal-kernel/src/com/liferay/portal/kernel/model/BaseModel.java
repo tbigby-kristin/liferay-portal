@@ -19,9 +19,10 @@ import com.liferay.portal.kernel.service.ServiceContext;
 
 import java.io.Serializable;
 
+import java.util.Collections;
 import java.util.Map;
-
-import org.osgi.annotation.versioning.ProviderType;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * The base interface for all model classes. This interface should never need to
@@ -30,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author Brian Wing Shun Chan
  * @see    com.liferay.portal.kernel.model.impl.BaseModelImpl
  */
-@ProviderType
 public interface BaseModel<T>
 	extends ClassedModel, Cloneable, Comparable<T>, Serializable {
 
@@ -40,6 +40,18 @@ public interface BaseModel<T>
 	 * @return the shallow clone of this model instance
 	 */
 	public Object clone();
+
+	public default Map<String, Function<T, Object>>
+		getAttributeGetterFunctions() {
+
+		return Collections.emptyMap();
+	}
+
+	public default Map<String, BiConsumer<T, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return Collections.emptyMap();
+	}
 
 	/**
 	 * Returns the expando bridge for this model instance.

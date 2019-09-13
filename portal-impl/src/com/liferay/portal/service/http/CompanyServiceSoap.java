@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.service.CompanyServiceUtil;
 
 import java.rmi.RemoteException;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the SOAP utility for the
  * <code>CompanyServiceUtil</code> service
@@ -61,7 +59,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CompanyServiceHttp
  * @generated
  */
-@ProviderType
 public class CompanyServiceSoap {
 
 	/**
@@ -333,7 +330,7 @@ public class CompanyServiceSoap {
 	 * @param virtualHost the company's virtual host name
 	 * @param mx the company's mail domain
 	 * @param homeURL the company's home URL (optionally <code>null</code>)
-	 * @param logo whether to update the company's logo
+	 * @param hasLogo if the company has a custom logo
 	 * @param logoBytes the new logo image data
 	 * @param name the company's account name (optionally <code>null</code>)
 	 * @param legalName the company's account legal name (optionally
@@ -354,7 +351,7 @@ public class CompanyServiceSoap {
 	 */
 	public static com.liferay.portal.kernel.model.CompanySoap updateCompany(
 			long companyId, String virtualHost, String mx, String homeURL,
-			boolean logo, byte[] logoBytes, String name, String legalName,
+			boolean hasLogo, byte[] logoBytes, String name, String legalName,
 			String legalId, String legalType, String sicCode,
 			String tickerSymbol, String industry, String type, String size)
 		throws RemoteException {
@@ -362,8 +359,8 @@ public class CompanyServiceSoap {
 		try {
 			com.liferay.portal.kernel.model.Company returnValue =
 				CompanyServiceUtil.updateCompany(
-					companyId, virtualHost, mx, homeURL, logo, logoBytes, name,
-					legalName, legalId, legalType, sicCode, tickerSymbol,
+					companyId, virtualHost, mx, homeURL, hasLogo, logoBytes,
+					name, legalName, legalId, legalType, sicCode, tickerSymbol,
 					industry, type, size);
 
 			return com.liferay.portal.kernel.model.CompanySoap.toSoapModel(

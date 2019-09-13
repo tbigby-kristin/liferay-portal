@@ -14,20 +14,24 @@
 
 package com.liferay.journal.change.tracking.internal.util;
 
+import com.liferay.change.tracking.constants.CTPortletKeys;
 import com.liferay.change.tracking.engine.CTManager;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTCollectionModel;
 import com.liferay.change.tracking.model.CTEntry;
+import com.liferay.change.tracking.model.CTEntryModel;
 import com.liferay.change.tracking.service.CTCollectionLocalService;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.util.JournalChangeTrackingHelper;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.Portal;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
+
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletURL;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -53,31 +57,46 @@ public class JournalChangeTrackingHelperImpl
 	public String getJournalArticleCTCollectionName(
 		long companyId, long userId, long id) {
 
-		long classNameId = _portal.getClassNameId(
-			JournalArticle.class.getName());
+		Optional<CTCollection> originalCTCollectionOptional =
+			_getOriginalCTCollectionOptional(companyId, userId, id);
 
-		Optional<CTEntry> ctEntryOptional =
-			_ctManager.getActiveCTCollectionCTEntryOptional(
-				companyId, userId, classNameId, id);
-
-		Stream<CTCollection> stream = ctEntryOptional.map(
-			CTEntry::getCtEntryId
-		).map(
-			_ctCollectionLocalService::getCTEntryCTCollections
-		).map(
-			List::stream
-		).orElse(
-			Stream.empty()
-		);
-
-		return stream.filter(
+		return originalCTCollectionOptional.filter(
 			ctCollection -> !ctCollection.isProduction()
 		).map(
 			CTCollectionModel::getName
-		).findFirst(
 		).orElse(
 			StringPool.BLANK
 		);
+	}
+
+	@Override
+	public PortletURL getJournalArticleCTCollectionURL(
+		PortletRequest portletRequest, long companyId, long userId, long id) {
+
+		Optional<CTCollection> originalCTCollectionOptional =
+			_getOriginalCTCollectionOptional(companyId, userId, id);
+
+		if (!originalCTCollectionOptional.isPresent()) {
+			return null;
+		}
+
+		long originalCTCollectionId = originalCTCollectionOptional.map(
+			CTCollectionModel::getCtCollectionId
+		).get();
+
+		Optional<CTCollection> activeCTCollectionOptional =
+			_ctManager.getActiveCTCollectionOptional(companyId, userId);
+
+		boolean active = activeCTCollectionOptional.filter(
+			activeCTCollection ->
+				activeCTCollection.getCtCollectionId() == originalCTCollectionId
+		).isPresent();
+
+		if (active) {
+			return _getOverviewURL(portletRequest);
+		}
+
+		return _getHistoryURL(portletRequest, originalCTCollectionId);
 	}
 
 	@Override
@@ -116,8 +135,7 @@ public class JournalChangeTrackingHelperImpl
 				companyId, userId, classNameId, id);
 
 		ctEntryOptional = ctEntryOptional.filter(
-			ctEntry ->
-				ctEntry.getOriginalCTCollectionId() == activeCTCollectionId);
+			ctEntry -> ctEntry.getCtCollectionId() == activeCTCollectionId);
 
 		if (ctEntryOptional.isPresent()) {
 			return true;
@@ -137,6 +155,43 @@ public class JournalChangeTrackingHelperImpl
 		).orElse(
 			0L
 		);
+	}
+
+	private PortletURL _getHistoryURL(
+		PortletRequest portletRequest, long ctCollectionId) {
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			portletRequest, CTPortletKeys.CHANGE_LISTS_HISTORY,
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter("mvcPath", "/details.jsp");
+		portletURL.setParameter(
+			"ctCollectionId", String.valueOf(ctCollectionId));
+		portletURL.setParameter("orderByCol", "title");
+		portletURL.setParameter("orderByType", "desc");
+
+		return portletURL;
+	}
+
+	private Optional<CTCollection> _getOriginalCTCollectionOptional(
+		long companyId, long userId, long id) {
+
+		Optional<CTEntry> ctEntryOptional =
+			_ctManager.getModelChangeCTEntryOptional(
+				companyId, userId,
+				_portal.getClassNameId(JournalArticle.class.getName()), id);
+
+		return ctEntryOptional.map(
+			CTEntryModel::getCtCollectionId
+		).map(
+			_ctCollectionLocalService::fetchCTCollection
+		);
+	}
+
+	private PortletURL _getOverviewURL(PortletRequest portletRequest) {
+		return PortletURLFactoryUtil.create(
+			portletRequest, CTPortletKeys.CHANGE_LISTS,
+			PortletRequest.RENDER_PHASE);
 	}
 
 	@Reference

@@ -1,36 +1,85 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 
 import '../floating_toolbar/background_color/FloatingToolbarBackgroundColorPanel.es';
-import '../floating_toolbar/background_image/FloatingToolbarBackgroundImagePanel.es';
+import '../floating_toolbar/layout_background_image/FloatingToolbarLayoutBackgroundImagePanel.es';
 import '../floating_toolbar/spacing/FloatingToolbarSpacingPanel.es';
 import './ColumnOverlayGrid.es';
 import './FragmentEntryLink.es';
 import FloatingToolbar from '../floating_toolbar/FloatingToolbar.es';
-import {FLOATING_TOOLBAR_BUTTONS, FRAGMENTS_EDITOR_ITEM_TYPES, FRAGMENTS_EDITOR_ROW_TYPES} from '../../utils/constants';
+import {
+	FLOATING_TOOLBAR_BUTTONS,
+	FRAGMENTS_EDITOR_ITEM_TYPES,
+	FRAGMENTS_EDITOR_ROW_TYPES
+} from '../../utils/constants';
+import {getAssetFieldValue} from '../../utils/FragmentsEditorFetchUtils.es';
 import getConnectedComponent from '../../store/ConnectedComponent.es';
-import {getItemMoveDirection, getItemPath, getRowIndex, itemIsInPath} from '../../utils/FragmentsEditorGetUtils.es';
-import {moveRow, removeItem, setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
-import {REMOVE_ROW} from '../../actions/actions.es';
+import {
+	getItemMoveDirection,
+	getItemPath,
+	getRowIndex,
+	itemIsInPath,
+	editableIsMappedToAssetEntry
+} from '../../utils/FragmentsEditorGetUtils.es';
+import {
+	moveRow,
+	removeItem,
+	setIn
+} from '../../utils/FragmentsEditorUpdateUtils.es';
 import {shouldUpdatePureComponent} from '../../utils/FragmentsEditorComponentUtils.es';
 import templates from './FragmentEntryLinkListRow.soy';
 import {updateRowColumnsAction} from '../../actions/updateRowColumns.es';
-
-/**
- * Defines the list of available panels.
- * @type {object[]}
- */
-const ROW_FLOATING_TOOLBAR_BUTTONS = [
-	FLOATING_TOOLBAR_BUTTONS.backgroundColor,
-	FLOATING_TOOLBAR_BUTTONS.backgroundImage,
-	FLOATING_TOOLBAR_BUTTONS.spacing
-];
+import {removeRowAction} from '../../actions/removeRow.es';
 
 /**
  * Creates a Fragment Entry Link List Row component.
  */
 class FragmentEntryLinkListRow extends Component {
+	/**
+	 * @param {object} config
+	 * @return {object[]} Floating toolbar buttons
+	 */
+	static _getFloatingToolbarButtons(config) {
+		const buttons = [];
+
+		buttons.push(FLOATING_TOOLBAR_BUTTONS.removeFragment);
+
+		buttons.push(FLOATING_TOOLBAR_BUTTONS.backgroundColor);
+
+		const layoutBackgroundImageButton = {
+			...FLOATING_TOOLBAR_BUTTONS.layoutBackgroundImage
+		};
+
+		if (
+			config.backgroundImage &&
+			(config.backgroundImage.mappedField ||
+				config.backgroundImage.fieldId)
+		) {
+			layoutBackgroundImageButton.cssClass =
+				'fragments-editor__floating-toolbar--mapped-field';
+		}
+
+		buttons.push(layoutBackgroundImageButton);
+
+		buttons.push(FLOATING_TOOLBAR_BUTTONS.spacing);
+
+		return buttons;
+	}
 
 	/**
 	 * Checks if the given row should be highlighted
@@ -63,18 +112,16 @@ class FragmentEntryLinkListRow extends Component {
 				FRAGMENTS_EDITOR_ITEM_TYPES.row
 			);
 
-			const row = structure.find(
-				row => row.rowId === rowId
-			);
+			const row = structure.find(row => row.rowId === rowId);
 
-			const rowIsDropTarget = (dropTargetItemId === rowId &&
-				dropTargetItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row);
+			const rowIsDropTarget =
+				dropTargetItemId === rowId &&
+				dropTargetItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row;
 
-			highlighted = (
+			highlighted =
 				row.type !== FRAGMENTS_EDITOR_ROW_TYPES.sectionRow &&
 				rowInDropTargetPath &&
-				!rowIsDropTarget
-			);
+				!rowIsDropTarget;
 		}
 
 		return highlighted;
@@ -87,8 +134,14 @@ class FragmentEntryLinkListRow extends Component {
 		this._handleBodyMouseLeave = this._handleBodyMouseLeave.bind(this);
 		this._handleBodyMouseMove = this._handleBodyMouseMove.bind(this);
 		this._handleBodyMouseUp = this._handleBodyMouseUp.bind(this);
+		this._handleFloatingToolbarButtonClicked = this._handleFloatingToolbarButtonClicked.bind(
+			this
+		);
 
-		document.body.addEventListener('mouseleave', this._handleBodyMouseLeave);
+		document.body.addEventListener(
+			'mouseleave',
+			this._handleBodyMouseLeave
+		);
 		document.body.addEventListener('mouseup', this._handleBodyMouseUp);
 	}
 
@@ -98,8 +151,14 @@ class FragmentEntryLinkListRow extends Component {
 	disposed() {
 		this._disposeFloatingToolbar();
 
-		document.body.removeEventListener('mouseleave', this._handleBodyMouseLeave);
-		document.body.removeEventListener('mousemove', this._handleBodyMouseMove);
+		document.body.removeEventListener(
+			'mouseleave',
+			this._handleBodyMouseLeave
+		);
+		document.body.removeEventListener(
+			'mousemove',
+			this._handleBodyMouseMove
+		);
 		document.body.removeEventListener('mouseup', this._handleBodyMouseUp);
 	}
 
@@ -113,11 +172,18 @@ class FragmentEntryLinkListRow extends Component {
 		let columnResizerVisible;
 		let nextState = state;
 
-		if (this.rowId === this.activeItemId &&
-			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row) {
-
+		if (
+			this.rowId === this.activeItemId &&
+			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row
+		) {
 			columnResizerVisible = true;
 		}
+
+		nextState = setIn(
+			nextState,
+			['_backgroundImageValue'],
+			this._getBackgroundImageValue()
+		);
 
 		nextState = setIn(
 			nextState,
@@ -143,11 +209,7 @@ class FragmentEntryLinkListRow extends Component {
 		);
 
 		if (nextState._resizing && nextState._resizeRowColumns) {
-			nextState = setIn(
-				nextState,
-				['columns'],
-				state._resizeRowColumns
-			);
+			nextState = setIn(nextState, ['columns'], state._resizeRowColumns);
 		}
 
 		return nextState;
@@ -158,14 +220,13 @@ class FragmentEntryLinkListRow extends Component {
 	 */
 	rendered() {
 		if (
-			(this.rowId === this.activeItemId) &&
-			(this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row) &&
+			this.rowId === this.activeItemId &&
+			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row &&
 			!this._resizing &&
 			this.row.type !== FRAGMENTS_EDITOR_ROW_TYPES.sectionRow
 		) {
 			this._createFloatingToolbar();
-		}
-		else {
+		} else {
 			this._disposeFloatingToolbar();
 		}
 
@@ -184,11 +245,32 @@ class FragmentEntryLinkListRow extends Component {
 	}
 
 	/**
+	 * Handle getAssetFieldValueURL changed
+	 * @inheritDoc
+	 * @review
+	 */
+	syncGetAssetFieldValueURL() {
+		this._updateMappedBackgroundFieldValue();
+	}
+
+	/**
+	 * Handle layoutData changed
+	 * @inheritDoc
+	 * @review
+	 */
+	syncLayoutData() {
+		this._updateMappedBackgroundFieldValue();
+	}
+
+	/**
 	 * Clears resizing properties.
 	 * @private
 	 */
 	_clearResizing() {
-		document.body.removeEventListener('mousemove', this._handleBodyMouseMove);
+		document.body.removeEventListener(
+			'mousemove',
+			this._handleBodyMouseMove
+		);
 
 		this._resizeColumnIndex = 0;
 		this._resizeHighlightedColumn = null;
@@ -204,7 +286,12 @@ class FragmentEntryLinkListRow extends Component {
 	_createFloatingToolbar() {
 		const config = {
 			anchorElement: this.element,
-			buttons: ROW_FLOATING_TOOLBAR_BUTTONS,
+			buttons: FragmentEntryLinkListRow._getFloatingToolbarButtons(
+				this.row.config
+			),
+			events: {
+				buttonClicked: this._handleFloatingToolbarButtonClicked
+			},
 			item: this.row,
 			itemId: this.rowId,
 			itemType: FRAGMENTS_EDITOR_ITEM_TYPES.row,
@@ -214,8 +301,7 @@ class FragmentEntryLinkListRow extends Component {
 
 		if (this._floatingToolbar) {
 			this._floatingToolbar.setState(config);
-		}
-		else {
+		} else {
 			this._floatingToolbar = new FloatingToolbar(config);
 		}
 	}
@@ -230,6 +316,31 @@ class FragmentEntryLinkListRow extends Component {
 
 			this._floatingToolbar = null;
 		}
+	}
+
+	/**
+	 * @private
+	 */
+	_getBackgroundImageValue() {
+		if (this._mappedBackgroundFieldValue) {
+			return this._mappedBackgroundFieldValue;
+		}
+
+		const {config} = this.row;
+
+		if (!config) {
+			return '';
+		}
+
+		if (typeof config.backgroundImage === 'string') {
+			return config.backgroundImage;
+		}
+
+		if (typeof config.backgroundImage === 'object') {
+			return config.backgroundImage.url;
+		}
+
+		return '';
 	}
 
 	/**
@@ -254,9 +365,8 @@ class FragmentEntryLinkListRow extends Component {
 		let nextColumnElement = this.refs.resizeNextColumn;
 		let nextColumnIndex = columnIndex + 1;
 
-		const languageDirection = Liferay.Language.direction[
-			Liferay.ThemeDisplay.getLanguageId()
-		];
+		const languageDirection =
+			Liferay.Language.direction[Liferay.ThemeDisplay.getLanguageId()];
 
 		if (languageDirection === 'rtl') {
 			columnElement = this.refs.resizeNextColumn;
@@ -269,17 +379,23 @@ class FragmentEntryLinkListRow extends Component {
 
 		const maxPosition = nextColumnRect.left + nextColumnRect.width;
 		const minPosition = columnElement.getBoundingClientRect().left;
-		const position = Math.max(Math.min(event.clientX, maxPosition), minPosition);
+		const position = Math.max(
+			Math.min(event.clientX, maxPosition),
+			minPosition
+		);
 
 		const column = this._resizeRowColumns[columnIndex];
 		const nextColumn = this._resizeRowColumns[nextColumnIndex];
 
-		const maxColumns = (parseInt(column.size, 10) || 1) + (parseInt(nextColumn.size, 10) || 1) - 1;
+		const maxColumns =
+			(parseInt(column.size, 10) || 1) +
+			(parseInt(nextColumn.size, 10) || 1) -
+			1;
 
 		const columns = Math.max(
 			Math.round(
 				((position - minPosition) / (maxPosition - minPosition)) *
-				(maxColumns)
+					maxColumns
 			),
 			1
 		);
@@ -297,18 +413,18 @@ class FragmentEntryLinkListRow extends Component {
 		);
 
 		if (languageDirection === 'rtl') {
-			this._resizeHighlightedColumn = maxColumns - (
+			this._resizeHighlightedColumn =
+				maxColumns -
 				this._resizeRowColumns
 					.slice(columnIndex)
 					.map(column => parseInt(column.size, 10) || 1)
-					.reduce((size, columnSize) => size + columnSize, 0)
-			);
-		}
-		else {
-			this._resizeHighlightedColumn = this._resizeRowColumns
-				.slice(0, nextColumnIndex)
-				.map(column => parseInt(column.size, 10) || 1)
-				.reduce((size, columnSize) => size + columnSize, 0) - 1;
+					.reduce((size, columnSize) => size + columnSize, 0);
+		} else {
+			this._resizeHighlightedColumn =
+				this._resizeRowColumns
+					.slice(0, nextColumnIndex)
+					.map(column => parseInt(column.size, 10) || 1)
+					.reduce((size, columnSize) => size + columnSize, 0) - 1;
 		}
 	}
 
@@ -322,6 +438,22 @@ class FragmentEntryLinkListRow extends Component {
 			this._updateRowColumns(this._resizeRowColumns);
 
 			this._clearResizing();
+		}
+	}
+
+	/**
+	 * Callback executed when an floating toolbar button is clicked
+	 * @param {Event} event
+	 * @param {Object} data
+	 * @private
+	 */
+	_handleFloatingToolbarButtonClicked(event, data) {
+		const {panelId} = data;
+
+		if (panelId === FLOATING_TOOLBAR_BUTTONS.removeFragment.panelId) {
+			event.preventDefault();
+
+			removeItem(this.store, removeRowAction(this.rowId));
 		}
 	}
 
@@ -346,9 +478,10 @@ class FragmentEntryLinkListRow extends Component {
 	 * @param {KeyboardEvent} event
 	 */
 	_handleRowKeyUp(event) {
-		if (this.activeItemId === this.rowId &&
-			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row) {
-
+		if (
+			this.activeItemId === this.rowId &&
+			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row
+		) {
 			const direction = getItemMoveDirection(event.keyCode);
 
 			if (direction) {
@@ -363,20 +496,33 @@ class FragmentEntryLinkListRow extends Component {
 	}
 
 	/**
-	 * Callback executed when the remove row button is clicked.
-	 * @param {Event} event
+	 * Updates mapped field value
 	 * @private
+	 * @review
 	 */
-	_handleRowRemoveButtonClick(event) {
-		event.stopPropagation();
+	_updateMappedBackgroundFieldValue() {
+		if (
+			this.getAssetFieldValueURL &&
+			this.row.config.backgroundImage &&
+			editableIsMappedToAssetEntry(this.row.config.backgroundImage)
+		) {
+			getAssetFieldValue(
+				this.row.config.backgroundImage.classNameId,
+				this.row.config.backgroundImage.classPK,
+				this.row.config.backgroundImage.fieldId
+			).then(response => {
+				const {fieldValue} = response;
 
-		removeItem(
-			this.store,
-			REMOVE_ROW,
-			{
-				rowId: this.hoveredItemId
-			}
-		);
+				if (
+					fieldValue &&
+					fieldValue.url !== this._mappedBackgroundFieldValue
+				) {
+					this._mappedBackgroundFieldValue = fieldValue.url;
+				}
+			});
+		} else {
+			this._mappedBackgroundFieldValue = null;
+		}
 	}
 
 	/**
@@ -385,12 +531,7 @@ class FragmentEntryLinkListRow extends Component {
 	 * @private
 	 */
 	_updateRowColumns(columns) {
-		this.store.dispatch(
-			updateRowColumnsAction(
-				columns,
-				this.rowId
-			)
-		);
+		this.store.dispatch(updateRowColumnsAction(columns, this.rowId));
 	}
 }
 
@@ -400,7 +541,6 @@ class FragmentEntryLinkListRow extends Component {
  * @type {!Object}
  */
 FragmentEntryLinkListRow.STATE = {
-
 	/**
 	 * Floating toolbar instance for internal use.
 	 * @default null
@@ -411,6 +551,16 @@ FragmentEntryLinkListRow.STATE = {
 	_floatingToolbar: Config.internal().value(null),
 
 	/**
+	 * Mapped background field value
+	 * @instance
+	 * @memberOf FragmentEntryLinkListRow
+	 * @private
+	 * @review
+	 * @type {string}
+	 */
+	_mappedBackgroundFieldValue: Config.internal().string(),
+
+	/**
 	 * Index of the column being resized.
 	 * @default 0
 	 * @instance
@@ -418,7 +568,9 @@ FragmentEntryLinkListRow.STATE = {
 	 * @private
 	 * @type {number}
 	 */
-	_resizeColumnIndex: Config.internal().number().value(0),
+	_resizeColumnIndex: Config.internal()
+		.number()
+		.value(0),
 
 	/**
 	 * Index of the column that should be highlighted when resized.
@@ -428,7 +580,9 @@ FragmentEntryLinkListRow.STATE = {
 	 * @private
 	 * @type {number}
 	 */
-	_resizeHighlightedColumn: Config.internal().number().value(null),
+	_resizeHighlightedColumn: Config.internal()
+		.number()
+		.value(null),
 
 	/**
 	 * Mouse position when the resize is started.
@@ -438,7 +592,9 @@ FragmentEntryLinkListRow.STATE = {
 	 * @private
 	 * @type {number}
 	 */
-	_resizeInitialPosition: Config.internal().number().value(0),
+	_resizeInitialPosition: Config.internal()
+		.number()
+		.value(0),
 
 	/**
 	 * Copy of row columns for resizing.
@@ -447,7 +603,9 @@ FragmentEntryLinkListRow.STATE = {
 	 * @memberOf FragmentEntryLinkListRow
 	 * @type {Array}
 	 */
-	_resizeRowColumns: Config.internal().array().value(null),
+	_resizeRowColumns: Config.internal()
+		.array()
+		.value(null),
 
 	/**
 	 * If <code>true</code>, the user is resizing a column.
@@ -457,7 +615,9 @@ FragmentEntryLinkListRow.STATE = {
 
 	 * @type {boolean}
 	 */
-	_resizing: Config.internal().bool().value(false),
+	_resizing: Config.internal()
+		.bool()
+		.value(false),
 
 	/**
 	 * Row.
@@ -466,8 +626,7 @@ FragmentEntryLinkListRow.STATE = {
 	 * @memberof FragmentEntryLinkListRow
 	 * @type {object}
 	 */
-	row: Config.object()
-		.required(),
+	row: Config.object().required(),
 
 	/**
 	 * Row ID.
@@ -476,8 +635,7 @@ FragmentEntryLinkListRow.STATE = {
 	 * @memberof FragmentEntryLinkListRow
 	 * @type {string}
 	 */
-	rowId: Config.string()
-		.required()
+	rowId: Config.string().required()
 };
 
 const ConnectedFragmentEntryLinkListRow = getConnectedComponent(
@@ -488,9 +646,11 @@ const ConnectedFragmentEntryLinkListRow = getConnectedComponent(
 		'dropTargetBorder',
 		'dropTargetItemId',
 		'dropTargetItemType',
+		'getAssetFieldValueURL',
 		'hoveredItemId',
 		'hoveredItemType',
 		'layoutData',
+		'mappingFieldsURL',
 		'selectedMappingTypes',
 		'spritemap'
 	]

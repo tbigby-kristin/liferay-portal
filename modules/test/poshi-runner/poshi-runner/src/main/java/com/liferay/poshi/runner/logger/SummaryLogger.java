@@ -626,12 +626,11 @@ public final class SummaryLogger {
 
 			String majorStepClassName = majorStepLoggerElement.getClassName();
 
-			if (lastMajorStep) {
-				if (majorStepClassName.contains("summary-failure") ||
-					majorStepClassName.contains("summary-warning")) {
+			if (lastMajorStep &&
+				(majorStepClassName.contains("summary-failure") ||
+				 majorStepClassName.contains("summary-warning"))) {
 
-					togglerClassNameSuffix = "expanded";
-				}
+				togglerClassNameSuffix = "expanded";
 			}
 
 			LoggerElement buttonLoggerElement =

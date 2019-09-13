@@ -14,6 +14,7 @@
 
 package com.liferay.message.boards.web.internal.exportimport.portlet.preferences.processor;
 
+import com.liferay.exportimport.kernel.lar.ExportImportHelper;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
@@ -33,6 +34,7 @@ import com.liferay.message.boards.service.MBCategoryLocalService;
 import com.liferay.message.boards.service.MBThreadFlagLocalService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.xml.Element;
 
 import java.util.List;
@@ -55,12 +57,14 @@ public class MBExportImportPortletPreferencesProcessor
 
 	@Override
 	public List<Capability> getExportCapabilities() {
-		return null;
+		return ListUtil.toList(
+			new Capability[] {_mbRatingsExporterImporterCapability});
 	}
 
 	@Override
 	public List<Capability> getImportCapabilities() {
-		return null;
+		return ListUtil.toList(
+			new Capability[] {_mbRatingsExporterImporterCapability});
 	}
 
 	@Override
@@ -68,6 +72,10 @@ public class MBExportImportPortletPreferencesProcessor
 			PortletDataContext portletDataContext,
 			PortletPreferences portletPreferences)
 		throws PortletDataException {
+
+		if (!_exportImportHelper.isExportPortletData(portletDataContext)) {
+			return portletPreferences;
+		}
 
 		try {
 			portletDataContext.addPortletPermissions(MBConstants.RESOURCE_NAME);
@@ -255,6 +263,9 @@ public class MBExportImportPortletPreferencesProcessor
 		_mbThreadFlagLocalService = mbThreadFlagLocalService;
 	}
 
+	@Reference
+	private ExportImportHelper _exportImportHelper;
+
 	private MBBanLocalService _mbBanLocalService;
 	private MBCategoryLocalService _mbCategoryLocalService;
 
@@ -262,6 +273,10 @@ public class MBExportImportPortletPreferencesProcessor
 		target = "(javax.portlet.name=" + MBPortletKeys.MESSAGE_BOARDS + ")"
 	)
 	private PortletDataHandler _mbPortletDataHandler;
+
+	@Reference
+	private MBRatingsExporterImporterCapability
+		_mbRatingsExporterImporterCapability;
 
 	private MBThreadFlagLocalService _mbThreadFlagLocalService;
 

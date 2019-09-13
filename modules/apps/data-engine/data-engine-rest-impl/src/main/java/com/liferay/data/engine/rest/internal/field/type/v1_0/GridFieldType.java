@@ -14,14 +14,16 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.field.type.FieldTypeTracker;
 import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
 import com.liferay.data.engine.rest.internal.field.type.v1_0.util.DataFieldOptionUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.util.Map;
 
@@ -41,7 +43,7 @@ import org.osgi.service.component.annotations.Component;
 		"data.engine.field.type.display.order:Integer=7",
 		"data.engine.field.type.group=basic",
 		"data.engine.field.type.icon=table2",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/Grid/Grid.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Grid/Grid.es",
 		"data.engine.field.type.label=grid-field-type-label"
 	},
 	service = FieldType.class
@@ -49,23 +51,28 @@ import org.osgi.service.component.annotations.Component;
 public class GridFieldType extends BaseFieldType {
 
 	@Override
-	public SPIDataDefinitionField deserialize(JSONObject jsonObject)
+	public SPIDataDefinitionField deserialize(
+			FieldTypeTracker fieldTypeTracker, JSONObject jsonObject)
 		throws Exception {
 
 		SPIDataDefinitionField spiDataDefinitionField = super.deserialize(
-			jsonObject);
+			fieldTypeTracker, jsonObject);
 
 		Map<String, Object> customProperties =
 			spiDataDefinitionField.getCustomProperties();
 
 		customProperties.put(
 			"columns",
-			DataFieldOptionUtil.toDataFieldOptions(
-				jsonObject.getJSONObject("columns")));
+			DataFieldOptionUtil.toLocalizedDataFieldOptions(
+				(JSONObject)GetterUtil.getObject(
+					jsonObject.getJSONObject("columns"),
+					JSONFactoryUtil.createJSONObject())));
 		customProperties.put(
 			"rows",
-			DataFieldOptionUtil.toDataFieldOptions(
-				jsonObject.getJSONObject("rows")));
+			DataFieldOptionUtil.toLocalizedDataFieldOptions(
+				(JSONObject)GetterUtil.getObject(
+					jsonObject.getJSONObject("rows"),
+					JSONFactoryUtil.createJSONObject())));
 
 		return spiDataDefinitionField;
 	}
@@ -77,21 +84,21 @@ public class GridFieldType extends BaseFieldType {
 
 	@Override
 	public JSONObject toJSONObject(
+			FieldTypeTracker fieldTypeTracker,
 			SPIDataDefinitionField spiDataDefinitionField)
 		throws Exception {
 
-		JSONObject jsonObject = super.toJSONObject(spiDataDefinitionField);
+		JSONObject jsonObject = super.toJSONObject(
+			fieldTypeTracker, spiDataDefinitionField);
 
 		return jsonObject.put(
 			"columns",
 			DataFieldOptionUtil.toJSONObject(
-				CustomPropertiesUtil.getDataFieldOptions(
-					spiDataDefinitionField.getCustomProperties(), "columns"))
+				spiDataDefinitionField.getCustomProperties(), "columns")
 		).put(
 			"rows",
 			DataFieldOptionUtil.toJSONObject(
-				CustomPropertiesUtil.getDataFieldOptions(
-					spiDataDefinitionField.getCustomProperties(), "rows"))
+				spiDataDefinitionField.getCustomProperties(), "rows")
 		);
 	}
 
@@ -103,15 +110,13 @@ public class GridFieldType extends BaseFieldType {
 
 		context.put(
 			"columns",
-			DataFieldOptionUtil.toDataFieldOptions(
-				CustomPropertiesUtil.getDataFieldOptions(
-					spiDataDefinitionField.getCustomProperties(), "columns"),
+			DataFieldOptionUtil.getLocalizedDataFieldOptions(
+				spiDataDefinitionField.getCustomProperties(), "columns",
 				LanguageUtil.getLanguageId(httpServletRequest)));
 		context.put(
 			"rows",
-			DataFieldOptionUtil.toDataFieldOptions(
-				CustomPropertiesUtil.getDataFieldOptions(
-					spiDataDefinitionField.getCustomProperties(), "rows"),
+			DataFieldOptionUtil.getLocalizedDataFieldOptions(
+				spiDataDefinitionField.getCustomProperties(), "rows",
 				LanguageUtil.getLanguageId(httpServletRequest)));
 		context.put(
 			"value",

@@ -16,8 +16,10 @@
 		<sequential>
 			<property name="db.upgrade.client.home" value="${liferay.home}/tools/portal-tools-db-upgrade-client" />
 
+			<property name="db.upgrade.client.dist.dir" value="${project.dir}/tools/sdk/dist" />
 			<property name="db.upgrade.client.jar" value="${db.upgrade.client.home}/com.liferay.portal.tools.db.upgrade.client.jar" />
-			<property name="db.upgrade.client.log" value="${db.upgrade.client.home}/upgrade.log" />
+			<property name="db.upgrade.client.log" value="${db.upgrade.client.home}/logs/upgrade.log" />
+			<property name="db.upgrade.client.src.dir" value="${project.dir}/modules/util/portal-tools-db-upgrade-client" />
 		</sequential>
 	</macrodef>
 
@@ -62,7 +64,7 @@
 		</execute>
 		<if>
 			<not>
-				<available file="${db.upgrade.client.home}/log_file.txt" />
+				<available file="${db.upgrade.client.home}/logs/log_file.txt" />
 			</not>
 			<then>
 				<fail message="The upgrade client custom log file was not created successfully." />
@@ -73,7 +75,7 @@
 
 		<loadfile
 			property="custom.log.file.output"
-			srcfile="${db.upgrade.client.home}/log_file.txt"
+			srcfile="${db.upgrade.client.home}/logs/log_file.txt"
 		/>
 
 		<if>
@@ -87,7 +89,7 @@
 
 		<echo message="The upgrade client custom log file was created successfully." />
 
-		<delete file="${db.upgrade.client.home}/log_file.txt" />
+		<delete file="${db.upgrade.client.home}/logs/log_file.txt" />
 
 		<clean-database-upgrade-client />
 	</target>
@@ -204,6 +206,48 @@
 				<echo message="${java.error.available}: Unsupported major.minor version" />
 			</sequential>
 		</parallel>
+
+		<clean-database-upgrade-client />
+	</target>
+
+	<target name="check-upgrade-client-zip-content">
+		<get-database-upgrade-client-paths />
+
+		<delete dir="${db.upgrade.client.home}/" />
+
+		<sequential>
+			<gradle-execute dir="${db.upgrade.client.src.dir}" task="distZip" />
+
+			<unzip
+				dest="${db.upgrade.client.home}"
+			>
+				<fileset
+					dir="${db.upgrade.client.dist.dir}"
+					includes="**/portal-tools-db-upgrade-client*.zip"
+				/>
+			</unzip>
+
+			<delete>
+				<fileset
+					dir="${db.upgrade.client.dist.dir}"
+					includes="**/portal-tools-db-upgrade-client*.zip"
+				/>
+			</delete>
+
+			<for list="app-server.properties,com.liferay.portal.tools.db.upgrade.client.jar,db_upgrade.bat,db_upgrade.sh,portal-upgrade-database.properties,portal-upgrade-ext.properties" param="upgrade.file">
+				<sequential>
+					<if>
+						<available file="${db.upgrade.client.home}/@{upgrade.file}" />
+						<then>
+							<echo message="@{upgrade.file} is present." />
+						</then>
+						<else>
+							<fail message="@{upgrade.file} is not present." />
+						</else>
+					</if>
+				</sequential>
+			</for>
+		</sequential>
 
 		<clean-database-upgrade-client />
 	</target>

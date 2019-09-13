@@ -59,12 +59,31 @@ public class JavaPackagePathCheck extends BaseJavaTermCheck {
 			return javaTerm.getContent();
 		}
 
+		List<String> implementedClassNames =
+			javaClass.getImplementedClassNames();
+
 		_checkPackageName(
 			fileName, absolutePath, packageName, javaClass.getName(),
-			javaClass.getImplementedClassNames());
+			implementedClassNames);
 
 		if (isModulesFile(absolutePath) && !isModulesApp(absolutePath, true)) {
 			_checkModulePackageName(fileName, packageName);
+		}
+
+		List<String> expectedInternalImplementsDataEntries = getAttributeValues(
+			_EXPECTED_INTERNAL_IMPLEMENTS_DATA_KEY, absolutePath);
+
+		for (String expectedInternalImplementsDataEntry :
+				expectedInternalImplementsDataEntries) {
+
+			String[] array = StringUtil.split(
+				expectedInternalImplementsDataEntry, CharPool.COLON);
+
+			if (array.length == 2) {
+				_checkPackageName(
+					fileName, implementedClassNames, array[0], packageName,
+					array[1], true);
+			}
 		}
 
 		return javaTerm.getContent();
@@ -111,6 +130,70 @@ public class JavaPackagePathCheck extends BaseJavaTermCheck {
 				"Package should follow Bundle-SymbolicName specified in " +
 					bndSettings.getFileName(),
 				"package.markdown");
+		}
+	}
+
+	private void _checkPackageName(
+			String fileName, List<String> implementedClassNames,
+			String implementedClassName, String packageName,
+			String expectedPackageName, boolean internal)
+		throws IOException {
+
+		if (!implementedClassNames.contains(implementedClassName)) {
+			return;
+		}
+
+		if (internal && !packageName.contains(".internal.") &&
+			!packageName.endsWith(".internal")) {
+
+			addMessage(
+				fileName,
+				StringBundler.concat(
+					"Class implementing '", implementedClassName,
+					"' should be in 'internal' package"));
+		}
+
+		if (packageName.endsWith(expectedPackageName)) {
+			return;
+		}
+
+		BNDSettings bndSettings = getBNDSettings(fileName);
+
+		if (bndSettings == null) {
+			return;
+		}
+
+		String bundleSymbolicName = BNDSourceUtil.getDefinitionValue(
+			bndSettings.getContent(), "Bundle-SymbolicName");
+
+		if (bundleSymbolicName.endsWith(expectedPackageName)) {
+			return;
+		}
+
+		int x = -1;
+
+		while (true) {
+			x = expectedPackageName.indexOf(".", x + 1);
+
+			if (x == -1) {
+				break;
+			}
+
+			if (bundleSymbolicName.endsWith(
+					expectedPackageName.substring(0, x))) {
+
+				expectedPackageName = expectedPackageName.substring(x + 1);
+
+				break;
+			}
+		}
+
+		if (!packageName.endsWith(expectedPackageName)) {
+			addMessage(
+				fileName,
+				StringBundler.concat(
+					"Package for class implementing '", implementedClassName,
+					"' should end with '", expectedPackageName, "'"));
 		}
 	}
 
@@ -162,6 +245,13 @@ public class JavaPackagePathCheck extends BaseJavaTermCheck {
 					"Do not use '" + matcher.group(1) +
 						"' package in API module",
 					"package.markdown");
+			}
+
+			if (packageName.contains(".api.") || packageName.endsWith(".api")) {
+				addMessage(
+					fileName,
+					"Do not use 'api' in the package for classes in the API " +
+						"module");
 			}
 		}
 
@@ -227,6 +317,9 @@ public class JavaPackagePathCheck extends BaseJavaTermCheck {
 
 	private static final String _ALLOWED_INTERNAL_PACKAGE_DIR_NAMES_KEY =
 		"allowedInternalPackageDirNames";
+
+	private static final String _EXPECTED_INTERNAL_IMPLEMENTS_DATA_KEY =
+		"expectedInternalImplementsData";
 
 	private static final Pattern _internalPackagePattern = Pattern.compile(
 		"\\.(impl|internal)(\\.|\\Z)");

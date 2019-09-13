@@ -76,7 +76,7 @@ import org.osgi.service.component.annotations.ServiceScope;
  */
 @Component(
 	property = {
-		"osgi.jaxrs.application.select=(osgi.jaxrs.name=Liferay.Change.Tracking.REST)",
+		"osgi.jaxrs.application.select=(osgi.jaxrs.name=Liferay.Change.Tracking.Legacy.REST)",
 		"osgi.jaxrs.resource=true"
 	},
 	scope = ServiceScope.PROTOTYPE, service = CTProcessResource.class
@@ -129,10 +129,11 @@ public class CTProcessResource {
 
 		CTJaxRsUtil.checkCompany(companyId);
 
-		Stream<CTProcess> stream = _getCTProcesses(
+		List<CTProcess> ctProcesses = _getCTProcesses(
 			companyId, CTConstants.USER_FILTER_ALL, keywords, type, offset,
-			limit, null
-		).stream();
+			limit, null);
+
+		Stream<CTProcess> stream = ctProcesses.stream();
 
 		return stream.map(
 			CTProcess::getUserId

@@ -19,6 +19,7 @@ import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.asset.kernel.exception.DuplicateQueryRuleException;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
+import com.liferay.asset.list.asset.entry.provider.AssetListAssetEntryProvider;
 import com.liferay.asset.publisher.constants.AssetPublisherPortletKeys;
 import com.liferay.asset.publisher.constants.AssetPublisherWebKeys;
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
@@ -33,7 +34,7 @@ import com.liferay.asset.publisher.web.internal.util.AssetQueryRule;
 import com.liferay.asset.util.AssetHelper;
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.exportimport.kernel.staging.Staging;
-import com.liferay.info.provider.InfoListProviderTracker;
+import com.liferay.info.list.provider.InfoListProviderTracker;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
@@ -141,7 +142,8 @@ public class AssetPublisherConfigurationAction
 
 		AssetPublisherDisplayContext assetPublisherDisplayContext =
 			new AssetPublisherDisplayContext(
-				assetEntryActionRegistry, assetHelper, assetPublisherCustomizer,
+				assetEntryActionRegistry, assetHelper,
+				assetListAssetEntryProvider, assetPublisherCustomizer,
 				assetPublisherHelper, assetPublisherWebConfiguration,
 				assetPublisherWebUtil, infoListProviderTracker, renderRequest,
 				renderResponse, renderRequest.getPreferences());
@@ -210,13 +212,10 @@ public class AssetPublisherConfigurationAction
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
 			try {
-				HttpServletRequest httpServletRequest =
-					portal.getHttpServletRequest(actionRequest);
-
 				AssetPublisherPortletInstanceConfiguration
 					assetPublisherPortletInstanceConfiguration =
 						_getAssetPublisherPortletInstanceConfiguration(
-							httpServletRequest);
+							portal.getHttpServletRequest(actionRequest));
 
 				boolean emailAssetEntryAddedEnabled = GetterUtil.getBoolean(
 					getParameter(actionRequest, "emailAssetEntryAddedEnabled"),
@@ -377,11 +376,10 @@ public class AssetPublisherConfigurationAction
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		Layout layout = themeDisplay.getLayout();
-
 		if (!assetPublisherWebUtil.isScopeIdSelectable(
 				themeDisplay.getPermissionChecker(), scopeId,
-				themeDisplay.getCompanyGroupId(), layout, true)) {
+				themeDisplay.getCompanyGroupId(), themeDisplay.getLayout(),
+				true)) {
 
 			throw new PrincipalException();
 		}
@@ -408,11 +406,9 @@ public class AssetPublisherConfigurationAction
 			return null;
 		}
 
-		String className = portal.getClassName(defaultAssetTypeId);
-
 		AssetRendererFactory<?> assetRendererFactory =
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
-				className);
+				portal.getClassName(defaultAssetTypeId));
 
 		return assetPublisherWebUtil.getClassName(assetRendererFactory);
 	}
@@ -677,10 +673,9 @@ public class AssetPublisherConfigurationAction
 			LayoutSetBranch layoutSetBranch =
 				LayoutStagingUtil.getLayoutSetBranch(layout.getLayoutSet());
 
-			long layoutSetBranchId = layoutSetBranch.getLayoutSetBranchId();
-
 			long layoutRevisionId = staging.getRecentLayoutRevisionId(
-				httpServletRequest, layoutSetBranchId, layout.getPlid());
+				httpServletRequest, layoutSetBranch.getLayoutSetBranchId(),
+				layout.getPlid());
 
 			LayoutRevision layoutRevision =
 				layoutRevisionLocalService.getLayoutRevision(layoutRevisionId);
@@ -808,6 +803,9 @@ public class AssetPublisherConfigurationAction
 
 	@Reference
 	protected AssetHelper assetHelper;
+
+	@Reference
+	protected AssetListAssetEntryProvider assetListAssetEntryProvider;
 
 	@Reference
 	protected AssetPublisherCustomizerRegistry assetPublisherCustomizerRegistry;

@@ -1,0 +1,99 @@
+definition {
+
+	macro addCollection {
+		FragmentsAdminNavigator.gotoAddCollection();
+
+		Collection.editCollection(
+			collectionDescription = "${collectionDescription}",
+			collectionName = "${collectionName}");
+
+		Button.clickSave();
+	}
+
+	macro addResource {
+		LexiconEntry.gotoAdd();
+
+		IFrame.selectConfigurationFrame();
+
+		UploadCommonFile.uploadCommonFileHiddenNoMouseOver(
+			locator1 = "TextInput#FILE",
+			value1 = "${resourceFile}");
+
+		IFrame.selectTopFrame();
+
+		AssertClick(
+			locator1 = "Button#OK",
+			value1 = "OK");
+	}
+
+	macro addSection {
+		LexiconEntry.gotoAddMenuItem(menuItem = "Section");
+
+		AssertTextEquals(
+			locator1 = "Modal#HEADER",
+			value1 = "Add Section");
+
+		PortletEntry.inputName(name = "${fragmentName}");
+
+		Button.clickSave();
+	}
+
+	macro deleteEntry {
+		LexiconCard.delete(card = "${entry}");
+	}
+
+	macro exportCollection {
+		Navigator.gotoNavNested(navNested = "${collectionName}");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Export");
+	}
+
+	macro importCollectionFromDependenciesFolder {
+		FragmentsAdminNavigator.gotoImportCollection();
+
+		UploadCommonFile(
+			locator1 = "TextInput#FILE",
+			value1 = "${collectionZipFile}");
+
+		Button.click(button = "Import");
+
+		Alert.viewSuccessMessage();
+
+		IFrame.closeFrame();
+	}
+
+	macro importCollectionFromTempFolder {
+		FragmentsAdminNavigator.gotoImportCollection();
+
+		var collectionsZipFileName = TestCase.getDownloadedTempFileName(fileNamePattern = "collections-*.zip");
+
+		UploadTempFile(
+			locator1 = "TextInput#FILE",
+			value1 = "${collectionsZipFileName}");
+
+		Button.click(button = "Import");
+
+		Alert.viewSuccessMessage();
+
+		IFrame.closeFrame();
+	}
+
+	macro openFragmentsAdmin {
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage/-/fragments");
+	}
+
+	macro viewEntryNotPresent {
+		LexiconCard.viewCardNotPresent(card = "${entry}");
+	}
+
+	macro viewEntryPresent {
+		LexiconCard.viewCardPresent(card = "${entry}");
+	}
+
+	macro viewEntryWorkflowStatus {
+		LexiconCard.viewCardLabel(
+			card = "${entry}",
+			cardLabel = "${workflowStatus}");
+	}
+
+}

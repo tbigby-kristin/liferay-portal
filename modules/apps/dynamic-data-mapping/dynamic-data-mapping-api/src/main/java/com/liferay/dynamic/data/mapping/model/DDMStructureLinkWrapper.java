@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMStructureLink}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMStructureLink
  * @generated
  */
-@ProviderType
 public class DDMStructureLinkWrapper
 	extends BaseModelWrapper<DDMStructureLink>
 	implements DDMStructureLink, ModelWrapper<DDMStructureLink> {
@@ -44,6 +41,7 @@ public class DDMStructureLinkWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("structureLinkId", getStructureLinkId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("classNameId", getClassNameId());
@@ -55,6 +53,12 @@ public class DDMStructureLinkWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long structureLinkId = (Long)attributes.get("structureLinkId");
 
 		if (structureLinkId != null) {
@@ -127,6 +131,16 @@ public class DDMStructureLinkWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this ddm structure link.
+	 *
+	 * @return the mvcc version of this ddm structure link
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this ddm structure link.
 	 *
 	 * @return the primary key of this ddm structure link
@@ -163,6 +177,11 @@ public class DDMStructureLinkWrapper
 		return model.getStructureLinkId();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm structure link model instance should use the <code>DDMStructureLink</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -201,6 +220,16 @@ public class DDMStructureLinkWrapper
 	@Override
 	public void setCompanyId(long companyId) {
 		model.setCompanyId(companyId);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm structure link.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm structure link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

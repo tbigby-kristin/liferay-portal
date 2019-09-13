@@ -68,10 +68,6 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 			PropsKeys.ADMIN_EMAIL_PASSWORD_RESET_SUBJECT);
 		_adminEmailPasswordResetBody = PropsUtil.get(
 			PropsKeys.ADMIN_EMAIL_PASSWORD_RESET_BODY);
-		_adminEmailPasswordSentSubject = PropsUtil.get(
-			PropsKeys.ADMIN_EMAIL_PASSWORD_SENT_SUBJECT);
-		_adminEmailPasswordSentBody = PropsUtil.get(
-			PropsKeys.ADMIN_EMAIL_PASSWORD_SENT_BODY);
 
 		PropsUtil.set(
 			PropsKeys.ADMIN_EMAIL_PASSWORD_RESET_SUBJECT,
@@ -81,14 +77,6 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 			PropsKeys.ADMIN_EMAIL_PASSWORD_RESET_BODY,
 			"com/liferay/user/service/test/dependencies" +
 				"/email_password_reset_body.tmpl");
-		PropsUtil.set(
-			PropsKeys.ADMIN_EMAIL_PASSWORD_SENT_SUBJECT,
-			"com/liferay/user/service/test/dependencies" +
-				"/email_password_sent_subject.tmpl");
-		PropsUtil.set(
-			PropsKeys.ADMIN_EMAIL_PASSWORD_SENT_BODY,
-			"com/liferay/user/service/test/dependencies" +
-				"/email_password_sent_body.tmpl");
 
 		_localization = LocalizationUtil.getLocalization();
 
@@ -120,12 +108,6 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 		PropsUtil.set(
 			PropsKeys.ADMIN_EMAIL_PASSWORD_RESET_BODY,
 			_adminEmailPasswordResetBody);
-		PropsUtil.set(
-			PropsKeys.ADMIN_EMAIL_PASSWORD_SENT_SUBJECT,
-			_adminEmailPasswordSentSubject);
-		PropsUtil.set(
-			PropsKeys.ADMIN_EMAIL_PASSWORD_SENT_BODY,
-			_adminEmailPasswordSentBody);
 
 		_localizationUtil.setLocalization(_localization);
 	}
@@ -144,80 +126,6 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 	@After
 	public void tearDown() {
 		ServiceContextThreadLocal.popServiceContext();
-	}
-
-	@Test
-	public void testShouldSendNewPasswordEmailByEmailAddress()
-		throws Exception {
-
-		PortletPreferences portletPreferences =
-			givenThatCompanySendsNewPassword();
-
-		try {
-			int initialInboxSize = MailServiceTestUtil.getInboxSize();
-
-			boolean sentPassword = _userService.sendPasswordByEmailAddress(
-				_user.getCompanyId(), _user.getEmailAddress());
-
-			Assert.assertTrue(sentPassword);
-
-			Assert.assertEquals(
-				initialInboxSize + 1, MailServiceTestUtil.getInboxSize());
-			Assert.assertTrue(
-				MailServiceTestUtil.lastMailMessageContains(
-					"email_password_sent_body.tmpl"));
-		}
-		finally {
-			restorePortletPreferences(portletPreferences);
-		}
-	}
-
-	@Test
-	public void testShouldSendNewPasswordEmailByScreenName() throws Exception {
-		PortletPreferences portletPreferences =
-			givenThatCompanySendsNewPassword();
-
-		try {
-			int initialInboxSize = MailServiceTestUtil.getInboxSize();
-
-			boolean sentPassword = _userService.sendPasswordByScreenName(
-				_user.getCompanyId(), _user.getScreenName());
-
-			Assert.assertTrue(sentPassword);
-
-			Assert.assertEquals(
-				initialInboxSize + 1, MailServiceTestUtil.getInboxSize());
-			Assert.assertTrue(
-				MailServiceTestUtil.lastMailMessageContains(
-					"email_password_sent_body.tmpl"));
-		}
-		finally {
-			restorePortletPreferences(portletPreferences);
-		}
-	}
-
-	@Test
-	public void testShouldSendNewPasswordEmailByUserId() throws Exception {
-		PortletPreferences portletPreferences =
-			givenThatCompanySendsNewPassword();
-
-		try {
-			int initialInboxSize = MailServiceTestUtil.getInboxSize();
-
-			boolean sentPassword = _userService.sendPasswordByUserId(
-				_user.getUserId());
-
-			Assert.assertTrue(sentPassword);
-
-			Assert.assertEquals(
-				initialInboxSize + 1, MailServiceTestUtil.getInboxSize());
-			Assert.assertTrue(
-				MailServiceTestUtil.lastMailMessageContains(
-					"email_password_sent_body.tmpl"));
-		}
-		finally {
-			restorePortletPreferences(portletPreferences);
-		}
 	}
 
 	@Test
@@ -292,32 +200,12 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 		}
 	}
 
-	protected PortletPreferences givenThatCompanySendsNewPassword()
-		throws Exception {
-
-		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences(
-			_user.getCompanyId(), false);
-
-		portletPreferences.setValue(
-			PropsKeys.COMPANY_SECURITY_SEND_PASSWORD, Boolean.TRUE.toString());
-
-		portletPreferences.setValue(
-			PropsKeys.COMPANY_SECURITY_SEND_PASSWORD_RESET_LINK,
-			Boolean.FALSE.toString());
-
-		portletPreferences.store();
-
-		return portletPreferences;
-	}
-
 	protected PortletPreferences givenThatCompanySendsResetPasswordLink()
 		throws Exception {
 
 		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences(
 			_user.getCompanyId(), false);
 
-		portletPreferences.setValue(
-			PropsKeys.COMPANY_SECURITY_SEND_PASSWORD, Boolean.FALSE.toString());
 		portletPreferences.setValue(
 			PropsKeys.COMPANY_SECURITY_SEND_PASSWORD_RESET_LINK,
 			Boolean.TRUE.toString());
@@ -331,7 +219,6 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletPreferences.reset(PropsKeys.COMPANY_SECURITY_SEND_PASSWORD);
 		portletPreferences.reset(
 			PropsKeys.COMPANY_SECURITY_SEND_PASSWORD_RESET_LINK);
 
@@ -340,8 +227,6 @@ public class UserServiceWhenPortalSendsPasswordEmailTest {
 
 	private static String _adminEmailPasswordResetBody;
 	private static String _adminEmailPasswordResetSubject;
-	private static String _adminEmailPasswordSentBody;
-	private static String _adminEmailPasswordSentSubject;
 	private static Localization _localization;
 
 	@Inject

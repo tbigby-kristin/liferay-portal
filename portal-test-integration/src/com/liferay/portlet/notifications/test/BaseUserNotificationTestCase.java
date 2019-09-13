@@ -41,7 +41,9 @@ import org.junit.Test;
 /**
  * @author Roberto Díaz
  * @author Sergio González
+ * @deprecated As of Mueller (7.2.x), with no direct replacement
  */
+@Deprecated
 public abstract class BaseUserNotificationTestCase {
 
 	@Before

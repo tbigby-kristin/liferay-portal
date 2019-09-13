@@ -20,20 +20,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.journal.service.http.JournalFolderServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class JournalFolderSoap implements Serializable {
 
 	public static JournalFolderSoap toSoapModel(JournalFolder model) {
 		JournalFolderSoap soapModel = new JournalFolderSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setFolderId(model.getFolderId());
 		soapModel.setGroupId(model.getGroupId());
@@ -103,6 +101,14 @@ public class JournalFolderSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setFolderId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -249,6 +255,7 @@ public class JournalFolderSoap implements Serializable {
 		_statusDate = statusDate;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _folderId;
 	private long _groupId;

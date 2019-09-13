@@ -35,7 +35,7 @@ import java.util.List;
 public class JavaMultiPlusConcatCheck extends BaseJavaTermCheck {
 
 	@Override
-	public boolean isPortalCheck() {
+	public boolean isLiferaySourceCheck() {
 		return true;
 	}
 
@@ -46,9 +46,7 @@ public class JavaMultiPlusConcatCheck extends BaseJavaTermCheck {
 		throws IOException {
 
 		if (isExcludedPath(RUN_OUTSIDE_PORTAL_EXCLUDES, absolutePath) ||
-			isModulesApp(absolutePath, true) ||
-			absolutePath.contains("/test/") ||
-			absolutePath.contains("/testIntegration/")) {
+			isModulesApp(absolutePath, true)) {
 
 			return javaTerm.getContent();
 		}

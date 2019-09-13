@@ -19,7 +19,9 @@
 		hovered: bool,
 		key: string,
 		label: string,
-		removable: bool
+		parentId: string,
+		removable: bool,
+		selected: bool
 	]}
 	{@param? spritemap: string}
 
@@ -30,7 +32,13 @@
 		data-hovered-item-id="{$hoveredItemId}"
 		data-layout-data="{$layoutData}"
 	>
-		<nav>
+		{call com.liferay.layout.content.page.editor.web.FragmentsEditorSidebarContent.sidebarHeader}
+			{param content kind="html"}
+				{msg desc=""}page-structure{/msg}
+			{/param}
+		{/call}
+
+		<nav class="pb-3 pr-3">
 			<div class="collapse show">
 				{if $spritemap and $structure}
 					{call .treeNode}
@@ -60,7 +68,9 @@
 		hovered: bool,
 		key: string,
 		label: string,
-		removable: bool
+		parentId: string,
+		removable: bool,
+		selected: bool
 	]}
 	{@param spritemap: string}
 
@@ -73,7 +83,7 @@
 				{sp}my-1
 				{sp}p-1
 
-				{if $node.active}
+				{if $node.active or $node.selected}
 					{sp}active
 				{/if}
 
@@ -155,7 +165,8 @@
 		elementType: string,
 		expanded: bool,
 		key: string,
-		label: string
+		label: string,
+		parentId: string
 	]}
 	{@param? handleElementClick: any}
 	{@param? spritemap: string}
@@ -181,6 +192,10 @@
 			data-element-type="{$node.elementType}"
 			data-fragments-editor-item-id="{$node.elementId}"
 			data-fragments-editor-item-type="{$node.elementType}"
+		{/if}
+
+		{if $node.parentId}
+			data-fragment-entry-link-id="{$node.parentId}"
 		{/if}
 
 		{if $node.children and length($node.children) > 0}

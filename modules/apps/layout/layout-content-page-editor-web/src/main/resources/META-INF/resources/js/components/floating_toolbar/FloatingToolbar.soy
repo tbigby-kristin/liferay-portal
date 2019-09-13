@@ -8,6 +8,7 @@
 	{@param itemId: string}
 	{@param itemType: string}
 	{@param buttons: list<[
+	cssClass: string,
 		icon: string,
 		id: string,
 		panelId: string,
@@ -21,12 +22,7 @@
 	{@param? spritemap: string}
 	{@param? store: ?}
 
-	<div
-		class="fragments-editor__floating-toolbar {$classes ?: ''}"
-		data-fragments-editor-item-id="{$itemId}"
-		data-fragments-editor-item-type="{$itemType}"
-		tabindex="-1"
-	>
+	<div class="fragments-editor__floating-toolbar {$classes ?: ''}">
 		{if $spritemap and $buttons and (length($buttons) > 0)}
 			{if (not $selectedPanelId) or (not $fixSelectedPanel)}
 				<div class="fragments-editor__floating-toolbar-buttons" ref="buttons">
@@ -44,20 +40,22 @@
 					</div>
 				</div>
 			{/if}
+		{/if}
 
-			{if $selectedPanelId}
-				<div class="fragments-editor__floating-toolbar-panel" ref="panel">
-					<div class="popover">
-						{delcall com.liferay.layout.content.page.editor.web.FloatingToolbarPanel variant="$selectedPanelId"}
-							{param item: $item /}
-							{param itemId: $itemId /}
-							{param portalElement: null /}
-							{param selectedPanelId: $selectedPanelId /}
-							{param store: $store /}
-						{/delcall}
-					</div>
+		{if $selectedPanelId}
+			<div class="fragments-editor__floating-toolbar-panel" ref="panel">
+				<div class="dropdown-menu position-relative p-0 show">
+					{delcall com.liferay.layout.content.page.editor.web.FloatingToolbarPanel variant="$selectedPanelId"}
+						{param item: $item /}
+						{param itemId: $itemId /}
+						{param itemType: $itemType /}
+						{param portalElement: null /}
+						{param ref: 'selectedPanel' /}
+						{param selectedPanelId: $selectedPanelId /}
+						{param store: $store /}
+					{/delcall}
 				</div>
-			{/if}
+			</div>
 		{/if}
 	</div>
 {/template}
@@ -67,6 +65,7 @@
  */
 {template .button}
 	{@param button: [
+	cssClass: string,
 		icon: string,
 		id: string,
 		panelId: string,
@@ -87,6 +86,10 @@
 
 		{if $button.type == 'panel' and $button.panelId == $selectedPanelId}
 			{sp}active
+		{/if}
+
+		{if $button.cssClass}
+			{sp}{$button.cssClass}
 		{/if}
 	{/let}
 
@@ -110,6 +113,7 @@
 {deltemplate com.liferay.layout.content.page.editor.web.FloatingToolbarPanel}
 	{@param item: ?}
 	{@param itemId: string}
+	{@param itemType: string}
 	{@param? store: ?}
 
 	<div id="{$itemId}"></div>

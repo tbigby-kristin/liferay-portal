@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the JournalContentSearch service. Represents a row in the &quot;JournalContentSearch&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,12 +52,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalContentSearchImpl
  * @generated
  */
-@ProviderType
 public class JournalContentSearchModelImpl
 	extends BaseModelImpl<JournalContentSearch>
 	implements JournalContentSearchModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a journal content search model instance should use the <code>JournalContentSearch</code> interface instead.
@@ -67,16 +64,17 @@ public class JournalContentSearchModelImpl
 	public static final String TABLE_NAME = "JournalContentSearch";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"contentSearchId", Types.BIGINT}, {"groupId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"privateLayout", Types.BOOLEAN},
-		{"layoutId", Types.BIGINT}, {"portletId", Types.VARCHAR},
-		{"articleId", Types.VARCHAR}
+		{"mvccVersion", Types.BIGINT}, {"contentSearchId", Types.BIGINT},
+		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"privateLayout", Types.BOOLEAN}, {"layoutId", Types.BIGINT},
+		{"portletId", Types.VARCHAR}, {"articleId", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("contentSearchId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -87,7 +85,7 @@ public class JournalContentSearchModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table JournalContentSearch (contentSearchId LONG not null primary key,groupId LONG,companyId LONG,privateLayout BOOLEAN,layoutId LONG,portletId VARCHAR(200) null,articleId VARCHAR(75) null)";
+		"create table JournalContentSearch (mvccVersion LONG default 0 not null,contentSearchId LONG not null primary key,groupId LONG,companyId LONG,privateLayout BOOLEAN,layoutId LONG,portletId VARCHAR(200) null,articleId VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table JournalContentSearch";
@@ -256,6 +254,12 @@ public class JournalContentSearchModelImpl
 					<String, BiConsumer<JournalContentSearch, ?>>();
 
 		attributeGetterFunctions.put(
+			"mvccVersion", JournalContentSearch::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<JournalContentSearch, Long>)
+				JournalContentSearch::setMvccVersion);
+		attributeGetterFunctions.put(
 			"contentSearchId", JournalContentSearch::getContentSearchId);
 		attributeSetterBiConsumers.put(
 			"contentSearchId",
@@ -302,6 +306,16 @@ public class JournalContentSearchModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -478,7 +492,12 @@ public class JournalContentSearchModelImpl
 	@Override
 	public JournalContentSearch toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, JournalContentSearch>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -490,6 +509,7 @@ public class JournalContentSearchModelImpl
 		JournalContentSearchImpl journalContentSearchImpl =
 			new JournalContentSearchImpl();
 
+		journalContentSearchImpl.setMvccVersion(getMvccVersion());
 		journalContentSearchImpl.setContentSearchId(getContentSearchId());
 		journalContentSearchImpl.setGroupId(getGroupId());
 		journalContentSearchImpl.setCompanyId(getCompanyId());
@@ -593,6 +613,8 @@ public class JournalContentSearchModelImpl
 		JournalContentSearchCacheModel journalContentSearchCacheModel =
 			new JournalContentSearchCacheModel();
 
+		journalContentSearchCacheModel.mvccVersion = getMvccVersion();
+
 		journalContentSearchCacheModel.contentSearchId = getContentSearchId();
 
 		journalContentSearchCacheModel.groupId = getGroupId();
@@ -687,11 +709,17 @@ public class JournalContentSearchModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, JournalContentSearch>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, JournalContentSearch>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 
+	private long _mvccVersion;
 	private long _contentSearchId;
 	private long _groupId;
 	private long _originalGroupId;

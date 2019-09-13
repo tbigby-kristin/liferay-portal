@@ -34,7 +34,9 @@ import com.liferay.dynamic.data.mapping.form.field.type.DefaultDDMFormFieldValue
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidationExpression;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -46,6 +48,7 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.Collection;
@@ -266,7 +269,8 @@ public class DDMFormEvaluatorHelper {
 			return false;
 		}
 
-		return Validator.isNotNull(ddmFormFieldValidation.getExpression());
+		return Validator.isNotNull(
+			ddmFormFieldValidation.getDDMFormFieldValidationExpression());
 	}
 
 	protected boolean filterVisibleFieldsMarkedAsRequired(
@@ -388,6 +392,19 @@ public class DDMFormEvaluatorHelper {
 		return false;
 	}
 
+	protected boolean isFieldVisible(
+		DDMFormEvaluatorFieldContextKey ddmFormFieldContextKey) {
+
+		Map<String, Object> ddmFormFieldPropertyChanges =
+			_ddmFormFieldsPropertyChanges.get(ddmFormFieldContextKey);
+
+		if (ddmFormFieldPropertyChanges == null) {
+			return true;
+		}
+
+		return GetterUtil.get(ddmFormFieldPropertyChanges.get("visible"), true);
+	}
+
 	protected void setRequiredErrorMessage(
 		DDMFormEvaluatorFieldContextKey fieldContextKey) {
 
@@ -434,17 +451,57 @@ public class DDMFormEvaluatorHelper {
 			return;
 		}
 
+		if (!isFieldVisible(ddmFormEvaluatorFieldContextKey)) {
+			return;
+		}
+
+		DDMFormFieldValidation ddmFormFieldValidation = entry.getValue();
+
+		if (ddmFormFieldValidation == null) {
+			return;
+		}
+
+		DDMFormFieldValidationExpression ddmFormFieldValidationExpression =
+			ddmFormFieldValidation.getDDMFormFieldValidationExpression();
+
+		if (Validator.isNull(ddmFormFieldValidationExpression.getValue())) {
+			return;
+		}
+
 		String fieldName = ddmFormEvaluatorFieldContextKey.getName();
 		String fieldInstanceId =
 			ddmFormEvaluatorFieldContextKey.getInstanceId();
 
-		DDMFormFieldValidation ddmFormFieldValidation = entry.getValue();
-
 		boolean valid = false;
 
 		try {
-			DDMExpression<Boolean> ddmExpression = createExpression(
-				ddmFormFieldValidation.getExpression());
+			String localizedValueString = null;
+
+			LocalizedValue parameterLocalizedValue =
+				ddmFormFieldValidation.getParameterLocalizedValue();
+
+			if (parameterLocalizedValue != null) {
+				localizedValueString = parameterLocalizedValue.getString(
+					_resourceBundle.getLocale());
+
+				if (Validator.isNull(localizedValueString)) {
+					localizedValueString = parameterLocalizedValue.getString(
+						parameterLocalizedValue.getDefaultLocale());
+				}
+			}
+
+			DDMExpression<Boolean> ddmExpression = null;
+
+			if (Validator.isNull(localizedValueString)) {
+				ddmExpression = createExpression(
+					ddmFormFieldValidationExpression.getValue());
+			}
+			else {
+				ddmExpression = createExpression(
+					StringUtil.replace(
+						ddmFormFieldValidationExpression.getValue(),
+						"{parameter}", localizedValueString));
+			}
 
 			GetFieldPropertyRequest.Builder builder =
 				GetFieldPropertyRequest.Builder.newBuilder(fieldName, "value");
@@ -473,7 +530,15 @@ public class DDMFormEvaluatorHelper {
 		builder.withInstanceId(fieldInstanceId);
 
 		if (!valid) {
-			String errorMessage = ddmFormFieldValidation.getErrorMessage();
+			String errorMessage = null;
+
+			LocalizedValue errorMessageLocalizedValue =
+				ddmFormFieldValidation.getErrorMessageLocalizedValue();
+
+			if (errorMessageLocalizedValue != null) {
+				errorMessage = errorMessageLocalizedValue.getString(
+					_resourceBundle.getLocale());
+			}
 
 			if (errorMessage == null) {
 				errorMessage = LanguageUtil.get(

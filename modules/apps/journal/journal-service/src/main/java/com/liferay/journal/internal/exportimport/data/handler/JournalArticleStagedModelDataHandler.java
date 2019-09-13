@@ -233,6 +233,9 @@ public class JournalArticleStagedModelDataHandler
 
 		referenceAttributes.put("preloaded", String.valueOf(preloaded));
 
+		referenceAttributes.put(
+			"resource-prim-key", String.valueOf(article.getResourcePrimKey()));
+
 		return referenceAttributes;
 	}
 
@@ -512,20 +515,32 @@ public class JournalArticleStagedModelDataHandler
 
 		articleArticleIds.put(articleArticleId, existingArticle.getArticleId());
 
-		Map<Long, Long> articleIds =
-			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
-				JournalArticle.class);
-
-		long articleId = GetterUtil.getLong(
-			referenceElement.attributeValue("class-pk"));
-
-		articleIds.put(articleId, existingArticle.getId());
-
 		Map<String, Long> articleGroupIds =
 			(Map<String, Long>)portletDataContext.getNewPrimaryKeysMap(
 				JournalArticle.class + ".groupId");
 
 		articleGroupIds.put(articleArticleId, existingArticle.getGroupId());
+
+		Map<Long, Long> articlePrimaryKeys =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				JournalArticle.class + ".primaryKey");
+
+		long classPK = GetterUtil.getLong(
+			referenceElement.attributeValue("class-pk"));
+
+		articlePrimaryKeys.put(classPK, existingArticle.getPrimaryKey());
+
+		long articleResourcePrimKey = GetterUtil.getLong(
+			referenceElement.attributeValue("resource-prim-key"));
+
+		if (articleResourcePrimKey != 0) {
+			Map<Long, Long> articleRecourcePrimKeys =
+				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+					JournalArticle.class);
+
+			articleRecourcePrimKeys.put(
+				articleResourcePrimKey, existingArticle.getResourcePrimKey());
+		}
 	}
 
 	@Override
@@ -786,8 +801,6 @@ public class JournalArticleStagedModelDataHandler
 									"Unable to import attachment for file " +
 										"entry " + fileEntry.getFileEntryId());
 							}
-
-							continue;
 						}
 					}
 					finally {
@@ -1127,6 +1140,11 @@ public class JournalArticleStagedModelDataHandler
 			articleId, newArticleId, version, preloaded);
 	}
 
+	@Override
+	protected String[] getSkipImportReferenceStagedModelNames() {
+		return new String[] {AssetDisplayPageEntry.class.getName()};
+	}
+
 	protected boolean isExpireAllArticleVersions(long companyId)
 		throws PortalException {
 
@@ -1292,12 +1310,20 @@ public class JournalArticleStagedModelDataHandler
 	}
 
 	private void _importAssetDisplayPage(
-		PortletDataContext portletDataContext, JournalArticle article,
-		JournalArticle importedArticle) {
+			PortletDataContext portletDataContext, JournalArticle article,
+			JournalArticle importedArticle)
+		throws PortalException {
 
 		List<Element> assetDisplayPageEntryElements =
 			portletDataContext.getReferenceDataElements(
 				article, AssetDisplayPageEntry.class);
+
+		Map<Long, Long> articleNewPrimaryKeys =
+			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+				JournalArticle.class);
+
+		articleNewPrimaryKeys.put(
+			article.getResourcePrimKey(), importedArticle.getResourcePrimKey());
 
 		for (Element assetDisplayPageEntryElement :
 				assetDisplayPageEntryElements) {
@@ -1307,6 +1333,9 @@ public class JournalArticleStagedModelDataHandler
 			AssetDisplayPageEntry assetDisplayPageEntry =
 				(AssetDisplayPageEntry)portletDataContext.getZipEntryAsObject(
 					path);
+
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, assetDisplayPageEntryElement);
 
 			Map<Long, Long> assetDisplayPageEntries =
 				(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(

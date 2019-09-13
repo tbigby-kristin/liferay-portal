@@ -27,7 +27,7 @@ import com.liferay.wiki.configuration.WikiGroupServiceOverriddenConfiguration;
 import com.liferay.wiki.constants.WikiConstants;
 import com.liferay.wiki.constants.WikiWebKeys;
 import com.liferay.wiki.model.WikiPage;
-import com.liferay.wiki.web.configuration.WikiPortletInstanceConfiguration;
+import com.liferay.wiki.web.internal.configuration.WikiPortletInstanceConfiguration;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -53,9 +53,7 @@ public class WikiRequestHelper extends BaseStrutsRequestHelper {
 
 		try {
 			if (_wikiGroupServiceOverriddenConfiguration == null) {
-				String portletResource = getPortletResource();
-
-				if (Validator.isNotNull(portletResource)) {
+				if (Validator.isNotNull(getPortletResource())) {
 					_wikiGroupServiceOverriddenConfiguration =
 						ConfigurationProviderUtil.getConfiguration(
 							WikiGroupServiceOverriddenConfiguration.class,
@@ -97,9 +95,7 @@ public class WikiRequestHelper extends BaseStrutsRequestHelper {
 
 		try {
 			if (_wikiPortletInstanceConfiguration == null) {
-				String portletResource = getPortletResource();
-
-				if (Validator.isNotNull(portletResource)) {
+				if (Validator.isNotNull(getPortletResource())) {
 					_wikiPortletInstanceConfiguration =
 						ConfigurationProviderUtil.getConfiguration(
 							WikiPortletInstanceConfiguration.class,

@@ -15,6 +15,7 @@
 	{@param? _fields: ?}
 	{@param? _handleAssetBrowserLinkClick: any}
 	{@param? _handleAssetEntryLinkClick: any}
+	{@param? _handleCreateContentClick: any}
 	{@param? _handleFieldOptionChange: any}
 	{@param? _handleSourceTypeChange: any}
 	{@param? _selectedSourceTypeId: string}
@@ -30,6 +31,7 @@
 		href: string,
 		typeName: string
 	]>}
+	{@param? contentCreationEnabled: bool}
 	{@param? mappedAssetEntries: list<[
 		encodedId: string,
 		classNameId: string,
@@ -37,127 +39,70 @@
 		title: string
 	]>}
 	{@param? mappingFieldsURL: string}
-	{@param? spritemap: string}
+	{@param? selectedItems: list<[
+		itemId: string,
+		itemType: string
+	]>}
+	{@param? store: ?}
 
 	<div
-		class="floating-toolbar-mapping-panel"
+		class="floating-toolbar-mapping-panel p-3"
 		ref="panel"
 		tabindex="-1"
 	>
-		{if $mappingFieldsURL}
+		{if $selectedItems and length($selectedItems) == 1}
+			{if $mappingFieldsURL}
+				<div class="form-group">
+					{call .sourceTypeSelect}
+						{param handleSourceTypeChange: $_handleSourceTypeChange /}
+						{param sourceTypes: $_sourceTypes /}
+						{param selectedSourceTypeId: $_selectedSourceTypeId /}
+					{/call}
+				</div>
+			{/if}
+
+			{if not $mappingFieldsURL or $_selectedSourceTypeId == $_sourceTypeIds.content}
+				<div class="floating-toolbar-mapping-panel__asset-select form-group">
+					{call com.liferay.layout.content.page.editor.web.AssetSelector.render}
+						{param assetBrowserLinks: $assetBrowserLinks /}
+						{param fieldId kind="text"}floatingToolbarMappingPanelAssetSelect{/param}
+						{param fieldName kind="text"}{msg desc=""}content{/msg}{/param}
+						{param handleAssetBrowserLinkClick: $_handleAssetBrowserLinkClick /}
+						{param handleAssetEntryLinkClick: $_handleAssetEntryLinkClick /}
+						{param recentlyUsedAssetEntries: $mappedAssetEntries /}
+						{param selectedAssetEntryTitle: $item.editableValues.title /}
+						{param store: $store /}
+					{/call}
+				</div>
+			{/if}
+
 			<div class="form-group">
-				{call .sourceTypeSelect}
-					{param handleSourceOptionChange: $_handleSourceTypeChange /}
-					{param sourceTypes: $_sourceTypes /}
-					{param selectedSourceTypeId: $_selectedSourceTypeId /}
+				{call .fieldSelect}
+					{param fields: $_fields /}
+					{param handleFieldOptionChange: $_handleFieldOptionChange /}
+					{param mappedFieldId: $item.editableValues.mappedField or $item.editableValues.fieldId /}
 				{/call}
 			</div>
 		{/if}
 
-		{if not $mappingFieldsURL or $_selectedSourceTypeId == $_sourceTypeIds.content}
-			<div class="floating-toolbar-mapping-panel__asset-select form-group">
-				{call .assetSelect}
-					{param handleAssetBrowserLinkClick: $_handleAssetBrowserLinkClick /}
-					{param handleAssetEntryLinkClick: $_handleAssetEntryLinkClick /}
-					{param mappedAssetEntries: $mappedAssetEntries /}
-					{param selectedAssetEntryTitle: $item.editableValues.title /}
-					{param assetBrowserLinks: $assetBrowserLinks /}
-					{param spritemap: $spritemap /}
-				{/call}
+		{if $contentCreationEnabled}
+			<div class="form-group">
+				<button
+					class="btn btn-block btn-secondary btn-sm"
+					data-onclick="{$_handleCreateContentClick}"
+
+					{if $item.editableValues.mappedField or $item.editableValues.fieldId}
+					disabled
+					{/if}
+				>
+					{msg desc=""}create-new-content{/msg}
+
+					{if $selectedItems}
+						<span class="badge badge-primary ml-2">{length($selectedItems)}</span>
+					{/if}
+				</button>
 			</div>
 		{/if}
-
-		<div class="form-group">
-			{call .fieldSelect}
-				{param fields: $_fields /}
-				{param handleFieldOptionChange: $_handleFieldOptionChange /}
-				{param mappedFieldId: $item.editableValues.mappedField or $item.editableValues.fieldId /}
-			{/call}
-		</div>
-	</div>
-{/template}
-
-/**
- * Asset select
- */
-{template .assetSelect}
-	{@param? assetBrowserLinks: list<[
-		href: string,
-		typeName: string
-	]>}
-	{@param? mappedAssetEntries: list<[
-		encodedId: string,
-		classNameId: string,
-		classPK: string,
-		title: string
-	]>}
-	{@param? handleAssetBrowserLinkClick: any}
-	{@param? handleAssetEntryLinkClick: any}
-	{@param? selectedAssetEntryTitle: string}
-	{@param? spritemap: string}
-
-	<label for="floatingToolbarMappingPanelAssetSelect">
-		{msg desc=""}content{/msg}
-	</label>
-
-	<div class="d-flex">
-		<input
-			class="form-control form-control-sm mr-2"
-			readonly
-			type="text"
-			value="{$selectedAssetEntryTitle ?: ''}"
-		/>
-
-		<div class="btn-group">
-			<button
-				aria-expanded="false"
-				aria-haspopup="true"
-				class="btn btn-monospaced btn-secondary btn-sm dropdown-toggle"
-				data-toggle="dropdown"
-				type="button"
-			>
-				<svg class="lexicon-icon">
-					<use xlink:href="{$spritemap ?: ''}#caret-bottom"></use>
-				</svg>
-			</button>
-
-			<div class="dropdown-menu">
-				{if $assetBrowserLinks}
-					{foreach $assetBrowserLink in $assetBrowserLinks}
-						<button
-							class="dropdown-item"
-							data-onclick="{$handleAssetBrowserLinkClick}"
-							data-asset-browser-url="{$assetBrowserLink.href}"
-							data-asset-browser-window-title="{$assetBrowserLink.typeName}"
-							key="{$assetBrowserLink.href}"
-							type="button"
-						>
-							{$assetBrowserLink.typeName}
-						</button>
-					{/foreach}
-				{/if}
-				{if $mappedAssetEntries and length($mappedAssetEntries) > 0}
-					<div
-						aria-hidden="true"
-						class="dropdown-divider"
-						role="presentation"
-					></div>
-
-					{foreach $mappedAssetField in $mappedAssetEntries}
-						<button
-							class="dropdown-item"
-							data-class-name-id="{$mappedAssetField.classNameId}"
-							data-class-pk="{$mappedAssetField.classPK}"
-							data-onclick="{$handleAssetEntryLinkClick}"
-							key="{$mappedAssetField.encodedId}"
-							type="button"
-						>
-							{$mappedAssetField.title}
-						</button>
-					{/foreach}
-				{/if}
-			</div>
-		</div>
 	</div>
 {/template}
 
@@ -192,7 +137,7 @@
 		{call .selectOption}
 			{param optionId: '' /}
 			{param optionLabel: $unmappedLabel /}
-			{param selectedId: $mappedFieldId or $unmappedLabel /}
+			{param selectedId: $mappedFieldId ?: '' /}
 		{/call}
 
 		{foreach $field in $fields}
@@ -231,7 +176,7 @@
  * Source select
  */
 {template .sourceTypeSelect}
-	{@param? handleSourceOptionChange: any}
+	{@param? handleSourceTypeChange: any}
 	{@param? sourceTypes: ?}
 	{@param? selectedSourceTypeId: string}
 
@@ -241,7 +186,7 @@
 
 	<select
 		class="form-control form-control-sm"
-		data-onchange="{$handleSourceOptionChange}"
+		data-onchange="{$handleSourceTypeChange}"
 		id="floatingToolbarMappingPanelSourceTypeSelect"
 	>
 		{foreach $sourceType in $sourceTypes}

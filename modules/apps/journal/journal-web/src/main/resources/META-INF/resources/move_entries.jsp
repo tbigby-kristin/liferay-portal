@@ -20,7 +20,7 @@
 JournalMoveEntriesDisplayContext journalMovesEntriesDisplayContext = new JournalMoveEntriesDisplayContext(liferayPortletRequest, liferayPortletResponse);
 %>
 
-<portlet:actionURL name="moveEntries" var="moveArticleURL">
+<portlet:actionURL name="/journal/move_entries" var="moveArticleURL">
 	<portlet:param name="mvcPath" value="/move_entries.jsp" />
 </portlet:actionURL>
 
@@ -34,6 +34,16 @@ JournalMoveEntriesDisplayContext journalMovesEntriesDisplayContext = new Journal
 	<liferay-frontend:edit-form-body>
 		<liferay-ui:error exception="<%= DuplicateFolderNameException.class %>" message="the-folder-you-selected-already-has-an-entry-with-this-name.-please-select-a-different-folder" />
 		<liferay-ui:error exception="<%= InvalidDDMStructureException.class %>" message="the-folder-you-selected-does-not-allow-this-type-of-structure.-please-select-a-different-folder" />
+
+		<liferay-ui:error exception="<%= InvalidFolderException.class %>">
+
+			<%
+			InvalidFolderException ife = (InvalidFolderException)errorException;
+			%>
+
+			<liferay-ui:message arguments="<%= ife.getMessageArgument(locale) %>" key="<%= ife.getMessageKey() %>" />
+		</liferay-ui:error>
+
 		<liferay-ui:error exception="<%= NoSuchFolderException.class %>" message="please-enter-a-valid-folder" />
 
 		<liferay-frontend:fieldset-group>
@@ -167,46 +177,18 @@ JournalMoveEntriesDisplayContext journalMovesEntriesDisplayContext = new Journal
 	</liferay-frontend:edit-form-footer>
 </liferay-frontend:edit-form>
 
-<aui:script use="liferay-item-selector-dialog">
-	var selectFolderButton = document.getElementById('<portlet:namespace />selectFolderButton');
+<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+	<portlet:param name="mvcPath" value="/select_folder.jsp" />
+	<portlet:param name="folderId" value="<%= String.valueOf(journalMovesEntriesDisplayContext.getNewFolderId()) %>" />
+</portlet:renderURL>
 
-	if (selectFolderButton) {
-		selectFolderButton.addEventListener(
-			'click',
-			function(event) {
-				var itemSelectorDialog = new A.LiferayItemSelectorDialog(
-					{
-						eventName: '<portlet:namespace />selectFolder',
-						on: {
-							selectedItemChange: function(event) {
-								var selectedItem = event.newVal;
+<%
+Map<String, Object> context = new HashMap<>();
 
-								if (selectedItem) {
-									var folderData = {
-										idString: 'newFolderId',
-										idValue: selectedItem.folderId,
-										nameString: 'folderName',
-										nameValue: selectedItem.folderName
-									};
+context.put("selectFolderURL", selectFolderURL);
+%>
 
-									Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
-								}
-							}
-						},
-						'strings.add': '<liferay-ui:message key="done" />',
-						title: '<liferay-ui:message arguments="folder" key="select-x" />',
-
-						<portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-							<portlet:param name="mvcPath" value="/select_folder.jsp" />
-							<portlet:param name="folderId" value="<%= String.valueOf(journalMovesEntriesDisplayContext.getNewFolderId()) %>" />
-						</portlet:renderURL>
-
-						url: '<%= selectFolderURL %>'
-					}
-				);
-
-				itemSelectorDialog.open();
-			}
-		);
-	}
-</aui:script>
+<liferay-frontend:component
+	context="<%= context %>"
+	module="js/MoveEntries.es"
+/>

@@ -16,8 +16,6 @@ package com.liferay.change.tracking.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link CTProcessLocalService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see CTProcessLocalService
  * @generated
  */
-@ProviderType
 public class CTProcessLocalServiceWrapper
 	implements CTProcessLocalService, ServiceWrapper<CTProcessLocalService> {
 
@@ -263,19 +260,17 @@ public class CTProcessLocalServiceWrapper
 		return _ctProcessLocalService.getCTProcesses(ctCollectionId);
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x)
-	 */
-	@Deprecated
 	@Override
 	public java.util.List<com.liferay.change.tracking.model.CTProcess>
 		getCTProcesses(
-			long companyId, int status,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition<?>
-				queryDefinition) {
+			long companyId, long userId, String keywords, int status, int start,
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.change.tracking.model.CTProcess>
+					orderByComparator) {
 
 		return _ctProcessLocalService.getCTProcesses(
-			companyId, status, queryDefinition);
+			companyId, userId, keywords, status, start, end, orderByComparator);
 	}
 
 	@Override
@@ -287,21 +282,6 @@ public class CTProcessLocalServiceWrapper
 
 		return _ctProcessLocalService.getCTProcesses(
 			companyId, userId, keywords, queryDefinition);
-	}
-
-	/**
-	 * @deprecated As of Mueller (7.2.x)
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.change.tracking.model.CTProcess>
-		getCTProcesses(
-			long companyId,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition<?>
-				queryDefinition) {
-
-		return _ctProcessLocalService.getCTProcesses(
-			companyId, queryDefinition);
 	}
 
 	/**

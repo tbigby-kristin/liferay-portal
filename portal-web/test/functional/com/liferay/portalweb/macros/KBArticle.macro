@@ -410,7 +410,7 @@ definition {
 
 		Click(
 			key_kbArticleTitle = "${kbArticleTitle}",
-			locator1 = "KnowledgeBaseSelectParent#CHOOSE_BUTTON");
+			locator1 = "KnowledgeBaseSelectParent#SELECT_BUTTON");
 
 		SelectFrame(value1 = "relative=top");
 
@@ -475,8 +475,8 @@ definition {
 
 		AssertClick(
 			key_kbFolderName = "${kbFolderName}",
-			locator1 = "KnowledgeBaseSelectParent#CHOOSE_FOLDER_BUTTON",
-			value1 = "Choose");
+			locator1 = "KnowledgeBaseSelectParent#SELECT_FOLDER_BUTTON",
+			value1 = "Select");
 
 		SelectFrame(value1 = "relative=top");
 
@@ -750,12 +750,6 @@ definition {
 			value1 = "Suggestions");
 	}
 
-	macro gotoSuggestionsNavigationPG {
-		if (IsElementNotPresent(locator1 = "KnowledgeBaseSuggestions#NAVIGATION_BAR")) {
-			Click(locator1 = "KnowledgeBase#LINK_THERE_ARE_SUGGESTIONS");
-		}
-	}
-
 	macro gotoViaKBAdminCP {
 		var key_kbArticleTitle = "${kbArticleTitle}";
 
@@ -902,7 +896,7 @@ definition {
 	macro selectAllCP {
 		PortletEntry.selectAll();
 
-		AssertElementPresent(locator1 = "Button#DELETE");
+		AssertElementPresent(locator1 = "Icon#DELETE");
 	}
 
 	macro selectArticleCP {
@@ -928,8 +922,8 @@ definition {
 
 		Click(
 			key_kbArticleTitle = "${kbArticleTitle}",
-			locator1 = "KnowledgeBaseSelectParent#CHOOSE_BUTTON",
-			value1 = "Choose");
+			locator1 = "KnowledgeBaseSelectParent#SELECT_BUTTON",
+			value1 = "Select");
 
 		SelectFrame(value1 = "relative=top");
 
@@ -947,8 +941,8 @@ definition {
 
 		Click(
 			key_kbArticleTitle = "${kbArticleTitle}",
-			locator1 = "KnowledgeBaseSelectParent#CHOOSE_BUTTON",
-			value1 = "Choose");
+			locator1 = "KnowledgeBaseSelectParent#SELECT_BUTTON",
+			value1 = "Select");
 
 		SelectFrame(value1 = "relative=top");
 
@@ -980,8 +974,8 @@ definition {
 
 		AssertClick(
 			key_kbArticleTitle = "${kbArticleTitle}",
-			locator1 = "KnowledgeBaseSelectParent#CHOOSE_BUTTON",
-			value1 = "Choose");
+			locator1 = "KnowledgeBaseSelectParent#SELECT_BUTTON",
+			value1 = "Select");
 
 		SelectFrame(value1 = "relative=top");
 

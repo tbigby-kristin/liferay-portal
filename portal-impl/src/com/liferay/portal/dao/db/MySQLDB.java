@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -129,9 +130,7 @@ public class MySQLDB extends BaseDB {
 			sb.append(databaseName);
 			sb.append(";\n\n");
 
-			String suffix = getSuffix(population);
-
-			sb.append(getCreateTablesContent(sqlDir, suffix));
+			sb.append(getCreateTablesContent(sqlDir, getSuffix(population)));
 
 			sb.append("\n\n");
 			sb.append(readFile(sqlDir + "/indexes/indexes-mysql.sql"));
@@ -145,6 +144,11 @@ public class MySQLDB extends BaseDB {
 	@Override
 	protected String getServerName() {
 		return "mysql";
+	}
+
+	@Override
+	protected int[] getSQLTypes() {
+		return _SQL_TYPES;
 	}
 
 	@Override
@@ -212,6 +216,12 @@ public class MySQLDB extends BaseDB {
 		"##", "1", "0", "'1970-01-01'", "now()", " longblob", " longblob",
 		" tinyint", " datetime(6)", " double", " integer", " bigint",
 		" longtext", " longtext", " varchar", "  auto_increment", "commit"
+	};
+
+	private static final int[] _SQL_TYPES = {
+		Types.LONGVARBINARY, Types.LONGVARBINARY, Types.TINYINT,
+		Types.TIMESTAMP, Types.DOUBLE, Types.INTEGER, Types.BIGINT,
+		Types.LONGVARCHAR, Types.LONGVARCHAR, Types.VARCHAR
 	};
 
 	private static final boolean _SUPPORTS_NEW_UUID_FUNCTION = true;

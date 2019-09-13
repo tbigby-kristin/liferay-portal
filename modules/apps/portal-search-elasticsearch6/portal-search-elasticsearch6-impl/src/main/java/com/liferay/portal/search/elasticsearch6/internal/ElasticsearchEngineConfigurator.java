@@ -27,6 +27,7 @@ import com.liferay.portal.search.elasticsearch6.internal.connection.Elasticsearc
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.FutureTask;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -86,20 +87,26 @@ public class ElasticsearchEngineConfigurator
 
 	@Override
 	protected void initialize() {
+		FutureTask<Void> futureTask = new FutureTask<Void>(
+			() -> {
+				_elasticsearchConnectionManager.connect();
+
+				return null;
+			});
+
 		Thread thread = new Thread(
-			() -> _elasticsearchConnectionManager.connect(),
-			"Elasticsearch initialization thread");
+			futureTask, "Elasticsearch initialization thread");
 
 		thread.setDaemon(true);
 
 		thread.start();
 
 		try {
-			thread.join();
+			futureTask.get();
 		}
-		catch (InterruptedException ie) {
+		catch (Exception e) {
 			throw new RuntimeException(
-				"Unable to initialize Elasticsearch engine", ie);
+				"Unable to initialize Elasticsearch engine", e);
 		}
 
 		super.initialize();

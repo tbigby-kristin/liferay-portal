@@ -14,8 +14,6 @@
 
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -58,12 +56,11 @@ import java.util.Set;
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class VersionedEntryVersionPersistenceImpl
 	extends BasePersistenceImpl<VersionedEntryVersion>
 	implements VersionedEntryVersionPersistence {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>VersionedEntryVersionUtil</code> to access the versioned entry version persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -150,14 +147,14 @@ public class VersionedEntryVersionPersistenceImpl
 	 * @param start the lower bound of the range of versioned entry versions
 	 * @param end the upper bound of the range of versioned entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching versioned entry versions
 	 */
 	@Override
 	public List<VersionedEntryVersion> findByVersionedEntryId(
 		long versionedEntryId, int start, int end,
 		OrderByComparator<VersionedEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -167,10 +164,13 @@ public class VersionedEntryVersionPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByVersionedEntryId;
-			finderArgs = new Object[] {versionedEntryId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByVersionedEntryId;
+				finderArgs = new Object[] {versionedEntryId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByVersionedEntryId;
 			finderArgs = new Object[] {
 				versionedEntryId, start, end, orderByComparator
@@ -179,7 +179,7 @@ public class VersionedEntryVersionPersistenceImpl
 
 		List<VersionedEntryVersion> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<VersionedEntryVersion>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -247,10 +247,14 @@ public class VersionedEntryVersionPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -666,18 +670,22 @@ public class VersionedEntryVersionPersistenceImpl
 	 *
 	 * @param versionedEntryId the versioned entry ID
 	 * @param version the version
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching versioned entry version, or <code>null</code> if a matching versioned entry version could not be found
 	 */
 	@Override
 	public VersionedEntryVersion fetchByVersionedEntryId_Version(
-		long versionedEntryId, int version, boolean retrieveFromCache) {
+		long versionedEntryId, int version, boolean useFinderCache) {
 
-		Object[] finderArgs = new Object[] {versionedEntryId, version};
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {versionedEntryId, version};
+		}
 
 		Object result = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			result = finderCache.getResult(
 				_finderPathFetchByVersionedEntryId_Version, finderArgs, this);
 		}
@@ -722,9 +730,11 @@ public class VersionedEntryVersionPersistenceImpl
 				List<VersionedEntryVersion> list = q.list();
 
 				if (list.isEmpty()) {
-					finderCache.putResult(
-						_finderPathFetchByVersionedEntryId_Version, finderArgs,
-						list);
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByVersionedEntryId_Version,
+							finderArgs, list);
+					}
 				}
 				else {
 					VersionedEntryVersion versionedEntryVersion = list.get(0);
@@ -735,8 +745,10 @@ public class VersionedEntryVersionPersistenceImpl
 				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(
-					_finderPathFetchByVersionedEntryId_Version, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(
+						_finderPathFetchByVersionedEntryId_Version, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -905,14 +917,14 @@ public class VersionedEntryVersionPersistenceImpl
 	 * @param start the lower bound of the range of versioned entry versions
 	 * @param end the upper bound of the range of versioned entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching versioned entry versions
 	 */
 	@Override
 	public List<VersionedEntryVersion> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<VersionedEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -922,17 +934,20 @@ public class VersionedEntryVersionPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByGroupId;
-			finderArgs = new Object[] {groupId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByGroupId;
+				finderArgs = new Object[] {groupId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByGroupId;
 			finderArgs = new Object[] {groupId, start, end, orderByComparator};
 		}
 
 		List<VersionedEntryVersion> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<VersionedEntryVersion>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -998,10 +1013,14 @@ public class VersionedEntryVersionPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1428,14 +1447,14 @@ public class VersionedEntryVersionPersistenceImpl
 	 * @param start the lower bound of the range of versioned entry versions
 	 * @param end the upper bound of the range of versioned entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching versioned entry versions
 	 */
 	@Override
 	public List<VersionedEntryVersion> findByGroupId_Version(
 		long groupId, int version, int start, int end,
 		OrderByComparator<VersionedEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -1445,10 +1464,13 @@ public class VersionedEntryVersionPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByGroupId_Version;
-			finderArgs = new Object[] {groupId, version};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByGroupId_Version;
+				finderArgs = new Object[] {groupId, version};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByGroupId_Version;
 			finderArgs = new Object[] {
 				groupId, version, start, end, orderByComparator
@@ -1457,7 +1479,7 @@ public class VersionedEntryVersionPersistenceImpl
 
 		List<VersionedEntryVersion> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<VersionedEntryVersion>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -1529,10 +1551,14 @@ public class VersionedEntryVersionPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -2604,14 +2630,14 @@ public class VersionedEntryVersionPersistenceImpl
 	 * @param start the lower bound of the range of versioned entry versions
 	 * @param end the upper bound of the range of versioned entry versions (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of versioned entry versions
 	 */
 	@Override
 	public List<VersionedEntryVersion> findAll(
 		int start, int end,
 		OrderByComparator<VersionedEntryVersion> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -2621,17 +2647,20 @@ public class VersionedEntryVersionPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindAll;
-			finderArgs = FINDER_ARGS_EMPTY;
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindAll;
+				finderArgs = FINDER_ARGS_EMPTY;
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<VersionedEntryVersion> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<VersionedEntryVersion>)finderCache.getResult(
 				finderPath, finderArgs, this);
 		}
@@ -2682,10 +2711,14 @@ public class VersionedEntryVersionPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}

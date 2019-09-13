@@ -1,7 +1,22 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {Config} from 'metal-state';
-import {debounce} from 'metal-debounce';
+import {debounce} from 'frontend-js-web';
 import Component from 'metal-component';
 import Soy from 'metal-soy';
+import 'clay-button';
 
 import templates from './ImagePreviewer.soy';
 
@@ -15,18 +30,7 @@ const MIN_ZOOM_RATIO_AUTOCENTER = 3;
  * Available zoom sizes
  * @type {Array<number>}
  */
-const ZOOM_LEVELS = [
-	0.1,
-	0.2,
-	0.3,
-	0.4,
-	0.5,
-	0.6,
-	0.7,
-	0.8,
-	0.9,
-	1
-];
+const ZOOM_LEVELS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
 
 /**
  * Available reversed zoom sizes
@@ -39,7 +43,6 @@ const ZOOM_LEVELS_REVERSED = ZOOM_LEVELS.slice().reverse();
  * @review
  */
 class ImagePreviewer extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -136,19 +139,14 @@ class ImagePreviewer extends Component {
 		let zoomValue;
 
 		if (value === 'in') {
-			zoomValue = ZOOM_LEVELS.find(
-				zoom => zoom > this.currentZoom
-			);
-		}
-		else if (value === 'out') {
+			zoomValue = ZOOM_LEVELS.find(zoom => zoom > this.currentZoom);
+		} else if (value === 'out') {
 			zoomValue = ZOOM_LEVELS_REVERSED.find(
 				zoom => zoom < this.currentZoom
 			);
-		}
-		else if (value === 'real') {
+		} else if (value === 'real') {
 			zoomValue = 1;
-		}
-		else if (value === 'fit') {
+		} else if (value === 'fit') {
 			this._clearZoom();
 		}
 
@@ -163,15 +161,18 @@ class ImagePreviewer extends Component {
 	 * @review
 	 */
 	_setScrollContainer() {
-		let imageContainer = this.refs.imageContainer;
+		const imageContainer = this.refs.imageContainer;
 		let scrollLeft;
 		let scrollTop;
 
 		if (this._zoomRatio < MIN_ZOOM_RATIO_AUTOCENTER) {
-			scrollLeft = imageContainer.clientWidth * (this._zoomRatio - 1) / 2 + imageContainer.scrollLeft * this._zoomRatio;
-			scrollTop = imageContainer.clientHeight * (this._zoomRatio - 1) / 2 + imageContainer.scrollTop * this._zoomRatio;
-		}
-		else {
+			scrollLeft =
+				(imageContainer.clientWidth * (this._zoomRatio - 1)) / 2 +
+				imageContainer.scrollLeft * this._zoomRatio;
+			scrollTop =
+				(imageContainer.clientHeight * (this._zoomRatio - 1)) / 2 +
+				imageContainer.scrollTop * this._zoomRatio;
+		} else {
 			scrollTop = (this.imageHeight - imageContainer.clientHeight) / 2;
 			scrollLeft = (this.imageWidth - imageContainer.clientWidth) / 2;
 		}
@@ -189,7 +190,9 @@ class ImagePreviewer extends Component {
 	 */
 	_updateDimensions() {
 		this.imageMargin = `${
-			this.imageHeight > this.refs.imageContainer.clientHeight ? 0 : 'auto'
+			this.imageHeight > this.refs.imageContainer.clientHeight
+				? 0
+				: 'auto'
 		} ${
 			this.imageWidth > this.refs.imageContainer.clientWidth ? 0 : 'auto'
 		}`;
@@ -207,24 +210,23 @@ class ImagePreviewer extends Component {
  * @type {!Object}
  */
 ImagePreviewer.STATE = {
-
 	/**
 	 * The current zoom value that is shown in the toolbar.
 	 * @type {Number}
 	 */
-	currentZoom: Config.number(),
+	currentZoom: Config.number().internal(),
 
 	/**
 	 * The height of the <img> element.
 	 * @type {Number}
 	 */
-	imageHeight: Config.number(),
+	imageHeight: Config.number().internal(),
 
 	/**
 	 * The margin of the <img> element
 	 * @type {String}
 	 */
-	imageMargin: Config.string(),
+	imageMargin: Config.string().internal(),
 
 	/**
 	 * The "src" attribute of the <img> element
@@ -236,7 +238,7 @@ ImagePreviewer.STATE = {
 	 * The width of the <img> element.
 	 * @type {Number}
 	 */
-	imageWidth: Config.number(),
+	imageWidth: Config.number().internal(),
 
 	/**
 	 * Path to icon images.
@@ -248,13 +250,13 @@ ImagePreviewer.STATE = {
 	 * Flag that indicate if 'zoom in' is disabled.
 	 * @type {Boolean}
 	 */
-	zoomInDisabled: Config.bool(),
+	zoomInDisabled: Config.bool().internal(),
 
 	/**
 	 * Flag that indicate if 'zoom out' is disabled.
 	 * @type {Boolean}
 	 */
-	zoomOutDisabled: Config.bool()
+	zoomOutDisabled: Config.bool().internal()
 };
 
 Soy.register(ImagePreviewer, templates);

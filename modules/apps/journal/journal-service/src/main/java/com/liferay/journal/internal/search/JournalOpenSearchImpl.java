@@ -49,7 +49,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Brian Wing Shun Chan
  * @author Wesley Gong
  */
-@Component(immediate = true, service = OpenSearch.class)
+@Component(service = OpenSearch.class)
 public class JournalOpenSearchImpl extends HitsOpenSearchImpl {
 
 	public static final String TITLE = "Liferay Journal Search: ";
@@ -90,13 +90,11 @@ public class JournalOpenSearchImpl extends HitsOpenSearchImpl {
 					contentSearch.isPrivateLayout(),
 					contentSearch.getLayoutId(), ActionKeys.VIEW)) {
 
-				if (contentSearch.isPrivateLayout()) {
-					if (!_groupLocalService.hasUserGroup(
-							themeDisplay.getUserId(),
-							contentSearch.getGroupId())) {
+				if (contentSearch.isPrivateLayout() &&
+					!_groupLocalService.hasUserGroup(
+						themeDisplay.getUserId(), contentSearch.getGroupId())) {
 
-						continue;
-					}
+					continue;
 				}
 
 				Layout hitLayout = _layoutLocalService.getLayout(
@@ -141,11 +139,8 @@ public class JournalOpenSearchImpl extends HitsOpenSearchImpl {
 				layout.getGroupId(), layout.isPrivateLayout(), articleId);
 
 		for (Long hitLayoutId : hitLayoutIds) {
-			PermissionChecker permissionChecker =
-				themeDisplay.getPermissionChecker();
-
 			if (LayoutPermissionUtil.contains(
-					permissionChecker, layout.getGroupId(),
+					themeDisplay.getPermissionChecker(), layout.getGroupId(),
 					layout.isPrivateLayout(), hitLayoutId, ActionKeys.VIEW)) {
 
 				Layout hitLayout = _layoutLocalService.getLayout(

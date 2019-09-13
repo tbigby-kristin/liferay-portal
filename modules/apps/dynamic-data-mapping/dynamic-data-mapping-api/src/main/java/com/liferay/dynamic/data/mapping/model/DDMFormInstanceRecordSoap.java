@@ -20,15 +20,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.dynamic.data.mapping.service.http.DDMFormInstanceRecordServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DDMFormInstanceRecordSoap implements Serializable {
 
 	public static DDMFormInstanceRecordSoap toSoapModel(
@@ -36,6 +33,7 @@ public class DDMFormInstanceRecordSoap implements Serializable {
 
 		DDMFormInstanceRecordSoap soapModel = new DDMFormInstanceRecordSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setFormInstanceRecordId(model.getFormInstanceRecordId());
 		soapModel.setGroupId(model.getGroupId());
@@ -111,6 +109,14 @@ public class DDMFormInstanceRecordSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setFormInstanceRecordId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -233,6 +239,7 @@ public class DDMFormInstanceRecordSoap implements Serializable {
 		_lastPublishDate = lastPublishDate;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _formInstanceRecordId;
 	private long _groupId;

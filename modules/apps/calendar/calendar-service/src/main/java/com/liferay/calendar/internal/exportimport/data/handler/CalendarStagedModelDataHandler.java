@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.xml.Element;
 
@@ -137,7 +138,7 @@ public class CalendarStagedModelDataHandler
 			portletDataContext, calendar, calendarResource,
 			PortletDataContext.REFERENCE_TYPE_STRONG);
 
-		String calendarName = calendar.getName(LocaleUtil.getDefault());
+		String calendarName = calendar.getName(LocaleUtil.getSiteDefault());
 
 		Group group = _groupLocalService.getGroup(calendar.getGroupId());
 
@@ -261,9 +262,12 @@ public class CalendarStagedModelDataHandler
 			portletDataContext.getScopeGroupId());
 
 		calendarNameMap.put(
-			LocaleUtil.getDefault(), scopeGroup.getDescriptiveName());
+			LocaleUtil.getSiteDefault(), scopeGroup.getDescriptiveName());
 
-		return calendarNameMap;
+		return LocalizationUtil.populateLocalizationMap(
+			calendarNameMap,
+			LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
+			scopeGroup.getGroupId());
 	}
 
 	protected boolean validateMissingReference(

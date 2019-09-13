@@ -24,7 +24,7 @@ import com.liferay.dynamic.data.mapping.service.DDMStorageLinkLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLinkLocalService;
 import com.liferay.dynamic.data.mapping.util.DefaultDDMStructureHelper;
-import com.liferay.journal.internal.upgrade.util.JournalArticleImageUpgradeUtil;
+import com.liferay.journal.internal.upgrade.util.JournalArticleImageUpgradeHelper;
 import com.liferay.journal.internal.upgrade.v0_0_2.UpgradeClassNames;
 import com.liferay.journal.internal.upgrade.v0_0_3.UpgradeJournalArticleType;
 import com.liferay.journal.internal.upgrade.v0_0_4.UpgradeSchema;
@@ -62,6 +62,7 @@ import com.liferay.portal.kernel.dao.db.DBProcessContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.repository.capabilities.PortalCapabilityLocator;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.CompanyLocalService;
@@ -75,6 +76,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.upgrade.BaseUpgradeSQLServerDatetime;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
+import com.liferay.portal.kernel.upgrade.UpgradeMVCCVersion;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 import com.liferay.subscription.service.SubscriptionLocalService;
@@ -158,9 +160,10 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 		registry.register(
 			"1.0.2", "1.1.0",
 			new UpgradeDocumentLibraryTypeContent(
-				_journalArticleImageUpgradeUtil),
+				_journalArticleImageUpgradeHelper),
 			new UpgradeImageTypeContent(
-				_imageLocalService, _journalArticleImageUpgradeUtil),
+				_imageLocalService, _journalArticleImageUpgradeHelper,
+				_portletFileRepository),
 			new UpgradeJournalArticleLocalizedValues());
 
 		registry.register(
@@ -179,7 +182,7 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 
 		registry.register(
 			"1.1.4", "1.1.5",
-			new UpgradeContentImages(_journalArticleImageUpgradeUtil));
+			new UpgradeContentImages(_journalArticleImageUpgradeHelper));
 
 		registry.register(
 			"1.1.5", "1.1.6",
@@ -192,8 +195,10 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 				_subscriptionLocalService, JournalArticle.class.getName(),
 				UpgradeDiscussionSubscriptionClassName.DeletionMode.ADD_NEW));
 
+		registry.register("1.1.7", "1.1.8", new DummyUpgradeStep());
+
 		registry.register(
-			"1.1.7", "2.0.0",
+			"1.1.8", "2.0.0",
 			new BaseUpgradeSQLServerDatetime(
 				new Class<?>[] {
 					JournalArticleTable.class, JournalFeedTable.class,
@@ -204,6 +209,28 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 			"2.0.0", "3.0.0",
 			new com.liferay.journal.internal.upgrade.v3_0_0.
 				UpgradeJournalArticleImage(_imageLocalService));
+
+		registry.register(
+			"3.0.0", "3.0.1",
+			new com.liferay.journal.internal.upgrade.v3_0_1.
+				UpgradeJournalArticle());
+
+		registry.register("3.0.1", "3.0.2", new DummyUpgradeStep());
+
+		registry.register(
+			"3.0.2", "3.1.0",
+			new UpgradeMVCCVersion() {
+
+				@Override
+				protected String[] getModuleTableNames() {
+					return new String[] {
+						"JournalArticle", "JournalArticleLocalization",
+						"JournalArticleResource", "JournalContentSearch",
+						"JournalFeed", "JournalFolder"
+					};
+				}
+
+			});
 	}
 
 	protected void deleteTempImages() throws Exception {
@@ -273,13 +300,16 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 	private ImageLocalService _imageLocalService;
 
 	@Reference
-	private JournalArticleImageUpgradeUtil _journalArticleImageUpgradeUtil;
+	private JournalArticleImageUpgradeHelper _journalArticleImageUpgradeHelper;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED, unbind = "-")
 	private ModuleServiceLifecycle _moduleServiceLifecycle;
+
+	@Reference
+	private PortletFileRepository _portletFileRepository;
 
 	@Reference
 	private PrefsPropsToConfigurationUpgradeHelper

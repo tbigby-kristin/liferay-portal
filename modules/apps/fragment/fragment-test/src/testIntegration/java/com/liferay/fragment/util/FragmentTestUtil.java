@@ -19,14 +19,12 @@ import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentCollectionLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
-import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Date;
 
@@ -85,25 +83,6 @@ public class FragmentTestUtil {
 			StringPool.BLANK, serviceContext);
 	}
 
-	public static FragmentEntry addFragmentEntry(long fragmentCollectionId)
-		throws PortalException {
-
-		FragmentCollection fragmentCollection =
-			FragmentCollectionLocalServiceUtil.getFragmentCollection(
-				fragmentCollectionId);
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(
-				fragmentCollection.getGroupId());
-
-		return FragmentEntryLocalServiceUtil.addFragmentEntry(
-			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
-			fragmentCollectionId, StringPool.BLANK,
-			RandomTestUtil.randomString(), StringPool.BLANK, "<div></div>",
-			StringPool.BLANK, WorkflowConstants.STATUS_APPROVED,
-			serviceContext);
-	}
-
 	public static FragmentEntryLink addFragmentEntryLink(
 			FragmentEntry fragmentEntry, long classNameId, long classPK)
 		throws PortalException {
@@ -116,7 +95,9 @@ public class FragmentTestUtil {
 			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(), 0,
 			fragmentEntry.getFragmentEntryId(), classNameId, classPK,
 			fragmentEntry.getCss(), fragmentEntry.getHtml(),
-			fragmentEntry.getJs(), StringPool.BLANK, 1, serviceContext);
+			fragmentEntry.getJs(), fragmentEntry.getConfiguration(),
+			StringPool.BLANK, StringPool.BLANK, 1, StringPool.BLANK,
+			serviceContext);
 	}
 
 	public static FragmentEntryLink fetchFragmentEntryLink(

@@ -292,9 +292,8 @@ public class ToolsUtil {
 			String content, String packagePath)
 		throws IOException {
 
-		String imports = JavaImportsFormatter.getImports(content);
-
-		return stripFullyQualifiedClassNames(content, imports, packagePath);
+		return stripFullyQualifiedClassNames(
+			content, JavaImportsFormatter.getImports(content), packagePath);
 	}
 
 	public static String stripFullyQualifiedClassNames(
@@ -384,10 +383,11 @@ public class ToolsUtil {
 						continue;
 					}
 
+					int z = importPackageAndClassName.lastIndexOf(
+						StringPool.PERIOD);
+
 					String importClassName =
-						importPackageAndClassName.substring(
-							importPackageAndClassName.lastIndexOf(
-								StringPool.PERIOD) + 1);
+						importPackageAndClassName.substring(z + 1);
 
 					afterImportsContent = StringUtil.replaceFirst(
 						afterImportsContent, importPackageAndClassName,

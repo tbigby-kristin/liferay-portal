@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMContent}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMContent
  * @generated
  */
-@ProviderType
 public class DDMContentWrapper
 	extends BaseModelWrapper<DDMContent>
 	implements DDMContent, ModelWrapper<DDMContent> {
@@ -46,6 +43,7 @@ public class DDMContentWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("contentId", getContentId());
 		attributes.put("groupId", getGroupId());
@@ -63,6 +61,12 @@ public class DDMContentWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -211,6 +215,16 @@ public class DDMContentWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this ddm content.
+	 *
+	 * @return the mvcc version of this ddm content
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this ddm content.
 	 *
 	 * @return the name of this ddm content
@@ -336,6 +350,11 @@ public class DDMContentWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm content model instance should use the <code>DDMContent</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -424,6 +443,16 @@ public class DDMContentWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm content.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm content
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

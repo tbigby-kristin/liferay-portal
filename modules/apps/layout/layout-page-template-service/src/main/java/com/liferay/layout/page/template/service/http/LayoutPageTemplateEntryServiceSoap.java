@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.rmi.RemoteException;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the SOAP utility for the
  * <code>LayoutPageTemplateEntryServiceUtil</code> service
@@ -61,7 +59,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutPageTemplateEntryServiceHttp
  * @generated
  */
-@ProviderType
 public class LayoutPageTemplateEntryServiceSoap {
 
 	public static
@@ -95,6 +92,39 @@ public class LayoutPageTemplateEntryServiceSoap {
 		com.liferay.layout.page.template.model.LayoutPageTemplateEntrySoap
 				addLayoutPageTemplateEntry(
 					long groupId, long layoutPageTemplateCollectionId,
+					String name, int status, long classNameId, long classTypeId,
+					com.liferay.portal.kernel.service.ServiceContext
+						serviceContext)
+			throws RemoteException {
+
+		try {
+			com.liferay.layout.page.template.model.LayoutPageTemplateEntry
+				returnValue =
+					LayoutPageTemplateEntryServiceUtil.
+						addLayoutPageTemplateEntry(
+							groupId, layoutPageTemplateCollectionId, name,
+							status, classNameId, classTypeId, serviceContext);
+
+			return com.liferay.layout.page.template.model.
+				LayoutPageTemplateEntrySoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addLayoutPageTemplateEntry(long, long, String, int, int,
+	 ServiceContext)} ()}
+	 */
+	@Deprecated
+	public static
+		com.liferay.layout.page.template.model.LayoutPageTemplateEntrySoap
+				addLayoutPageTemplateEntry(
+					long groupId, long layoutPageTemplateCollectionId,
 					String name, int type,
 					com.liferay.portal.kernel.service.ServiceContext
 						serviceContext)
@@ -118,6 +148,12 @@ public class LayoutPageTemplateEntryServiceSoap {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addLayoutPageTemplateEntry(long, long, String, int, int,
+	 ServiceContext)} ()}
+	 */
+	@Deprecated
 	public static
 		com.liferay.layout.page.template.model.LayoutPageTemplateEntrySoap
 				addLayoutPageTemplateEntry(
@@ -899,14 +935,14 @@ public class LayoutPageTemplateEntryServiceSoap {
 	}
 
 	public static int getLayoutPageTemplateEntriesCount(
-			long groupId, long layoutPageTemplateFolderId)
+			long groupId, long layoutPageTemplateCollectionId)
 		throws RemoteException {
 
 		try {
 			int returnValue =
 				LayoutPageTemplateEntryServiceUtil.
 					getLayoutPageTemplateEntriesCount(
-						groupId, layoutPageTemplateFolderId);
+						groupId, layoutPageTemplateCollectionId);
 
 			return returnValue;
 		}
@@ -918,14 +954,14 @@ public class LayoutPageTemplateEntryServiceSoap {
 	}
 
 	public static int getLayoutPageTemplateEntriesCount(
-			long groupId, long layoutPageTemplateFolderId, int status)
+			long groupId, long layoutPageTemplateCollectionId, int status)
 		throws RemoteException {
 
 		try {
 			int returnValue =
 				LayoutPageTemplateEntryServiceUtil.
 					getLayoutPageTemplateEntriesCount(
-						groupId, layoutPageTemplateFolderId, status);
+						groupId, layoutPageTemplateCollectionId, status);
 
 			return returnValue;
 		}
@@ -1016,14 +1052,14 @@ public class LayoutPageTemplateEntryServiceSoap {
 	}
 
 	public static int getLayoutPageTemplateEntriesCount(
-			long groupId, long layoutPageTemplateFolderId, String name)
+			long groupId, long layoutPageTemplateCollectionId, String name)
 		throws RemoteException {
 
 		try {
 			int returnValue =
 				LayoutPageTemplateEntryServiceUtil.
 					getLayoutPageTemplateEntriesCount(
-						groupId, layoutPageTemplateFolderId, name);
+						groupId, layoutPageTemplateCollectionId, name);
 
 			return returnValue;
 		}
@@ -1035,7 +1071,7 @@ public class LayoutPageTemplateEntryServiceSoap {
 	}
 
 	public static int getLayoutPageTemplateEntriesCount(
-			long groupId, long layoutPageTemplateFolderId, String name,
+			long groupId, long layoutPageTemplateCollectionId, String name,
 			int status)
 		throws RemoteException {
 
@@ -1043,7 +1079,7 @@ public class LayoutPageTemplateEntryServiceSoap {
 			int returnValue =
 				LayoutPageTemplateEntryServiceUtil.
 					getLayoutPageTemplateEntriesCount(
-						groupId, layoutPageTemplateFolderId, name, status);
+						groupId, layoutPageTemplateCollectionId, name, status);
 
 			return returnValue;
 		}
@@ -1156,6 +1192,10 @@ public class LayoutPageTemplateEntryServiceSoap {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public static
 		com.liferay.layout.page.template.model.LayoutPageTemplateEntrySoap
 				updateLayoutPageTemplateEntry(

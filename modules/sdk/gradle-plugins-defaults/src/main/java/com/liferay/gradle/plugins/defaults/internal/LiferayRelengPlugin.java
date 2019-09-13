@@ -26,6 +26,7 @@ import com.liferay.gradle.plugins.change.log.builder.ChangeLogBuilderPlugin;
 import com.liferay.gradle.plugins.defaults.LiferayOSGiDefaultsPlugin;
 import com.liferay.gradle.plugins.defaults.LiferayThemeDefaultsPlugin;
 import com.liferay.gradle.plugins.defaults.internal.util.FileUtil;
+import com.liferay.gradle.plugins.defaults.internal.util.GitRepo;
 import com.liferay.gradle.plugins.defaults.internal.util.GitUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.GradlePluginsDefaultsUtil;
 import com.liferay.gradle.plugins.defaults.internal.util.GradleUtil;
@@ -745,6 +746,13 @@ public class LiferayRelengPlugin implements Plugin<Project> {
 
 				@Override
 				public boolean isSatisfiedBy(Task task) {
+					File gitRepoDir = GradleUtil.getRootDir(
+						task.getProject(), GitRepo.GIT_REPO_FILE_NAME);
+
+					if (gitRepoDir != null) {
+						return false;
+					}
+
 					File relengIgnoreDir = GradleUtil.getRootDir(
 						task.getProject(), RELENG_IGNORE_FILE_NAME);
 
@@ -830,9 +838,9 @@ public class LiferayRelengPlugin implements Plugin<Project> {
 	private void _configureTaskWriteArtifactPublishCommandsForOSGi(
 		WriteArtifactPublishCommandsTask writeArtifactPublishCommandsTask) {
 
-		Project project = writeArtifactPublishCommandsTask.getProject();
+		if (GradlePluginsDefaultsUtil.isTestProject(
+				writeArtifactPublishCommandsTask.getProject())) {
 
-		if (GradlePluginsDefaultsUtil.isTestProject(project)) {
 			writeArtifactPublishCommandsTask.setEnabled(false);
 		}
 

@@ -42,6 +42,7 @@ import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.HtmlImpl;
 
 import java.io.Serializable;
@@ -540,15 +541,6 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 	}
 
 	@Test
-	public void testGetSettings() {
-		Class<?> settings = _ddmRESTDataProvider.getSettings();
-
-		Assert.assertEquals(
-			DDMRESTDataProviderSettings.class.getCanonicalName(),
-			settings.getCanonicalName());
-	}
-
-	@Test
 	public void testListOutputWithoutPagination() {
 		DocumentContext documentContext = mock(DocumentContext.class);
 
@@ -557,9 +549,11 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 
 		DDMDataProviderRequest ddmDataProviderRequest = builder.build();
 
+		String outputParameterId = StringUtil.randomString();
+
 		DDMRESTDataProviderSettings ddmRESTDataProviderSettings =
 			_createSettingsWithOutputParameter(
-				"list output", "value;key", "list", false);
+				outputParameterId, "list output", false, "value;key", "list");
 
 		when(
 			documentContext.read(".value", List.class)
@@ -596,9 +590,9 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 
 		Optional<List<KeyValuePair>> optional =
 			ddmDataProviderResponse.getOutputOptional(
-				"list output", List.class);
+				outputParameterId, List.class);
 
-		List<KeyValuePair> keyValuePairs = new ArrayList() {
+		List<KeyValuePair> keyValuePairs = new ArrayList<KeyValuePair>() {
 			{
 				add(new KeyValuePair("5", "Rio de Janeiro"));
 				add(new KeyValuePair("6", "São Paulo"));
@@ -625,9 +619,11 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 			"paginationEnd", "3"
 		).build();
 
+		String outputParameterId = StringUtil.randomString();
+
 		DDMRESTDataProviderSettings ddmRESTDataProviderSettings =
 			_createSettingsWithOutputParameter(
-				"list output", "value;key", "list", true);
+				outputParameterId, "list output", true, "value;key", "list");
 
 		when(
 			documentContext.read(".value", List.class)
@@ -662,9 +658,9 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 
 		Optional<List<KeyValuePair>> optional =
 			ddmDataProviderResponse.getOutputOptional(
-				"list output", List.class);
+				outputParameterId, List.class);
 
-		List<KeyValuePair> keyValuePairs = new ArrayList() {
+		List<KeyValuePair> keyValuePairs = new ArrayList<KeyValuePair>() {
 			{
 				add(new KeyValuePair("1", "Pernambuco"));
 				add(new KeyValuePair("2", "Paraiba"));
@@ -706,9 +702,12 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 
 		DDMDataProviderRequest ddmDataProviderRequest = builder.build();
 
+		String outputParameterId = StringUtil.randomString();
+
 		DDMRESTDataProviderSettings ddmRESTDataProviderSettings =
 			_createSettingsWithOutputParameter(
-				"number output", "numberProp", "number", false);
+				outputParameterId, "number output", false, "numberProp",
+				"number");
 
 		when(
 			documentContext.read(".numberProp", Number.class)
@@ -722,7 +721,7 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 				ddmRESTDataProviderSettings);
 
 		Optional<Number> optional = ddmDataProviderResponse.getOutputOptional(
-			"number output", Number.class);
+			outputParameterId, Number.class);
 
 		Assert.assertEquals(1, optional.get());
 	}
@@ -822,7 +821,7 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 			name.capture(), value.capture()
 		);
 
-		List<String> names = new ArrayList() {
+		List<String> names = new ArrayList<String>() {
 			{
 				add("country");
 				add("start");
@@ -832,7 +831,7 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 
 		Assert.assertEquals(names, name.getAllValues());
 
-		List<String> values = new ArrayList() {
+		List<String> values = new ArrayList<String>() {
 			{
 				add("brazil");
 				add("1");
@@ -852,9 +851,11 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 
 		DDMDataProviderRequest ddmDataProviderRequest = builder.build();
 
+		String outputParameterId = StringUtil.randomString();
+
 		DDMRESTDataProviderSettings ddmRESTDataProviderSettings =
 			_createSettingsWithOutputParameter(
-				"text output", "textProp", "text", false);
+				outputParameterId, "text output", false, "textProp", "text");
 
 		when(
 			documentContext.read(".textProp", String.class)
@@ -868,7 +869,7 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 				ddmRESTDataProviderSettings);
 
 		Optional<String> optional = ddmDataProviderResponse.getOutputOptional(
-			"text output", String.class);
+			outputParameterId, String.class);
 
 		Assert.assertEquals("brazil", optional.get());
 	}
@@ -952,7 +953,7 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 	}
 
 	private DDMRESTDataProviderSettings _createSettingsWithOutputParameter(
-		String name, String path, String type, boolean pagination) {
+		String id, String name, boolean pagination, String path, String type) {
 
 		DDMForm ddmForm = DDMFormFactory.create(
 			DDMRESTDataProviderSettings.class);
@@ -985,6 +986,10 @@ public class DDMRESTDataProviderTest extends PowerMockito {
 		outputParameters.addNestedDDMFormFieldValue(
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"outputParameterType", String.format("[\"%s\"]", type)));
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterId", id));
 
 		return DDMFormInstanceFactory.create(
 			DDMRESTDataProviderSettings.class, ddmFormValues);

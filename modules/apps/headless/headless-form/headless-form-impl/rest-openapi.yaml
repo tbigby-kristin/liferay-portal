@@ -289,10 +289,6 @@ components:
                     type: string
                 draft:
                     type: boolean
-                form:
-                    allOf:
-                        - $ref: "#/components/schemas/Form"
-                    readOnly: true
                 formFieldValues:
                     items:
                         $ref: "#/components/schemas/FormFieldValue"
@@ -362,6 +358,9 @@ components:
             type: object
 info:
     description: ""
+    license:
+        name: "Apache 2.0"
+        url: "http://www.apache.org/licenses/LICENSE-2.0.html"
     title: "Headless Form"
     version: v1.0
 openapi: 3.0.1
@@ -426,16 +425,16 @@ paths:
         put:
             operationId: putFormRecord
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: formRecordId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:
@@ -501,16 +500,16 @@ paths:
         post:
             operationId: postFormEvaluateContext
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: formId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:
@@ -598,16 +597,16 @@ paths:
         post:
             operationId: postFormFormRecord
             parameters:
-                - in: header
-                  name: Accept-Language
-                  schema:
-                      type: string
                 - in: path
                   name: formId
                   required: true
                   schema:
                       format: int64
                       type: integer
+                - in: header
+                  name: Accept-Language
+                  schema:
+                      type: string
             requestBody:
                 content:
                     application/json:

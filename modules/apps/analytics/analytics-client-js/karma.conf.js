@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 const path = require('path');
 const webpack = require('./webpack.config.test');
 
@@ -14,11 +28,12 @@ module.exports = function(config) {
 			reporters: [
 				{
 					subdir: 'lcov',
-					type: 'lcov',
-				}, {
-					type: 'text-summary',
+					type: 'lcov'
 				},
-			],
+				{
+					type: 'text-summary'
+				}
+			]
 		},
 
 		customLaunchers: {
@@ -35,9 +50,7 @@ module.exports = function(config) {
 			}
 		},
 
-		files: [
-			'test/index.js',
-		],
+		files: ['test/index.js'],
 
 		frameworks: ['chai', 'mocha', 'sinon'],
 
@@ -48,17 +61,17 @@ module.exports = function(config) {
 			'karma-mocha',
 			'karma-sinon',
 			'karma-sourcemap-loader',
-			'karma-webpack',
+			'karma-webpack'
 		],
 
 		preprocessors: {
-			'test/index.js': ['webpack', 'sourcemap'],
+			'test/index.js': ['webpack', 'sourcemap']
 		},
 
 		reporters: ['progress', 'coverage-istanbul'],
 
 		singleRun: true,
 
-		webpack,
+		webpack
 	});
 };

@@ -94,7 +94,7 @@ List<KBComment> kbComments = kbCommentsSearchContainer.getResults();
 <aui:script>
 	var deleteKBComments = function() {
 		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
-			var form = document.querySelector('#<portlet:namespace />fm');
+			var form = document.getElementById('<portlet:namespace />fm');
 
 			if (form) {
 				submitForm(form);

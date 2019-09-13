@@ -16,6 +16,7 @@ package com.liferay.journal.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 
 import org.osgi.annotation.versioning.ProviderType;
@@ -33,9 +34,9 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface JournalContentSearchModel
-	extends BaseModel<JournalContentSearch>, ShardedModel {
+	extends BaseModel<JournalContentSearch>, MVCCModel, ShardedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a journal content search model instance should use the {@link JournalContentSearch} interface instead.
@@ -54,6 +55,22 @@ public interface JournalContentSearchModel
 	 * @param primaryKey the primary key of this journal content search
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this journal content search.
+	 *
+	 * @return the mvcc version of this journal content search
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this journal content search.
+	 *
+	 * @param mvccVersion the mvcc version of this journal content search
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the content search ID of this journal content search.

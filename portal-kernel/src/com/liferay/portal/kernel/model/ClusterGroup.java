@@ -24,13 +24,15 @@ import org.osgi.annotation.versioning.ProviderType;
  *
  * @author Brian Wing Shun Chan
  * @see ClusterGroupModel
+ * @deprecated
  * @generated
  */
+@Deprecated
 @ImplementationClassName("com.liferay.portal.model.impl.ClusterGroupImpl")
 @ProviderType
 public interface ClusterGroup extends ClusterGroupModel, PersistedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to <code>com.liferay.portal.model.impl.ClusterGroupImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.

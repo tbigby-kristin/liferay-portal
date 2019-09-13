@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import State, {Config} from 'metal-state';
 import {buildFragment} from 'metal-dom';
 
@@ -49,7 +63,6 @@ const pendingCallbacks = {};
  * @review
  */
 class MapBase extends State {
-
 	/**
 	 * MapBase constructor
 	 * @param  {Array} args List of arguments to be sent to State constructor
@@ -67,31 +80,41 @@ class MapBase extends State {
 		this._map = null;
 		this._originalPosition = null;
 
-		this._handleGeoJSONLayerFeatureClicked = this._handleGeoJSONLayerFeatureClicked.bind(this);
-		this._handleGeoJSONLayerFeaturesAdded = this._handleGeoJSONLayerFeaturesAdded.bind(this);
-		this._handleGeoLocationMarkerDragended = this._handleGeoLocationMarkerDragended.bind(this);
-		this._handleHomeButtonClicked = this._handleHomeButtonClicked.bind(this);
+		this._handleGeoJSONLayerFeatureClicked = this._handleGeoJSONLayerFeatureClicked.bind(
+			this
+		);
+		this._handleGeoJSONLayerFeaturesAdded = this._handleGeoJSONLayerFeaturesAdded.bind(
+			this
+		);
+		this._handleGeoLocationMarkerDragended = this._handleGeoLocationMarkerDragended.bind(
+			this
+		);
+		this._handleHomeButtonClicked = this._handleHomeButtonClicked.bind(
+			this
+		);
 		this._handlePositionChanged = this._handlePositionChanged.bind(this);
-		this._handleSearchButtonClicked = this._handleSearchButtonClicked.bind(this);
+		this._handleSearchButtonClicked = this._handleSearchButtonClicked.bind(
+			this
+		);
 
 		this.on('positionChange', this._handlePositionChanged);
 
-		const geolocation = this.position && this.position.location ? this.position.location : {};
+		const geolocation =
+			this.position && this.position.location
+				? this.position.location
+				: {};
 
 		if (!geolocation.lat || !geolocation.lng) {
 			Liferay.Util.getGeolocation(
 				(lat, lng) => {
-					this._initializeLocation({lat,
-						lng});
+					this._initializeLocation({lat, lng});
 				},
 				() => {
 					this.zoom = 2;
-					this._initializeLocation({lat: 0,
-						lng: 0});
+					this._initializeLocation({lat: 0, lng: 0});
 				}
 			);
-		}
-		else {
+		} else {
 			this._initializeLocation(geolocation);
 		}
 	}
@@ -109,7 +132,10 @@ class MapBase extends State {
 			this._geoJSONLayer = null;
 		}
 
-		if (this._customControls && this._customControls[this.constructor.CONTROLS.SEARCH]) {
+		if (
+			this._customControls &&
+			this._customControls[this.constructor.CONTROLS.SEARCH]
+		) {
 			this._customControls[this.constructor.CONTROLS.SEARCH].dispose();
 
 			this._customControls[this.constructor.CONTROLS.SEARCH] = null;
@@ -153,11 +179,18 @@ class MapBase extends State {
 		}
 
 		if (this._customControls) {
-			const homeControl = this._customControls[this.constructor.CONTROLS.HOME];
-			const searchControl = this._customControls[this.constructor.CONTROLS.SEARCH];
+			const homeControl = this._customControls[
+				this.constructor.CONTROLS.HOME
+			];
+			const searchControl = this._customControls[
+				this.constructor.CONTROLS.SEARCH
+			];
 
 			if (homeControl) {
-				homeControl.addEventListener('click', this._handleHomeButtonClicked);
+				homeControl.addEventListener(
+					'click',
+					this._handleHomeButtonClicked
+				);
 			}
 
 			if (searchControl) {
@@ -178,16 +211,21 @@ class MapBase extends State {
 		const customControls = {};
 
 		if (controls.indexOf(this.constructor.CONTROLS.HOME) !== -1) {
-			const homeControl = buildFragment(TPL_HOME_BUTTON).firstElementChild;
+			const homeControl = buildFragment(TPL_HOME_BUTTON)
+				.firstElementChild;
 			customControls[this.constructor.CONTROLS.HOME] = homeControl;
-			this.addControl(homeControl, this.constructor.POSITION.RIGHT_BOTTOM);
+			this.addControl(
+				homeControl,
+				this.constructor.POSITION.RIGHT_BOTTOM
+			);
 		}
 
 		if (
 			controls.indexOf(this.constructor.CONTROLS.SEARCH) !== -1 &&
 			this.constructor.SearchImpl
 		) {
-			const searchControl = buildFragment(TPL_SEARCH_BOX).firstElementChild;
+			const searchControl = buildFragment(TPL_SEARCH_BOX)
+				.firstElementChild;
 			customControls[
 				this.constructor.CONTROLS.SEARCH
 			] = new this.constructor.SearchImpl({
@@ -208,7 +246,12 @@ class MapBase extends State {
 	 * @return {Object} Created map
 	 * @review
 	 */
-	_createMap(geolocation, controlsConfig) {
+	_createMap(
+		/* eslint-disable no-unused-vars */
+		location,
+		controlsConfig
+		/* eslint-enable no-unused-vars */
+	) {
 		throw new Error('This method must be implemented');
 	}
 
@@ -225,32 +268,28 @@ class MapBase extends State {
 	 */
 	_getControlsConfig() {
 		const config = {};
-		const availableControls = this.controls.map(
-			item => {
-				return typeof item === 'string' ? item : item.name;
-			}
-		);
+		const availableControls = this.controls.map(item => {
+			return typeof item === 'string' ? item : item.name;
+		});
 
-		Object.keys(this.constructor.CONTROLS_MAP).forEach(
-			key => {
-				const controlIndex = availableControls.indexOf(key);
-				const value = this.constructor.CONTROLS_MAP[key];
+		Object.keys(this.constructor.CONTROLS_MAP).forEach(key => {
+			const controlIndex = availableControls.indexOf(key);
+			const value = this.constructor.CONTROLS_MAP[key];
 
-				if (controlIndex > -1) {
-					const controlConfig = this.controls[controlIndex];
+			if (controlIndex > -1) {
+				const controlConfig = this.controls[controlIndex];
 
-					if (
-						controlConfig &&
-						typeof controlConfig === 'object' &&
-						controlConfig.cfg
-					) {
-						config[`${value}Options`] = controlConfig.cfg;
-					}
-
-					config[value] = controlIndex !== -1;
+				if (
+					controlConfig &&
+					typeof controlConfig === 'object' &&
+					controlConfig.cfg
+				) {
+					config[`${value}Options`] = controlConfig.cfg;
 				}
+
+				config[value] = controlIndex !== -1;
 			}
-		);
+		});
 
 		return config;
 	}
@@ -265,11 +304,9 @@ class MapBase extends State {
 	 */
 	_getDialog() {
 		if (!this._dialog && this.constructor.DialogImpl) {
-			this._dialog = new this.constructor.DialogImpl(
-				{
-					map: this._map
-				}
-			);
+			this._dialog = new this.constructor.DialogImpl({
+				map: this._map
+			});
 		}
 
 		return this._dialog;
@@ -304,16 +341,11 @@ class MapBase extends State {
 	_handleGeoJSONLayerFeaturesAdded({features}) {
 		const bounds = this.getBounds();
 
-		const locations = features.map(
-			feature => feature.getGeometry().get()
-		);
+		const locations = features.map(feature => feature.getGeometry().get());
 
 		if (locations.length > 1) {
-			locations.forEach(
-				location => bounds.extend(location)
-			);
-		}
-		else {
+			locations.forEach(location => bounds.extend(location));
+		} else {
 			this.position = {location: locations[0]};
 		}
 	}
@@ -339,12 +371,9 @@ class MapBase extends State {
 	 * @see MapBase.position
 	 */
 	_handleGeoLocationMarkerDragended({location}) {
-		this._getGeocoder().reverse(
-			location,
-			({data}) => {
-				this.position = data;
-			}
-		);
+		this._getGeocoder().reverse(location, ({data}) => {
+			this.position = data;
+		});
 	}
 
 	/**
@@ -417,12 +446,10 @@ class MapBase extends State {
 		const geocoder = this._getGeocoder();
 
 		if (this.geolocation && geocoder) {
-			geocoder.reverse(
-				geolocation,
-				({data}) => this._initializeMap(data)
+			geocoder.reverse(geolocation, ({data}) =>
+				this._initializeMap(data)
 			);
-		}
-		else {
+		} else {
 			this._initializeMap({location: geolocation});
 		}
 	}
@@ -453,11 +480,9 @@ class MapBase extends State {
 			this.constructor.GeoJSONImpl &&
 			this.constructor.GeoJSONImpl !== GeoJSONBase
 		) {
-			this._geoJSONLayer = new this.constructor.GeoJSONImpl(
-				{
-					map: this._map
-				}
-			);
+			this._geoJSONLayer = new this.constructor.GeoJSONImpl({
+				map: this._map
+			});
 		}
 
 		if (this.geolocation) {
@@ -477,7 +502,12 @@ class MapBase extends State {
 	 * @param {MapBase.POSITION} position Position defined in MapBase class
 	 * @review
 	 */
-	addControl(/* control, position */) {
+	addControl(
+		/* eslint-disable no-unused-vars */
+		control,
+		position
+		/* eslint-enable no-unused-vars */
+	) {
 		throw new Error('This method must be implemented');
 	}
 
@@ -497,7 +527,11 @@ class MapBase extends State {
 	 * @param {Object} location
 	 * @review
 	 */
-	setCenter(/* location */) {
+	setCenter(
+		/* eslint-disable no-unused-vars */
+		location
+		/* eslint-enable no-unused-vars */
+	) {
 		throw new Error('This method must be implemented');
 	}
 
@@ -512,13 +546,14 @@ class MapBase extends State {
 	addMarker(location) {
 		let marker;
 
-		if (this.constructor.MarkerImpl && this.constructor.MarkerImpl !== MarkerBase) {
-			marker = new this.constructor.MarkerImpl(
-				{
-					location,
-					map: this._map
-				}
-			);
+		if (
+			this.constructor.MarkerImpl &&
+			this.constructor.MarkerImpl !== MarkerBase
+		) {
+			marker = new this.constructor.MarkerImpl({
+				location,
+				map: this._map
+			});
 		}
 
 		return marker;
@@ -578,15 +613,12 @@ class MapBase extends State {
 	 * @review
 	 */
 	setPosition(position) {
-		this.emit(
-			'positionChange',
-			{
-				newVal: {
-					location: position.location,
-					address: position.address
-				}
+		this.emit('positionChange', {
+			newVal: {
+				address: position.address,
+				location: position.location
 			}
-		);
+		});
 
 		return position;
 	}
@@ -605,8 +637,7 @@ MapBase.get = function(id, callback) {
 
 	if (map) {
 		callback(map);
-	}
-	else {
+	} else {
 		const idPendingCallbacks = pendingCallbacks[id] || [];
 
 		idPendingCallbacks.push(callback);
@@ -631,9 +662,7 @@ MapBase.register = function(id, map, portletId) {
 	const idPendingCallbacks = pendingCallbacks[id];
 
 	if (idPendingCallbacks) {
-		idPendingCallbacks.forEach(
-			callback => callback(map)
-		);
+		idPendingCallbacks.forEach(callback => callback(map));
 
 		idPendingCallbacks.length = 0;
 	}
@@ -733,7 +762,6 @@ MapBase.POSITION_MAP = {};
  * @type {!Object}
  */
 MapBase.STATE = {
-
 	/**
 	 * DOM node selector identifying the element that will be used
 	 * for rendering the map
@@ -748,9 +776,13 @@ MapBase.STATE = {
 	 * @review
 	 * @type {Array<string>}
 	 */
-	controls: Config.validator(isSubsetOf(Object.values(MapBase.CONTROLS))).value(
-		[MapBase.CONTROLS.PAN, MapBase.CONTROLS.TYPE, MapBase.CONTROLS.ZOOM]
-	),
+	controls: Config.validator(
+		isSubsetOf(Object.values(MapBase.CONTROLS))
+	).value([
+		MapBase.CONTROLS.PAN,
+		MapBase.CONTROLS.TYPE,
+		MapBase.CONTROLS.ZOOM
+	]),
 
 	/**
 	 * Data that will be parsed as GeoJSONData
@@ -779,8 +811,7 @@ MapBase.STATE = {
 		})
 	})
 		.value({
-			location: {lat: 0,
-				lng: 0}
+			location: {lat: 0, lng: 0}
 		})
 		.setter('setPosition'),
 

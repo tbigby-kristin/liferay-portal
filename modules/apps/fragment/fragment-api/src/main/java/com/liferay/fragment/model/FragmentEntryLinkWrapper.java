@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link FragmentEntryLink}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see FragmentEntryLink
  * @generated
  */
-@ProviderType
 public class FragmentEntryLinkWrapper
 	extends BaseModelWrapper<FragmentEntryLink>
 	implements FragmentEntryLink, ModelWrapper<FragmentEntryLink> {
@@ -46,6 +43,7 @@ public class FragmentEntryLinkWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("fragmentEntryLinkId", getFragmentEntryLinkId());
 		attributes.put("groupId", getGroupId());
@@ -62,6 +60,7 @@ public class FragmentEntryLinkWrapper
 		attributes.put("css", getCss());
 		attributes.put("html", getHtml());
 		attributes.put("js", getJs());
+		attributes.put("configuration", getConfiguration());
 		attributes.put("editableValues", getEditableValues());
 		attributes.put("namespace", getNamespace());
 		attributes.put("position", getPosition());
@@ -74,6 +73,12 @@ public class FragmentEntryLinkWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -165,6 +170,12 @@ public class FragmentEntryLinkWrapper
 			setJs(js);
 		}
 
+		String configuration = (String)attributes.get("configuration");
+
+		if (configuration != null) {
+			setConfiguration(configuration);
+		}
+
 		String editableValues = (String)attributes.get("editableValues");
 
 		if (editableValues != null) {
@@ -240,6 +251,16 @@ public class FragmentEntryLinkWrapper
 	@Override
 	public long getCompanyId() {
 		return model.getCompanyId();
+	}
+
+	/**
+	 * Returns the configuration of this fragment entry link.
+	 *
+	 * @return the configuration of this fragment entry link
+	 */
+	@Override
+	public String getConfiguration() {
+		return model.getConfiguration();
 	}
 
 	/**
@@ -353,6 +374,16 @@ public class FragmentEntryLinkWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this fragment entry link.
+	 *
+	 * @return the mvcc version of this fragment entry link
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the namespace of this fragment entry link.
 	 *
 	 * @return the namespace of this fragment entry link
@@ -449,6 +480,11 @@ public class FragmentEntryLinkWrapper
 		return model.isLatestVersion();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a fragment entry link model instance should use the <code>FragmentEntryLink</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -487,6 +523,16 @@ public class FragmentEntryLinkWrapper
 	@Override
 	public void setCompanyId(long companyId) {
 		model.setCompanyId(companyId);
+	}
+
+	/**
+	 * Sets the configuration of this fragment entry link.
+	 *
+	 * @param configuration the configuration of this fragment entry link
+	 */
+	@Override
+	public void setConfiguration(String configuration) {
+		model.setConfiguration(configuration);
 	}
 
 	/**
@@ -597,6 +643,16 @@ public class FragmentEntryLinkWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this fragment entry link.
+	 *
+	 * @param mvccVersion the mvcc version of this fragment entry link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

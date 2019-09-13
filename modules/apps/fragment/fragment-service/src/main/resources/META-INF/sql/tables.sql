@@ -1,4 +1,5 @@
 create table FragmentCollection (
+	mvccVersion LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	fragmentCollectionId LONG not null primary key,
 	groupId LONG,
@@ -14,6 +15,7 @@ create table FragmentCollection (
 );
 
 create table FragmentEntry (
+	mvccVersion LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	fragmentEntryId LONG not null primary key,
 	groupId LONG,
@@ -28,6 +30,7 @@ create table FragmentEntry (
 	css TEXT null,
 	html TEXT null,
 	js TEXT null,
+	configuration TEXT null,
 	previewFileEntryId LONG,
 	type_ INTEGER,
 	lastPublishDate DATE null,
@@ -38,6 +41,7 @@ create table FragmentEntry (
 );
 
 create table FragmentEntryLink (
+	mvccVersion LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	fragmentEntryLinkId LONG not null primary key,
 	groupId LONG,
@@ -53,6 +57,7 @@ create table FragmentEntryLink (
 	css TEXT null,
 	html TEXT null,
 	js TEXT null,
+	configuration TEXT null,
 	editableValues TEXT null,
 	namespace VARCHAR(75) null,
 	position INTEGER,

@@ -46,4 +46,9 @@ public class YMLSourceProcessorTest extends BaseSourceProcessorTestCase {
 		test("SortSpecificDefinitions.testyaml");
 	}
 
+	@Test
+	public void testStyleBlock() throws Exception {
+		test("StyleBlock.testyaml");
+	}
+
 }

@@ -59,8 +59,6 @@ import javax.portlet.PortletRequest;
 import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * @author Julio Camarero
  */
@@ -148,16 +146,12 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 
 		_groupURL = StringPool.BLANK;
 
-		Group group = getGroup();
-
-		return _groupURLProvider.getGroupURL(group, _portletRequest);
+		return _groupURLProvider.getGroupURL(getGroup(), _portletRequest);
 	}
 
 	public String getGroupURL(boolean privateLayout) {
-		Group group = getGroup();
-
 		return _groupURLProvider.getGroupLayoutsURL(
-			group, privateLayout, _portletRequest);
+			getGroup(), privateLayout, _portletRequest);
 	}
 
 	public String getLiveGroupLabel() {
@@ -391,12 +385,9 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 	}
 
 	public boolean isShowSiteSelector() throws PortalException {
-		HttpServletRequest httpServletRequest =
-			PortalUtil.getHttpServletRequest(_portletRequest);
-
 		List<Group> mySites = getMySites();
 		List<Group> recentSites = _recentGroupManager.getRecentGroups(
-			httpServletRequest);
+			PortalUtil.getHttpServletRequest(_portletRequest));
 
 		if (mySites.isEmpty() && recentSites.isEmpty()) {
 			return false;
@@ -481,12 +472,8 @@ public class SiteAdministrationPanelCategoryDisplayContext {
 			return;
 		}
 
-		HttpServletRequest httpServletRequest =
-			PortalUtil.getHttpServletRequest(_portletRequest);
-
-		_recentGroupManager.addRecentGroup(httpServletRequest, groupId);
-
-		_groupProvider.setGroup(httpServletRequest, _group);
+		_groupProvider.setGroup(
+			PortalUtil.getHttpServletRequest(_portletRequest), _group);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -152,7 +152,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			Map<Locale, String> nameMap, Map<Locale, String> titleMap,
 			Map<Locale, String> descriptionMap, Map<Locale, String> keywordsMap,
 			Map<Locale, String> robotsMap, String type, boolean hidden,
-			Map<Locale, String> friendlyURLMap, boolean iconImage,
+			Map<Locale, String> friendlyURLMap, boolean hasIconImage,
 			byte[] iconBytes, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -176,8 +176,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		layoutLocalServiceHelper.validateParentLayoutId(
 			groupId, privateLayout, layoutId, parentLayoutId);
 
-		Layout layout = LayoutUtil.findByG_P_L_Head(
-			groupId, privateLayout, layoutId, false);
+		Layout layout = LayoutUtil.findByG_P_L(
+			groupId, privateLayout, layoutId);
 
 		if (LayoutStagingUtil.isBranchingLayout(layout)) {
 			layout = getProxiedLayout(layout);
@@ -190,7 +190,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			return layoutLocalService.updateLayout(
 				groupId, privateLayout, layoutId, parentLayoutId, nameMap,
 				titleMap, descriptionMap, keywordsMap, robotsMap, type, hidden,
-				friendlyURLMap, iconImage, iconBytes, serviceContext);
+				friendlyURLMap, hasIconImage, iconBytes, serviceContext);
 		}
 
 		layoutLocalService.updateAsset(
@@ -216,13 +216,13 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 		layout.setHidden(hidden);
 		layout.setFriendlyURL(friendlyURL);
 
-		if (!iconImage) {
+		if (!hasIconImage) {
 			layout.setIconImageId(0);
 			layoutRevision.setIconImageId(0);
 		}
 		else {
 			PortalUtil.updateImageId(
-				layout, iconImage, iconBytes, "iconImageId", 0, 0, 0);
+				layout, hasIconImage, iconBytes, "iconImageId", 0, 0, 0);
 		}
 
 		boolean layoutPrototypeLinkEnabled = ParamUtil.getBoolean(
@@ -273,8 +273,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			boolean privateLayout, long layoutId, String typeSettings)
 		throws PortalException {
 
-		Layout layout = LayoutUtil.findByG_P_L_Head(
-			groupId, privateLayout, layoutId, false);
+		Layout layout = LayoutUtil.findByG_P_L(
+			groupId, privateLayout, layoutId);
 
 		if (LayoutStagingUtil.isBranchingLayout(layout)) {
 			layout = getProxiedLayout(layout);
@@ -322,8 +322,8 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			String colorSchemeId, String css)
 		throws PortalException {
 
-		Layout layout = LayoutUtil.findByG_P_L_Head(
-			groupId, privateLayout, layoutId, false);
+		Layout layout = LayoutUtil.findByG_P_L(
+			groupId, privateLayout, layoutId);
 
 		if (LayoutStagingUtil.isBranchingLayout(layout)) {
 			layout = getProxiedLayout(layout);
@@ -413,9 +413,11 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 			boolean updateLayoutSet, ServiceContext serviceContext)
 		throws PortalException {
 
-		if (SystemEventHierarchyEntryThreadLocal.push(
-				Layout.class, layout.getPlid()) == null) {
+		SystemEventHierarchyEntry systemEventHierarchyEntry =
+			SystemEventHierarchyEntryThreadLocal.push(
+				Layout.class, layout.getPlid());
 
+		if (systemEventHierarchyEntry == null) {
 			layoutLocalService.deleteLayout(
 				layout, updateLayoutSet, serviceContext);
 		}
@@ -424,7 +426,7 @@ public class LayoutLocalServiceStagingAdvice implements BeanFactoryAware {
 				layoutLocalService.deleteLayout(
 					layout, updateLayoutSet, serviceContext);
 
-				SystemEventHierarchyEntry systemEventHierarchyEntry =
+				systemEventHierarchyEntry =
 					SystemEventHierarchyEntryThreadLocal.peek();
 
 				SystemEventLocalServiceUtil.addSystemEvent(

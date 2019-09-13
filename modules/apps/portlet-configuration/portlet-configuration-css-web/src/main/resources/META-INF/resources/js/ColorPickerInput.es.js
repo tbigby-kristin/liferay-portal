@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import core from 'metal';
 import Soy from 'metal-soy';
@@ -11,30 +25,28 @@ import templates from './ColorPickerInput.soy';
  */
 
 class ColorPickerInput extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
 
 	rendered() {
-		let instance = this;
+		const instance = this;
 
-		AUI().use(
-			'aui-color-picker-popover',
-			function(A) {
-				instance.colorPickerPopover = new A.ColorPickerPopover(
-					{
-						color: instance.color,
-						constrain: true,
-						trigger: '#' + instance.id,
-						zIndex: Liferay.zIndex.POPOVER
-					}
-				);
+		AUI().use('aui-color-picker-popover', function(A) {
+			instance.colorPickerPopover = new A.ColorPickerPopover({
+				color: instance.color,
+				constrain: true,
+				trigger: '#' + instance.id,
+				zIndex: Liferay.zIndex.POPOVER
+			});
 
-				instance.colorPickerPopover.render(instance.element);
-				instance.colorPickerPopover.after('select', instance.setColor_, instance);
-			}
-		);
+			instance.colorPickerPopover.render(instance.element);
+			instance.colorPickerPopover.after(
+				'select',
+				instance.setColor_,
+				instance
+			);
+		});
 	}
 
 	/**
@@ -55,7 +67,6 @@ class ColorPickerInput extends Component {
  */
 
 ColorPickerInput.STATE = {
-
 	/**
 	 * Current selected color
 	 * @type {String}

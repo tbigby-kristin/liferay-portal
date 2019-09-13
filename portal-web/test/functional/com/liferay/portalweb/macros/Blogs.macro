@@ -542,9 +542,8 @@ definition {
 		LexiconCard.viewCardPresent(card = "${entryTitle}");
 	}
 
-	macro viewEntryTitle
-	{
-		LexiconList.viewListEntryTitle(listEntry = "${entryTitle}");
+	macro viewEntryTitle {
+		LexiconList.viewListEntryTitleLink(listEntry = "${entryTitle}");
 	}
 
 	macro viewNoEntryCP {

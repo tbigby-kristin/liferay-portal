@@ -18,19 +18,22 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.data.engine.rest.client.dto.v1_0.DataDefinition;
 import com.liferay.data.engine.rest.client.dto.v1_0.DataDefinitionField;
 import com.liferay.data.engine.rest.client.dto.v1_0.DataDefinitionPermission;
-import com.liferay.data.engine.rest.client.resource.v1_0.DataDefinitionResource;
-import com.liferay.data.engine.rest.resource.v1_0.test.util.DataDefinitionTestUtil;
-import com.liferay.dynamic.data.mapping.model.DDMStructure;
+import com.liferay.data.engine.rest.client.pagination.Page;
+import com.liferay.data.engine.rest.client.pagination.Pagination;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -41,18 +44,92 @@ public class DataDefinitionResourceTest
 	extends BaseDataDefinitionResourceTestCase {
 
 	@Override
+	public void testGetDataDefinitionDataDefinitionFieldFieldType()
+		throws Exception {
+
+		String fieldTypes =
+			dataDefinitionResource.
+				getDataDefinitionDataDefinitionFieldFieldType();
+
+		Assert.assertTrue(Validator.isNotNull(fieldTypes));
+	}
+
+	@Override
+	@Test
+	public void testGetSiteDataDefinitionsPage() throws Exception {
+		super.testGetSiteDataDefinitionsPage();
+
+		Page<DataDefinition> page =
+			dataDefinitionResource.getSiteDataDefinitionsPage(
+				testGetSiteDataDefinitionsPage_getSiteId(), "definition",
+				Pagination.of(1, 2), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
+
+		_testGetSiteDataDefinitionsPage("!@#description", "!@#d", "name");
+		_testGetSiteDataDefinitionsPage(
+			"DeFiNiTiON dEsCrIpTiOn", "DEFINITION", "name");
+		_testGetSiteDataDefinitionsPage(
+			"abcdefghijklmnopqrstuvwxyz0123456789",
+			"abcdefghijklmnopqrstuvwxyz0123456789", "definition");
+		_testGetSiteDataDefinitionsPage(
+			"definition description", "descr", "name");
+		_testGetSiteDataDefinitionsPage(
+			"description name", "description name", "definition");
+		_testGetSiteDataDefinitionsPage("description", "!@#n", "!@#name");
+		_testGetSiteDataDefinitionsPage(
+			"description", "DEFINITION", "DeFiNiTiON NaMe");
+		_testGetSiteDataDefinitionsPage(
+			"description", "definition name", "definition name");
+		_testGetSiteDataDefinitionsPage(
+			"description", "nam", "definition name");
+		_testGetSiteDataDefinitionsPage("description", "π€†", "π€† name");
+		_testGetSiteDataDefinitionsPage("π€† description", "π€†", "name");
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLDeleteDataDefinition() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetDataDefinition() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetSiteDataDefinition() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetSiteDataDefinitionsPage() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLPostSiteDataDefinition() {
+	}
+
+	@Override
 	public void testPostDataDefinitionDataDefinitionPermission()
 		throws Exception {
 
-		super.testPostDataDefinitionDataDefinitionPermission();
-
-		DDMStructure ddmStructure = DataDefinitionTestUtil.addDDMStructure(
-			testGroup);
+		DataDefinition dataDefinition =
+			testGetSiteDataDefinitionsPage_addDataDefinition(
+				testGetSiteDataDefinitionsPage_getSiteId(),
+				randomDataDefinition());
 
 		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
 
-		DataDefinitionResource.postDataDefinitionDataDefinitionPermission(
-			ddmStructure.getStructureId(), _OPERATION_SAVE_PERMISSION,
+		dataDefinitionResource.postDataDefinitionDataDefinitionPermission(
+			dataDefinition.getId(), _OPERATION_SAVE_PERMISSION,
 			new DataDefinitionPermission() {
 				{
 					view = true;
@@ -63,11 +140,9 @@ public class DataDefinitionResourceTest
 
 	@Override
 	public void testPostSiteDataDefinitionPermission() throws Exception {
-		super.testPostSiteDataDefinitionPermission();
-
 		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
 
-		DataDefinitionResource.postSiteDataDefinitionPermission(
+		dataDefinitionResource.postSiteDataDefinitionPermission(
 			testGroup.getGroupId(), _OPERATION_SAVE_PERMISSION,
 			new DataDefinitionPermission() {
 				{
@@ -105,17 +180,33 @@ public class DataDefinitionResourceTest
 
 	@Override
 	protected String[] getAdditionalAssertFieldNames() {
-		return new String[] {"name", "userId"};
+		return new String[] {
+			"availableLanguageIds", "defaultLanguageId", "name", "userId"
+		};
 	}
 
 	@Override
 	protected DataDefinition randomDataDefinition() throws Exception {
-		return new DataDefinition() {
+		return _createDataDefinition(
+			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+	}
+
+	private DataDefinition _createDataDefinition(
+			String description, String name)
+		throws Exception {
+
+		DataDefinition dataDefinition = new DataDefinition() {
 			{
+				availableLanguageIds = new String[] {"en_US", "pt_BR"};
 				dataDefinitionFields = new DataDefinitionField[] {
 					new DataDefinitionField() {
 						{
-							fieldType = "fieldType";
+							description = new HashMap<String, Object>() {
+								{
+									put("en_US", RandomTestUtil.randomString());
+								}
+							};
+							fieldType = "text";
 							label = new HashMap<String, Object>() {
 								{
 									put("label", RandomTestUtil.randomString());
@@ -130,15 +221,51 @@ public class DataDefinitionResourceTest
 						}
 					}
 				};
-				name = new HashMap<String, Object>() {
-					{
-						put("en_US", RandomTestUtil.randomString());
-					}
-				};
+				dataDefinitionKey = RandomTestUtil.randomString();
+				defaultLanguageId = "en_US";
 				siteId = testGroup.getGroupId();
 				userId = TestPropsValues.getUserId();
 			}
 		};
+
+		dataDefinition.setDescription(
+			new HashMap<String, Object>() {
+				{
+					put("en_US", description);
+				}
+			});
+		dataDefinition.setName(
+			new HashMap<String, Object>() {
+				{
+					put("en_US", name);
+				}
+			});
+
+		return dataDefinition;
+	}
+
+	private void _testGetSiteDataDefinitionsPage(
+			String description, String keywords, String name)
+		throws Exception {
+
+		Long siteId = testGetSiteDataDefinitionsPage_getSiteId();
+
+		DataDefinition dataDefinition =
+			testGetSiteDataDefinitionsPage_addDataDefinition(
+				siteId, _createDataDefinition(description, name));
+
+		Page<DataDefinition> page =
+			dataDefinitionResource.getSiteDataDefinitionsPage(
+				siteId, keywords, Pagination.of(1, 2), null);
+
+		Assert.assertEquals(1, page.getTotalCount());
+
+		assertEqualsIgnoringOrder(
+			Arrays.asList(dataDefinition),
+			(List<DataDefinition>)page.getItems());
+		assertValid(page);
+
+		dataDefinitionResource.deleteDataDefinition(dataDefinition.getId());
 	}
 
 	private static final String _OPERATION_SAVE_PERMISSION = "save";

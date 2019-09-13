@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -76,19 +75,16 @@ public class MBBannedUsersManagementToolbarDisplayContext {
 	}
 
 	public List<String> getAvailableActions(MBBan ban) throws PortalException {
-		List<String> availableActionDropdownItems = new ArrayList<>();
-
-		PermissionChecker permissionChecker =
-			_themeDisplay.getPermissionChecker();
+		List<String> availableActions = new ArrayList<>();
 
 		if (MBResourcePermission.contains(
-				permissionChecker, _themeDisplay.getScopeGroupId(),
-				ActionKeys.BAN_USER)) {
+				_themeDisplay.getPermissionChecker(),
+				_themeDisplay.getScopeGroupId(), ActionKeys.BAN_USER)) {
 
-			availableActionDropdownItems.add("unbanUser");
+			availableActions.add("unbanUser");
 		}
 
-		return availableActionDropdownItems;
+		return availableActions;
 	}
 
 	public String getDisplayStyle() {

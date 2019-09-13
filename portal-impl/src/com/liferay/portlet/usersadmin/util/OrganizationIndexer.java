@@ -56,7 +56,7 @@ import javax.portlet.PortletResponse;
  * @author     Zsigmond Rab
  * @author     Hugo Huijser
  * @author     Marco Leo
- * @deprecated As of Judson (7.1.x), since 7.1.0
+ * @deprecated As of Judson (7.1.x)
  */
 @Deprecated
 public class OrganizationIndexer extends BaseIndexer<Organization> {
@@ -251,19 +251,14 @@ public class OrganizationIndexer extends BaseIndexer<Organization> {
 
 	@Override
 	protected void doReindex(Organization organization) throws Exception {
-		Document document = getDocument(organization);
-
 		IndexWriterHelperUtil.updateDocument(
-			getSearchEngineId(), organization.getCompanyId(), document,
-			isCommitImmediately());
+			getSearchEngineId(), organization.getCompanyId(),
+			getDocument(organization), isCommitImmediately());
 	}
 
 	@Override
 	protected void doReindex(String className, long classPK) throws Exception {
-		Organization organization =
-			OrganizationLocalServiceUtil.getOrganization(classPK);
-
-		doReindex(organization);
+		doReindex(OrganizationLocalServiceUtil.getOrganization(classPK));
 	}
 
 	@Override
@@ -281,9 +276,8 @@ public class OrganizationIndexer extends BaseIndexer<Organization> {
 		indexableActionableDynamicQuery.setPerformActionMethod(
 			(Organization organization) -> {
 				try {
-					Document document = getDocument(organization);
-
-					indexableActionableDynamicQuery.addDocuments(document);
+					indexableActionableDynamicQuery.addDocuments(
+						getDocument(organization));
 				}
 				catch (PortalException pe) {
 					if (_log.isWarnEnabled()) {

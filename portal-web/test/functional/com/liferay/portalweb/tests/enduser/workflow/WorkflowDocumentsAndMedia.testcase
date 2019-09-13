@@ -36,6 +36,7 @@ definition {
 	@priority = "5"
 	test ApproveInDMFolderCustomWorkflow {
 		property portal.release = "false";
+		property test.name.skip.portal.instance = "WorkflowDocumentsAndMedia#ApproveInDMFolderCustomWorkflow";
 		property testray.component.names = "Training";
 
 		ProductMenu.gotoPortlet(
@@ -174,7 +175,7 @@ definition {
 
 			Workflow.approveTaskByActions(
 				boardWorkflowTask = "${i}",
-				workflowAssetTitle = "Document_1.doc",
+				workflowAssetTitle = "Document",
 				workflowAssetType = "Document",
 				workflowTask = "Board Member Review ${i}");
 		}
@@ -197,7 +198,7 @@ definition {
 
 			Workflow.approveTaskByActions(
 				boardWorkflowTask = "${i}",
-				workflowAssetTitle = "Document_2.doc",
+				workflowAssetTitle = "Document",
 				workflowAssetType = "Document",
 				workflowTask = "Board Member Review ${i}");
 		}
@@ -220,7 +221,7 @@ definition {
 
 			Workflow.approveTaskByActions(
 				boardWorkflowTask = "${i}",
-				workflowAssetTitle = "Document_3.doc",
+				workflowAssetTitle = "Document",
 				workflowAssetType = "Document",
 				workflowTask = "Board Member Review ${i}");
 		}
@@ -269,10 +270,105 @@ definition {
 			dmFolderName = "DM Folder Name",
 			workflowRestriction = "Parent Folder");
 
+		DMNavigator.gotoDocumentType();
+
+		DMDocumentType.add(
+			dmDocumentTypeDescription = "DM Document Type Description",
+			dmDocumentTypeFieldNames = "Text Box",
+			dmDocumentTypeName = "DM Document Type Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMFolder.configureWorkflowCP(
+			dmDocumentTypeName = "DM Document Type Name",
+			dmFolderName = "DM Folder Name",
+			workflowDefinition = "Single Approver",
+			workflowRestriction = "Specific Restrictions");
+
 		DMFolder.configureWorkflowCP(
 			dmFolderName = "DM Folder Name",
 			workflowDefinition = "No Workflow",
 			workflowRestriction = "Default Workflow");
+	}
+
+	@description = "This test covers LPS-90346. It ensures that the document preview displays correctly after submitting an edit."
+	@priority = "4"
+	test PreviewSubmittedEdit {
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			panel = "Site Administration",
+			portlet = "Documents and Media");
+
+		DMFolder.addCP(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name");
+
+		DMFolder.configureWorkflowCP(
+			dmFolderName = "DM Folder Name",
+			workflowDefinition = "Single Approver",
+			workflowRestriction = "Default Workflow");
+
+		DMNavigator.gotoFolder(dmFolderName = "DM Folder Name");
+
+		DMDocument.addWithWorkflowCP(
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg");
+
+		Navigator.openURL();
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		WorkflowAsset.gotoViaNotification(
+			assetType = "Document",
+			user = "Test Test");
+
+		Workflow.gotoPreviewView();
+
+		AssertElementPresent(locator1 = "//img[contains(@src,'Document_1.jpg') and contains(@src,'version=1.0')]");
+
+		Navigator.gotoBack();
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Assign to Me");
+
+		Workflow.confirmWorkflowAction();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Workflow.viewTaskAssignedToMeDetails(
+			workflowAssetContent = "Document_1.jpg",
+			workflowAssetTitle = "Document_1.jpg",
+			workflowAssetType = "Document",
+			workflowTask = "Review");
+
+		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Approve");
+
+		Workflow.confirmWorkflowAction();
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMNavigator.gotoFolder(dmFolderName = "DM Folder Name");
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "Document_1.jpg");
+
+		DMDocument.editDocument(
+			dmDocumentFile = "Document_2.jpg",
+			dmDocumentTitle = "Document_2.jpg");
+
+		Button.clickSubmitForPublication();
+
+		Navigator.openURL();
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		WorkflowAsset.gotoViaNotification(
+			assetType = "Document",
+			user = "Test Test");
+
+		Workflow.gotoPreviewView();
+
+		AssertElementPresent(locator1 = "//img[contains(@src,'Document_1.jpg') and contains(@src,'version=2.0')]");
 	}
 
 	@description = "This is a use case for LPS-60870."
@@ -332,7 +428,7 @@ definition {
 			dmDocumentTitle = "DM Folder Name",
 			dmFolderName = "DM Folder Name");
 
-		DMNavigator.gotoAddDocumentType();
+		DMNavigator.gotoAddDocumentTypeCP();
 
 		DMDocument.editDocument(
 			dmDocumentDescription = "DM Document Description",
@@ -379,6 +475,15 @@ definition {
 		Button.clickSaveAsDraft();
 
 		Alert.viewSuccessMessage();
+
+		Navigator.openURL();
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			panel = "Site Administration",
+			portlet = "Documents and Media");
+
+		DMFolder.gotoEntry(dmFolderName = "DM Folder Name");
 
 		LexiconEntry.gotoEntryMenuItem(
 			menuItem = "Edit",

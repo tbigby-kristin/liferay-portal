@@ -1,7 +1,21 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import 'frontend-taglib/cards_treeview/CardsTreeview.es';
 import 'metal';
 import 'metal-component';
-import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
+import {PortletBase} from 'frontend-js-web';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 
@@ -23,7 +37,6 @@ const ENTER_KEY = 'Enter';
  */
 
 class SelectCategory extends PortletBase {
-
 	/**
 	 * Filters deep nested nodes based on a filtering value
 	 *
@@ -35,17 +48,17 @@ class SelectCategory extends PortletBase {
 	filterSiblingNodes_(nodes, filterValue) {
 		let filteredNodes = [];
 
-		nodes.forEach(
-			(node) => {
-				if (node.name.toLowerCase().indexOf(filterValue) !== -1) {
-					filteredNodes.push(node);
-				}
-
-				if (node.children) {
-					filteredNodes = filteredNodes.concat(this.filterSiblingNodes_(node.children, filterValue));
-				}
+		nodes.forEach(node => {
+			if (node.name.toLowerCase().indexOf(filterValue) !== -1) {
+				filteredNodes.push(node);
 			}
-		);
+
+			if (node.children) {
+				filteredNodes = filteredNodes.concat(
+					this.filterSiblingNodes_(node.children, filterValue)
+				);
+			}
+		});
 
 		return filteredNodes;
 	}
@@ -75,18 +88,16 @@ class SelectCategory extends PortletBase {
 	_searchNodes(event) {
 		if (!this.originalNodes) {
 			this.originalNodes = this.nodes;
-		}
-		else {
+		} else {
 			this.nodes = this.originalNodes;
 		}
 
-		let filterValue = event.delegateTarget.value.toLowerCase();
+		const filterValue = event.delegateTarget.value.toLowerCase();
 
 		if (filterValue !== '') {
 			this.viewType = 'flat';
 			this.nodes = this.filterSiblingNodes_(this.nodes, filterValue);
-		}
-		else {
+		} else {
 			this.viewType = 'tree';
 		}
 	}
@@ -99,7 +110,7 @@ class SelectCategory extends PortletBase {
 	 */
 
 	_selectedNodeChange(event) {
-		let newVal = event.newVal;
+		const newVal = event.newVal;
 		let selectedNodes = this.selectedNodes_;
 
 		if (!selectedNodes) {
@@ -107,53 +118,43 @@ class SelectCategory extends PortletBase {
 		}
 
 		if (newVal) {
-			let data = {};
+			const data = {};
 
-			newVal.forEach(
-				(node) => {
-					data[node.name] = {
+			newVal.forEach(node => {
+				data[node.id] = {
+					categoryId: node.vocabulary ? 0 : node.id,
+					value: node.name,
+					vocabularyId: node.vocabulary ? node.id : 0
+				};
+			});
+
+			selectedNodes.forEach(node => {
+				if (newVal.indexOf(node) === -1) {
+					data[node.id] = {
 						categoryId: node.vocabulary ? 0 : node.id,
+						unchecked: true,
 						value: node.name,
 						vocabularyId: node.vocabulary ? node.id : 0
 					};
 				}
-			);
-
-			selectedNodes.forEach(
-				(node) => {
-					if (newVal.indexOf(node) === -1) {
-						data[node.name] = {
-							categoryId: node.vocabulary ? 0 : node.id,
-							unchecked: true,
-							value: node.name,
-							vocabularyId: node.vocabulary ? node.id : 0
-						};
-					}
-				}
-			);
+			});
 
 			selectedNodes = [];
 
-			newVal.forEach(
-				(node) => {
-					selectedNodes.push(node);
-				}
-			);
+			newVal.forEach(node => {
+				selectedNodes.push(node);
+			});
 
 			this.selectedNodes_ = selectedNodes;
 
-			Liferay.Util.getOpener().Liferay.fire(
-				this.itemSelectorSaveEvent,
-				{
-					data: data
-				}
-			);
+			Liferay.Util.getOpener().Liferay.fire(this.itemSelectorSaveEvent, {
+				data
+			});
 		}
 	}
 }
 
 SelectCategory.STATE = {
-
 	/**
 	 * Event name to fire on node selection
 	 * @type {String}
@@ -162,18 +163,18 @@ SelectCategory.STATE = {
 	itemSelectorSaveEvent: Config.string(),
 
 	/**
-	 * List of nodes
-	 * @type {Array.<Object>}
-	 */
-
-	nodes: Config.array().required(),
-
-	/**
 	 * Enables multiple selection of tree elements
 	 * @type {boolean}
 	 */
 
 	multiSelection: Config.bool().value(false),
+
+	/**
+	 * List of nodes
+	 * @type {Array.<Object>}
+	 */
+
+	nodes: Config.array().required(),
 
 	/**
 	 * Theme images root path

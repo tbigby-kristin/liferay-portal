@@ -56,7 +56,7 @@ Map<String, String[]> parameterMap = (Map<String, String[]>)settingsMap.get("par
 			<portlet:param name="privateLayout" value="<%= String.valueOf(privateLayout) %>" />
 		</portlet:renderURL>
 
-		<aui:nav-item href="<%= advancedPublishURL %>" iconCssClass="icon-cog" label="switch-to-advanced-publication" selected="<%= false %>" />
+		<aui:nav-item href="<%= advancedPublishURL %>" label="switch-to-advanced-publication" selected="<%= false %>" />
 	</aui:nav>
 </aui:nav-bar>
 
@@ -196,6 +196,12 @@ Map<String, String[]> parameterMap = (Map<String, String[]>)settingsMap.get("par
 
 									layoutsCount = selLayoutSet.getPageCount();
 								}
+
+								DateRange dateRange = ExportImportDateUtil.getDateRange(exportImportConfiguration);
+
+								PortletDataContext portletDataContext = PortletDataContextFactoryUtil.createPreparePortletDataContext(company.getCompanyId(), groupDisplayContextHelper.getStagingGroupId(), ExportImportDateUtil.RANGE_FROM_LAST_PUBLISH_DATE, dateRange.getStartDate(), dateRange.getEndDate());
+
+								long layoutModelDeletionCount = ExportImportHelperUtil.getLayoutModelDeletionCount(portletDataContext, privateLayout);
 								%>
 
 								<liferay-util:buffer
@@ -211,6 +217,7 @@ Map<String, String[]> parameterMap = (Map<String, String[]>)settingsMap.get("par
 											</c:otherwise>
 										</c:choose>
 									</span>
+									<span class="badge badge-warning deletions"><%= (layoutModelDeletionCount > 0) ? (layoutModelDeletionCount + StringPool.SPACE + LanguageUtil.get(request, "deletions")) : StringPool.BLANK %></span>
 								</liferay-util:buffer>
 
 								<li class="tree-item">

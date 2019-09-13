@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.journal.exception.DuplicateFolderNameException;
 import com.liferay.journal.exception.InvalidDDMStructureException;
+import com.liferay.journal.exception.InvalidFolderException;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.model.JournalFolderConstants;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.validation.ModelValidationResults;
 import com.liferay.portal.validation.ModelValidator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -203,6 +205,42 @@ public class JournalFolderModelValidator
 		}
 
 		return ModelValidationResults.success();
+	}
+
+	public void validateParentFolder(JournalFolder folder, long parentFolderId)
+		throws PortalException {
+
+		if (parentFolderId == JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return;
+		}
+
+		if (folder.getFolderId() == parentFolderId) {
+			throw new InvalidFolderException(
+				folder, InvalidFolderException.CANNOT_MOVE_INTO_ITSELF);
+		}
+
+		JournalFolder parentFolder =
+			_journalFolderPersistence.fetchByPrimaryKey(parentFolderId);
+
+		if (parentFolder == null) {
+			throw new InvalidFolderException(
+				InvalidFolderException.PARENT_FOLDER_DOES_NOT_EXIST);
+		}
+
+		if (folder.getGroupId() != parentFolder.getGroupId()) {
+			throw new InvalidFolderException(
+				InvalidFolderException.INVALID_GROUP);
+		}
+
+		List<Long> subfolderIds = new ArrayList<>();
+
+		_journalFolderLocalService.getSubfolderIds(
+			subfolderIds, folder.getGroupId(), folder.getFolderId());
+
+		if (subfolderIds.contains(parentFolderId)) {
+			throw new InvalidFolderException(
+				folder, InvalidFolderException.CANNOT_MOVE_INTO_CHILD_FOLDER);
+		}
 	}
 
 	@Reference

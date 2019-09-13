@@ -17,6 +17,7 @@ package com.liferay.portal.store.s3;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -26,6 +27,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
@@ -454,6 +456,25 @@ public class S3Store extends BaseStore {
 		}
 	}
 
+	protected void configureConnectionProtocol(
+		ClientConfiguration clientConfiguration) {
+
+		String connectionProtocol = _s3StoreConfiguration.connectionProtocol();
+
+		if (Validator.isNull(connectionProtocol) ||
+			connectionProtocol.equals("DEFAULT")) {
+
+			return;
+		}
+
+		if (connectionProtocol.equals("HTTP")) {
+			clientConfiguration.setProtocol(Protocol.HTTP);
+		}
+		else {
+			clientConfiguration.setProtocol(Protocol.HTTPS);
+		}
+	}
+
 	protected void configureProxySettings(
 		ClientConfiguration clientConfiguration) {
 
@@ -483,6 +504,42 @@ public class S3Store extends BaseStore {
 					_s3StoreConfiguration.ntlmProxyWorkstation());
 			}
 		}
+	}
+
+	protected void configureS3Endpoint(AmazonS3 amazonS3) {
+		String s3Endpoint = _s3StoreConfiguration.s3Endpoint();
+
+		if (Validator.isNull(s3Endpoint)) {
+			return;
+		}
+
+		amazonS3.setEndpoint(s3Endpoint);
+	}
+
+	protected void configureS3PathStyle(AmazonS3 amazonS3) {
+		boolean s3PathStyle = _s3StoreConfiguration.s3PathStyle();
+
+		if (!s3PathStyle) {
+			return;
+		}
+
+		S3ClientOptions s3ClientOptions = new S3ClientOptions();
+
+		s3ClientOptions.setPathStyleAccess(true);
+
+		amazonS3.setS3ClientOptions(s3ClientOptions);
+	}
+
+	protected void configureSignerOverride(
+		ClientConfiguration clientConfiguration) {
+
+		String signerOverride = _s3StoreConfiguration.signerOverride();
+
+		if (Validator.isNull(signerOverride)) {
+			return;
+		}
+
+		clientConfiguration.setSignerOverride(signerOverride);
 	}
 
 	@Deactivate
@@ -532,15 +589,16 @@ public class S3Store extends BaseStore {
 	protected AmazonS3 getAmazonS3(
 		AWSCredentialsProvider awsCredentialsProvider) {
 
-		ClientConfiguration clientConfiguration = getClientConfiguration();
-
 		AmazonS3 amazonS3 = new AmazonS3Client(
-			awsCredentialsProvider, clientConfiguration);
+			awsCredentialsProvider, getClientConfiguration());
 
 		Region region = Region.getRegion(
 			Regions.fromName(_s3StoreConfiguration.s3Region()));
 
 		amazonS3.setRegion(region);
+
+		configureS3Endpoint(amazonS3);
+		configureS3PathStyle(amazonS3);
 
 		return amazonS3;
 	}
@@ -570,7 +628,9 @@ public class S3Store extends BaseStore {
 		clientConfiguration.setMaxConnections(
 			_s3StoreConfiguration.httpClientMaxConnections());
 
+		configureConnectionProtocol(clientConfiguration);
 		configureProxySettings(clientConfiguration);
+		configureSignerOverride(clientConfiguration);
 
 		return clientConfiguration;
 	}

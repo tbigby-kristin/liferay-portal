@@ -15,7 +15,7 @@
 package com.liferay.portal.rules.engine.sample.web.internal.portlet;
 
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
-import com.liferay.portal.rules.engine.sample.web.constants.SampleDroolsPortletKeys;
+import com.liferay.portal.rules.engine.sample.web.internal.constants.SampleDroolsPortletKeys;
 
 import javax.portlet.Portlet;
 
@@ -42,8 +42,7 @@ import org.osgi.service.component.annotations.Component;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + SampleDroolsPortletKeys.SAMPLE_DROOLS,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator,guest,power-user,user",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator,guest,power-user,user"
 	},
 	service = Portlet.class
 )

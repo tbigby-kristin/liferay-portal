@@ -20,9 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
-
-import graphql.annotations.annotationTypes.GraphQLField;
-import graphql.annotations.annotationTypes.GraphQLName;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -48,6 +47,35 @@ import javax.xml.bind.annotation.XmlRootElement;
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "DataDefinition")
 public class DataDefinition {
+
+	@Schema
+	public String[] getAvailableLanguageIds() {
+		return availableLanguageIds;
+	}
+
+	public void setAvailableLanguageIds(String[] availableLanguageIds) {
+		this.availableLanguageIds = availableLanguageIds;
+	}
+
+	@JsonIgnore
+	public void setAvailableLanguageIds(
+		UnsafeSupplier<String[], Exception>
+			availableLanguageIdsUnsafeSupplier) {
+
+		try {
+			availableLanguageIds = availableLanguageIdsUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String[] availableLanguageIds;
 
 	@Schema
 	public DataDefinitionField[] getDataDefinitionFields() {
@@ -79,6 +107,34 @@ public class DataDefinition {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected DataDefinitionField[] dataDefinitionFields;
+
+	@Schema
+	public String getDataDefinitionKey() {
+		return dataDefinitionKey;
+	}
+
+	public void setDataDefinitionKey(String dataDefinitionKey) {
+		this.dataDefinitionKey = dataDefinitionKey;
+	}
+
+	@JsonIgnore
+	public void setDataDefinitionKey(
+		UnsafeSupplier<String, Exception> dataDefinitionKeyUnsafeSupplier) {
+
+		try {
+			dataDefinitionKey = dataDefinitionKeyUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String dataDefinitionKey;
 
 	@Schema
 	public DataDefinitionRule[] getDataDefinitionRules() {
@@ -166,6 +222,34 @@ public class DataDefinition {
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date dateModified;
+
+	@Schema
+	public String getDefaultLanguageId() {
+		return defaultLanguageId;
+	}
+
+	public void setDefaultLanguageId(String defaultLanguageId) {
+		this.defaultLanguageId = defaultLanguageId;
+	}
+
+	@JsonIgnore
+	public void setDefaultLanguageId(
+		UnsafeSupplier<String, Exception> defaultLanguageIdUnsafeSupplier) {
+
+		try {
+			defaultLanguageId = defaultLanguageIdUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String defaultLanguageId;
 
 	@Schema
 	public Map<String, Object> getDescription() {
@@ -364,6 +448,30 @@ public class DataDefinition {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (availableLanguageIds != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"availableLanguageIds\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < availableLanguageIds.length; i++) {
+				sb.append("\"");
+
+				sb.append(_escape(availableLanguageIds[i]));
+
+				sb.append("\"");
+
+				if ((i + 1) < availableLanguageIds.length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (dataDefinitionFields != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -382,6 +490,20 @@ public class DataDefinition {
 			}
 
 			sb.append("]");
+		}
+
+		if (dataDefinitionKey != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dataDefinitionKey\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(dataDefinitionKey));
+
+			sb.append("\"");
 		}
 
 		if (dataDefinitionRules != null) {
@@ -428,6 +550,20 @@ public class DataDefinition {
 			sb.append("\"");
 
 			sb.append(liferayToJSONDateFormat.format(dateModified));
+
+			sb.append("\"");
+		}
+
+		if (defaultLanguageId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"defaultLanguageId\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(defaultLanguageId));
 
 			sb.append("\"");
 		}

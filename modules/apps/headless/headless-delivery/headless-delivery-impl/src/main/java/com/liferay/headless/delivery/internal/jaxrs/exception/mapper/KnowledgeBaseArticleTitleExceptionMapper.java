@@ -31,7 +31,7 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"osgi.jaxrs.application.select=(osgi.jaxrs.name=Liferay.Headless.Delivery)",
 		"osgi.jaxrs.extension=true",
-		"osgi.jaxrs.name=Liferay.Headless.Delivery.KBArticleTitleException"
+		"osgi.jaxrs.name=Liferay.Headless.Delivery.KnowledgeBaseArticleTitleExceptionMapper"
 	},
 	service = ExceptionMapper.class
 )
@@ -39,13 +39,15 @@ public class KnowledgeBaseArticleTitleExceptionMapper
 	implements ExceptionMapper<KBArticleTitleException> {
 
 	@Override
-	public Response toResponse(KBArticleTitleException kbate) {
+	public Response toResponse(
+		KBArticleTitleException kbArticleTitleException) {
+
 		return Response.status(
 			400
 		).type(
 			MediaType.TEXT_PLAIN
 		).entity(
-			kbate.getMessage()
+			kbArticleTitleException.getMessage()
 		).build();
 	}
 

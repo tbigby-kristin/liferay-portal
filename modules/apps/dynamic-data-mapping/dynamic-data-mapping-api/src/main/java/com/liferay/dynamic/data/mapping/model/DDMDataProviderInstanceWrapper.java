@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMDataProviderInstance}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMDataProviderInstance
  * @generated
  */
-@ProviderType
 public class DDMDataProviderInstanceWrapper
 	extends BaseModelWrapper<DDMDataProviderInstance>
 	implements DDMDataProviderInstance, ModelWrapper<DDMDataProviderInstance> {
@@ -48,6 +45,7 @@ public class DDMDataProviderInstanceWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("dataProviderInstanceId", getDataProviderInstanceId());
 		attributes.put("groupId", getGroupId());
@@ -66,6 +64,12 @@ public class DDMDataProviderInstanceWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -287,6 +291,16 @@ public class DDMDataProviderInstanceWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this ddm data provider instance.
+	 *
+	 * @return the mvcc version of this ddm data provider instance
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this ddm data provider instance.
 	 *
 	 * @return the name of this ddm data provider instance
@@ -422,6 +436,11 @@ public class DDMDataProviderInstanceWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm data provider instance model instance should use the <code>DDMDataProviderInstance</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -567,6 +586,16 @@ public class DDMDataProviderInstanceWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm data provider instance.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm data provider instance
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

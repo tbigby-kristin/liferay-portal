@@ -17,8 +17,6 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.model.ClusterGroup;
 import com.liferay.portal.kernel.service.ClusterGroupLocalServiceUtil;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The extended model base implementation for the ClusterGroup service. Represents a row in the &quot;ClusterGroup&quot; database table, with each column mapped to a property of this class.
  *
@@ -29,13 +27,14 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author Brian Wing Shun Chan
  * @see ClusterGroupImpl
  * @see ClusterGroup
+ * @deprecated
  * @generated
  */
-@ProviderType
+@Deprecated
 public abstract class ClusterGroupBaseImpl
 	extends ClusterGroupModelImpl implements ClusterGroup {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a cluster group model instance should use the <code>ClusterGroup</code> interface instead.

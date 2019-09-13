@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the asset entry service. This utility wraps <code>com.liferay.portlet.asset.service.persistence.impl.AssetEntryPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -40,10 +38,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetEntryPersistence
  * @generated
  */
-@ProviderType
 public class AssetEntryUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -184,16 +181,16 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByGroupId(
-			groupId, start, end, orderByComparator, retrieveFromCache);
+			groupId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -350,16 +347,16 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByCompanyId(
 		long companyId, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByCompanyId(
-			companyId, start, end, orderByComparator, retrieveFromCache);
+			companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -519,16 +516,16 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByVisible(
 		boolean visible, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByVisible(
-			visible, start, end, orderByComparator, retrieveFromCache);
+			visible, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -685,16 +682,16 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByPublishDate(
 		Date publishDate, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByPublishDate(
-			publishDate, start, end, orderByComparator, retrieveFromCache);
+			publishDate, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -855,16 +852,16 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByExpirationDate(
 		Date expirationDate, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByExpirationDate(
-			expirationDate, start, end, orderByComparator, retrieveFromCache);
+			expirationDate, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1026,16 +1023,16 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByLayoutUuid(
 		String layoutUuid, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByLayoutUuid(
-			layoutUuid, start, end, orderByComparator, retrieveFromCache);
+			layoutUuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1165,14 +1162,13 @@ public class AssetEntryUtil {
 	 *
 	 * @param groupId the group ID
 	 * @param classUuid the class uuid
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset entry, or <code>null</code> if a matching asset entry could not be found
 	 */
 	public static AssetEntry fetchByG_CU(
-		long groupId, String classUuid, boolean retrieveFromCache) {
+		long groupId, String classUuid, boolean useFinderCache) {
 
-		return getPersistence().fetchByG_CU(
-			groupId, classUuid, retrieveFromCache);
+		return getPersistence().fetchByG_CU(groupId, classUuid, useFinderCache);
 	}
 
 	/**
@@ -1229,14 +1225,14 @@ public class AssetEntryUtil {
 	 *
 	 * @param classNameId the class name ID
 	 * @param classPK the class pk
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset entry, or <code>null</code> if a matching asset entry could not be found
 	 */
 	public static AssetEntry fetchByC_C(
-		long classNameId, long classPK, boolean retrieveFromCache) {
+		long classNameId, long classPK, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_C(
-			classNameId, classPK, retrieveFromCache);
+			classNameId, classPK, useFinderCache);
 	}
 
 	/**
@@ -1334,17 +1330,17 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByG_C_V(
 		long groupId, long classNameId, boolean visible, int start, int end,
 		OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByG_C_V(
 			groupId, classNameId, visible, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -1544,17 +1540,17 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset entries
 	 */
 	public static List<AssetEntry> findByG_C_P_E(
 		long groupId, long classNameId, Date publishDate, Date expirationDate,
 		int start, int end, OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByG_C_P_E(
 			groupId, classNameId, publishDate, expirationDate, start, end,
-			orderByComparator, retrieveFromCache);
+			orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1813,15 +1809,15 @@ public class AssetEntryUtil {
 	 * @param start the lower bound of the range of asset entries
 	 * @param end the upper bound of the range of asset entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of asset entries
 	 */
 	public static List<AssetEntry> findAll(
 		int start, int end, OrderByComparator<AssetEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

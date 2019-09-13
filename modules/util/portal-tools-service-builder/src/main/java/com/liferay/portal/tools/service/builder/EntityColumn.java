@@ -127,9 +127,7 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 
 		EntityColumn entityColumn = (EntityColumn)obj;
 
-		String name = entityColumn.getName();
-
-		if (_name.equals(name)) {
+		if (_name.equals(entityColumn.getName())) {
 			return true;
 		}
 
@@ -500,14 +498,12 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 	}
 
 	public void validate() {
-		if (Validator.isNotNull(_arrayableOperator)) {
-			if (!_type.equals("char") && !_type.equals("int") &&
-				!_type.equals("long") && !_type.equals("short") &&
-				!_type.equals("String")) {
+		if (Validator.isNotNull(_arrayableOperator) && !_type.equals("char") &&
+			!_type.equals("int") && !_type.equals("long") &&
+			!_type.equals("short") && !_type.equals("String")) {
 
-				throw new IllegalArgumentException(
-					"Type " + _type + " cannot be arrayable");
-			}
+			throw new IllegalArgumentException(
+				"Type " + _type + " cannot be arrayable");
 		}
 
 		String comparator = _comparator;

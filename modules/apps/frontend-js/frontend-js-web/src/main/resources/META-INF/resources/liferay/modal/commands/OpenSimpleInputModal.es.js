@@ -1,9 +1,25 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import navigate from '../../util/navigate.es';
 import SimpleInputModal from '../components/SimpleInputModal.es';
 
 /**
  * Function that implements the SimpleInputModal pattern, which allows
  * manipulating small amounts of data with a form shown inside a modal.
  *
+ * @param {Object} alert
  * @param {Object} options
  * @param {string} checkboxFieldLabel
  * @param {string} checkboxFieldName
@@ -55,23 +71,22 @@ import SimpleInputModal from '../components/SimpleInputModal.es';
  *   disposed.
  */
 
-function openSimpleInputModal(
-	{
-		checkboxFieldLabel = '',
-		checkboxFieldName = '',
-		checkboxFieldValue = false,
-		dialogTitle,
-		formSubmitURL,
-		idFieldName = '',
-		idFieldValue = '',
-		mainFieldLabel,
-		mainFieldName,
-		mainFieldPlaceholder = '',
-		mainFieldValue = '',
-		namespace,
-		spritemap
-	}
-) {
+function openSimpleInputModal({
+	alert,
+	checkboxFieldLabel = '',
+	checkboxFieldName = '',
+	checkboxFieldValue = false,
+	dialogTitle,
+	formSubmitURL,
+	idFieldName = '',
+	idFieldValue = '',
+	mainFieldLabel,
+	mainFieldName,
+	mainFieldPlaceholder = '',
+	mainFieldValue = '',
+	namespace,
+	spritemap
+}) {
 	const fixFormData = Liferay.Browser.isIe();
 
 	let simpleInputModal = null;
@@ -101,41 +116,36 @@ function openSimpleInputModal(
 
 	function handleSimpleInputModalSubmission(serverResponseContent) {
 		if (serverResponseContent.redirectURL) {
-			Liferay.Util.navigate(
-				serverResponseContent.redirectURL,
-				{
-					'beforeScreenFlip': handleSimpleInputModalDisposal.bind(this)
-				}
-			);
-		}
-		else {
+			navigate(serverResponseContent.redirectURL, {
+				beforeScreenFlip: handleSimpleInputModalDisposal.bind(this)
+			});
+		} else {
 			handleSimpleInputModalDisposal();
 		}
 	}
 
-	simpleInputModal = new SimpleInputModal(
-		{
-			checkboxFieldLabel,
-			checkboxFieldName,
-			checkboxFieldValue,
-			dialogTitle,
-			events: {
-				cancelButtonClicked: handleSimpleInputModalDisposal,
-				dialogHidden: handleSimpleInputModalDisposal,
-				formSuccess: handleSimpleInputModalSubmission
-			},
-			fixFormData,
-			formSubmitURL,
-			idFieldName,
-			idFieldValue,
-			mainFieldLabel,
-			mainFieldName,
-			mainFieldPlaceholder,
-			mainFieldValue,
-			namespace,
-			spritemap
-		}
-	);
+	simpleInputModal = new SimpleInputModal({
+		alert,
+		checkboxFieldLabel,
+		checkboxFieldName,
+		checkboxFieldValue,
+		dialogTitle,
+		events: {
+			cancelButtonClicked: handleSimpleInputModalDisposal,
+			dialogHidden: handleSimpleInputModalDisposal,
+			formSuccess: handleSimpleInputModalSubmission
+		},
+		fixFormData,
+		formSubmitURL,
+		idFieldName,
+		idFieldValue,
+		mainFieldLabel,
+		mainFieldName,
+		mainFieldPlaceholder,
+		mainFieldValue,
+		namespace,
+		spritemap
+	});
 
 	return simpleInputModal;
 }

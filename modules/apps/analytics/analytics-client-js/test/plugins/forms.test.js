@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import AnalyticsClient from '../../src/analytics';
 import {expect} from 'chai';
 import fetchMock from 'fetch-mock';
@@ -24,7 +38,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('formViewed event', () => {
-		it('should be fired for every form on the page', () => {
+		it('is fired for every form on the page', () => {
 			const formWithAssetId = document.createElement('form');
 			formWithAssetId.dataset.analyticsAssetId = 'assetId';
 			formWithAssetId.dataset.analyticsAssetTitle = 'Form Title 1';
@@ -62,7 +76,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('formSubmitted event', () => {
-		it('should be fired when a form is submitted', () => {
+		it('is fired when a form is submitted', () => {
 			const form = document.createElement('form');
 			form.dataset.analyticsAssetId = 'formId';
 			form.dataset.analyticsAssetTitle = 'Form Title';
@@ -92,7 +106,7 @@ describe('Forms Plugin', () => {
 	});
 
 	describe('fieldFocused event', () => {
-		it('should be fired whenever a field is focused', () => {
+		it('is fired whenever a field is focused', () => {
 			const form = document.createElement('form');
 			form.dataset.analyticsAssetId = 'formId';
 			form.dataset.analyticsAssetTitle = 'Form Title';
@@ -114,15 +128,15 @@ describe('Forms Plugin', () => {
 				applicationId,
 				eventId: 'fieldFocused',
 				properties: {
-					formId: 'formId',
-					fieldName: 'myField'
+					fieldName: 'myField',
+					formId: 'formId'
 				}
 			});
 		});
 	});
 
 	describe('fieldBlurred event', () => {
-		it('should be fired whenever a field is blurred', (done) => {
+		it('is fired whenever a field is blurred', done => {
 			const form = document.createElement('form');
 			form.dataset.analyticsAssetId = 'formId';
 			form.dataset.analyticsAssetTitle = 'Form Title';

@@ -420,10 +420,15 @@ public class UIItemsBuilder {
 		if ((_fileEntry == null) ||
 			(_fileVersion.getStatus() != WorkflowConstants.STATUS_APPROVED) ||
 			!_fileEntryDisplayContextHelper.hasDeletePermission() ||
-			!(_fileEntry.getModel() instanceof DLFileEntry) ||
-			(_fileEntry.getFileVersionsCount(
-				WorkflowConstants.STATUS_APPROVED) <= 1)) {
+			!(_fileEntry.getModel() instanceof DLFileEntry)) {
 
+			return;
+		}
+
+		int fileVersionsCount = _fileEntry.getFileVersionsCount(
+			WorkflowConstants.STATUS_APPROVED);
+
+		if (fileVersionsCount <= 1) {
 			return;
 		}
 
@@ -486,7 +491,6 @@ public class UIItemsBuilder {
 		urlMenuItem.setData(data);
 
 		urlMenuItem.setMethod("get");
-		urlMenuItem.setTarget("_blank");
 	}
 
 	public void addDownloadToolbarItem(List<ToolbarItem> toolbarItems)

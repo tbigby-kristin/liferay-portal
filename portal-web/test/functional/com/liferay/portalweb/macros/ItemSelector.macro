@@ -38,7 +38,7 @@ definition {
 	}
 
 	macro gotoItemSelectorViaSelectButton {
-		Click(locator1 = "Button#SELECT");
+		Click(locator1 = "FormFields#SELECT_UPLOAD_FIELD");
 	}
 
 	macro searchBlogImages {
@@ -194,7 +194,7 @@ definition {
 			value1 = "${uploadFileName}");
 
 		AssertTextEquals(
-			locator1 = "ItemSelector#CAPTION",
+			locator1 = "ItemSelector#FILE_UPLOAD_CAPTION",
 			value1 = "${uploadFileName}");
 
 		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_MODAL_FOOTER");
@@ -263,6 +263,24 @@ definition {
 			value1 = "${imageStatus}");
 
 		SelectFrameTop(value1 = "relative=top");
+	}
+
+	macro viewWikiAttachment {
+		var key_imageFileName = "${imageFileName}";
+
+		AlloyEditor.clickContentField();
+
+		Click(locator1 = "AlloyEditor#CONTENT_ADD_BUTTON");
+
+		Click.clickNoMouseOver(locator1 = "AlloyEditor#CONTENT_ADD_MENUBAR_IMAGE");
+
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "cards");
+
+		AssertElementPresent(
+			key_imageFileName = "${imageFileName}",
+			locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
 	}
 
 }

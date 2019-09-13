@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutServiceUtil;
 import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -35,7 +36,9 @@ import java.util.Map;
 
 /**
  * @author Eduardo García
+ * @deprecated As of Mueller (7.2.x), replaced by {@link com.liferay.layout.internal.util.LayoutSitemapURLProvider}
  */
+@Deprecated
 @OSGiBeanProperties
 public class LayoutSitemapURLProvider implements SitemapURLProvider {
 
@@ -77,7 +80,7 @@ public class LayoutSitemapURLProvider implements SitemapURLProvider {
 				continue;
 			}
 
-			List<Layout> layouts = LayoutLocalServiceUtil.getLayouts(
+			List<Layout> layouts = LayoutServiceUtil.getLayouts(
 				layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
 				entry.getKey());
 

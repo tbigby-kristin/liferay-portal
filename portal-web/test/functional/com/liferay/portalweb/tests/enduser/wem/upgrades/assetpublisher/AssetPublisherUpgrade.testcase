@@ -1,8 +1,7 @@
 @component-name = "portal-upgrades"
 definition {
 
-	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
-	property ignore.errors = "Plugin security management is not enabled. Enable a security manager, then restart.";
+	property database.types = "db2,mariadb,mysql,oracle,postgresql,sqlserver";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.component.names = "Asset Publisher,Upgrades WEM";
@@ -21,6 +20,7 @@ definition {
 		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
 	}
 
+	@description = "This is a use case for LPS-78284."
 	@priority = "5"
 	test ViewAssetPublisherArchive625 {
 		property data.archive.type = "data-archive-asset-publisher";
@@ -33,7 +33,7 @@ definition {
 	@priority = "5"
 	test ViewAssetPublisherArchive70106 {
 		property data.archive.type = "data-archive-asset-publisher";
-		property database.types = "db2,mariadb,mysql,oracle,postgresql,sybase";
+		property database.types = "db2,mariadb,mysql,oracle,postgresql";
 		property portal.version = "7.0.10.6";
 
 		Upgrade.viewAssetPublisher(categoryName = "Category Name");
@@ -47,10 +47,11 @@ definition {
 		Upgrade.viewAssetPublisher();
 	}
 
+	@description = "This is a use case for LPS-78284."
 	@priority = "5"
 	test ViewAssetPublisherArchive621021 {
 		property data.archive.type = "data-archive-asset-publisher";
-		property database.types = "db2,mysql,oracle,postgresql,sybase";
+		property database.types = "db2,mysql,oracle,postgresql";
 		property portal.version = "6.2.10.21";
 
 		Upgrade.viewAssetPublisher(categoryName = "Category Name");

@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the JournalArticleResource service. Represents a row in the &quot;JournalArticleResource&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,12 +52,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalArticleResourceImpl
  * @generated
  */
-@ProviderType
 public class JournalArticleResourceModelImpl
 	extends BaseModelImpl<JournalArticleResource>
 	implements JournalArticleResourceModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a journal article resource model instance should use the <code>JournalArticleResource</code> interface instead.
@@ -67,15 +64,16 @@ public class JournalArticleResourceModelImpl
 	public static final String TABLE_NAME = "JournalArticleResource";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR}, {"resourcePrimKey", Types.BIGINT},
-		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"articleId", Types.VARCHAR}
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
+		{"resourcePrimKey", Types.BIGINT}, {"groupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"articleId", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("resourcePrimKey", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -84,7 +82,7 @@ public class JournalArticleResourceModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table JournalArticleResource (uuid_ VARCHAR(75) null,resourcePrimKey LONG not null primary key,groupId LONG,companyId LONG,articleId VARCHAR(75) null)";
+		"create table JournalArticleResource (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,resourcePrimKey LONG not null primary key,groupId LONG,companyId LONG,articleId VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table JournalArticleResource";
@@ -249,6 +247,12 @@ public class JournalArticleResourceModelImpl
 				new LinkedHashMap
 					<String, BiConsumer<JournalArticleResource, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", JournalArticleResource::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<JournalArticleResource, Long>)
+				JournalArticleResource::setMvccVersion);
 		attributeGetterFunctions.put("uuid", JournalArticleResource::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -283,6 +287,16 @@ public class JournalArticleResourceModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -410,7 +424,12 @@ public class JournalArticleResourceModelImpl
 	@Override
 	public JournalArticleResource toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, JournalArticleResource>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -422,6 +441,7 @@ public class JournalArticleResourceModelImpl
 		JournalArticleResourceImpl journalArticleResourceImpl =
 			new JournalArticleResourceImpl();
 
+		journalArticleResourceImpl.setMvccVersion(getMvccVersion());
 		journalArticleResourceImpl.setUuid(getUuid());
 		journalArticleResourceImpl.setResourcePrimKey(getResourcePrimKey());
 		journalArticleResourceImpl.setGroupId(getGroupId());
@@ -514,6 +534,8 @@ public class JournalArticleResourceModelImpl
 		JournalArticleResourceCacheModel journalArticleResourceCacheModel =
 			new JournalArticleResourceCacheModel();
 
+		journalArticleResourceCacheModel.mvccVersion = getMvccVersion();
+
 		journalArticleResourceCacheModel.uuid = getUuid();
 
 		String uuid = journalArticleResourceCacheModel.uuid;
@@ -604,11 +626,17 @@ public class JournalArticleResourceModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, JournalArticleResource>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, JournalArticleResource>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _resourcePrimKey;

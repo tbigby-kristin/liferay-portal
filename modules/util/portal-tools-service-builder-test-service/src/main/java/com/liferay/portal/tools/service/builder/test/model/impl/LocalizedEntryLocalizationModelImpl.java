@@ -14,8 +14,6 @@
 
 package com.liferay.portal.tools.service.builder.test.model.impl;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
@@ -54,12 +52,11 @@ import java.util.function.Function;
  * @see LocalizedEntryLocalizationImpl
  * @generated
  */
-@ProviderType
 public class LocalizedEntryLocalizationModelImpl
 	extends BaseModelImpl<LocalizedEntryLocalization>
 	implements LocalizedEntryLocalizationModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a localized entry localization model instance should use the <code>LocalizedEntryLocalization</code> interface instead.
@@ -546,7 +543,12 @@ public class LocalizedEntryLocalizationModelImpl
 	@Override
 	public LocalizedEntryLocalization toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, LocalizedEntryLocalization>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -752,8 +754,14 @@ public class LocalizedEntryLocalizationModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, LocalizedEntryLocalization>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function
+			<InvocationHandler, LocalizedEntryLocalization>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
 
 	private long _mvccVersion;
 	private long _localizedEntryLocalizationId;

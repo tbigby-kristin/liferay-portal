@@ -55,92 +55,28 @@ public class ChainingCheck extends BaseCheck {
 	@Override
 	public int[] getDefaultTokens() {
 		return new int[] {
-			TokenTypes.CLASS_DEF, TokenTypes.ENUM_DEF, TokenTypes.INTERFACE_DEF
+			TokenTypes.CLASS_DEF, TokenTypes.ENUM_DEF, TokenTypes.INTERFACE_DEF,
+			TokenTypes.TYPECAST
 		};
 	}
 
 	@Override
 	protected void doVisitToken(DetailAST detailAST) {
+		if ((detailAST.getType() == TokenTypes.TYPECAST) &&
+			isAttributeValue(_APPLY_TO_TYPE_CAST_KEY)) {
+
+			_checkChainingOnTypeCast(detailAST);
+
+			return;
+		}
+
 		DetailAST parentDetailAST = detailAST.getParent();
 
 		if (parentDetailAST != null) {
 			return;
 		}
 
-		List<DetailAST> methodCallDetailASTList =
-			DetailASTUtil.getAllChildTokens(
-				detailAST, true, TokenTypes.METHOD_CALL);
-
-		for (DetailAST methodCallDetailAST : methodCallDetailASTList) {
-			DetailAST dotDetailAST = methodCallDetailAST.findFirstToken(
-				TokenTypes.DOT);
-
-			if (dotDetailAST != null) {
-				List<DetailAST> childMethodCallDetailASTList =
-					DetailASTUtil.getAllChildTokens(
-						dotDetailAST, false, TokenTypes.METHOD_CALL);
-
-				// Only check the method that is first in the chain
-
-				if (!childMethodCallDetailASTList.isEmpty()) {
-					continue;
-				}
-			}
-
-			_checkAllowedChaining(methodCallDetailAST);
-
-			List<String> chain = _getChain(methodCallDetailAST);
-
-			_checkRequiredChaining(methodCallDetailAST, chain);
-
-			int chainSize = chain.size();
-
-			if (chainSize == 1) {
-				continue;
-			}
-
-			if (chainSize == 2) {
-				DetailAST elistDetailAST = methodCallDetailAST.findFirstToken(
-					TokenTypes.ELIST);
-
-				if ((elistDetailAST.getChildCount() == 0) &&
-					(dotDetailAST == null)) {
-
-					continue;
-				}
-
-				_checkMethodName(chain, "getClass", methodCallDetailAST);
-
-				String name1 = chain.get(0);
-				String name2 = chain.get(1);
-
-				if (name1.equals("concat") && name2.equals("concat")) {
-					continue;
-				}
-			}
-
-			if (_isAllowedChainingMethodCall(
-					methodCallDetailAST, chain, detailAST)) {
-
-				continue;
-			}
-
-			int concatsCount = Collections.frequency(chain, "concat");
-
-			if (concatsCount > 2) {
-				log(methodCallDetailAST, _MSG_AVOID_TOO_MANY_CONCAT);
-
-				continue;
-			}
-
-			if ((chainSize == 3) && (concatsCount == 2)) {
-				continue;
-			}
-
-			log(
-				methodCallDetailAST, _MSG_AVOID_CHAINING,
-				DetailASTUtil.getMethodName(methodCallDetailAST));
-		}
+		_checkChainingOnMethodCalls(detailAST);
 	}
 
 	private void _checkAllowedChaining(DetailAST methodCallDetailAST) {
@@ -216,6 +152,98 @@ public class ChainingCheck extends BaseCheck {
 		}
 	}
 
+	private void _checkChainingOnMethodCalls(DetailAST detailAST) {
+		List<DetailAST> methodCallDetailASTList =
+			DetailASTUtil.getAllChildTokens(
+				detailAST, true, TokenTypes.METHOD_CALL);
+
+		for (DetailAST methodCallDetailAST : methodCallDetailASTList) {
+			DetailAST dotDetailAST = methodCallDetailAST.findFirstToken(
+				TokenTypes.DOT);
+
+			if (dotDetailAST != null) {
+				List<DetailAST> childMethodCallDetailASTList =
+					DetailASTUtil.getAllChildTokens(
+						dotDetailAST, false, TokenTypes.METHOD_CALL);
+
+				// Only check the method that is first in the chain
+
+				if (!childMethodCallDetailASTList.isEmpty()) {
+					continue;
+				}
+			}
+
+			_checkAllowedChaining(methodCallDetailAST);
+
+			List<String> chain = _getChain(methodCallDetailAST);
+
+			_checkRequiredChaining(methodCallDetailAST, chain);
+
+			int chainSize = chain.size();
+
+			if (chainSize == 1) {
+				continue;
+			}
+
+			if (chainSize == 2) {
+				DetailAST elistDetailAST = methodCallDetailAST.findFirstToken(
+					TokenTypes.ELIST);
+
+				if ((elistDetailAST.getChildCount() == 0) &&
+					(dotDetailAST == null)) {
+
+					continue;
+				}
+
+				_checkMethodName(chain, "getClass", methodCallDetailAST);
+
+				String name1 = chain.get(0);
+				String name2 = chain.get(1);
+
+				if (name1.equals("concat") && name2.equals("concat")) {
+					continue;
+				}
+			}
+
+			if (_isAllowedChainingMethodCall(
+					methodCallDetailAST, chain, detailAST)) {
+
+				continue;
+			}
+
+			int concatsCount = Collections.frequency(chain, "concat");
+
+			if (concatsCount > 2) {
+				log(methodCallDetailAST, _MSG_AVOID_TOO_MANY_CONCAT);
+
+				continue;
+			}
+
+			if ((chainSize == 3) && (concatsCount == 2)) {
+				continue;
+			}
+
+			log(
+				methodCallDetailAST, _MSG_AVOID_METHOD_CHAINING,
+				DetailASTUtil.getMethodName(methodCallDetailAST));
+		}
+	}
+
+	private void _checkChainingOnTypeCast(DetailAST detailAST) {
+		if (_isInsideConstructorThisCall(detailAST) ||
+			DetailASTUtil.hasParentWithTokenType(
+				detailAST, TokenTypes.SUPER_CTOR_CALL)) {
+
+			return;
+		}
+
+		DetailAST parentDetailAST = detailAST.getParent();
+
+		if (parentDetailAST.getType() == TokenTypes.DOT) {
+			log(detailAST, _MSG_AVOID_TYPE_CAST_CHAINING);
+		}
+	}
+
 	private void _checkMethodName(
 		List<String> chainedMethodNames, String methodName,
 		DetailAST methodCallDetailAST) {
@@ -227,7 +255,7 @@ public class ChainingCheck extends BaseCheck {
 			!DetailASTUtil.hasParentWithTokenType(
 				methodCallDetailAST, TokenTypes.SUPER_CTOR_CALL)) {
 
-			log(methodCallDetailAST, _MSG_AVOID_CHAINING, methodName);
+			log(methodCallDetailAST, _MSG_AVOID_METHOD_CHAINING, methodName);
 		}
 	}
 
@@ -762,10 +790,8 @@ public class ChainingCheck extends BaseCheck {
 		return false;
 	}
 
-	private boolean _isInsideConstructorThisCall(
-		DetailAST methodCallDetailAST) {
-
-		DetailAST parentDetailAST = methodCallDetailAST.getParent();
+	private boolean _isInsideConstructorThisCall(DetailAST detailAST) {
+		DetailAST parentDetailAST = detailAST.getParent();
 
 		while (parentDetailAST != null) {
 			String parentDetailASTText = parentDetailAST.getText();
@@ -836,12 +862,18 @@ public class ChainingCheck extends BaseCheck {
 	private static final String _ALLOWED_VARIABLE_TYPE_NAMES_KEY =
 		"allowedVariableTypeNames";
 
+	private static final String _APPLY_TO_TYPE_CAST_KEY = "applyToTypeCast";
+
 	private static final String _MSG_ALLOWED_CHAINING = "chaining.allowed";
 
-	private static final String _MSG_AVOID_CHAINING = "chaining.avoid";
+	private static final String _MSG_AVOID_METHOD_CHAINING =
+		"chaining.avoid.method";
 
 	private static final String _MSG_AVOID_TOO_MANY_CONCAT =
 		"concat.avoid.too.many";
+
+	private static final String _MSG_AVOID_TYPE_CAST_CHAINING =
+		"chaining.avoid.type.cast";
 
 	private static final String _MSG_REQUIRED_CHAINING = "chaining.required";
 

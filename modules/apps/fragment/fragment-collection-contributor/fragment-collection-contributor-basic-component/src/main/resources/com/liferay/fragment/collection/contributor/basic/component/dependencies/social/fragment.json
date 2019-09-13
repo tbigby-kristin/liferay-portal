@@ -1,9 +1,6 @@
 {
-	"cssPath": "index.css",
 	"fragmentEntryKey": "social",
-	"htmlPath": "index.html",
-	"jsPath": "index.js",
-	"name": "Social",
+	"name": "social",
 	"thumbnail": "social.png",
 	"type": "component"
 }

@@ -45,9 +45,8 @@ public class ExternalMethod {
 			if ((throwable != null) && (throwable.getMessage() != null)) {
 				throw new Exception(throwable.getMessage(), e);
 			}
-			else {
-				throw e;
-			}
+
+			throw e;
 		}
 
 		if (returnObject == null) {

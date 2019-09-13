@@ -28,7 +28,6 @@ import com.liferay.asset.kernel.validator.AssetEntryValidator;
 import com.liferay.asset.kernel.validator.AssetEntryValidatorExclusionRule;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -50,13 +49,13 @@ import com.liferay.portal.kernel.social.SocialActivityManagerUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.asset.service.base.AssetEntryLocalServiceBaseImpl;
 import com.liferay.portlet.asset.service.permission.AssetCategoryPermission;
 import com.liferay.portlet.asset.util.AssetSearcher;
-import com.liferay.portlet.asset.validator.AssetEntryValidatorRegistry;
 import com.liferay.registry.collections.ServiceTrackerCollections;
 import com.liferay.registry.collections.ServiceTrackerMap;
 import com.liferay.social.kernel.model.SocialActivityConstants;
@@ -114,10 +113,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public void deleteEntry(String className, long classPK)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		if (entry != null) {
 			deleteEntry(entry);
@@ -137,7 +134,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public void destroy() {
 		super.destroy();
 
-		_serviceTrackerMap.close();
+		_assetEntryValidatorExclusionRuleServiceTrackerMap.close();
+		_assetEntryValidatorServiceTrackerMap.close();
 	}
 
 	@Override
@@ -157,9 +155,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	@Override
 	public AssetEntry fetchEntry(String className, long classPK) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return assetEntryLocalService.fetchEntry(classNameId, classPK);
+		return assetEntryLocalService.fetchEntry(
+			classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -292,9 +289,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public AssetEntry getEntry(String className, long classPK)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return assetEntryPersistence.findByC_C(classNameId, classPK);
+		return assetEntryPersistence.findByC_C(
+			classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -304,9 +300,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 	@Override
 	public double getEntryPriority(String className, long classPK) {
-		long classNameId = classNameLocalService.getClassNameId(className);
-
-		return assetEntryFinder.findPriorityByC_C(classNameId, classPK);
+		return assetEntryFinder.findPriorityByC_C(
+			classNameLocalService.getClassNameId(className), classPK);
 	}
 
 	@Override
@@ -467,10 +462,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			return;
 		}
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		if (entry == null) {
 			return;
@@ -822,9 +815,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		// Tags
 
 		if ((tagNames != null) && (!entry.isNew() || (tagNames.length > 0))) {
-			long siteGroupId = PortalUtil.getSiteGroupId(groupId);
-
-			Group siteGroup = groupLocalService.getGroup(siteGroupId);
+			Group siteGroup = groupLocalService.getGroup(
+				PortalUtil.getSiteGroupId(groupId));
 
 			List<AssetTag> tags = assetTagLocalService.checkTags(
 				userId, siteGroup, tagNames);
@@ -944,10 +936,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long[] categoryIds, String[] tagNames)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		if (entry != null) {
 			return assetEntryLocalService.updateEntry(
@@ -1003,10 +993,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			Date expirationDate, boolean listable, boolean visible)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		AssetEntry entry = assetEntryPersistence.findByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		entry.setListable(listable);
 		entry.setPublishDate(publishDate);
@@ -1057,10 +1045,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			String className, long classPK, boolean visible)
 		throws PortalException {
 
-		long classNameId = classNameLocalService.getClassNameId(className);
-
 		AssetEntry entry = assetEntryPersistence.findByC_C(
-			classNameId, classPK);
+			classNameLocalService.getClassNameId(className), classPK);
 
 		return updateVisible(entry, visible);
 	}
@@ -1076,7 +1062,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		}
 
 		List<AssetEntryValidatorExclusionRule> exclusionRules =
-			_serviceTrackerMap.getService(className);
+			_assetEntryValidatorExclusionRuleServiceTrackerMap.getService(
+				className);
 
 		if (exclusionRules != null) {
 			for (AssetEntryValidatorExclusionRule exclusionRule :
@@ -1092,8 +1079,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		}
 
 		for (AssetEntryValidator assetEntryValidator :
-				assetEntryValidatorRegistry.getAssetEntryValidators(
-					className)) {
+				_getAssetEntryValidators(className)) {
 
 			assetEntryValidator.validate(
 				groupId, className, classPK, classTypePK, categoryIds,
@@ -1407,8 +1393,29 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		indexer.reindex(className, entry.getClassPK());
 	}
 
-	@BeanReference(type = AssetEntryValidatorRegistry.class)
-	protected AssetEntryValidatorRegistry assetEntryValidatorRegistry;
+	private List<AssetEntryValidator> _getAssetEntryValidators(
+		String className) {
+
+		List<AssetEntryValidator> assetEntryValidators = new ArrayList<>();
+
+		List<AssetEntryValidator> generalAssetEntryValidators =
+			_assetEntryValidatorServiceTrackerMap.getService("*");
+
+		if (!ListUtil.isEmpty(generalAssetEntryValidators)) {
+			assetEntryValidators.addAll(generalAssetEntryValidators);
+		}
+
+		if (Validator.isNotNull(className)) {
+			List<AssetEntryValidator> classNameAssetEntryValidators =
+				_assetEntryValidatorServiceTrackerMap.getService(className);
+
+			if (!ListUtil.isEmpty(classNameAssetEntryValidators)) {
+				assetEntryValidators.addAll(classNameAssetEntryValidators);
+			}
+		}
+
+		return assetEntryValidators;
+	}
 
 	private void _setAssetCategoryIds(
 		long[] assetCategoryIds, boolean andSearch,
@@ -1448,8 +1455,13 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	}
 
 	private final ServiceTrackerMap
-		<String, List<AssetEntryValidatorExclusionRule>> _serviceTrackerMap =
+		<String, List<AssetEntryValidatorExclusionRule>>
+			_assetEntryValidatorExclusionRuleServiceTrackerMap =
+				ServiceTrackerCollections.openMultiValueMap(
+					AssetEntryValidatorExclusionRule.class, "model.class.name");
+	private final ServiceTrackerMap<String, List<AssetEntryValidator>>
+		_assetEntryValidatorServiceTrackerMap =
 			ServiceTrackerCollections.openMultiValueMap(
-				AssetEntryValidatorExclusionRule.class, "model.class.name");
+				AssetEntryValidator.class, "model.class.name");
 
 }

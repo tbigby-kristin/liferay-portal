@@ -29,12 +29,12 @@ String dropdownMenuComponentId = randomNamespace + "socialBookmarksDropdownMenu"
 
 <div class="taglib-social-bookmarks" id="<%= randomNamespace %>socialBookmarks">
 	<c:choose>
-		<c:when test='<%= displayStyle.equals("menu") %>'>
+		<c:when test='<%= displayStyle.equals("menu") || BrowserSnifferUtil.isMobile(request) %>'>
 			<clay:dropdown-menu
 				componentId="<%= dropdownMenuComponentId %>"
 				dropdownItems="<%= SocialBookmarksTagUtil.getDropdownItems(request.getLocale(), types, className, classPK, title, url) %>"
 				icon="share"
-				label='<%= LanguageUtil.get(request, "share") %>'
+				label='<%= BrowserSnifferUtil.isMobile(request) ? null : LanguageUtil.get(request, "share") %>'
 				style="secondary"
 				triggerCssClasses="btn-outline-borderless btn-outline-secondary btn-sm"
 			/>

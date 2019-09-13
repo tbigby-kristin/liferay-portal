@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the user service. This utility wraps <code>com.liferay.portal.service.persistence.impl.UserPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -40,10 +38,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see UserPersistence
  * @generated
  */
-@ProviderType
 public class UserUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -177,15 +174,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByUuid(
 		String uuid, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -344,15 +341,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByUuid_C(
 		String uuid, long companyId, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -523,15 +520,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByCompanyId(
 		long companyId, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByCompanyId(
-			companyId, start, end, orderByComparator, retrieveFromCache);
+			companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -658,13 +655,13 @@ public class UserUtil {
 	 * Returns the user where contactId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param contactId the contact ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByContactId(
-		long contactId, boolean retrieveFromCache) {
+		long contactId, boolean useFinderCache) {
 
-		return getPersistence().fetchByContactId(contactId, retrieveFromCache);
+		return getPersistence().fetchByContactId(contactId, useFinderCache);
 	}
 
 	/**
@@ -749,15 +746,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByEmailAddress(
 		String emailAddress, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByEmailAddress(
-			emailAddress, start, end, orderByComparator, retrieveFromCache);
+			emailAddress, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -884,14 +881,13 @@ public class UserUtil {
 	 * Returns the user where portraitId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param portraitId the portrait ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByPortraitId(
-		long portraitId, boolean retrieveFromCache) {
+		long portraitId, boolean useFinderCache) {
 
-		return getPersistence().fetchByPortraitId(
-			portraitId, retrieveFromCache);
+		return getPersistence().fetchByPortraitId(portraitId, useFinderCache);
 	}
 
 	/**
@@ -980,16 +976,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByU_C(
 		long userId, long companyId, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByU_C(
-			userId, companyId, start, end, orderByComparator,
-			retrieveFromCache);
+			userId, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1111,14 +1106,13 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param userId the user ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_U(
-		long companyId, long userId, boolean retrieveFromCache) {
+		long companyId, long userId, boolean useFinderCache) {
 
-		return getPersistence().fetchByC_U(
-			companyId, userId, retrieveFromCache);
+		return getPersistence().fetchByC_U(companyId, userId, useFinderCache);
 	}
 
 	/**
@@ -1209,16 +1203,16 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByC_CD(
 		long companyId, Date createDate, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByC_CD(
 			companyId, createDate, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -1393,16 +1387,16 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByC_MD(
 		long companyId, Date modifiedDate, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByC_MD(
 			companyId, modifiedDate, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -1543,14 +1537,14 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param defaultUser the default user
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_DU(
-		long companyId, boolean defaultUser, boolean retrieveFromCache) {
+		long companyId, boolean defaultUser, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_DU(
-			companyId, defaultUser, retrieveFromCache);
+			companyId, defaultUser, useFinderCache);
 	}
 
 	/**
@@ -1607,14 +1601,14 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param screenName the screen name
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_SN(
-		long companyId, String screenName, boolean retrieveFromCache) {
+		long companyId, String screenName, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_SN(
-			companyId, screenName, retrieveFromCache);
+			companyId, screenName, useFinderCache);
 	}
 
 	/**
@@ -1671,14 +1665,14 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param emailAddress the email address
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_EA(
-		long companyId, String emailAddress, boolean retrieveFromCache) {
+		long companyId, String emailAddress, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_EA(
-			companyId, emailAddress, retrieveFromCache);
+			companyId, emailAddress, useFinderCache);
 	}
 
 	/**
@@ -1735,14 +1729,14 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param facebookId the facebook ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_FID(
-		long companyId, long facebookId, boolean retrieveFromCache) {
+		long companyId, long facebookId, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_FID(
-			companyId, facebookId, retrieveFromCache);
+			companyId, facebookId, useFinderCache);
 	}
 
 	/**
@@ -1799,14 +1793,14 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param googleUserId the google user ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_GUID(
-		long companyId, String googleUserId, boolean retrieveFromCache) {
+		long companyId, String googleUserId, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_GUID(
-			companyId, googleUserId, retrieveFromCache);
+			companyId, googleUserId, useFinderCache);
 	}
 
 	/**
@@ -1863,14 +1857,13 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param openId the open ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_O(
-		long companyId, String openId, boolean retrieveFromCache) {
+		long companyId, String openId, boolean useFinderCache) {
 
-		return getPersistence().fetchByC_O(
-			companyId, openId, retrieveFromCache);
+		return getPersistence().fetchByC_O(companyId, openId, useFinderCache);
 	}
 
 	/**
@@ -1961,16 +1954,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByC_S(
 		long companyId, int status, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByC_S(
-			companyId, status, start, end, orderByComparator,
-			retrieveFromCache);
+			companyId, status, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -2152,16 +2144,16 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByC_CD_MD(
 		long companyId, Date createDate, Date modifiedDate, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByC_CD_MD(
 			companyId, createDate, modifiedDate, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -2355,16 +2347,16 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching users
 	 */
 	public static List<User> findByC_DU_S(
 		long companyId, boolean defaultUser, int status, int start, int end,
-		OrderByComparator<User> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<User> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByC_DU_S(
 			companyId, defaultUser, status, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -2518,15 +2510,14 @@ public class UserUtil {
 	 *
 	 * @param companyId the company ID
 	 * @param externalReferenceCode the external reference code
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching user, or <code>null</code> if a matching user could not be found
 	 */
 	public static User fetchByC_ERC(
-		long companyId, String externalReferenceCode,
-		boolean retrieveFromCache) {
+		long companyId, String externalReferenceCode, boolean useFinderCache) {
 
 		return getPersistence().fetchByC_ERC(
-			companyId, externalReferenceCode, retrieveFromCache);
+			companyId, externalReferenceCode, useFinderCache);
 	}
 
 	/**
@@ -2676,15 +2667,15 @@ public class UserUtil {
 	 * @param start the lower bound of the range of users
 	 * @param end the upper bound of the range of users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of users
 	 */
 	public static List<User> findAll(
 		int start, int end, OrderByComparator<User> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

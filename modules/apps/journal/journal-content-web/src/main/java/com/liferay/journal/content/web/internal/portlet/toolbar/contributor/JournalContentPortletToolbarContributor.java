@@ -17,7 +17,7 @@ package com.liferay.journal.content.web.internal.portlet.toolbar.contributor;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalPortletKeys;
-import com.liferay.journal.content.web.configuration.JournalContentPortletInstanceConfiguration;
+import com.liferay.journal.content.web.internal.configuration.JournalContentPortletInstanceConfiguration;
 import com.liferay.journal.model.JournalFolderConstants;
 import com.liferay.journal.service.JournalFolderService;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -84,7 +84,8 @@ public class JournalContentPortletToolbarContributor
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("mvcPath", "/edit_article.jsp");
-		portletURL.setParameter("redirect", themeDisplay.getURLCurrent());
+		portletURL.setParameter(
+			"redirect", _portal.getLayoutFullURL(themeDisplay));
 		portletURL.setParameter("portletResource", portletDisplay.getId());
 		portletURL.setParameter("refererPlid", String.valueOf(plid));
 		portletURL.setParameter("groupId", String.valueOf(scopeGroupId));
@@ -181,12 +182,10 @@ public class JournalContentPortletToolbarContributor
 	}
 
 	private boolean _hasAddArticlePermission(ThemeDisplay themeDisplay) {
-		long scopeGroupId = themeDisplay.getScopeGroupId();
-
 		boolean hasResourcePermission =
 			_resourcePermissionChecker.checkResource(
-				themeDisplay.getPermissionChecker(), scopeGroupId,
-				ActionKeys.ADD_ARTICLE);
+				themeDisplay.getPermissionChecker(),
+				themeDisplay.getScopeGroupId(), ActionKeys.ADD_ARTICLE);
 
 		boolean hasPortletPermission = false;
 

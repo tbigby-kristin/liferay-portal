@@ -44,7 +44,7 @@ public interface JavaTerm {
 
 	public JavaSignature getSignature();
 
-	public boolean hasAnnotation(String annotation);
+	public boolean hasAnnotation(String... annotations);
 
 	public boolean isAbstract();
 

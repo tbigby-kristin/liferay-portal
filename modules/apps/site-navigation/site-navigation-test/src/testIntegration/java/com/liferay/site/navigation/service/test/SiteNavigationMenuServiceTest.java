@@ -21,8 +21,8 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
@@ -158,7 +158,7 @@ public class SiteNavigationMenuServiceTest {
 
 		SiteNavigationMenu siteNavigationMenu =
 			SiteNavigationMenuTestUtil.addSiteNavigationMenu(
-				_group, _groupUser.getUserId());
+				_group, _user.getUserId());
 
 		ServiceTestUtil.setUser(_groupUser);
 
@@ -179,20 +179,6 @@ public class SiteNavigationMenuServiceTest {
 		ServiceTestUtil.setUser(_groupUser);
 
 		_siteNavigationMenuService.deleteSiteNavigationMenu(
-			siteNavigationMenu.getSiteNavigationMenuId());
-	}
-
-	@Test(expected = PrincipalException.MustHavePermission.class)
-	public void testFetchSiteNavigationMenuWithoutPermissions()
-		throws Exception {
-
-		SiteNavigationMenu siteNavigationMenu =
-			SiteNavigationMenuTestUtil.addSiteNavigationMenu(
-				_group, _groupUser.getUserId());
-
-		ServiceTestUtil.setUser(_groupUser);
-
-		_siteNavigationMenuService.fetchSiteNavigationMenu(
 			siteNavigationMenu.getSiteNavigationMenuId());
 	}
 
@@ -505,15 +491,15 @@ public class SiteNavigationMenuServiceTest {
 	public void testUpdateSiteNavigationMenuWithoutUpdatePermissions1()
 		throws Exception {
 
+		SiteNavigationMenu siteNavigationMenu =
+			SiteNavigationMenuTestUtil.addSiteNavigationMenu(
+				_group, _user.getUserId());
+
+		ServiceTestUtil.setUser(_groupUser);
+
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
 				_group, _groupUser.getUserId());
-
-		SiteNavigationMenu siteNavigationMenu =
-			SiteNavigationMenuTestUtil.addSiteNavigationMenu(
-				_group, _groupUser.getUserId());
-
-		ServiceTestUtil.setUser(_groupUser);
 
 		_siteNavigationMenuService.updateSiteNavigationMenu(
 			siteNavigationMenu.getSiteNavigationMenuId(),
@@ -525,15 +511,15 @@ public class SiteNavigationMenuServiceTest {
 	public void testUpdateSiteNavigationMenuWithoutUpdatePermissions2()
 		throws Exception {
 
+		SiteNavigationMenu siteNavigationMenu =
+			SiteNavigationMenuTestUtil.addSiteNavigationMenu(
+				_group, _user.getUserId());
+
+		ServiceTestUtil.setUser(_groupUser);
+
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
 				_group, _groupUser.getUserId());
-
-		SiteNavigationMenu siteNavigationMenu =
-			SiteNavigationMenuTestUtil.addSiteNavigationMenu(
-				_group, _groupUser.getUserId());
-
-		ServiceTestUtil.setUser(_groupUser);
 
 		_siteNavigationMenuService.updateSiteNavigationMenu(
 			siteNavigationMenu.getSiteNavigationMenuId(),

@@ -27,15 +27,12 @@ import java.io.ObjectOutput;
 
 import java.util.Date;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The cache model class for representing LayoutSet in entity cache.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class LayoutSetCacheModel
 	implements CacheModel<LayoutSet>, Externalizable, MVCCModel {
 
@@ -79,12 +76,10 @@ public class LayoutSetCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(33);
+		StringBundler sb = new StringBundler(31);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
-		sb.append(", headId=");
-		sb.append(headId);
 		sb.append(", layoutSetId=");
 		sb.append(layoutSetId);
 		sb.append(", groupId=");
@@ -123,8 +118,6 @@ public class LayoutSetCacheModel
 		LayoutSetImpl layoutSetImpl = new LayoutSetImpl();
 
 		layoutSetImpl.setMvccVersion(mvccVersion);
-		layoutSetImpl.setHeadId(headId);
-		layoutSetImpl.setHead(head);
 		layoutSetImpl.setLayoutSetId(layoutSetId);
 		layoutSetImpl.setGroupId(groupId);
 		layoutSetImpl.setCompanyId(companyId);
@@ -202,10 +195,6 @@ public class LayoutSetCacheModel
 
 		mvccVersion = objectInput.readLong();
 
-		headId = objectInput.readLong();
-
-		head = objectInput.readBoolean();
-
 		layoutSetId = objectInput.readLong();
 
 		groupId = objectInput.readLong();
@@ -234,10 +223,6 @@ public class LayoutSetCacheModel
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
 		objectOutput.writeLong(mvccVersion);
-
-		objectOutput.writeLong(headId);
-
-		objectOutput.writeBoolean(head);
 
 		objectOutput.writeLong(layoutSetId);
 
@@ -295,8 +280,6 @@ public class LayoutSetCacheModel
 	}
 
 	public long mvccVersion;
-	public long headId;
-	public boolean head;
 	public long layoutSetId;
 	public long groupId;
 	public long companyId;

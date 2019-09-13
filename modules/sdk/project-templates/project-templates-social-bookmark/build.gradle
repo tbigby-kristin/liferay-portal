@@ -1,10 +1,10 @@
 dependencies {
-	compileOnly group: "com.liferay", name: "com.liferay.project.templates", version: "4.2.20"
+	compileOnly group: "com.liferay", name: "com.liferay.project.templates", version: "4.5.2"
 	compileOnly group: "org.apache.maven.archetype", name: "archetype-common", version: "2.4"
 }
 
 generateSampleProject {
-	args "--class-name", "Foo", "--liferayVersion", "7.1", "--name", "foo"
+	args "--class-name", "Foo", "--liferay-version", "7.1", "--name", "foo"
 
 	doFirst {
 		delete "${buildDir}/foo"

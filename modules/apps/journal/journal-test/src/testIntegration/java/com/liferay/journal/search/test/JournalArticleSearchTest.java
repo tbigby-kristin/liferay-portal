@@ -42,9 +42,14 @@ import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.PortalPreferences;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.search.BooleanQuery;
+import com.liferay.portal.kernel.search.Document;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.IndexSearcherHelperUtil;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.PortalPreferencesLocalServiceUtil;
@@ -277,6 +282,76 @@ public class JournalArticleSearchTest extends BaseSearchTestCase {
 			new JournalArticleSearchTestOrderHelper(_ddmIndexer, group);
 
 		testOrderHelper.testOrderByDDMTextFieldRepeatable();
+	}
+
+	@Test
+	public void testOrderByRelevancePhrase() throws Exception {
+		JournalTestUtil.addArticle(
+			group.getGroupId(), "article 1", "test test some");
+
+		JournalArticle article = JournalTestUtil.addArticle(
+			group.getGroupId(), "article 2", "some some test");
+
+		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
+			group.getGroupId());
+
+		searchContext.setEntryClassNames(
+			new String[] {JournalArticle.class.getName()});
+
+		Sort sort = new Sort(null, Sort.SCORE_TYPE, false);
+
+		searchContext.setSorts(sort);
+
+		Indexer indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+
+		searchContext.setAttribute(Field.CONTENT, "some test");
+
+		Hits hits = indexer.search(searchContext);
+
+		Document[] documents = hits.getDocs();
+
+		Assert.assertEquals(
+			documents[0].get(Field.ENTRY_CLASS_PK),
+			String.valueOf(article.getResourcePrimKey()));
+	}
+
+	@Test
+	public void testOrderByRelevanceWord() throws Exception {
+		JournalArticle article1 = JournalTestUtil.addArticle(
+			group.getGroupId(), "article 1", "test test some");
+		JournalArticle article2 = JournalTestUtil.addArticle(
+			group.getGroupId(), "article 2", "some some test");
+
+		SearchContext searchContext = SearchContextTestUtil.getSearchContext(
+			group.getGroupId());
+
+		searchContext.setEntryClassNames(
+			new String[] {JournalArticle.class.getName()});
+
+		Sort sort = new Sort(null, Sort.SCORE_TYPE, false);
+
+		searchContext.setSorts(sort);
+
+		Indexer indexer = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+
+		searchContext.setAttribute(Field.CONTENT, "test");
+
+		Hits hits = indexer.search(searchContext);
+
+		Document[] documents = hits.getDocs();
+
+		Assert.assertEquals(
+			documents[0].get(Field.ENTRY_CLASS_PK),
+			String.valueOf(article1.getResourcePrimKey()));
+
+		searchContext.setAttribute(Field.CONTENT, "some");
+
+		hits = indexer.search(searchContext);
+		documents = hits.getDocs();
+
+		Assert.assertEquals(
+			documents[0].get(Field.ENTRY_CLASS_PK),
+			String.valueOf(article2.getResourcePrimKey()));
 	}
 
 	@Ignore

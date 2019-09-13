@@ -16,7 +16,9 @@ package com.liferay.fragment.entry.processor.editable.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.service.AssetEntryUsageLocalService;
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.constants.FragmentEntryLinkConstants;
 import com.liferay.fragment.exception.FragmentEntryContentException;
 import com.liferay.fragment.model.FragmentCollection;
@@ -26,6 +28,9 @@ import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.fragment.service.FragmentCollectionService;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.FragmentEntryService;
+import com.liferay.journal.model.JournalArticle;
+import com.liferay.journal.model.JournalFolderConstants;
+import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONException;
@@ -47,7 +52,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.portlet.asset.util.test.AssetTestUtil;
 
 import java.io.IOException;
 
@@ -155,22 +159,27 @@ public class FragmentEntryProcessorEditableTest {
 				fragmentEntry.getJs(), StringPool.BLANK, StringPool.BLANK, 0,
 				null, ServiceContextTestUtil.getServiceContext());
 
-		AssetEntry assetEntry = AssetTestUtil.addAssetEntry(
-			_group.getGroupId());
+		JournalArticle journalArticle = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 		String editableValues = _getJsonFileAsString(
 			"fragment_entry_link_mapped_asset_field.json");
 
 		editableValues = StringUtil.replace(
 			editableValues, "CLASS_NAME_ID",
-			String.valueOf(_portal.getClassNameId(assetEntry.getClassName())));
+			String.valueOf(_portal.getClassNameId(JournalArticle.class)));
 
 		editableValues = StringUtil.replace(
 			editableValues, "CLASS_PK",
-			String.valueOf(assetEntry.getClassPK()));
+			String.valueOf(journalArticle.getResourcePrimKey()));
 
 		_fragmentEntryLinkLocalService.updateFragmentEntryLink(
 			fragmentEntryLink.getFragmentEntryLinkId(), editableValues);
+
+		AssetEntry assetEntry = _assetEntryLocalService.fetchEntry(
+			_portal.getClassNameId(JournalArticle.class),
+			journalArticle.getResourcePrimKey());
 
 		int count = _assetEntryUsageLocalService.getAssetEntryUsagesCount(
 			assetEntry.getEntryId());
@@ -383,8 +392,10 @@ public class FragmentEntryProcessorEditableTest {
 
 		return _fragmentEntryService.addFragmentEntry(
 			_group.getGroupId(), fragmentCollection.getFragmentCollectionId(),
-			"Fragment Entry", null, _getFileAsString(htmlFile), null,
-			WorkflowConstants.STATUS_APPROVED, serviceContext);
+			"fragment-entry", "Fragment Entry", null,
+			_getFileAsString(htmlFile), null, null, 0,
+			FragmentConstants.TYPE_SECTION, WorkflowConstants.STATUS_APPROVED,
+			serviceContext);
 	}
 
 	private String _getFileAsString(String fileName) throws IOException {
@@ -420,6 +431,9 @@ public class FragmentEntryProcessorEditableTest {
 
 		return bodyElement.html();
 	}
+
+	@Inject
+	private AssetEntryLocalService _assetEntryLocalService;
 
 	@Inject
 	private AssetEntryUsageLocalService _assetEntryUsageLocalService;

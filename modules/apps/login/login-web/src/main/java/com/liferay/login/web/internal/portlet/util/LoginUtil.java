@@ -15,6 +15,7 @@
 package com.liferay.login.web.internal.portlet.util;
 
 import com.liferay.login.web.internal.constants.LoginPortletKeys;
+import com.liferay.petra.content.ContentUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -27,9 +28,13 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.util.LinkedHashMap;
@@ -97,13 +102,6 @@ public class LoginUtil {
 			"[$USER_ID$]",
 			LanguageUtil.get(themeDisplay.getLocale(), "the-user-id"));
 
-		if (showPasswordTerms) {
-			definitionTerms.put(
-				"[$USER_PASSWORD$]",
-				LanguageUtil.get(
-					themeDisplay.getLocale(), "the-user-password"));
-		}
-
 		definitionTerms.put(
 			"[$USER_SCREENNAME$]",
 			LanguageUtil.get(themeDisplay.getLocale(), "the-user-screen-name"));
@@ -123,6 +121,33 @@ public class LoginUtil {
 
 		return PortalUtil.getEmailFromName(
 			preferences, companyId, PropsValues.LOGIN_EMAIL_FROM_NAME);
+	}
+
+	public static String getEmailTemplateXML(
+		PortletPreferences portletPreferences, PortletRequest portletRequest,
+		long companyId, String portletPreferencesTemplateKey,
+		String companyPortletPreferencesTemplateKey,
+		String portalPropertiesTemplateKey) {
+
+		PortletPreferences companyPortletPreferences =
+			PrefsPropsUtil.getPreferences(companyId, true);
+
+		String xml = LocalizationUtil.getLocalizationXmlFromPreferences(
+			portletPreferences, portletRequest, portletPreferencesTemplateKey,
+			"preferences", null);
+
+		if (xml == null) {
+			String defaultContent = ContentUtil.get(
+				PortalClassLoaderUtil.getClassLoader(),
+				PropsUtil.get(portalPropertiesTemplateKey));
+
+			xml = LocalizationUtil.getLocalizationXmlFromPreferences(
+				companyPortletPreferences, portletRequest,
+				companyPortletPreferencesTemplateKey, "settings",
+				defaultContent);
+		}
+
+		return xml;
 	}
 
 	public static String getLogin(
@@ -178,7 +203,7 @@ public class LoginUtil {
 
 		Company company = themeDisplay.getCompany();
 
-		if (!company.isSendPassword() && !company.isSendPasswordResetLink()) {
+		if (!company.isSendPasswordResetLink()) {
 			return;
 		}
 

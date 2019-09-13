@@ -38,18 +38,36 @@ public interface PropsKeys {
 
 	public static final String ADMIN_EMAIL_FROM_NAME = "admin.email.from.name";
 
+	public static final String ADMIN_EMAIL_PASSWORD_CHANGED_BODY =
+		"admin.email.password.changed.body";
+
+	public static final String ADMIN_EMAIL_PASSWORD_CHANGED_SUBJECT =
+		"admin.email.password.changed.subject";
+
 	public static final String ADMIN_EMAIL_PASSWORD_RESET_BODY =
 		"admin.email.password.reset.body";
 
 	public static final String ADMIN_EMAIL_PASSWORD_RESET_SUBJECT =
 		"admin.email.password.reset.subject";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String ADMIN_EMAIL_PASSWORD_SENT_BODY =
 		"admin.email.password.sent.body";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String ADMIN_EMAIL_PASSWORD_SENT_SUBJECT =
 		"admin.email.password.sent.subject";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String ADMIN_EMAIL_USER_ADDED_BODY =
 		"admin.email.user.added.body";
 
@@ -58,6 +76,9 @@ public interface PropsKeys {
 
 	public static final String ADMIN_EMAIL_USER_ADDED_NO_PASSWORD_BODY =
 		"admin.email.user.added.no.password.body";
+
+	public static final String ADMIN_EMAIL_USER_ADDED_RESET_PASSWORD_BODY =
+		"admin.email.user.added.reset.password.body";
 
 	public static final String ADMIN_EMAIL_USER_ADDED_SUBJECT =
 		"admin.email.user.added.subject";
@@ -325,9 +346,17 @@ public interface PropsKeys {
 		BLOGS_ENTRY_PREVIOUS_AND_NEXT_NAVIGATION_ENABLED =
 			"blogs.entry.previous.and.next.navigation.enabled";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String BLOGS_IMAGE_EXTENSIONS =
 		"blogs.image.extensions";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String BLOGS_IMAGE_MAX_SIZE = "blogs.image.max.size";
 
 	public static final String BLOGS_LINKBACK_EXCERPT_LENGTH =
@@ -377,6 +406,10 @@ public interface PropsKeys {
 	public static final String BUFFERED_INCREMENT_THREADPOOL_MAX_SIZE =
 		"buffered.increment.threadpool.max.size";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String CACHE_CLEAR_ON_CONTEXT_INITIALIZATION =
 		"cache.clear.on.context.initialization";
 
@@ -658,6 +691,10 @@ public interface PropsKeys {
 		COMPANY_SECURITY_PASSWORD_REMINDER_QUERY_FORM_AUTOCOMPLETE =
 			"company.security.password.reminder.query.form.autocomplete";
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), with no direct replacement
+	 */
+	@Deprecated
 	public static final String COMPANY_SECURITY_SEND_PASSWORD =
 		"company.security.send.password";
 
@@ -1657,6 +1694,10 @@ public interface PropsKeys {
 	public static final String JSONWS_WEB_SERVICE_INVALID_HTTP_METHODS =
 		"jsonws.web.service.invalid.http.methods";
 
+	public static final String
+		JSONWS_WEB_SERVICE_PARAMETER_TYPE_WHITELIST_CLASS_NAMES =
+			"jsonws.web.service.parameter.type.whitelist.class.names";
+
 	public static final String JSONWS_WEB_SERVICE_PATHS_EXCLUDES =
 		"jsonws.web.service.paths.excludes";
 
@@ -1965,6 +2006,8 @@ public interface PropsKeys {
 
 	public static final String MAIL_MX_UPDATE = "mail.mx.update";
 
+	public static final String MAIL_SEND_BLACKLIST = "mail.send.blacklist";
+
 	public static final String MAIL_SESSION_MAIL = "mail.session.mail";
 
 	public static final String MAIL_SESSION_MAIL_ADVANCED_PROPERTIES =
@@ -2186,6 +2229,10 @@ public interface PropsKeys {
 	public static final String MODULE_FRAMEWORK_CONFIGS_DIR =
 		"module.framework.configs.dir";
 
+	public static final String
+		MODULE_FRAMEWORK_CONFIGURATION_BUNDLE_SYMBOLIC_NAMES =
+			"module.framework.configuration.bundle.symbolic.names";
+
 	public static final String MODULE_FRAMEWORK_DYNAMIC_INSTALL_START_LEVEL =
 		"module.framework.dynamic.install.start.level";
 
@@ -2263,6 +2310,14 @@ public interface PropsKeys {
 	public static final String
 		MODULE_FRAMEWORK_WEB_GENERATOR_JSP_COMPILER_DEPENDENCIES =
 			"module.framework.web.generator.jsp.compiler.dependencies";
+
+	public static final String
+		MODULE_FRAMEWORK_WEB_SERVLET_ANNOTATION_SCANNING_BLACKLIST =
+			"module.framework.web.servlet.annotation.scanning.blacklist";
+
+	public static final String
+		MODULE_FRAMEWORK_WEB_SERVLET_ANNOTATION_SCANNING_WHITELIST =
+			"module.framework.web.servlet.annotation.scanning.whitelist";
 
 	public static final String MULTI_VALUE_MAP = "multi.value.map.";
 
@@ -3343,6 +3398,8 @@ public interface PropsKeys {
 	public static final String SPRING_PORTLET_CONFIGS =
 		"spring.portlet.configs";
 
+	public static final String SPRITE_ENABLED = "sprite.enabled";
+
 	public static final String SPRITE_FILE_NAME = "sprite.file.name";
 
 	public static final String SPRITE_PROPERTIES_FILE_NAME =
@@ -3832,6 +3889,9 @@ public interface PropsKeys {
 
 	public static final String WIDGET_SERVLET_MAPPING =
 		"widget.servlet.mapping";
+
+	public static final String WORK_DIR_OVERRIDE_ENABLED =
+		"work.dir.override.enabled";
 
 	public static final String WORKFLOW_EMAIL_FROM_ADDRESS =
 		"workflow.email.from.address";

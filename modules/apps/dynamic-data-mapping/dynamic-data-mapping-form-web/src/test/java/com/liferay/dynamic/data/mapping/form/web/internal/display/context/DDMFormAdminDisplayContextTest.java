@@ -22,10 +22,11 @@ import com.liferay.dynamic.data.mapping.form.renderer.DDMFormTemplateContextFact
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
 import com.liferay.dynamic.data.mapping.form.web.internal.configuration.DDMFormWebConfiguration;
 import com.liferay.dynamic.data.mapping.form.web.internal.instance.lifecycle.AddDefaultSharedFormLayoutPortalInstanceLifecycleListener;
-import com.liferay.dynamic.data.mapping.io.DDMFormFieldTypesSerializerTracker;
+import com.liferay.dynamic.data.mapping.io.DDMFormFieldTypesSerializer;
 import com.liferay.dynamic.data.mapping.io.exporter.DDMFormInstanceRecordWriterTracker;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceSettings;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceVersionLocalService;
@@ -33,6 +34,7 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureService;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.Language;
@@ -145,8 +147,9 @@ public class DDMFormAdminDisplayContextTest extends PowerMockito {
 	protected String getFormURL(
 		String friendlyURLPath, String pageFriendlyURLPath) {
 
-		return _PORTAL_URL + friendlyURLPath + _GROUP_FRIENDLY_URL_PATH +
-			pageFriendlyURLPath + _FORM_APPLICATION_PATH;
+		return StringBundler.concat(
+			_PORTAL_URL, friendlyURLPath, _GROUP_FRIENDLY_URL_PATH,
+			pageFriendlyURLPath, _FORM_APPLICATION_PATH);
 	}
 
 	protected String getRestrictedFormURL() {
@@ -296,19 +299,20 @@ public class DDMFormAdminDisplayContextTest extends PowerMockito {
 			new AddDefaultSharedFormLayoutPortalInstanceLifecycleListener(),
 			mock(DDMFormBuilderContextFactory.class),
 			mock(DDMFormBuilderSettingsRetriever.class),
-			mock(DDMFormWebConfiguration.class),
+			mock(DDMFormFieldTypeServicesTracker.class),
+			mock(DDMFormFieldTypesSerializer.class),
+			mock(DDMFormInstanceLocalService.class),
 			mock(DDMFormInstanceRecordLocalService.class),
 			mock(DDMFormInstanceRecordWriterTracker.class),
 			mockDDMFormInstanceService(),
 			mock(DDMFormInstanceVersionLocalService.class),
-			mock(DDMFormFieldTypeServicesTracker.class),
-			mock(DDMFormFieldTypesSerializerTracker.class),
 			mock(DDMFormRenderer.class),
 			mock(DDMFormTemplateContextFactory.class),
 			mock(DDMFormValuesFactory.class), mock(DDMFormValuesMerger.class),
+			mock(DDMFormWebConfiguration.class),
 			mock(DDMStructureLocalService.class),
 			mock(DDMStructureService.class), mock(JSONFactory.class),
-			mock(NPMResolver.class));
+			mock(NPMResolver.class), mock(Portal.class));
 	}
 
 	protected void setUpLanguageUtil() {

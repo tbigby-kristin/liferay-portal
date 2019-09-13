@@ -192,7 +192,7 @@ public class AggregateClassLoader extends ClassLoader {
 	@Override
 	public URL getResource(String name) {
 		for (ClassLoader classLoader : getClassLoaders()) {
-			URL url = _getResource(classLoader, name);
+			URL url = classLoader.getResource(name);
 
 			if (url != null) {
 				return url;
@@ -207,10 +207,12 @@ public class AggregateClassLoader extends ClassLoader {
 		List<URL> urls = new ArrayList<>();
 
 		for (ClassLoader classLoader : getClassLoaders()) {
-			urls.addAll(Collections.list(_getResources(classLoader, name)));
+			urls.addAll(Collections.list(classLoader.getResources(name)));
 		}
 
-		urls.addAll(Collections.list(_getResources(getParent(), name)));
+		ClassLoader parentClassLoader = getParent();
+
+		urls.addAll(Collections.list(parentClassLoader.getResources(name)));
 
 		return Collections.enumeration(urls);
 	}
@@ -276,58 +278,29 @@ public class AggregateClassLoader extends ClassLoader {
 		}
 	}
 
-	private static URL _getResource(ClassLoader classLoader, String name) {
-		try {
-			return (URL)_GET_RESOURCE_METHOD.invoke(classLoader, name);
-		}
-		catch (InvocationTargetException ite) {
-			return null;
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
-
-	private static Enumeration<URL> _getResources(
-			ClassLoader classLoader, String name)
-		throws IOException {
-
-		try {
-			return (Enumeration<URL>)_GET_RESOURCES_METHOD.invoke(
-				classLoader, name);
-		}
-		catch (InvocationTargetException ite) {
-			Throwable t = ite.getTargetException();
-
-			throw new IOException(t);
-		}
-		catch (Exception e) {
-			throw new IOException(e);
-		}
-	}
-
 	private static Class<?> _loadClass(
 			ClassLoader classLoader, String name, boolean resolve)
 		throws ClassNotFoundException {
 
-		try {
-			return (Class<?>)_LOAD_CLASS_METHOD.invoke(
-				classLoader, name, resolve);
+		if (resolve) {
+			try {
+				return (Class<?>)_LOAD_CLASS_METHOD.invoke(
+					classLoader, name, true);
+			}
+			catch (InvocationTargetException ite) {
+				throw new ClassNotFoundException(
+					"Unable to load class " + name, ite.getTargetException());
+			}
+			catch (Exception e) {
+				throw new ClassNotFoundException(
+					"Unable to load class " + name, e);
+			}
 		}
-		catch (InvocationTargetException ite) {
-			throw new ClassNotFoundException(
-				"Unable to load class " + name, ite.getTargetException());
-		}
-		catch (Exception e) {
-			throw new ClassNotFoundException("Unable to load class " + name, e);
-		}
+
+		return classLoader.loadClass(name);
 	}
 
 	private static final Method _FIND_CLASS_METHOD;
-
-	private static final Method _GET_RESOURCE_METHOD;
-
-	private static final Method _GET_RESOURCES_METHOD;
 
 	private static final Method _LOAD_CLASS_METHOD;
 
@@ -335,12 +308,6 @@ public class AggregateClassLoader extends ClassLoader {
 		try {
 			_FIND_CLASS_METHOD = ReflectionUtil.getDeclaredMethod(
 				ClassLoader.class, "findClass", String.class);
-
-			_GET_RESOURCE_METHOD = ReflectionUtil.getDeclaredMethod(
-				ClassLoader.class, "getResource", String.class);
-
-			_GET_RESOURCES_METHOD = ReflectionUtil.getDeclaredMethod(
-				ClassLoader.class, "getResources", String.class);
 
 			_LOAD_CLASS_METHOD = ReflectionUtil.getDeclaredMethod(
 				ClassLoader.class, "loadClass", String.class, boolean.class);

@@ -210,9 +210,8 @@ public class RuntimeVariables {
 		if (_contextReplace == null) {
 			return text;
 		}
-		else {
-			return _contextReplace.replace(text);
-		}
+
+		return _contextReplace.replace(text);
 	}
 
 	private void _setValue(String key, String value) {

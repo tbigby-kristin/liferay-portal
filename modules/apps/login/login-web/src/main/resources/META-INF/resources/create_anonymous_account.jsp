@@ -30,6 +30,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "anonymous-account"));
 		<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.ADD %>" />
 
 		<liferay-ui:error exception="<%= CaptchaConfigurationException.class %>" message="a-captcha-error-occurred-please-contact-an-administrator" />
+		<liferay-ui:error exception="<%= CaptchaException.class %>" message="captcha-verification-failed" />
 		<liferay-ui:error exception="<%= CaptchaTextException.class %>" message="text-verification-failed" />
 		<liferay-ui:error exception="<%= CompanyMaxUsersException.class %>" message="unable-to-create-user-account-because-the-maximum-number-of-users-has-been-reached" />
 		<liferay-ui:error exception="<%= ContactNameException.MustHaveFirstName.class %>" message="please-enter-a-valid-first-name" />
@@ -79,7 +80,7 @@ renderResponse.setTitle(LanguageUtil.get(request, "anonymous-account"));
 
 			<aui:col width="<%= 50 %>">
 				<c:if test="<%= captchaConfiguration.createAccountCaptchaEnabled() %>">
-					<portlet:resourceURL id="/login/captcha" var="captchaURL" />
+					<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/login/captcha" var="captchaURL" />
 
 					<liferay-captcha:captcha
 						url="<%= captchaURL %>"

@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {Drag, DragDrop} from 'metal-drag-drop';
 import position from 'metal-position';
 import State, {Config} from 'metal-state';
@@ -27,7 +41,6 @@ const DROP_TARGET_ITEM_TYPES = {
  * LayoutDragDrop
  */
 class LayoutDragDrop extends State {
-
 	/**
 	 * @inheritDoc
 	 * @review
@@ -69,9 +82,9 @@ class LayoutDragDrop extends State {
 		const targetItem = data.target;
 
 		if (targetItem) {
-			const mouseY = data.originalEvent ?
-				data.originalEvent.clientY :
-				data.relativeY;
+			const mouseY = data.originalEvent
+				? data.originalEvent.clientY
+				: data.relativeY;
 
 			const placeholderItemRegion = position.getRegion(data.placeholder);
 			const sourceItemPlid = data.source.dataset.layoutColumnItemPlid;
@@ -84,33 +97,31 @@ class LayoutDragDrop extends State {
 				targetId = targetItem.dataset.layoutColumnIndex;
 				targetId = targetId === '0' ? null : targetId;
 				targetType = DROP_TARGET_ITEM_TYPES.column;
-			}
-			else if (targetItem.dataset.layoutColumnItemPlid) {
+			} else if (targetItem.dataset.layoutColumnItemPlid) {
 				targetId = targetItem.dataset.layoutColumnItemPlid;
 				targetType = DROP_TARGET_ITEM_TYPES.item;
 
-				if (placeholderItemRegion.top > targetItemRegion.top &&
-					placeholderItemRegion.bottom < targetItemRegion.bottom) {
+				if (
+					placeholderItemRegion.top > targetItemRegion.top &&
+					placeholderItemRegion.bottom < targetItemRegion.bottom
+				) {
 					this._draggingItemPosition = DROP_TARGET_BORDERS.inside;
-				}
-				else if (Math.abs(mouseY - targetItemRegion.top) <=
-					Math.abs(mouseY - targetItemRegion.bottom)) {
+				} else if (
+					Math.abs(mouseY - targetItemRegion.top) <=
+					Math.abs(mouseY - targetItemRegion.bottom)
+				) {
 					this._draggingItemPosition = DROP_TARGET_BORDERS.top;
-				}
-				else {
+				} else {
 					this._draggingItemPosition = DROP_TARGET_BORDERS.bottom;
 				}
 			}
 
-			this.emit(
-				'dragLayoutColumnItem',
-				{
-					position: this._draggingItemPosition,
-					sourceItemPlid,
-					targetId,
-					targetType
-				}
-			);
+			this.emit('dragLayoutColumnItem', {
+				position: this._draggingItemPosition,
+				sourceItemPlid,
+				targetId,
+				targetType
+			});
 		}
 	}
 
@@ -131,14 +142,12 @@ class LayoutDragDrop extends State {
 	 * @review
 	 */
 	_handleDragStart(data, event) {
-		const sourceItemPlid = event.target.getActiveDrag().dataset.layoutColumnItemPlid;
+		const sourceItemPlid = event.target.getActiveDrag().dataset
+			.layoutColumnItemPlid;
 
-		this.emit(
-			'startMovingLayoutColumnItem',
-			{
-				sourceItemPlid
-			}
-		);
+		this.emit('startMovingLayoutColumnItem', {
+			sourceItemPlid
+		});
 	}
 
 	/**
@@ -162,21 +171,17 @@ class LayoutDragDrop extends State {
 				targetId = data.target.dataset.layoutColumnIndex;
 				targetId = targetId === '0' ? null : targetId;
 				targetType = DROP_TARGET_ITEM_TYPES.column;
-			}
-			else if (data.target.dataset.layoutColumnItemPlid) {
+			} else if (data.target.dataset.layoutColumnItemPlid) {
 				targetId = data.target.dataset.layoutColumnItemPlid;
 				targetType = DROP_TARGET_ITEM_TYPES.item;
 			}
 		}
 
-		this.emit(
-			'dropLayoutColumnItem',
-			{
-				sourceItemPlid,
-				targetId,
-				targetType
-			}
-		);
+		this.emit('dropLayoutColumnItem', {
+			sourceItemPlid,
+			targetId,
+			targetType
+		});
 	}
 
 	/**
@@ -188,38 +193,26 @@ class LayoutDragDrop extends State {
 			this._dragDrop.dispose();
 		}
 
-		this._dragDrop = new DragDrop(
-			{
-				autoScroll: true,
-				dragPlaceholder: Drag.Placeholder.CLONE,
-				handles: '.layout-drag-handler',
-				scrollContainers: '.layout-column, .layout-columns',
-				sources: '.layout-drag-item',
-				targets: '.layout-drop-target-item'
-			}
-		);
+		this._dragDrop = new DragDrop({
+			autoScroll: true,
+			dragPlaceholder: Drag.Placeholder.CLONE,
+			handles: '.layout-drag-handler',
+			scrollContainers: '.layout-column, .layout-columns',
+			sources: '.layout-drag-item',
+			targets: '.layout-drop-target-item'
+		});
 
-		this._dragDrop.on(
-			DragDrop.Events.DRAG,
-			this._handleDrag.bind(this)
-		);
+		this._dragDrop.on(DragDrop.Events.DRAG, this._handleDrag.bind(this));
 
-		this._dragDrop.on(
-			DragDrop.Events.END,
-			this._handleDrop.bind(this)
-		);
+		this._dragDrop.on(DragDrop.Events.END, this._handleDrop.bind(this));
 
-		this._dragDrop.on(
-			Drag.Events.START,
-			this._handleDragStart.bind(this)
-		);
+		this._dragDrop.on(Drag.Events.START, this._handleDragStart.bind(this));
 
 		this._dragDrop.on(
 			DragDrop.Events.TARGET_LEAVE,
 			this._handleDragEnd.bind(this)
 		);
 	}
-
 }
 
 /**
@@ -229,7 +222,6 @@ class LayoutDragDrop extends State {
  */
 
 LayoutDragDrop.STATE = {
-
 	/**
 	 * Internal DragDrop instance.
 	 * @default null
@@ -253,9 +245,5 @@ LayoutDragDrop.STATE = {
 	_draggingItemPosition: Config.internal().string()
 };
 
-export {
-	DROP_TARGET_BORDERS,
-	DROP_TARGET_ITEM_TYPES,
-	LayoutDragDrop
-};
+export {DROP_TARGET_BORDERS, DROP_TARGET_ITEM_TYPES, LayoutDragDrop};
 export default LayoutDragDrop;

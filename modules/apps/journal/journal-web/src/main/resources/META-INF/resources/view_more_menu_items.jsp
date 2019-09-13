@@ -95,21 +95,24 @@ JournalViewMoreMenuItemsDisplayContext journalViewMoreMenuItemsDisplayContext = 
 	</liferay-ui:search-container>
 </aui:form>
 
-<aui:script use="aui-base">
+<aui:script require="metal-dom/src/all/dom as dom">
 	var Util = Liferay.Util;
 
-	A.one('#<portlet:namespace />addMenuItemFm').delegate(
+	const addMenuItemFm = document.getElementById('<portlet:namespace />addMenuItemFm');
+
+	dom.delegate(
+		addMenuItemFm,
 		'click',
+		'.selector-button',
 		function(event) {
 			Util.getOpener().Liferay.fire(
 				'<%= HtmlUtil.escapeJS(journalViewMoreMenuItemsDisplayContext.getEventName()) %>',
 				{
-					ddmStructureKey: event.currentTarget.attr('data-ddmStructureKey')
+					ddmStructureKey: event.delegateTarget.getAttribute('data-ddmStructureKey')
 				}
 			);
 
 			Util.getWindow().destroy();
-		},
-		'.selector-button'
+		}
 	);
 </aui:script>

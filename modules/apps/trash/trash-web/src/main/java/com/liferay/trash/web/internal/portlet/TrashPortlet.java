@@ -82,8 +82,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + TrashPortletKeys.TRASH,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator"
 	},
 	service = {Portlet.class, TrashPortlet.class}
 )
@@ -152,6 +151,8 @@ public class TrashPortlet extends MVCPortlet {
 
 		TrashUndoUtil.addRestoreData(actionRequest, className, classPK);
 
+		hideDefaultSuccessMessage(actionRequest);
+
 		sendRedirect(actionRequest, actionResponse);
 	}
 
@@ -198,6 +199,8 @@ public class TrashPortlet extends MVCPortlet {
 
 		TrashUndoUtil.addRestoreData(actionRequest, entries);
 
+		hideDefaultSuccessMessage(actionRequest);
+
 		sendRedirect(actionRequest, actionResponse);
 	}
 
@@ -232,6 +235,8 @@ public class TrashPortlet extends MVCPortlet {
 		TrashUndoUtil.addRestoreData(
 			actionRequest, entry.getClassName(), entry.getClassPK());
 
+		hideDefaultSuccessMessage(actionRequest);
+
 		sendRedirect(actionRequest, actionResponse);
 	}
 
@@ -257,6 +262,8 @@ public class TrashPortlet extends MVCPortlet {
 
 		TrashUndoUtil.addRestoreData(
 			actionRequest, entry.getClassName(), entry.getClassPK());
+
+		hideDefaultSuccessMessage(actionRequest);
 
 		sendRedirect(actionRequest, actionResponse);
 	}

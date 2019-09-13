@@ -1,15 +1,46 @@
-import * as FormSupport from '../../Form/FormSupport.es';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
 
-export const handleResizeRight = (state, {pageIndex, rowIndex, columnIndex}, targetColumn) => {
+import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
+
+export const handleResizeRight = (
+	state,
+	{pageIndex, rowIndex, columnIndex},
+	targetColumn
+) => {
 	const {pages} = state;
 
-	let newPages = [
-		...pages
-	];
+	let newPages = [...pages];
 
-	const currentColumn = FormSupport.getColumn(pages, pageIndex, rowIndex, columnIndex);
-	const currentPosition = FormSupport.getColumnPosition(pages, pageIndex, rowIndex, columnIndex);
-	const nextColumn = FormSupport.getColumn(newPages, pageIndex, rowIndex, columnIndex + 1);
+	const currentColumn = FormSupport.getColumn(
+		pages,
+		pageIndex,
+		rowIndex,
+		columnIndex
+	);
+	const currentPosition = FormSupport.getColumnPosition(
+		pages,
+		pageIndex,
+		rowIndex,
+		columnIndex
+	);
+	const nextColumn = FormSupport.getColumn(
+		newPages,
+		pageIndex,
+		rowIndex,
+		columnIndex + 1
+	);
 
 	let newCurrentColumn;
 
@@ -27,12 +58,8 @@ export const handleResizeRight = (state, {pageIndex, rowIndex, columnIndex}, tar
 				...nextColumn,
 				size: Math.min(nextColumn.size + newSize, 12)
 			};
-		}
-		else if (targetColumn > currentPosition) {
-			if (
-				nextColumn.size === 1 &&
-				nextColumn.fields.length === 0
-			) {
+		} else if (targetColumn > currentPosition) {
+			if (nextColumn.size === 1 && nextColumn.fields.length === 0) {
 				newCurrentColumn = {
 					...currentColumn,
 					size: currentColumn.size + newSize
@@ -44,8 +71,7 @@ export const handleResizeRight = (state, {pageIndex, rowIndex, columnIndex}, tar
 					rowIndex,
 					columnIndex + 1
 				);
-			}
-			else if (nextColumn.size > newSize) {
+			} else if (nextColumn.size > newSize) {
 				newCurrentColumn = {
 					...currentColumn,
 					size: currentColumn.size + newSize
@@ -67,8 +93,7 @@ export const handleResizeRight = (state, {pageIndex, rowIndex, columnIndex}, tar
 				newNextColumn
 			);
 		}
-	}
-	else if (
+	} else if (
 		currentColumn.size > currentPosition - targetColumn &&
 		targetColumn < currentPosition
 	) {
@@ -105,20 +130,29 @@ export const handleResizeRight = (state, {pageIndex, rowIndex, columnIndex}, tar
 };
 
 export const handleResizeLeft = (state, source, targetColumn) => {
-	const {
-		columnIndex,
-		pageIndex,
-		rowIndex
-	} = FormSupport.getIndexes(source);
+	const {columnIndex, pageIndex, rowIndex} = FormSupport.getIndexes(source);
 	const {pages} = state;
 
-	let newPages = [
-		...pages
-	];
+	let newPages = [...pages];
 
-	const currentColumn = FormSupport.getColumn(pages, pageIndex, rowIndex, columnIndex);
-	const previousColumn = FormSupport.getColumn(pages, pageIndex, rowIndex, columnIndex - 1);
-	const previousColumnPosition = FormSupport.getColumnPosition(pages, pageIndex, rowIndex, columnIndex - 1);
+	const currentColumn = FormSupport.getColumn(
+		pages,
+		pageIndex,
+		rowIndex,
+		columnIndex
+	);
+	const previousColumn = FormSupport.getColumn(
+		pages,
+		pageIndex,
+		rowIndex,
+		columnIndex - 1
+	);
+	const previousColumnPosition = FormSupport.getColumnPosition(
+		pages,
+		pageIndex,
+		rowIndex,
+		columnIndex - 1
+	);
 
 	if (
 		previousColumn &&
@@ -145,8 +179,7 @@ export const handleResizeLeft = (state, source, targetColumn) => {
 				size: currentColumn.size + 1
 			}
 		);
-	}
-	else if (previousColumn) {
+	} else if (previousColumn) {
 		const newSize = Math.abs(previousColumnPosition - targetColumn);
 
 		if (
@@ -155,8 +188,7 @@ export const handleResizeLeft = (state, source, targetColumn) => {
 		) {
 			currentColumn.size += newSize;
 			previousColumn.size -= newSize;
-		}
-		else if (
+		} else if (
 			previousColumnPosition < targetColumn &&
 			currentColumn.size > newSize
 		) {
@@ -179,8 +211,7 @@ export const handleResizeLeft = (state, source, targetColumn) => {
 			columnIndex - 1,
 			previousColumn
 		);
-	}
-	else if (columnIndex === 0 && targetColumn > 0) {
+	} else if (columnIndex === 0 && targetColumn > 0) {
 		newPages = FormSupport.addColumn(
 			newPages,
 			columnIndex,
@@ -215,13 +246,17 @@ export const handleColumnResized = (state, source, column, direction) => {
 
 	let newPages = [...state.pages];
 
-	const currentColumn = FormSupport.getColumn(newPages, pageIndex, rowIndex, columnIndex);
+	const currentColumn = FormSupport.getColumn(
+		newPages,
+		pageIndex,
+		rowIndex,
+		columnIndex
+	);
 
 	if (currentColumn) {
 		if (direction === 'left') {
 			newPages = handleResizeLeft(state, source, column);
-		}
-		else {
+		} else {
 			newPages = handleResizeRight(state, sourceIndexes, column + 1);
 		}
 	}

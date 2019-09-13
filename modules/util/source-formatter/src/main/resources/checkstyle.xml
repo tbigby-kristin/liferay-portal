@@ -93,6 +93,9 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.AnnotationParameterOrderCheck">
 			<message key="annotation.unsortedParameter" value="Annotation parameter ''{0}'' is not sorted alphabetically" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.AnonymousClassCheck">
+			<message key="anonymous.class.incorrect" value="Do not use anonymous class for variable ''{0}''. This causes (de)serialization issues when passed to method call ''{1}''." />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.AppendCheck">
 			<message key="end.character.invalid" value="When appending multiple literal strings, only the last literal string can end with ''{0}''" />
 			<message key="line.break.incorrect" value="Avoid using line break when appending multiple literal strings" />
@@ -107,13 +110,20 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.AssertEqualsCheck">
 			<message key="assert.add.information" value="Add ''{0}'' as extra parameter at the beginning of the ''Assert.assertEquals'' call to provide more information to the test. See LPS-70411." />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.CamelCaseNameCheck">
+			<message key="method.invalidName" value="''{0}'' should be followed by a lowercase character for method ''{1}''" />
+			<message key="parameter.invalidName" value="''{0}'' should be followed by a lowercase character for parameter ''{1}''" />
+			<message key="variable.invalidName" value="''{0}'' should be followed by a lowercase character for variable ''{1}''" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ChainingCheck">
 			<property name="allowedClassNames" value="ActionSemantics,.*[Bb]uilder(s)?,Assertions,Awaitility,.*Consumer,EasyMock,Either,Filter,FormNavigatorEntryConfigurationRetriever,GenericUtil,JSONUtil,List,MemberMatcher,Option,Optional,Response,RestAssured,(Double|Int|Long)?Stream,Try,Validation" />
-			<property name="allowedMethodNames" value="bind,builder,newBuilder,stream" />
+			<property name="allowedMethodNames" value="bind,builder,newBuilder" />
 			<property name="allowedMockitoMethodNames" value="doAnswer,doCallRealMethod,doNothing,doReturn,doThrow,field,replace,stub,verify,verifyPrivate,when" />
 			<property name="allowedVariableTypeNames" value="^(?!String).+Builder(Impl)?,Column,CompletableFuture,.*Consumer,ContactsEngineClient,Dataset,Description,ExecuteActionRequest,(FormsEventDataset)?Filter,.*Function[0-9]*,HttpSecurity,InOrder,JSONArray,JSONObject,JsonPath,.*Mapper,NestedRepresentor.*,Optional,Predicate,RequestSpecification,Response,SoyContext,(Double|Int|Long)?Stream,Try,UpdateFieldPropertyRequest,ValidatableResponse,WebTarget" />
+			<property name="applyToTypeCast" value="true" />
 			<message key="chaining.allowed" value="Chaining is allowed on ''{0}''. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
-			<message key="chaining.avoid" value="Avoid chaining on method ''{0}''. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
+			<message key="chaining.avoid.method" value="Avoid chaining on method ''{0}''. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
+			<message key="chaining.avoid.type.cast" value="Avoid chaining on Type Cast" />
 			<message key="chaining.required" value="Chaining on ''{0}'' is preferred. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/chaining.markdown" />
 			<message key="concat.avoid.too.many" value="Use StringBundler instead of chaining concat when there is more than 3 parts" />
 		</module>
@@ -121,6 +131,7 @@
 			<message key="end.character.invalid" value="When concatenating multiple literal strings, only the last literal string can end with ''{0}''" />
 			<message key="literal.string.combine" value="Combine the literal strings ''{0}'' and ''{1}''" />
 			<message key="literal.string.move" value="Add the string ''{0}'' to the previous literal string" />
+			<message key="plus.incorrect" value="Do not use ''+'' inside ''StringBundler.concat''" />
 			<message key="start.character.invalid" value="When concatenating multiple literal strings, only the first literal string can start with ''{0}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ConstantNameCheck">
@@ -151,6 +162,9 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.ExceptionMessageCheck">
 			<message key="message.incorrect" value="Incorrect exception message. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/phrase_vs_sentence.markdown" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.FactoryCheck">
+			<message key="factory.use" value="Use ''{0}'' to create new instance of ''{1}''" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.FilterStringWhitespaceCheck">
 			<message key="whitespace.incorrect" value="The value of ''{0}'' should not have spaces around ''='', see LPS-70526" />
 		</module>
@@ -159,6 +173,9 @@
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.FullyQualifiedNameCheck">
 			<message key="import.statement.use" value="Use import statement instead of Fully Qualified Name for ''{0}'" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.IfStatementCheck">
+			<message key="if.statements.combine" value="Combine if-statements" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.InstanceofOrderCheck">
 			<message key="instanceof.order" value="''{0}'' should come before ''{1}''" />
@@ -174,11 +191,10 @@
 			<message key="variable.rename" value="Rename {0} ''{1}'' to ''{2}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.JSONUtilCheck">
-			<property name="enabled" value="false" />
 			<message key="json.util.put.use" value="Combine calls ''{0}'' ({1}) and ''{2}'' ({3}) into single call ''{4}''. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/json_util.markdown" />
+			<message key="json.util.put.all.use" value="Use ''JSONUtil.putAll'' instead of chaining on ''JSONUtil.put''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.LambdaCheck">
-			<property name="enabled" value="false" />
 			<message key="lambda.simplify" value="Simplify lambda statement with single statement. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/lambda.markdown" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.LineBreakAfterCommaCheck">
@@ -191,11 +207,9 @@
 			<message key="end.line.character.incorrect" value="Line should not end with ''{0}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ListUtilCheck">
-			<property name="enabled" value="false" />
 			<message key="list.util.use" value="Use ''ListUtil.toList'' to simplify code. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/list_util.markdown" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.LiteralStringEqualsCheck">
-			<property name="enabled" value="false" />
 			<message key="objects.equals.use.1" value="Use ''Objects.equals'' instead of calling ''equals'' on a literal String" />
 			<message key="objects.equals.use.2" value="Either use ''{0}'' or use ''Objects.equals'' if ''{1}'' can have a ''null'' value, instead of calling ''equals'' on a literal String" />
 		</module>
@@ -212,11 +226,15 @@
 			<message key="entry.set.use" value="Use Map.entrySet() to retrieve values. See https://github.com/liferay/liferay-portal/blob/master/modules/util/source-formatter/documentation/map_iteration.markdown" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.MethodNamingCheck">
-			<property name="enabled" value="false" />
 			<message key="method.rename" value="Rename method ''{0}'' to ''{1}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.MissingAuthorCheck">
 			<message key="author.missing" value="Missing author" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.MissingDiamondOperatorCheck">
+			<property name="enforceDiamondOperatorClassNames" value="" />
+			<message key="diamond.operator.missing" value="Missing diamond operator ''&lt;&gt;'' for type ''{0}''" />
+			<message key="generic.types.missing" value="Missing generic types ''{0}'' for type ''{1}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.MissingEmptyLineCheck">
 			<message key="empty.line.missing.after.method.call" value="There should be an empty line after line ''{0}''" />
@@ -245,6 +263,10 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.OperatorOrderCheck">
 			<message key="left.argument.literal.or.num" value="''{0}'' should be on the right hand side of the operator" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.OperatorOperandCheck">
+			<property name="enabled" value="false" />
+			<message key="readability.improve" value="Create a new variable for the {0} hand side operand of the ''{1}'' operator for better readability" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ParsePrimitiveTypeCheck">
 			<message key="getter.util.method.use" value="Use ''GetterUtil.{0}'' or properly catch ''NumberFormatException'' when calling ''{1}.{2}''" />
 		</module>
@@ -257,11 +279,13 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.PersistenceCallCheck">
 			<message key="persistence.call.illegal" value="Illegal call to class ''{0}'', see LPS-68923" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.RedundantBranchingStatementCheck">
+			<message key="branching.statement.redundant" value="Redundant ''{0}'' statement" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.RedundantVariableDeclarationCheck">
 			<message key="variable.declaration.redundant" value="No need to declare variable ''{0}'' because it is returned right after" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ReferenceAnnotationCheck">
-			<property name="enabled" value="false" />
 			<message key="default.unbind.redundant" value="No need to specify default ''unbind'' method. See https://osgi.org/javadoc/r4v43/cmpn/org/osgi/service/component/annotations/Reference.html#unbind()" />
 			<message key="reference.move" value="Move @Reference from method ''{0}'' to field ''{1}''" />
 			<message key="unbind.dynamic.policy.missing" value="Always specify a valid ''unbind'' method when using ''policy = ReferencePolicy.DYNAMIC'' policy. See https://osgi.org/javadoc/r4v43/cmpn/org/osgi/service/component/annotations/Reference.html#unbind()" />
@@ -287,11 +311,6 @@
 		<module name="com.liferay.source.formatter.checkstyle.checks.StringCastCheck">
 			<message key="string.cast.unneeded" value="No need to call ''.toString()'' on type String" />
 		</module>
-		<module name="com.liferay.source.formatter.checkstyle.checks.SubnameCheck">
-			<message key="method.invalidName" value="'sub' should be followed by a lowercase character for method ''{0}''" />
-			<message key="parameter.invalidName" value="'sub' should be followed by a lowercase character for parameter ''{0}''" />
-			<message key="variable.invalidName" value="'sub' should be followed by a lowercase character for variable ''{0}''" />
-		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.TernaryOperatorCheck">
 			<message key="ternary.operator.avoid" value="Use if-else-statement instead of ternary conditional operator for better readability" />
 		</module>
@@ -299,6 +318,9 @@
 			<message key="test.base.class.invalidName" value="Base test class ''{0}'' should start with ''Base''" />
 			<message key="test.case.class.incorrect.abstract" value="Class ending in *TestCase should be abstract. Either make the class abstract or rename to ''{0}'' if the class contains actual tests" />
 			<message key="test.class.incorrect.abstract" value="Test class ''{0}'' should not be abstract" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.checks.ThreadLocalUtilCheck">
+			<message key="thread.local.util.use" value="Use ''ThreadLocalUtil.create'' when initializing variable ''{0}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.TransactionalTestRuleCheck">
 			<message key="import.invalid" value="Avoid using import TransactionalTestRule in *StagedModelDataHandlerTest, see LPS-68908" />
@@ -308,7 +330,6 @@
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.UnusedMethodCheck">
 			<property name="allowedMethodNames" value="readObject,writeObject" />
-			<property name="enabled" value="false" />
 			<message key="method.unused" value="Method ''{0}'' is unused" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.UnusedParameterCheck">
@@ -321,16 +342,15 @@
 			<message key="variable.info.unwrapped" value="Wrap the variable ''{0}'' into an inner class ''Concealer'' in order to defer array elements initialization, see LPS-72768" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.ValidatorIsNullCheck">
-			<property name="enabled" value="false" />
 			<message key="method.invalidName" value="Avoid using method ''{0}''" />
 			<message key="method.reserved" value="Method ''{0}'' should only be used for type ''Long'', ''Serializable'' or ''String''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.VariableDeclarationAsUsedCheck">
-			<property name="enabled" value="false" />
+			<message key="variable.declaration.not.needed" value="No need to declare variable ''{0}''. Pass the method call directly as parameter on line ''{1}''." />
 			<message key="variable.declare.as.used" value="For better performance, the variable declaration for ''{0}'' should come after the ''{1}'' statement on line ''{2}''" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.checks.VariableNameCheck">
-			<property name="checkTypeName" value="false" />
+			<property name="checkTypeName" value="true" />
 			<message key="variable.incorrect.ending" value="Name of variable with type ''{0}'' should end with ''{1}''" />
 			<message key="variable.rename" value="Rename variable ''{0}'' to ''{1}''" />
 			<message key="variable.typo" value="Typo in variable ''{0}'', expected variable name ''{1}''" />

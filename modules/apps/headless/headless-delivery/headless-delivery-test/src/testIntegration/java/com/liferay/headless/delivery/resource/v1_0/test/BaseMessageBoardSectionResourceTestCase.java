@@ -28,31 +28,43 @@ import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
 import com.liferay.headless.delivery.client.resource.v1_0.MessageBoardSectionResource;
 import com.liferay.headless.delivery.client.serdes.v1_0.MessageBoardSectionSerDes;
+import com.liferay.petra.function.UnsafeTriConsumer;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONDeserializer;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.test.log.CaptureAppender;
+import com.liferay.portal.test.log.Log4JLoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -65,6 +77,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.log4j.Level;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -96,7 +109,18 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	public void setUp() throws Exception {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
-		testLocale = LocaleUtil.getDefault();
+
+		testCompany = CompanyLocalServiceUtil.getCompany(
+			testGroup.getCompanyId());
+
+		_messageBoardSectionResource.setContextCompany(testCompany);
+
+		MessageBoardSectionResource.Builder builder =
+			MessageBoardSectionResource.builder();
+
+		messageBoardSectionResource = builder.locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	@After
@@ -185,25 +209,77 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		assertHttpResponseStatusCode(
 			204,
-			MessageBoardSectionResource.deleteMessageBoardSectionHttpResponse(
+			messageBoardSectionResource.deleteMessageBoardSectionHttpResponse(
 				messageBoardSection.getId()));
 
 		assertHttpResponseStatusCode(
 			404,
-			MessageBoardSectionResource.getMessageBoardSectionHttpResponse(
+			messageBoardSectionResource.getMessageBoardSectionHttpResponse(
 				messageBoardSection.getId()));
 
 		assertHttpResponseStatusCode(
 			404,
-			MessageBoardSectionResource.getMessageBoardSectionHttpResponse(0L));
+			messageBoardSectionResource.getMessageBoardSectionHttpResponse(0L));
 	}
 
 	protected MessageBoardSection
 			testDeleteMessageBoardSection_addMessageBoardSection()
 		throws Exception {
 
-		return MessageBoardSectionResource.postSiteMessageBoardSection(
+		return messageBoardSectionResource.postSiteMessageBoardSection(
 			testGroup.getGroupId(), randomMessageBoardSection());
+	}
+
+	@Test
+	public void testGraphQLDeleteMessageBoardSection() throws Exception {
+		MessageBoardSection messageBoardSection =
+			testGraphQLMessageBoardSection_addMessageBoardSection();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"mutation",
+			new GraphQLField(
+				"deleteMessageBoardSection",
+				new HashMap<String, Object>() {
+					{
+						put(
+							"messageBoardSectionId",
+							messageBoardSection.getId());
+					}
+				}));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			dataJSONObject.getBoolean("deleteMessageBoardSection"));
+
+		try (CaptureAppender captureAppender =
+				Log4JLoggerTestUtil.configureLog4JLogger(
+					"graphql.execution.SimpleDataFetcherExceptionHandler",
+					Level.WARN)) {
+
+			graphQLField = new GraphQLField(
+				"query",
+				new GraphQLField(
+					"messageBoardSection",
+					new HashMap<String, Object>() {
+						{
+							put(
+								"messageBoardSectionId",
+								messageBoardSection.getId());
+						}
+					},
+					new GraphQLField("id")));
+
+			jsonObject = JSONFactoryUtil.createJSONObject(
+				invoke(graphQLField.toString()));
+
+			JSONArray errorsJSONArray = jsonObject.getJSONArray("errors");
+
+			Assert.assertTrue(errorsJSONArray.length() > 0);
+		}
 	}
 
 	@Test
@@ -212,7 +288,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			testGetMessageBoardSection_addMessageBoardSection();
 
 		MessageBoardSection getMessageBoardSection =
-			MessageBoardSectionResource.getMessageBoardSection(
+			messageBoardSectionResource.getMessageBoardSection(
 				postMessageBoardSection.getId());
 
 		assertEquals(postMessageBoardSection, getMessageBoardSection);
@@ -223,8 +299,39 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			testGetMessageBoardSection_addMessageBoardSection()
 		throws Exception {
 
-		return MessageBoardSectionResource.postSiteMessageBoardSection(
+		return messageBoardSectionResource.postSiteMessageBoardSection(
 			testGroup.getGroupId(), randomMessageBoardSection());
+	}
+
+	@Test
+	public void testGraphQLGetMessageBoardSection() throws Exception {
+		MessageBoardSection messageBoardSection =
+			testGraphQLMessageBoardSection_addMessageBoardSection();
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"messageBoardSection",
+				new HashMap<String, Object>() {
+					{
+						put(
+							"messageBoardSectionId",
+							messageBoardSection.getId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				messageBoardSection,
+				dataJSONObject.getJSONObject("messageBoardSection")));
 	}
 
 	@Test
@@ -236,7 +343,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			randomPatchMessageBoardSection();
 
 		MessageBoardSection patchMessageBoardSection =
-			MessageBoardSectionResource.patchMessageBoardSection(
+			messageBoardSectionResource.patchMessageBoardSection(
 				postMessageBoardSection.getId(),
 				randomPatchMessageBoardSection);
 
@@ -247,7 +354,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			expectedPatchMessageBoardSection, randomPatchMessageBoardSection);
 
 		MessageBoardSection getMessageBoardSection =
-			MessageBoardSectionResource.getMessageBoardSection(
+			messageBoardSectionResource.getMessageBoardSection(
 				patchMessageBoardSection.getId());
 
 		assertEquals(expectedPatchMessageBoardSection, getMessageBoardSection);
@@ -258,7 +365,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			testPatchMessageBoardSection_addMessageBoardSection()
 		throws Exception {
 
-		return MessageBoardSectionResource.postSiteMessageBoardSection(
+		return messageBoardSectionResource.postSiteMessageBoardSection(
 			testGroup.getGroupId(), randomMessageBoardSection());
 	}
 
@@ -271,14 +378,14 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			randomMessageBoardSection();
 
 		MessageBoardSection putMessageBoardSection =
-			MessageBoardSectionResource.putMessageBoardSection(
+			messageBoardSectionResource.putMessageBoardSection(
 				postMessageBoardSection.getId(), randomMessageBoardSection);
 
 		assertEquals(randomMessageBoardSection, putMessageBoardSection);
 		assertValid(putMessageBoardSection);
 
 		MessageBoardSection getMessageBoardSection =
-			MessageBoardSectionResource.getMessageBoardSection(
+			messageBoardSectionResource.getMessageBoardSection(
 				putMessageBoardSection.getId());
 
 		assertEquals(randomMessageBoardSection, getMessageBoardSection);
@@ -289,13 +396,22 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			testPutMessageBoardSection_addMessageBoardSection()
 		throws Exception {
 
-		return MessageBoardSectionResource.postSiteMessageBoardSection(
+		return messageBoardSectionResource.postSiteMessageBoardSection(
 			testGroup.getGroupId(), randomMessageBoardSection());
 	}
 
 	@Test
 	public void testGetMessageBoardSectionMessageBoardSectionsPage()
 		throws Exception {
+
+		Page<MessageBoardSection> page =
+			messageBoardSectionResource.
+				getMessageBoardSectionMessageBoardSectionsPage(
+					testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId(),
+					RandomTestUtil.randomString(), null, Pagination.of(1, 2),
+					null);
+
+		Assert.assertEquals(0, page.getTotalCount());
 
 		Long parentMessageBoardSectionId =
 			testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId();
@@ -308,8 +424,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 					irrelevantParentMessageBoardSectionId,
 					randomIrrelevantMessageBoardSection());
 
-			Page<MessageBoardSection> page =
-				MessageBoardSectionResource.
+			page =
+				messageBoardSectionResource.
 					getMessageBoardSectionMessageBoardSectionsPage(
 						irrelevantParentMessageBoardSectionId, null, null,
 						Pagination.of(1, 2), null);
@@ -330,8 +446,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			testGetMessageBoardSectionMessageBoardSectionsPage_addMessageBoardSection(
 				parentMessageBoardSectionId, randomMessageBoardSection());
 
-		Page<MessageBoardSection> page =
-			MessageBoardSectionResource.
+		page =
+			messageBoardSectionResource.
 				getMessageBoardSectionMessageBoardSectionsPage(
 					parentMessageBoardSectionId, null, null,
 					Pagination.of(1, 2), null);
@@ -342,6 +458,12 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			Arrays.asList(messageBoardSection1, messageBoardSection2),
 			(List<MessageBoardSection>)page.getItems());
 		assertValid(page);
+
+		messageBoardSectionResource.deleteMessageBoardSection(
+			messageBoardSection1.getId());
+
+		messageBoardSectionResource.deleteMessageBoardSection(
+			messageBoardSection2.getId());
 	}
 
 	@Test
@@ -366,7 +488,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<MessageBoardSection> page =
-				MessageBoardSectionResource.
+				messageBoardSectionResource.
 					getMessageBoardSectionMessageBoardSectionsPage(
 						parentMessageBoardSectionId, null,
 						getFilterString(
@@ -404,7 +526,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<MessageBoardSection> page =
-				MessageBoardSectionResource.
+				messageBoardSectionResource.
 					getMessageBoardSectionMessageBoardSectionsPage(
 						parentMessageBoardSectionId, null,
 						getFilterString(
@@ -437,7 +559,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				parentMessageBoardSectionId, randomMessageBoardSection());
 
 		Page<MessageBoardSection> page1 =
-			MessageBoardSectionResource.
+			messageBoardSectionResource.
 				getMessageBoardSectionMessageBoardSectionsPage(
 					parentMessageBoardSectionId, null, null,
 					Pagination.of(1, 2), null);
@@ -449,7 +571,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			messageBoardSections1.toString(), 2, messageBoardSections1.size());
 
 		Page<MessageBoardSection> page2 =
-			MessageBoardSectionResource.
+			messageBoardSectionResource.
 				getMessageBoardSectionMessageBoardSectionsPage(
 					parentMessageBoardSectionId, null, null,
 					Pagination.of(2, 2), null);
@@ -462,78 +584,86 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		Assert.assertEquals(
 			messageBoardSections2.toString(), 1, messageBoardSections2.size());
 
+		Page<MessageBoardSection> page3 =
+			messageBoardSectionResource.
+				getMessageBoardSectionMessageBoardSectionsPage(
+					parentMessageBoardSectionId, null, null,
+					Pagination.of(1, 3), null);
+
 		assertEqualsIgnoringOrder(
 			Arrays.asList(
 				messageBoardSection1, messageBoardSection2,
 				messageBoardSection3),
-			new ArrayList<MessageBoardSection>() {
-				{
-					addAll(messageBoardSections1);
-					addAll(messageBoardSections2);
-				}
-			});
+			(List<MessageBoardSection>)page3.getItems());
 	}
 
 	@Test
 	public void testGetMessageBoardSectionMessageBoardSectionsPageWithSortDateTime()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.DATE_TIME);
+		testGetMessageBoardSectionMessageBoardSectionsPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				BeanUtils.setProperty(
+					messageBoardSection1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
 
-		if (entityFields.isEmpty()) {
-			return;
-		}
+	@Test
+	public void testGetMessageBoardSectionMessageBoardSectionsPageWithSortInteger()
+		throws Exception {
 
-		Long parentMessageBoardSectionId =
-			testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId();
-
-		MessageBoardSection messageBoardSection1 = randomMessageBoardSection();
-		MessageBoardSection messageBoardSection2 = randomMessageBoardSection();
-
-		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				messageBoardSection1, entityField.getName(),
-				DateUtils.addMinutes(new Date(), -2));
-		}
-
-		messageBoardSection1 =
-			testGetMessageBoardSectionMessageBoardSectionsPage_addMessageBoardSection(
-				parentMessageBoardSectionId, messageBoardSection1);
-
-		messageBoardSection2 =
-			testGetMessageBoardSectionMessageBoardSectionsPage_addMessageBoardSection(
-				parentMessageBoardSectionId, messageBoardSection2);
-
-		for (EntityField entityField : entityFields) {
-			Page<MessageBoardSection> ascPage =
-				MessageBoardSectionResource.
-					getMessageBoardSectionMessageBoardSectionsPage(
-						parentMessageBoardSectionId, null, null,
-						Pagination.of(1, 2), entityField.getName() + ":asc");
-
-			assertEquals(
-				Arrays.asList(messageBoardSection1, messageBoardSection2),
-				(List<MessageBoardSection>)ascPage.getItems());
-
-			Page<MessageBoardSection> descPage =
-				MessageBoardSectionResource.
-					getMessageBoardSectionMessageBoardSectionsPage(
-						parentMessageBoardSectionId, null, null,
-						Pagination.of(1, 2), entityField.getName() + ":desc");
-
-			assertEquals(
-				Arrays.asList(messageBoardSection2, messageBoardSection1),
-				(List<MessageBoardSection>)descPage.getItems());
-		}
+		testGetMessageBoardSectionMessageBoardSectionsPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				BeanUtils.setProperty(
+					messageBoardSection1, entityField.getName(), 0);
+				BeanUtils.setProperty(
+					messageBoardSection2, entityField.getName(), 1);
+			});
 	}
 
 	@Test
 	public void testGetMessageBoardSectionMessageBoardSectionsPageWithSortString()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.STRING);
+		testGetMessageBoardSectionMessageBoardSectionsPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				Class<?> clazz = messageBoardSection1.getClass();
+
+				Method method = clazz.getMethod(
+					"get" +
+						StringUtil.upperCaseFirstLetter(entityField.getName()));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						messageBoardSection1, entityField.getName(),
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						messageBoardSection2, entityField.getName(),
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else {
+					BeanUtils.setProperty(
+						messageBoardSection1, entityField.getName(), "Aaa");
+					BeanUtils.setProperty(
+						messageBoardSection2, entityField.getName(), "Bbb");
+				}
+			});
+	}
+
+	protected void testGetMessageBoardSectionMessageBoardSectionsPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer
+				<EntityField, MessageBoardSection, MessageBoardSection,
+				 Exception> unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
 
 		if (entityFields.isEmpty()) {
 			return;
@@ -546,10 +676,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		MessageBoardSection messageBoardSection2 = randomMessageBoardSection();
 
 		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				messageBoardSection1, entityField.getName(), "Aaa");
-			BeanUtils.setProperty(
-				messageBoardSection2, entityField.getName(), "Bbb");
+			unsafeTriConsumer.accept(
+				entityField, messageBoardSection1, messageBoardSection2);
 		}
 
 		messageBoardSection1 =
@@ -562,7 +690,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<MessageBoardSection> ascPage =
-				MessageBoardSectionResource.
+				messageBoardSectionResource.
 					getMessageBoardSectionMessageBoardSectionsPage(
 						parentMessageBoardSectionId, null, null,
 						Pagination.of(1, 2), entityField.getName() + ":asc");
@@ -572,7 +700,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				(List<MessageBoardSection>)ascPage.getItems());
 
 			Page<MessageBoardSection> descPage =
-				MessageBoardSectionResource.
+				messageBoardSectionResource.
 					getMessageBoardSectionMessageBoardSectionsPage(
 						parentMessageBoardSectionId, null, null,
 						Pagination.of(1, 2), entityField.getName() + ":desc");
@@ -589,7 +717,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				MessageBoardSection messageBoardSection)
 		throws Exception {
 
-		return MessageBoardSectionResource.
+		return messageBoardSectionResource.
 			postMessageBoardSectionMessageBoardSection(
 				parentMessageBoardSectionId, messageBoardSection);
 	}
@@ -629,7 +757,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				MessageBoardSection messageBoardSection)
 		throws Exception {
 
-		return MessageBoardSectionResource.
+		return messageBoardSectionResource.
 			postMessageBoardSectionMessageBoardSection(
 				testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId(),
 				messageBoardSection);
@@ -637,6 +765,13 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 	@Test
 	public void testGetSiteMessageBoardSectionsPage() throws Exception {
+		Page<MessageBoardSection> page =
+			messageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				testGetSiteMessageBoardSectionsPage_getSiteId(), null,
+				RandomTestUtil.randomString(), null, Pagination.of(1, 2), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long siteId = testGetSiteMessageBoardSectionsPage_getSiteId();
 		Long irrelevantSiteId =
 			testGetSiteMessageBoardSectionsPage_getIrrelevantSiteId();
@@ -646,10 +781,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				testGetSiteMessageBoardSectionsPage_addMessageBoardSection(
 					irrelevantSiteId, randomIrrelevantMessageBoardSection());
 
-			Page<MessageBoardSection> page =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
-					irrelevantSiteId, null, null, null, Pagination.of(1, 2),
-					null);
+			page = messageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				irrelevantSiteId, null, null, null, Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -667,9 +800,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			testGetSiteMessageBoardSectionsPage_addMessageBoardSection(
 				siteId, randomMessageBoardSection());
 
-		Page<MessageBoardSection> page =
-			MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
-				siteId, null, null, null, Pagination.of(1, 2), null);
+		page = messageBoardSectionResource.getSiteMessageBoardSectionsPage(
+			siteId, null, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -677,6 +809,12 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			Arrays.asList(messageBoardSection1, messageBoardSection2),
 			(List<MessageBoardSection>)page.getItems());
 		assertValid(page);
+
+		messageBoardSectionResource.deleteMessageBoardSection(
+			messageBoardSection1.getId());
+
+		messageBoardSectionResource.deleteMessageBoardSection(
+			messageBoardSection2.getId());
 	}
 
 	@Test
@@ -700,7 +838,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<MessageBoardSection> page =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				messageBoardSectionResource.getSiteMessageBoardSectionsPage(
 					siteId, null, null,
 					getFilterString(
 						entityField, "between", messageBoardSection1),
@@ -736,7 +874,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<MessageBoardSection> page =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				messageBoardSectionResource.getSiteMessageBoardSectionsPage(
 					siteId, null, null,
 					getFilterString(entityField, "eq", messageBoardSection1),
 					Pagination.of(1, 2), null);
@@ -766,7 +904,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				siteId, randomMessageBoardSection());
 
 		Page<MessageBoardSection> page1 =
-			MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
+			messageBoardSectionResource.getSiteMessageBoardSectionsPage(
 				siteId, null, null, null, Pagination.of(1, 2), null);
 
 		List<MessageBoardSection> messageBoardSections1 =
@@ -776,7 +914,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			messageBoardSections1.toString(), 2, messageBoardSections1.size());
 
 		Page<MessageBoardSection> page2 =
-			MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
+			messageBoardSectionResource.getSiteMessageBoardSectionsPage(
 				siteId, null, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -787,75 +925,84 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		Assert.assertEquals(
 			messageBoardSections2.toString(), 1, messageBoardSections2.size());
 
+		Page<MessageBoardSection> page3 =
+			messageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				siteId, null, null, null, Pagination.of(1, 3), null);
+
 		assertEqualsIgnoringOrder(
 			Arrays.asList(
 				messageBoardSection1, messageBoardSection2,
 				messageBoardSection3),
-			new ArrayList<MessageBoardSection>() {
-				{
-					addAll(messageBoardSections1);
-					addAll(messageBoardSections2);
-				}
-			});
+			(List<MessageBoardSection>)page3.getItems());
 	}
 
 	@Test
 	public void testGetSiteMessageBoardSectionsPageWithSortDateTime()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.DATE_TIME);
+		testGetSiteMessageBoardSectionsPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				BeanUtils.setProperty(
+					messageBoardSection1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
 
-		if (entityFields.isEmpty()) {
-			return;
-		}
+	@Test
+	public void testGetSiteMessageBoardSectionsPageWithSortInteger()
+		throws Exception {
 
-		Long siteId = testGetSiteMessageBoardSectionsPage_getSiteId();
-
-		MessageBoardSection messageBoardSection1 = randomMessageBoardSection();
-		MessageBoardSection messageBoardSection2 = randomMessageBoardSection();
-
-		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				messageBoardSection1, entityField.getName(),
-				DateUtils.addMinutes(new Date(), -2));
-		}
-
-		messageBoardSection1 =
-			testGetSiteMessageBoardSectionsPage_addMessageBoardSection(
-				siteId, messageBoardSection1);
-
-		messageBoardSection2 =
-			testGetSiteMessageBoardSectionsPage_addMessageBoardSection(
-				siteId, messageBoardSection2);
-
-		for (EntityField entityField : entityFields) {
-			Page<MessageBoardSection> ascPage =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
-					siteId, null, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":asc");
-
-			assertEquals(
-				Arrays.asList(messageBoardSection1, messageBoardSection2),
-				(List<MessageBoardSection>)ascPage.getItems());
-
-			Page<MessageBoardSection> descPage =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
-					siteId, null, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":desc");
-
-			assertEquals(
-				Arrays.asList(messageBoardSection2, messageBoardSection1),
-				(List<MessageBoardSection>)descPage.getItems());
-		}
+		testGetSiteMessageBoardSectionsPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				BeanUtils.setProperty(
+					messageBoardSection1, entityField.getName(), 0);
+				BeanUtils.setProperty(
+					messageBoardSection2, entityField.getName(), 1);
+			});
 	}
 
 	@Test
 	public void testGetSiteMessageBoardSectionsPageWithSortString()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.STRING);
+		testGetSiteMessageBoardSectionsPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, messageBoardSection1, messageBoardSection2) -> {
+				Class<?> clazz = messageBoardSection1.getClass();
+
+				Method method = clazz.getMethod(
+					"get" +
+						StringUtil.upperCaseFirstLetter(entityField.getName()));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						messageBoardSection1, entityField.getName(),
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						messageBoardSection2, entityField.getName(),
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else {
+					BeanUtils.setProperty(
+						messageBoardSection1, entityField.getName(), "Aaa");
+					BeanUtils.setProperty(
+						messageBoardSection2, entityField.getName(), "Bbb");
+				}
+			});
+	}
+
+	protected void testGetSiteMessageBoardSectionsPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer
+				<EntityField, MessageBoardSection, MessageBoardSection,
+				 Exception> unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
 
 		if (entityFields.isEmpty()) {
 			return;
@@ -867,10 +1014,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		MessageBoardSection messageBoardSection2 = randomMessageBoardSection();
 
 		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				messageBoardSection1, entityField.getName(), "Aaa");
-			BeanUtils.setProperty(
-				messageBoardSection2, entityField.getName(), "Bbb");
+			unsafeTriConsumer.accept(
+				entityField, messageBoardSection1, messageBoardSection2);
 		}
 
 		messageBoardSection1 =
@@ -883,7 +1028,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<MessageBoardSection> ascPage =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				messageBoardSectionResource.getSiteMessageBoardSectionsPage(
 					siteId, null, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":asc");
 
@@ -892,7 +1037,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				(List<MessageBoardSection>)ascPage.getItems());
 
 			Page<MessageBoardSection> descPage =
-				MessageBoardSectionResource.getSiteMessageBoardSectionsPage(
+				messageBoardSectionResource.getSiteMessageBoardSectionsPage(
 					siteId, null, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":desc");
 
@@ -907,7 +1052,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				Long siteId, MessageBoardSection messageBoardSection)
 		throws Exception {
 
-		return MessageBoardSectionResource.postSiteMessageBoardSection(
+		return messageBoardSectionResource.postSiteMessageBoardSection(
 			siteId, messageBoardSection);
 	}
 
@@ -921,6 +1066,64 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		throws Exception {
 
 		return irrelevantGroup.getGroupId();
+	}
+
+	@Test
+	public void testGraphQLGetSiteMessageBoardSectionsPage() throws Exception {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		List<GraphQLField> itemsGraphQLFields = getGraphQLFields();
+
+		graphQLFields.add(
+			new GraphQLField(
+				"items", itemsGraphQLFields.toArray(new GraphQLField[0])));
+
+		graphQLFields.add(new GraphQLField("page"));
+		graphQLFields.add(new GraphQLField("totalCount"));
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"messageBoardSections",
+				new HashMap<String, Object>() {
+					{
+						put("page", 1);
+						put("pageSize", 2);
+						put("siteId", testGroup.getGroupId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		JSONObject messageBoardSectionsJSONObject =
+			dataJSONObject.getJSONObject("messageBoardSections");
+
+		Assert.assertEquals(
+			0, messageBoardSectionsJSONObject.get("totalCount"));
+
+		MessageBoardSection messageBoardSection1 =
+			testGraphQLMessageBoardSection_addMessageBoardSection();
+		MessageBoardSection messageBoardSection2 =
+			testGraphQLMessageBoardSection_addMessageBoardSection();
+
+		jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		dataJSONObject = jsonObject.getJSONObject("data");
+
+		messageBoardSectionsJSONObject = dataJSONObject.getJSONObject(
+			"messageBoardSections");
+
+		Assert.assertEquals(
+			2, messageBoardSectionsJSONObject.get("totalCount"));
+
+		assertEqualsJSONArray(
+			Arrays.asList(messageBoardSection1, messageBoardSection2),
+			messageBoardSectionsJSONObject.getJSONArray("items"));
 	}
 
 	@Test
@@ -941,9 +1144,192 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				MessageBoardSection messageBoardSection)
 		throws Exception {
 
-		return MessageBoardSectionResource.postSiteMessageBoardSection(
+		return messageBoardSectionResource.postSiteMessageBoardSection(
 			testGetSiteMessageBoardSectionsPage_getSiteId(),
 			messageBoardSection);
+	}
+
+	@Test
+	public void testGraphQLPostSiteMessageBoardSection() throws Exception {
+		MessageBoardSection randomMessageBoardSection =
+			randomMessageBoardSection();
+
+		MessageBoardSection messageBoardSection =
+			testGraphQLMessageBoardSection_addMessageBoardSection(
+				randomMessageBoardSection);
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				randomMessageBoardSection,
+				JSONFactoryUtil.createJSONObject(
+					JSONFactoryUtil.serialize(messageBoardSection))));
+	}
+
+	protected MessageBoardSection
+			testGraphQLMessageBoardSection_addMessageBoardSection()
+		throws Exception {
+
+		return testGraphQLMessageBoardSection_addMessageBoardSection(
+			randomMessageBoardSection());
+	}
+
+	protected MessageBoardSection
+			testGraphQLMessageBoardSection_addMessageBoardSection(
+				MessageBoardSection messageBoardSection)
+		throws Exception {
+
+		StringBuilder sb = new StringBuilder("{");
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("description", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = messageBoardSection.getDescription();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals("id", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = messageBoardSection.getId();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals(
+					"numberOfMessageBoardSections",
+					additionalAssertFieldName)) {
+
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value =
+					messageBoardSection.getNumberOfMessageBoardSections();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals(
+					"numberOfMessageBoardThreads", additionalAssertFieldName)) {
+
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value =
+					messageBoardSection.getNumberOfMessageBoardThreads();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals("siteId", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = messageBoardSection.getSiteId();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals("title", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = messageBoardSection.getTitle();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+		}
+
+		sb.append("}");
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		graphQLFields.add(new GraphQLField("id"));
+
+		GraphQLField graphQLField = new GraphQLField(
+			"mutation",
+			new GraphQLField(
+				"createSiteMessageBoardSection",
+				new HashMap<String, Object>() {
+					{
+						put("siteId", testGroup.getGroupId());
+						put("messageBoardSection", sb.toString());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONDeserializer<MessageBoardSection> jsonDeserializer =
+			JSONFactoryUtil.createJSONDeserializer();
+
+		String object = invoke(graphQLField.toString());
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(object);
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		return jsonDeserializer.deserialize(
+			String.valueOf(
+				dataJSONObject.getJSONObject("createSiteMessageBoardSection")),
+			MessageBoardSection.class);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -1003,6 +1389,26 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			Assert.assertTrue(
 				messageBoardSections2 + " does not contain " +
 					messageBoardSection1,
+				contains);
+		}
+	}
+
+	protected void assertEqualsJSONArray(
+		List<MessageBoardSection> messageBoardSections, JSONArray jsonArray) {
+
+		for (MessageBoardSection messageBoardSection : messageBoardSections) {
+			boolean contains = false;
+
+			for (Object object : jsonArray) {
+				if (equalsJSONObject(messageBoardSection, (JSONObject)object)) {
+					contains = true;
+
+					break;
+				}
+			}
+
+			Assert.assertTrue(
+				jsonArray + " does not contain " + messageBoardSection,
 				contains);
 		}
 	}
@@ -1107,7 +1513,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	protected void assertValid(Page<MessageBoardSection> page) {
 		boolean valid = false;
 
-		Collection<MessageBoardSection> messageBoardSections = page.getItems();
+		java.util.Collection<MessageBoardSection> messageBoardSections =
+			page.getItems();
 
 		int size = messageBoardSections.size();
 
@@ -1122,6 +1529,22 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	}
 
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected List<GraphQLField> getGraphQLFields() {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		}
+
+		return graphQLFields;
+	}
+
+	protected String[] getIgnoredEntityFieldNames() {
 		return new String[0];
 	}
 
@@ -1268,7 +1691,75 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		return true;
 	}
 
-	protected Collection<EntityField> getEntityFields() throws Exception {
+	protected boolean equalsJSONObject(
+		MessageBoardSection messageBoardSection, JSONObject jsonObject) {
+
+		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("description", fieldName)) {
+				if (!Objects.deepEquals(
+						messageBoardSection.getDescription(),
+						jsonObject.getString("description"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", fieldName)) {
+				if (!Objects.deepEquals(
+						messageBoardSection.getId(),
+						jsonObject.getLong("id"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("numberOfMessageBoardSections", fieldName)) {
+				if (!Objects.deepEquals(
+						messageBoardSection.getNumberOfMessageBoardSections(),
+						jsonObject.getInt("numberOfMessageBoardSections"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("numberOfMessageBoardThreads", fieldName)) {
+				if (!Objects.deepEquals(
+						messageBoardSection.getNumberOfMessageBoardThreads(),
+						jsonObject.getInt("numberOfMessageBoardThreads"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("title", fieldName)) {
+				if (!Objects.deepEquals(
+						messageBoardSection.getTitle(),
+						jsonObject.getString("title"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid field name " + fieldName);
+		}
+
+		return true;
+	}
+
+	protected java.util.Collection<EntityField> getEntityFields()
+		throws Exception {
+
 		if (!(_messageBoardSectionResource instanceof EntityModelResource)) {
 			throw new UnsupportedOperationException(
 				"Resource is not an instance of EntityModelResource");
@@ -1289,12 +1780,15 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	protected List<EntityField> getEntityFields(EntityField.Type type)
 		throws Exception {
 
-		Collection<EntityField> entityFields = getEntityFields();
+		java.util.Collection<EntityField> entityFields = getEntityFields();
 
 		Stream<EntityField> stream = entityFields.stream();
 
 		return stream.filter(
-			entityField -> Objects.equals(entityField.getType(), type)
+			entityField ->
+				Objects.equals(entityField.getType(), type) &&
+				!ArrayUtil.contains(
+					getIgnoredEntityFieldNames(), entityField.getName())
 		).collect(
 			Collectors.toList()
 		);
@@ -1437,6 +1931,23 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			"Invalid entity field " + entityFieldName);
 	}
 
+	protected String invoke(String query) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(
+			JSONUtil.put(
+				"query", query
+			).toString(),
+			"application/json");
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		httpInvoker.path("http://localhost:8080/o/graphql");
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
+	}
+
 	protected MessageBoardSection randomMessageBoardSection() throws Exception {
 		return new MessageBoardSection() {
 			{
@@ -1444,6 +1955,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				dateModified = RandomTestUtil.nextDate();
 				description = RandomTestUtil.randomString();
 				id = RandomTestUtil.randomLong();
+				numberOfMessageBoardSections = RandomTestUtil.randomInt();
+				numberOfMessageBoardThreads = RandomTestUtil.randomInt();
 				siteId = testGroup.getGroupId();
 				title = RandomTestUtil.randomString();
 			}
@@ -1468,10 +1981,68 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		return randomMessageBoardSection();
 	}
 
+	protected MessageBoardSectionResource messageBoardSectionResource;
 	protected Group irrelevantGroup;
+	protected Company testCompany;
 	protected Group testGroup;
-	protected Locale testLocale;
-	protected String testUserNameAndPassword = "test@liferay.com:test";
+
+	protected class GraphQLField {
+
+		public GraphQLField(String key, GraphQLField... graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = graphQLFields;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(_key);
+
+			if (!_parameterMap.isEmpty()) {
+				sb.append("(");
+
+				for (Map.Entry<String, Object> entry :
+						_parameterMap.entrySet()) {
+
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append(")");
+			}
+
+			if (_graphQLFields.length > 0) {
+				sb.append("{");
+
+				for (GraphQLField graphQLField : _graphQLFields) {
+					sb.append(graphQLField.toString());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append("}");
+			}
+
+			return sb.toString();
+		}
+
+		private final GraphQLField[] _graphQLFields;
+		private final String _key;
+		private final Map<String, Object> _parameterMap;
+
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseMessageBoardSectionResourceTestCase.class);

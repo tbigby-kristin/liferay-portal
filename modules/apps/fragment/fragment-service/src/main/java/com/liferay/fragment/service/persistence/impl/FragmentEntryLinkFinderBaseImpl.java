@@ -55,7 +55,7 @@ public abstract class FragmentEntryLinkFinderBaseImpl
 
 	@Override
 	@Reference(
-		target = FragmentPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = FragmentPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -85,5 +85,14 @@ public abstract class FragmentEntryLinkFinderBaseImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		FragmentEntryLinkFinderBaseImpl.class);
+
+	static {
+		try {
+			Class.forName(FragmentPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

@@ -19,15 +19,11 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
- * Represents a Context.
+ * Represents a context to segment users based on their session criteria.
  *
  * @author Eduardo García
- * @review
  */
-@ProviderType
 public class Context {
 
 	public static final String BROWSER = "browser";
@@ -44,6 +40,8 @@ public class Context {
 	public static final String DEVICE_SCREEN_RESOLUTION_WIDTH =
 		"deviceScreenResolutionWidth";
 
+	public static final String HOSTNAME = "hostname";
+
 	public static final String LANGUAGE_ID = "languageId";
 
 	public static final String LAST_SIGN_IN_DATE_TIME = "lastSignInDateTime";
@@ -51,6 +49,8 @@ public class Context {
 	public static final String LOCAL_DATE = "localDate";
 
 	public static final String REFERRER_URL = "referrerURL";
+
+	public static final String REQUEST_PARAMETERS = "requestParameters";
 
 	public static final String SIGNED_IN = "signedIn";
 
@@ -66,6 +66,6 @@ public class Context {
 		_map.put(key, value);
 	}
 
-	private final Map<String, Serializable> _map = new HashMap();
+	private final Map<String, Serializable> _map = new HashMap<>();
 
 }

@@ -3,32 +3,31 @@
 		"alloy-ui": "^3.1.0-deprecated.40",
 		"babel-plugin-incremental-dom": "3.4.0",
 		"compass-mixins": "0.12.10",
+		"eslint": "6.1.0",
 		"fs-extra": "7.0.1",
 		"gulp": "3.9.1",
-		"jest-fetch-mock": "2.1.2",
-		"jsdoc": "3.5.5",
+		"jsdoc": "3.6.3",
 		"karma": "4.0.0",
-		"liferay-font-awesome": "3.3.2",
 		"liferay-frontend-common-css": "1.0.4",
 		"liferay-jest-junit-reporter": "1.0.1",
 		"liferay-karma-alloy-config": "0.0.15",
 		"liferay-karma-config": "0.0.3",
-		"liferay-npm-bridge-generator": "2.7.1",
-		"liferay-npm-bundler": "2.7.1",
-		"liferay-npm-bundler-preset-standard": "2.7.1",
-		"liferay-npm-scripts": "1.8.0",
+		"liferay-npm-bridge-generator": "2.12.0",
+		"liferay-npm-bundler": "2.12.0",
+		"liferay-npm-bundler-preset-standard": "2.12.0",
+		"liferay-npm-scripts": "9.1.0",
 		"liferay-theme-es2015-hook": "8.0.0-rc.2",
 		"metal-jest-serializer": "2.0.0"
 	},
 	"private": true,
 	"scripts": {
-		"checkFormat": "liferay-npm-scripts lint",
-		"format": "liferay-npm-scripts format"
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
 	},
 	"workspaces": {
 		"packages": [
-			"apps/**/*-taglib",
-			"apps/**/*-web",
+			"apps/*/*-taglib",
+			"apps/*/*-web",
 			"apps/analytics/analytics-client-js",
 			"apps/data-engine/data-engine-rest-impl",
 			"apps/document-library/document-library-preview-audio",
@@ -51,13 +50,16 @@
 			"apps/frontend-taglib/frontend-taglib-clay",
 			"apps/frontend-theme/frontend-theme-admin",
 			"apps/frontend-theme/frontend-theme-classic",
+			"apps/frontend-theme/frontend-theme-unstyled",
 			"apps/frontend-theme-fjord/frontend-theme-fjord",
 			"apps/frontend-theme-porygon/frontend-theme-porygon",
 			"apps/frontend-theme-westeros-bank/frontend-theme-westeros-bank",
 			"apps/map/map-common",
 			"apps/map/map-google-maps",
 			"apps/map/map-openstreetmap",
-			"apps/portal-portlet-bridge/portal-portlet-bridge-soy-impl"
+			"apps/portal-portlet-bridge/portal-portlet-bridge-soy-impl",
+			"apps/portal-template/portal-template-react-renderer-impl",
+			"apps/product-navigation/product-navigation-simulation-device"
 		]
 	}
 }

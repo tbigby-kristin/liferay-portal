@@ -16,8 +16,6 @@ package com.liferay.dynamic.data.lists.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link DDLRecordSetLocalService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDLRecordSetLocalService
  * @generated
  */
-@ProviderType
 public class DDLRecordSetLocalServiceWrapper
 	implements DDLRecordSetLocalService,
 			   ServiceWrapper<DDLRecordSetLocalService> {
@@ -183,6 +180,13 @@ public class DDLRecordSetLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _ddlRecordSetLocalService.deleteDDLRecordSet(recordSetId);
+	}
+
+	@Override
+	public void deleteDDMStructureRecordSets(long ddmStructureId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		_ddlRecordSetLocalService.deleteDDMStructureRecordSets(ddmStructureId);
 	}
 
 	/**
@@ -498,6 +502,14 @@ public class DDLRecordSetLocalServiceWrapper
 	@Override
 	public int getDDLRecordSetsCount() {
 		return _ddlRecordSetLocalService.getDDLRecordSetsCount();
+	}
+
+	@Override
+	public java.util.List<com.liferay.dynamic.data.lists.model.DDLRecordSet>
+		getDDMStructureRecordSets(long ddmStructureId) {
+
+		return _ddlRecordSetLocalService.getDDMStructureRecordSets(
+			ddmStructureId);
 	}
 
 	@Override

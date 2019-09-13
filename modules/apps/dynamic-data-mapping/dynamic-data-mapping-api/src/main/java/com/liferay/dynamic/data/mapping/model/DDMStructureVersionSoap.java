@@ -20,15 +20,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.dynamic.data.mapping.service.http.DDMStructureVersionServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DDMStructureVersionSoap implements Serializable {
 
 	public static DDMStructureVersionSoap toSoapModel(
@@ -36,6 +33,7 @@ public class DDMStructureVersionSoap implements Serializable {
 
 		DDMStructureVersionSoap soapModel = new DDMStructureVersionSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setStructureVersionId(model.getStructureVersionId());
 		soapModel.setGroupId(model.getGroupId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -114,6 +112,14 @@ public class DDMStructureVersionSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setStructureVersionId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public long getStructureVersionId() {
@@ -260,6 +266,7 @@ public class DDMStructureVersionSoap implements Serializable {
 		_statusDate = statusDate;
 	}
 
+	private long _mvccVersion;
 	private long _structureVersionId;
 	private long _groupId;
 	private long _companyId;

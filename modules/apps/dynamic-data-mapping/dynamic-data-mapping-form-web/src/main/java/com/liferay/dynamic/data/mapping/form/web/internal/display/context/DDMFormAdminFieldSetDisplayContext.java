@@ -26,16 +26,20 @@ import com.liferay.dynamic.data.mapping.form.web.internal.instance.lifecycle.Add
 import com.liferay.dynamic.data.mapping.form.web.internal.search.FieldSetRowChecker;
 import com.liferay.dynamic.data.mapping.form.web.internal.search.FieldSetSearch;
 import com.liferay.dynamic.data.mapping.form.web.internal.search.FieldSetSearchTerms;
-import com.liferay.dynamic.data.mapping.io.DDMFormFieldTypesSerializerTracker;
+import com.liferay.dynamic.data.mapping.io.DDMFormFieldTypesSerializer;
 import com.liferay.dynamic.data.mapping.io.exporter.DDMFormInstanceRecordWriterTracker;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
+import com.liferay.dynamic.data.mapping.model.DDMFormInstanceSettings;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureConstants;
+import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureService;
+import com.liferay.dynamic.data.mapping.util.DDMFormLayoutFactory;
 import com.liferay.dynamic.data.mapping.util.DDMFormValuesMerger;
 import com.liferay.dynamic.data.mapping.util.comparator.StructureCreateDateComparator;
 import com.liferay.dynamic.data.mapping.util.comparator.StructureModifiedDateComparator;
@@ -56,6 +60,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -83,31 +88,34 @@ public class DDMFormAdminFieldSetDisplayContext
 			addDefaultSharedFormLayoutPortalInstanceLifecycleListener,
 		DDMFormBuilderContextFactory ddmFormBuilderContextFactory,
 		DDMFormBuilderSettingsRetriever ddmFormBuilderSettingsRetriever,
-		DDMFormWebConfiguration ddmFormWebConfiguration,
-		DDMFormInstanceRecordLocalService formInstanceRecordLocalService,
+		DDMFormFieldTypeServicesTracker ddmFormFieldTypeServicesTracker,
+		DDMFormFieldTypesSerializer ddmFormFieldTypesSerializer,
+		DDMFormInstanceLocalService ddmFormInstanceLocalService,
+		DDMFormInstanceRecordLocalService ddmFormInstanceRecordLocalService,
 		DDMFormInstanceRecordWriterTracker ddmFormInstanceRecordWriterTracker,
-		DDMFormInstanceService formInstanceService,
-		DDMFormInstanceVersionLocalService formInstanceVersionLocalService,
-		DDMFormFieldTypeServicesTracker formFieldTypeServicesTracker,
-		DDMFormFieldTypesSerializerTracker formFieldTypesSerializerTracker,
-		DDMFormRenderer formRenderer,
-		DDMFormTemplateContextFactory formTemplateContextFactory,
-		DDMFormValuesFactory formValuesFactory,
-		DDMFormValuesMerger formValuesMerger,
-		DDMStructureLocalService structureLocalService,
-		DDMStructureService structureService, JSONFactory jsonFactory,
-		NPMResolver npmResolver) {
+		DDMFormInstanceService ddmFormInstanceService,
+		DDMFormInstanceVersionLocalService ddmFormInstanceVersionLocalService,
+		DDMFormRenderer ddmFormRenderer,
+		DDMFormTemplateContextFactory ddmFormTemplateContextFactory,
+		DDMFormValuesFactory ddmFormValuesFactory,
+		DDMFormValuesMerger ddmFormValuesMerger,
+		DDMFormWebConfiguration ddmFormWebConfiguration,
+		DDMStructureLocalService ddmStructureLocalService,
+		DDMStructureService ddmStructureService, JSONFactory jsonFactory,
+		NPMResolver npmResolver, Portal portal) {
 
 		super(
 			renderRequest, renderResponse,
 			addDefaultSharedFormLayoutPortalInstanceLifecycleListener,
 			ddmFormBuilderContextFactory, ddmFormBuilderSettingsRetriever,
-			ddmFormWebConfiguration, formInstanceRecordLocalService,
-			ddmFormInstanceRecordWriterTracker, formInstanceService,
-			formInstanceVersionLocalService, formFieldTypeServicesTracker,
-			formFieldTypesSerializerTracker, formRenderer,
-			formTemplateContextFactory, formValuesFactory, formValuesMerger,
-			structureLocalService, structureService, jsonFactory, npmResolver);
+			ddmFormFieldTypeServicesTracker, ddmFormFieldTypesSerializer,
+			ddmFormInstanceLocalService, ddmFormInstanceRecordLocalService,
+			ddmFormInstanceRecordWriterTracker, ddmFormInstanceService,
+			ddmFormInstanceVersionLocalService, ddmFormRenderer,
+			ddmFormTemplateContextFactory, ddmFormValuesFactory,
+			ddmFormValuesMerger, ddmFormWebConfiguration,
+			ddmStructureLocalService, ddmStructureService, jsonFactory,
+			npmResolver, portal);
 
 		_fieldSetPermissionCheckerHelper = new FieldSetPermissionCheckerHelper(
 			formAdminRequestHelper);
@@ -139,8 +147,7 @@ public class DDMFormAdminFieldSetDisplayContext
 		return new CreationMenu() {
 			{
 				HttpServletRequest httpServletRequest =
-					PortalUtil.getHttpServletRequest(getRenderRequest());
-				RenderResponse renderResponse = getRenderResponse();
+					PortalUtil.getHttpServletRequest(renderRequest);
 
 				ThemeDisplay themeDisplay =
 					(ThemeDisplay)httpServletRequest.getAttribute(
@@ -170,7 +177,7 @@ public class DDMFormAdminFieldSetDisplayContext
 			return _structure;
 		}
 
-		long structureId = ParamUtil.getLong(getRenderRequest(), "structureId");
+		long structureId = ParamUtil.getLong(renderRequest, "structureId");
 
 		if (structureId > 0) {
 			try {
@@ -204,8 +211,6 @@ public class DDMFormAdminFieldSetDisplayContext
 	public String getFormLocalizedDescription() {
 		DDMStructure structure = getDDMStructure();
 
-		JSONFactory jsonFactory = getJSONFactory();
-
 		JSONObject jsonObject = jsonFactory.createJSONObject();
 
 		if (structure == null) {
@@ -226,8 +231,6 @@ public class DDMFormAdminFieldSetDisplayContext
 	@Override
 	public String getFormLocalizedName() {
 		DDMStructure structure = getDDMStructure();
-
-		JSONFactory jsonFactory = getJSONFactory();
 
 		JSONObject jsonObject = jsonFactory.createJSONObject();
 
@@ -265,15 +268,13 @@ public class DDMFormAdminFieldSetDisplayContext
 
 	@Override
 	public PortletURL getPortletURL() {
-		RenderResponse renderResponse = getRenderResponse();
-
 		PortletURL portletURL = renderResponse.createRenderURL();
 
 		portletURL.setParameter("mvcPath", "/admin/view.jsp");
 		portletURL.setParameter("groupId", String.valueOf(getScopeGroupId()));
 		portletURL.setParameter("currentTab", "element-set");
 
-		String delta = ParamUtil.getString(getRenderRequest(), "delta");
+		String delta = ParamUtil.getString(renderRequest, "delta");
 
 		if (Validator.isNotNull(delta)) {
 			portletURL.setParameter("delta", delta);
@@ -313,7 +314,7 @@ public class DDMFormAdminFieldSetDisplayContext
 		portletURL.setParameter("displayStyle", getDisplayStyle());
 
 		FieldSetSearch fieldSetSearch = new FieldSetSearch(
-			getRenderRequest(), portletURL);
+			renderRequest, portletURL);
 
 		String orderByCol = getOrderByCol();
 		String orderByType = getOrderByType();
@@ -332,8 +333,7 @@ public class DDMFormAdminFieldSetDisplayContext
 			fieldSetSearch.setEmptyResultsMessage("there-are-no-element-sets");
 		}
 
-		fieldSetSearch.setRowChecker(
-			new FieldSetRowChecker(getRenderResponse()));
+		fieldSetSearch.setRowChecker(new FieldSetRowChecker(renderResponse));
 
 		setFieldSetsSearchResults(fieldSetSearch);
 		setFieldSetsSearchTotal(fieldSetSearch);
@@ -343,8 +343,6 @@ public class DDMFormAdminFieldSetDisplayContext
 
 	@Override
 	public String getSearchActionURL() {
-		RenderResponse renderResponse = getRenderResponse();
-
 		PortletURL portletURL = renderResponse.createRenderURL();
 
 		portletURL.setParameter("mvcPath", "/admin/view.jsp");
@@ -357,6 +355,21 @@ public class DDMFormAdminFieldSetDisplayContext
 	@Override
 	public String getSearchContainerId() {
 		return "structure";
+	}
+
+	@Override
+	public String serializeSettingsForm() throws PortalException {
+		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		DDMFormLayout ddmFormLayout = DDMFormLayoutFactory.create(
+			DDMFormInstanceSettings.class);
+
+		ddmFormLayout.setPaginationMode(DDMFormLayout.TABBED_MODE);
+
+		return ddmFormRenderer.render(
+			createSettingsDDMForm(0L, themeDisplay), ddmFormLayout,
+			createDDMFormRenderingContext(renderRequest, renderResponse));
 	}
 
 	protected OrderByComparator<DDMStructure> getDDMStructureOrderByComparator(

@@ -152,19 +152,14 @@ public class DDLRecordStagedModelRepository
 				Property recordIdProperty = PropertyFactoryUtil.forName(
 					"recordId");
 
-				DynamicQuery recordVersionDynamicQuery =
-					getRecordVersionDynamicQuery();
-
 				dynamicQuery.add(
-					recordIdProperty.in(recordVersionDynamicQuery));
+					recordIdProperty.in(getRecordVersionDynamicQuery()));
 
 				Property recordSetIdProperty = PropertyFactoryUtil.forName(
 					"recordSetId");
 
-				DynamicQuery recordSetDynamicQuery = getRecordSetDynamicQuery(
-					scope);
-
-				dynamicQuery.add(recordSetIdProperty.in(recordSetDynamicQuery));
+				dynamicQuery.add(
+					recordSetIdProperty.in(getRecordSetDynamicQuery(scope)));
 			});
 
 		return exportActionableDynamicQuery;

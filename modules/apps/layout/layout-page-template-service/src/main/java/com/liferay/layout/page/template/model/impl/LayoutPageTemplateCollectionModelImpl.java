@@ -51,8 +51,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the LayoutPageTemplateCollection service. Represents a row in the &quot;LayoutPageTemplateCollection&quot; database table, with each column mapped to a property of this class.
  *
@@ -65,12 +63,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class LayoutPageTemplateCollectionModelImpl
 	extends BaseModelImpl<LayoutPageTemplateCollection>
 	implements LayoutPageTemplateCollectionModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a layout page template collection model instance should use the <code>LayoutPageTemplateCollection</code> interface instead.
@@ -78,7 +75,7 @@ public class LayoutPageTemplateCollectionModelImpl
 	public static final String TABLE_NAME = "LayoutPageTemplateCollection";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"uuid_", Types.VARCHAR},
+		{"mvccVersion", Types.BIGINT}, {"uuid_", Types.VARCHAR},
 		{"layoutPageTemplateCollectionId", Types.BIGINT},
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
@@ -91,6 +88,7 @@ public class LayoutPageTemplateCollectionModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("layoutPageTemplateCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -105,7 +103,7 @@ public class LayoutPageTemplateCollectionModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table LayoutPageTemplateCollection (uuid_ VARCHAR(75) null,layoutPageTemplateCollectionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,description STRING null,lastPublishDate DATE null)";
+		"create table LayoutPageTemplateCollection (mvccVersion LONG default 0 not null,uuid_ VARCHAR(75) null,layoutPageTemplateCollectionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,description STRING null,lastPublishDate DATE null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table LayoutPageTemplateCollection";
@@ -122,21 +120,6 @@ public class LayoutPageTemplateCollectionModelImpl
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
 
-	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"value.object.entity.cache.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateCollection"),
-		true);
-
-	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"value.object.finder.cache.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateCollection"),
-		true);
-
-	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"value.object.column.bitmask.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateCollection"),
-		true);
-
 	public static final long COMPANYID_COLUMN_BITMASK = 1L;
 
 	public static final long GROUPID_COLUMN_BITMASK = 2L;
@@ -144,6 +127,14 @@ public class LayoutPageTemplateCollectionModelImpl
 	public static final long NAME_COLUMN_BITMASK = 4L;
 
 	public static final long UUID_COLUMN_BITMASK = 8L;
+
+	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
+		_entityCacheEnabled = entityCacheEnabled;
+	}
+
+	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
+		_finderCacheEnabled = finderCacheEnabled;
+	}
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -161,6 +152,7 @@ public class LayoutPageTemplateCollectionModelImpl
 		LayoutPageTemplateCollection model =
 			new LayoutPageTemplateCollectionImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setLayoutPageTemplateCollectionId(
 			soapModel.getLayoutPageTemplateCollectionId());
@@ -199,10 +191,6 @@ public class LayoutPageTemplateCollectionModelImpl
 
 		return models;
 	}
-
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
-		com.liferay.layout.page.template.service.util.ServiceProps.get(
-			"lock.expiration.time.com.liferay.layout.page.template.model.LayoutPageTemplateCollection"));
 
 	public LayoutPageTemplateCollectionModelImpl() {
 	}
@@ -338,6 +326,12 @@ public class LayoutPageTemplateCollectionModelImpl
 					<String, BiConsumer<LayoutPageTemplateCollection, ?>>();
 
 		attributeGetterFunctions.put(
+			"mvccVersion", LayoutPageTemplateCollection::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<LayoutPageTemplateCollection, Long>)
+				LayoutPageTemplateCollection::setMvccVersion);
+		attributeGetterFunctions.put(
 			"uuid", LayoutPageTemplateCollection::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -411,6 +405,17 @@ public class LayoutPageTemplateCollectionModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@JSON
@@ -650,7 +655,12 @@ public class LayoutPageTemplateCollectionModelImpl
 	@Override
 	public LayoutPageTemplateCollection toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, LayoutPageTemplateCollection>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -662,6 +672,7 @@ public class LayoutPageTemplateCollectionModelImpl
 		LayoutPageTemplateCollectionImpl layoutPageTemplateCollectionImpl =
 			new LayoutPageTemplateCollectionImpl();
 
+		layoutPageTemplateCollectionImpl.setMvccVersion(getMvccVersion());
 		layoutPageTemplateCollectionImpl.setUuid(getUuid());
 		layoutPageTemplateCollectionImpl.setLayoutPageTemplateCollectionId(
 			getLayoutPageTemplateCollectionId());
@@ -726,12 +737,12 @@ public class LayoutPageTemplateCollectionModelImpl
 
 	@Override
 	public boolean isEntityCacheEnabled() {
-		return ENTITY_CACHE_ENABLED;
+		return _entityCacheEnabled;
 	}
 
 	@Override
 	public boolean isFinderCacheEnabled() {
-		return FINDER_CACHE_ENABLED;
+		return _finderCacheEnabled;
 	}
 
 	@Override
@@ -765,6 +776,8 @@ public class LayoutPageTemplateCollectionModelImpl
 		LayoutPageTemplateCollectionCacheModel
 			layoutPageTemplateCollectionCacheModel =
 				new LayoutPageTemplateCollectionCacheModel();
+
+		layoutPageTemplateCollectionCacheModel.mvccVersion = getMvccVersion();
 
 		layoutPageTemplateCollectionCacheModel.uuid = getUuid();
 
@@ -909,10 +922,19 @@ public class LayoutPageTemplateCollectionModelImpl
 		return sb.toString();
 	}
 
-	private static final Function
-		<InvocationHandler, LayoutPageTemplateCollection>
-			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
 
+		private static final Function
+			<InvocationHandler, LayoutPageTemplateCollection>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
+
+	private static boolean _entityCacheEnabled;
+	private static boolean _finderCacheEnabled;
+
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _layoutPageTemplateCollectionId;

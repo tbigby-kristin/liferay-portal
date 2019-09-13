@@ -152,8 +152,11 @@ public class WhitespaceCheck extends BaseFileCheck {
 			linePart, "else if(", "else if (", true);
 		linePart = formatIncorrectSyntax(linePart, "for(", "for (", true);
 		linePart = formatIncorrectSyntax(linePart, "if(", "if (", true);
+		linePart = formatIncorrectSyntax(linePart, "task(", "task (", true);
 		linePart = formatIncorrectSyntax(linePart, "while(", "while (", true);
 		linePart = formatIncorrectSyntax(linePart, "List <", "List<", false);
+		linePart = formatIncorrectSyntax(linePart, "}else", "}\nelse", true);
+		linePart = formatIncorrectSyntax(linePart, "} else", "}\nelse", true);
 
 		if (javaSource) {
 			linePart = formatIncorrectSyntax(linePart, " ...", "...", false);
@@ -298,8 +301,10 @@ public class WhitespaceCheck extends BaseFileCheck {
 		return isAttributeValue(_ALLOW_LEADING_SPACES_KEY, absolutePath);
 	}
 
-	protected boolean isAllowTrailingEmptyLines(String fileName) {
-		return false;
+	protected boolean isAllowTrailingEmptyLines(
+		String fileName, String absolutePath) {
+
+		return isAttributeValue(_ALLOW_TRAILING_EMPTY_LINES, absolutePath);
 	}
 
 	protected boolean isAllowTrailingSpaces(String line) {
@@ -359,7 +364,9 @@ public class WhitespaceCheck extends BaseFileCheck {
 			}
 		}
 
-		if (isAllowTrailingEmptyLines(fileName) && content.endsWith("\n")) {
+		if (isAllowTrailingEmptyLines(fileName, absolutePath) &&
+			content.endsWith("\n")) {
+
 			return sb.toString();
 		}
 
@@ -377,6 +384,9 @@ public class WhitespaceCheck extends BaseFileCheck {
 
 	private static final String _ALLOW_TRAILING_DOUBLE_SPACE_KEY =
 		"allowTrailingDoubleSpace";
+
+	private static final String _ALLOW_TRAILING_EMPTY_LINES =
+		"allowTrailingEmptyLines";
 
 	private static final Pattern _selfClosingTagsPattern = Pattern.compile(
 		"<(area|base|br|col|command|embed|hr|img|input|keygen|link|meta|" +

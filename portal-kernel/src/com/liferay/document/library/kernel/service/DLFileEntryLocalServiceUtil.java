@@ -16,8 +16,6 @@ package com.liferay.document.library.kernel.service;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the local service utility for DLFileEntry. This utility wraps
  * <code>com.liferay.portlet.documentlibrary.service.impl.DLFileEntryLocalServiceImpl</code> and
@@ -30,10 +28,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLFileEntryLocalService
  * @generated
  */
-@ProviderType
 public class DLFileEntryLocalServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portlet.documentlibrary.service.impl.DLFileEntryLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -1156,6 +1153,23 @@ public class DLFileEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		getService().updateSmallImage(smallImageId, largeImageId);
+	}
+
+	public static com.liferay.document.library.kernel.model.DLFileEntry
+			updateStatus(
+				long userId,
+				com.liferay.document.library.kernel.model.DLFileEntry
+					dlFileEntry,
+				com.liferay.document.library.kernel.model.DLFileVersion
+					dlFileVersion,
+				int status,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext,
+				java.util.Map<String, java.io.Serializable> workflowContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateStatus(
+			userId, dlFileEntry, dlFileVersion, status, serviceContext,
+			workflowContext);
 	}
 
 	public static com.liferay.document.library.kernel.model.DLFileEntry

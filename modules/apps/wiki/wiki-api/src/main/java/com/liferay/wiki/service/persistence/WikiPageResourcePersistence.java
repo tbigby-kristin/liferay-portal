@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface WikiPageResourcePersistence
 	extends BasePersistence<WikiPageResource> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link WikiPageResourceUtil} to access the wiki page resource persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -93,14 +93,14 @@ public interface WikiPageResourcePersistence
 	 * @param start the lower bound of the range of wiki page resources
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching wiki page resources
 	 */
 	public java.util.List<WikiPageResource> findByUuid(
 		String uuid, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<WikiPageResource>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first wiki page resource in the ordered set where uuid = &#63;.
@@ -209,11 +209,11 @@ public interface WikiPageResourcePersistence
 	 *
 	 * @param uuid the uuid
 	 * @param groupId the group ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching wiki page resource, or <code>null</code> if a matching wiki page resource could not be found
 	 */
 	public WikiPageResource fetchByUUID_G(
-		String uuid, long groupId, boolean retrieveFromCache);
+		String uuid, long groupId, boolean useFinderCache);
 
 	/**
 	 * Removes the wiki page resource where uuid = &#63; and groupId = &#63; from the database.
@@ -291,14 +291,14 @@ public interface WikiPageResourcePersistence
 	 * @param start the lower bound of the range of wiki page resources
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching wiki page resources
 	 */
 	public java.util.List<WikiPageResource> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<WikiPageResource>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first wiki page resource in the ordered set where uuid = &#63; and companyId = &#63;.
@@ -414,11 +414,11 @@ public interface WikiPageResourcePersistence
 	 *
 	 * @param nodeId the node ID
 	 * @param title the title
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching wiki page resource, or <code>null</code> if a matching wiki page resource could not be found
 	 */
 	public WikiPageResource fetchByN_T(
-		long nodeId, String title, boolean retrieveFromCache);
+		long nodeId, String title, boolean useFinderCache);
 
 	/**
 	 * Removes the wiki page resource where nodeId = &#63; and title = &#63; from the database.
@@ -538,14 +538,14 @@ public interface WikiPageResourcePersistence
 	 * @param start the lower bound of the range of wiki page resources
 	 * @param end the upper bound of the range of wiki page resources (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of wiki page resources
 	 */
 	public java.util.List<WikiPageResource> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<WikiPageResource>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the wiki page resources from the database.

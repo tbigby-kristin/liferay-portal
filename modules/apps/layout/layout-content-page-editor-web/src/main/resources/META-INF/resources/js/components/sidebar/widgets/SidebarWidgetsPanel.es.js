@@ -1,15 +1,43 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import position from 'metal-position';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 import {DragDrop} from 'metal-drag-drop';
 
-import {ADD_PORTLET, CLEAR_DROP_TARGET, UPDATE_DROP_TARGET} from '../../../actions/actions.es';
-import {disableSavingChangesStatusAction, enableSavingChangesStatusAction, updateLastSaveDateAction} from '../../../actions/saveChanges.es';
-import {FRAGMENTS_EDITOR_ITEM_BORDERS, FRAGMENTS_EDITOR_ITEM_TYPES} from '../../../utils/constants';
+import {
+	ADD_PORTLET,
+	CLEAR_DROP_TARGET,
+	UPDATE_DROP_TARGET
+} from '../../../actions/actions.es';
+import {
+	disableSavingChangesStatusAction,
+	enableSavingChangesStatusAction,
+	updateLastSaveDateAction
+} from '../../../actions/saveChanges.es';
+import {
+	FRAGMENTS_EDITOR_ITEM_BORDERS,
+	FRAGMENTS_EDITOR_ITEM_TYPES
+} from '../../../utils/constants';
 import {getConnectedComponent} from '../../../store/ConnectedComponent.es';
 import {initializeDragDrop} from '../../../utils/FragmentsEditorDragDrop.es';
-import {setDraggingItemPosition, setIn} from '../../../utils/FragmentsEditorUpdateUtils.es';
+import {
+	setDraggingItemPosition,
+	setIn
+} from '../../../utils/FragmentsEditorUpdateUtils.es';
 import {shouldUpdateOnChangeProperties} from '../../../utils/FragmentsEditorComponentUtils.es';
 import templates from './SidebarWidgetsPanel.soy';
 
@@ -24,7 +52,6 @@ const ENTER_KEY = 'Enter';
  * SidebarWidgetsPanel
  */
 class SidebarWidgetsPanel extends Component {
-
 	/**
 	 * Returns true if the given keywords matches the given text
 	 * @param {string} text
@@ -67,15 +94,10 @@ class SidebarWidgetsPanel extends Component {
 	 */
 	static _filterCategories(categories, keywords) {
 		return categories
-			.map(
-				widgetCategory => SidebarWidgetsPanel._filterCategory(
-					widgetCategory,
-					keywords
-				)
+			.map(widgetCategory =>
+				SidebarWidgetsPanel._filterCategory(widgetCategory, keywords)
 			)
-			.filter(
-				widgetCategory => widgetCategory
-			);
+			.filter(widgetCategory => widgetCategory);
 	}
 
 	/**
@@ -96,15 +118,22 @@ class SidebarWidgetsPanel extends Component {
 			)
 		);
 
-		const filteredPortlets = (category.portlets || []).filter(
-			portlet => SidebarWidgetsPanel._keywordsMatch(portlet.title, keywords)
+		const filteredPortlets = (category.portlets || []).filter(portlet =>
+			SidebarWidgetsPanel._keywordsMatch(portlet.title, keywords)
 		);
 
 		if (!SidebarWidgetsPanel._keywordsMatch(category.title, keywords)) {
-			filteredCategory = setIn(filteredCategory, ['portlets'], filteredPortlets);
+			filteredCategory = setIn(
+				filteredCategory,
+				['portlets'],
+				filteredPortlets
+			);
 		}
 
-		if (!filteredCategory.portlets.length && !filteredCategory.categories.length) {
+		if (
+			!filteredCategory.portlets.length &&
+			!filteredCategory.categories.length
+		) {
 			filteredCategory = null;
 		}
 
@@ -139,10 +168,7 @@ class SidebarWidgetsPanel extends Component {
 		return setIn(
 			state,
 			['widgets'],
-			SidebarWidgetsPanel._filterWidgets(
-				state.widgets,
-				state._keywords
-			)
+			SidebarWidgetsPanel._filterWidgets(state.widgets, state._keywords)
 		);
 	}
 
@@ -153,14 +179,11 @@ class SidebarWidgetsPanel extends Component {
 	 * @review
 	 */
 	shouldUpdate(changes) {
-		return shouldUpdateOnChangeProperties(
-			changes,
-			[
-				'_keywords',
-				'spritemap',
-				'widgets'
-			]
-		);
+		return shouldUpdateOnChangeProperties(changes, [
+			'_keywords',
+			'spritemap',
+			'widgets'
+		]);
 	}
 
 	/**
@@ -174,9 +197,9 @@ class SidebarWidgetsPanel extends Component {
 		const targetItem = eventData.target;
 
 		const data = targetItem ? targetItem.dataset : null;
-		const targetIsColumn = targetItem && ('columnId' in data);
-		const targetIsFragment = targetItem && ('fragmentEntryLinkId' in data);
-		const targetIsRow = targetItem && ('layoutRowId' in data);
+		const targetIsColumn = targetItem && 'columnId' in data;
+		const targetIsFragment = targetItem && 'fragmentEntryLinkId' in data;
+		const targetIsRow = targetItem && 'layoutRowId' in data;
 
 		setDraggingItemPosition(eventData.originalEvent);
 
@@ -199,24 +222,20 @@ class SidebarWidgetsPanel extends Component {
 			if (targetIsColumn) {
 				dropTargetItemId = data.columnId;
 				dropTargetItemType = FRAGMENTS_EDITOR_ITEM_TYPES.column;
-			}
-			else if (targetIsFragment) {
+			} else if (targetIsFragment) {
 				dropTargetItemId = data.fragmentEntryLinkId;
 				dropTargetItemType = FRAGMENTS_EDITOR_ITEM_TYPES.fragment;
-			}
-			else if (targetIsRow) {
+			} else if (targetIsRow) {
 				dropTargetItemId = data.layoutRowId;
 				dropTargetItemType = FRAGMENTS_EDITOR_ITEM_TYPES.row;
 			}
 
-			this.store.dispatch(
-				{
-					dropTargetBorder: nearestBorder,
-					dropTargetItemId,
-					dropTargetItemType,
-					type: UPDATE_DROP_TARGET
-				}
-			);
+			this.store.dispatch({
+				dropTargetBorder: nearestBorder,
+				dropTargetItemId,
+				dropTargetItemType,
+				type: UPDATE_DROP_TARGET
+			});
 		}
 	}
 
@@ -226,11 +245,9 @@ class SidebarWidgetsPanel extends Component {
 	 * @review
 	 */
 	_handleDragEnd() {
-		this.store.dispatch(
-			{
-				type: CLEAR_DROP_TARGET
-			}
-		);
+		this.store.dispatch({
+			type: CLEAR_DROP_TARGET
+		});
 	}
 
 	/**
@@ -262,28 +279,22 @@ class SidebarWidgetsPanel extends Component {
 		if (data.target) {
 			const {instanceable, portletId} = data.source.dataset;
 
-			requestAnimationFrame(
-				() => {
-					this._initializeDragAndDrop();
-				}
-			);
+			requestAnimationFrame(() => {
+				this._initializeDragAndDrop();
+			});
 
 			this.store
 				.dispatch(enableSavingChangesStatusAction())
-				.dispatch(
-					{
-						instanceable,
-						portletId,
-						type: ADD_PORTLET
-					}
-				)
+				.dispatch({
+					instanceable,
+					portletId,
+					type: ADD_PORTLET
+				})
 				.dispatch(updateLastSaveDateAction())
 				.dispatch(disableSavingChangesStatusAction())
-				.dispatch(
-					{
-						type: CLEAR_DROP_TARGET
-					}
-				);
+				.dispatch({
+					type: CLEAR_DROP_TARGET
+				});
 		}
 	}
 
@@ -296,23 +307,15 @@ class SidebarWidgetsPanel extends Component {
 			this._dragDrop.dispose();
 		}
 
-		this._dragDrop = initializeDragDrop(
-			{
-				handles: '.fragments-editor__drag-handler',
-				sources: '.fragments-editor__drag-source--sidebar-widget',
-				targets: '.fragments-editor__drop-target--sidebar-widget'
-			}
-		);
+		this._dragDrop = initializeDragDrop({
+			handles: '.fragments-editor__drag-handler',
+			sources: '.fragments-editor__drag-source--sidebar-widget',
+			targets: '.fragments-editor__drop-target--sidebar-widget'
+		});
 
-		this._dragDrop.on(
-			DragDrop.Events.DRAG,
-			this._handleDrag.bind(this)
-		);
+		this._dragDrop.on(DragDrop.Events.DRAG, this._handleDrag.bind(this));
 
-		this._dragDrop.on(
-			DragDrop.Events.END,
-			this._handleDrop.bind(this)
-		);
+		this._dragDrop.on(DragDrop.Events.END, this._handleDrop.bind(this));
 
 		this._dragDrop.on(
 			DragDrop.Events.TARGET_LEAVE,
@@ -328,7 +331,6 @@ class SidebarWidgetsPanel extends Component {
  * @type {!Object}
  */
 SidebarWidgetsPanel.STATE = {
-
 	/**
 	 * @default ''
 	 * @instance
@@ -337,18 +339,14 @@ SidebarWidgetsPanel.STATE = {
 	 * @review
 	 * @type {string}
 	 */
-	_keywords: Config
-		.string()
+	_keywords: Config.string()
 		.internal()
 		.value('')
 };
 
 const ConnectedSidebarWidgetsPanel = getConnectedComponent(
 	SidebarWidgetsPanel,
-	[
-		'spritemap',
-		'widgets'
-	]
+	['spritemap', 'widgets']
 );
 
 Soy.register(ConnectedSidebarWidgetsPanel, templates);

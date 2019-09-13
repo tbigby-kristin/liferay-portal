@@ -179,9 +179,7 @@ public class PortletURLUtil {
 		sb.append(themeDisplay.getPathMain());
 		sb.append("/portal/render_portlet?p_l_id=");
 
-		long plid = themeDisplay.getPlid();
-
-		sb.append(plid);
+		sb.append(themeDisplay.getPlid());
 
 		HttpServletRequest originalHttpServletRequest =
 			PortalUtil.getOriginalServletRequest(httpServletRequest);
@@ -269,10 +267,9 @@ public class PortletURLUtil {
 			sb.append(URLCodec.encodeURL(doAsUserId));
 		}
 
-		String currentURL = PortalUtil.getCurrentURL(httpServletRequest);
-
 		sb.append("&currentURL=");
-		sb.append(URLCodec.encodeURL(currentURL));
+		sb.append(
+			URLCodec.encodeURL(PortalUtil.getCurrentURL(httpServletRequest)));
 
 		String ppid = ParamUtil.getString(httpServletRequest, "p_p_id");
 

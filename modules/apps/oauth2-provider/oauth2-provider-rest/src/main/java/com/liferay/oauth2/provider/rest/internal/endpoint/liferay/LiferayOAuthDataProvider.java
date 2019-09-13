@@ -18,6 +18,7 @@ import com.liferay.oauth2.provider.configuration.OAuth2ProviderConfiguration;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.constants.OAuth2ProviderConstants;
 import com.liferay.oauth2.provider.model.OAuth2Application;
+import com.liferay.oauth2.provider.model.OAuth2ApplicationScopeAliases;
 import com.liferay.oauth2.provider.model.OAuth2Authorization;
 import com.liferay.oauth2.provider.model.OAuth2ScopeGrant;
 import com.liferay.oauth2.provider.rest.internal.endpoint.authorize.configuration.OAuth2AuthorizationFlowConfiguration;
@@ -681,11 +682,9 @@ public class LiferayOAuthDataProvider
 
 	@Override
 	protected Client doGetClient(String clientId) {
-		long companyId = CompanyThreadLocal.getCompanyId();
-
 		OAuth2Application oAuth2Application =
 			_oAuth2ApplicationLocalService.fetchOAuth2Application(
-				companyId, clientId);
+				CompanyThreadLocal.getCompanyId(), clientId);
 
 		if (oAuth2Application == null) {
 			if (_log.isWarnEnabled()) {
@@ -992,6 +991,18 @@ public class LiferayOAuthDataProvider
 
 		Stream<OAuth2ScopeGrant> stream = oAuth2ScopeGrants.stream();
 
+		OAuth2ApplicationScopeAliases oAuth2ApplicationScopeAliases =
+			_oAuth2ApplicationScopeAliasesLocalService.
+				fetchOAuth2ApplicationScopeAliases(
+					oAuth2ApplicationScopeAliasesId);
+
+		Collection<LiferayOAuth2Scope> liferayOAuth2Scopes = new ArrayList<>();
+
+		if (oAuth2ApplicationScopeAliases != null) {
+			liferayOAuth2Scopes = _scopeLocator.getLiferayOAuth2Scopes(
+				oAuth2ApplicationScopeAliases.getCompanyId());
+		}
+
 		return stream.filter(
 			oAuth2ScopeGrant -> !Collections.disjoint(
 				oAuth2ScopeGrant.getScopeAliasesList(), scopeAliases)
@@ -1002,6 +1013,8 @@ public class LiferayOAuthDataProvider
 				oAuth2ScopeGrant.getScope())
 		).filter(
 			Objects::nonNull
+		).filter(
+			liferayOAuth2Scopes::contains
 		).collect(
 			Collectors.toList()
 		);

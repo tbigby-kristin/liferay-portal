@@ -7,6 +7,10 @@ configJSModules {
 	include "**/*.js"
 }
 
+node {
+	useNpm = true
+}
+
 runGradleTest {
 	dependsOn classes
 
@@ -20,7 +24,7 @@ runGradleTest {
 
 			File expectedFile = file(generatedFile.name + ".expected")
 
-			assert expectedFile.text.normalize() == generatedFile.text.normalize()
+			assert expectedFile.text.normalize() == generatedFile.text.normalize().trim()
 		}
 	}
 }

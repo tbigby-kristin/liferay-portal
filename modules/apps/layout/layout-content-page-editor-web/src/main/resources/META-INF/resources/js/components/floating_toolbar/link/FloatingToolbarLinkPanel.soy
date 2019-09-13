@@ -9,35 +9,113 @@
 			config: [
 				buttonType: string,
 				href: string,
-				target: string
+			fieldId: string,
+			mappedField: string,
+			title: string,
+			target: string,
+			type: string
 			]
 		]
 	]}
-	{@param? _buttonTypes: ?}
-	{@param? _handleButtonTypeOptionChange: any}
+	{@param? _fields: ?}
+	{@param? _handleAssetBrowserLinkClick: any}
+	{@param? _handleAssetEntryLinkClick: any}
+	{@param? _handleFieldOptionChange: any}
 	{@param? _handleInputHrefKeyUp: any}
 	{@param? _handleTargetOptionChange: any}
+	{@param? _handleTypeOptionChange: any}
+	{@param? _handleSourceTypeChange: any}
 	{@param? _handleSubmit: any}
+	{@param? _mappedFieldValue: string}
+	{@param? _selectedSourceTypeId: string}
+	{@param? _sourceTypeIds: [
+		content: string,
+		structure: string
+	]}
+	{@param? _sourceTypes: list<[
+		id: string,
+		label: string
+	]>}
 	{@param? _targetTypes: ?}
+	{@param? assetBrowserLinks: list<[
+		href: string,
+		typeName: string
+	]>}
+	{@param? mappedAssetEntries: list<[
+		encodedId: string,
+		classNameId: string,
+		classPK: string,
+		title: string
+	]>}
+	{@param? mappingFieldsURL: string}
+	{@param? store: any}
 
-	<div class="floating-toolbar-link-panel">
+	{let $linkType kind="text"}
+		{if $item.editableValues.config and $item.editableValues.config.type}
+			{$item.editableValues.config.type}
+		{else}
+			manual
+		{/if}
+	{/let}
+
+	<div class="floating-toolbar-link-panel p-3">
 		<form data-onsubmit="{$_handleSubmit}">
 			<div class="form-group">
-				<label for="floatingToolbarLinkHrefPanelOption">
-					{msg desc=""}URL{/msg}
+				<label for="floatingToolbarLinkTypePanelOption">
+					{msg desc=""}link{/msg}
 				</label>
 
-				<input
+				<select
 					class="form-control form-control-sm"
-					data-onkeyup="{$_handleInputHrefKeyUp}"
-					id="floatingToolbarLinkHrefPanelOption"
-					title="{$item.editableValues.config ? $item.editableValues.config.href : ''}"
-					type="text"
-					value="{$item.editableValues.config ? $item.editableValues.config.href : ''}"
+					data-onchange="{$_handleTypeOptionChange}"
+					id="floatingToolbarLinkTypePanelOption"
 				>
+					<option value="manual" {if $linkType == 'manual'}selected{/if}>
+						{msg desc=""}manual{/msg}
+					</option>
+
+					<option value="mapped" {if $linkType == 'mapped'}selected{/if}>
+						{msg desc=""}from-content-field{/msg}
+					</option>
+				</select>
 			</div>
 
-			{if $_targetTypes}
+			{if $linkType == 'manual'}
+				<div class="form-group">
+					<label for="floatingToolbarLinkHrefPanelOption">
+						{msg desc=""}URL{/msg}
+					</label>
+
+					<input
+						class="form-control form-control-sm"
+						data-onkeyup="{$_handleInputHrefKeyUp}"
+						id="floatingToolbarLinkHrefPanelOption"
+						title="{$item.editableValues.config ? $item.editableValues.config.href : ''}"
+						type="text"
+						value="{$item.editableValues.config ? $item.editableValues.config.href : ''}"
+					>
+				</div>
+			{else}
+				{call .linkMapping}
+					{param assetBrowserLinks: $assetBrowserLinks /}
+					{param fieldId: $item.editableValues.config.mappedField or $item.editableValues.config.fieldId /}
+					{param fields: $_fields /}
+					{param handleAssetBrowserLinkClick: $_handleAssetBrowserLinkClick /}
+					{param handleAssetEntryLinkClick: $_handleAssetEntryLinkClick /}
+					{param handleFieldOptionChange: $_handleFieldOptionChange /}
+					{param handleSourceTypeChange: $_handleSourceTypeChange /}
+					{param mappedAssetEntries: $mappedAssetEntries /}
+					{param mappingFieldsURL: $mappingFieldsURL /}
+					{param mappedFieldValue: $_mappedFieldValue /}
+					{param sourceTypeIds: $_sourceTypeIds /}
+					{param sourceTypes: $_sourceTypes /}
+					{param selectedAssetEntryTitle: $item.editableValues.config ? $item.editableValues.config.title : '' /}
+					{param selectedSourceTypeId: $_selectedSourceTypeId /}
+					{param store: $store /}
+				{/call}
+			{/if}
+
+			{if $_targetTypes and ($linkType == 'manual')}
 				<div class="form-group">
 					<label for="floatingToolbarLinkTargetPanelOption">
 						{msg desc=""}target{/msg}
@@ -57,58 +135,89 @@
 					</select>
 				</div>
 			{/if}
-
-			{if $_buttonTypes}
-				<div class="form-group">
-					<label for="floatingToolbarLinkButtonPanelOption">
-						{msg desc=""}display-type{/msg}
-					</label>
-
-					<select
-						class="form-control form-control-sm"
-						data-onchange="{$_handleButtonTypeOptionChange}"
-						id="floatingToolbarLinkButtonPanelOption"
-					>
-						{foreach $buttonType in $_buttonTypes}
-							{call .buttonTypeOption}
-								{param buttonType: $buttonType /}
-								{param item: $item /}
-							{/call}
-						{/foreach}
-					</select>
-				</div>
-			{/if}
 		</form>
 	</div>
 {/template}
 
-/**
- * Link button option
- */
-{template .buttonTypeOption}
-	{@param item: [
-		editableValues: [
-			config: [
-				buttonType: string
-			]
-		]
+{template .linkMapping}
+	{@param? assetBrowserLinks: list<[
+		href: string,
+		typeName: string
+	]>}
+	{@param? fieldId: string}
+	{@param? fields: ?}
+	{@param? mappedAssetEntries: list<[
+		encodedId: string,
+		classNameId: string,
+		classPK: string,
+		title: string
+	]>}
+	{@param? handleAssetBrowserLinkClick: any}
+	{@param? handleAssetEntryLinkClick: any}
+	{@param? handleFieldOptionChange: any}
+	{@param? handleSourceTypeChange: any}
+	{@param? mappingFieldsURL: string}
+	{@param? mappedFieldValue: string}
+	{@param? selectedAssetEntryTitle: string}
+	{@param? selectedSourceTypeId: string}
+	{@param? sourceTypeIds: [
+		content: string,
+		structure: string
 	]}
-	{@param buttonType: [
-		buttonTypeId: string,
+	{@param? sourceTypes: list<[
+		id: string,
 		label: string
-	]}
+	]>}
+	{@param? store: any}
 
-	{let $optionAttributes kind="attributes"}
-		value="{$buttonType.buttonTypeId}"
+	{if $mappingFieldsURL}
+		<div class="form-group">
+			{call com.liferay.layout.content.page.editor.web.FloatingToolbarMappingPanel.sourceTypeSelect}
+				{param handleSourceTypeChange: $handleSourceTypeChange /}
+				{param sourceTypes: $sourceTypes /}
+				{param selectedSourceTypeId: $selectedSourceTypeId /}
+			{/call}
+		</div>
+	{/if}
 
-		{if $item.editableValues.config and $item.editableValues.config.buttonType and $item.editableValues.config.buttonType == $buttonType.buttonTypeId}
-			selected
-		{/if}
-	{/let}
+	{if not $mappingFieldsURL or $selectedSourceTypeId == $sourceTypeIds.content}
+		<div class="floating-toolbar-mapping-panel__asset-select form-group">
+			{call com.liferay.layout.content.page.editor.web.AssetSelector.render}
+				{param assetBrowserLinks: $assetBrowserLinks /}
+				{param fieldId kind="text"}floatingToolbarMappingPanelAssetSelect{/param}
+				{param fieldName kind="text"}{msg desc=""}content{/msg}{/param}
+				{param handleAssetBrowserLinkClick: $handleAssetBrowserLinkClick /}
+				{param handleAssetEntryLinkClick: $handleAssetEntryLinkClick /}
+				{param recentlyUsedAssetEntries: $mappedAssetEntries /}
+				{param selectedAssetEntryTitle: $selectedAssetEntryTitle /}
+				{param store: $store /}
+			{/call}
+		</div>
+	{/if}
 
-	<option {$optionAttributes}>
-		{$buttonType.label}
-	</option>
+	<div class="form-group">
+		{call com.liferay.layout.content.page.editor.web.FloatingToolbarMappingPanel.fieldSelect}
+			{param fields: $fields /}
+			{param handleFieldOptionChange: $handleFieldOptionChange /}
+			{param mappedFieldId: $fieldId /}
+		{/call}
+	</div>
+
+	{if $fieldId and isNonnull($mappedFieldValue)}
+		<div class="form-group">
+			<label for="floatingToolbarLinkHrefPanelOption">
+				{msg desc=""}URL{/msg}
+			</label>
+
+			<input
+				class="form-control form-control-sm"
+				id="floatingToolbarLinkHrefPanelOption"
+				readonly
+				type="text"
+				value="{$mappedFieldValue}"
+			>
+		</div>
+	{/if}
 {/template}
 
 /**

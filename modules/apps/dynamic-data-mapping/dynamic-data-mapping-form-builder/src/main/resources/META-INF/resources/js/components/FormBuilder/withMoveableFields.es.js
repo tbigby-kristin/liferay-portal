@@ -1,8 +1,22 @@
-import * as FormSupport from '../Form/FormSupport.es';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
 import Component from 'metal-jsx';
 import {Config} from 'metal-state';
 import {DragDrop} from 'metal-drag-drop';
-import {focusedFieldStructure, pageStructure, ruleStructure} from '../../util/config.es';
+import {focusedFieldStructure, pageStructure} from '../../util/config.es';
 
 const withMoveableFields = ChildComponent => {
 	class MoveableFields extends Component {
@@ -11,20 +25,21 @@ const withMoveableFields = ChildComponent => {
 		}
 
 		createDragAndDrop() {
-			this._dragAndDrop = new DragDrop(
-				{
-					sources: '.moveable .ddm-drag',
-					targets: '.moveable .ddm-target',
-					useShim: false
-				}
-			);
+			this._dragAndDrop = new DragDrop({
+				sources: '.moveable .ddm-drag',
+				targets: '.moveable .ddm-target',
+				useShim: false
+			});
 
 			this._dragAndDrop.on(
 				DragDrop.Events.END,
 				this._handleDragAndDropEnd.bind(this)
 			);
 
-			this._dragAndDrop.on(DragDrop.Events.DRAG, this._handleDragStarted.bind(this));
+			this._dragAndDrop.on(
+				DragDrop.Events.DRAG,
+				this._handleDragStarted.bind(this)
+			);
 		}
 
 		disposeDragAndDrop() {
@@ -53,39 +68,43 @@ const withMoveableFields = ChildComponent => {
 			);
 		}
 
-		willReceiveProps() {
-			this._dragAndDrop.setState(
-				{
-					targets: this._dragAndDrop.setterTargetsFn_('.moveable .ddm-target')
-				}
-			);
+		rendered() {
+			this._refreshDragAndDrop();
 		}
 
 		_handleDragAndDropEnd({source, target}) {
-			const lastParent = document.querySelector('.ddm-parent-dragging');
+			const lastParent = document.querySelector('.dragging');
 
 			if (lastParent) {
-				lastParent.classList.remove('ddm-parent-dragging');
+				lastParent.classList.remove('dragging');
 				lastParent.removeAttribute('style');
 			}
 
-			if (target) {
-				const sourceIndex = FormSupport.getIndexes(
-					source.parentElement.parentElement
+			if (!target) {
+				target = document.querySelector(
+					'.ddm-form-builder .ddm-target.targetOver'
 				);
-				const targetIndex = FormSupport.getIndexes(target.parentElement);
+			}
 
+			if (target) {
 				source.innerHTML = '';
 
-				const addedToPlaceholder = !([].concat(target.parentElement.parentElement.classList)).includes('position-relative');
-
-				this._handleFieldMoved(
-					{
-						addedToPlaceholder,
-						source: sourceIndex,
-						target: targetIndex
-					}
+				const sourceIndexes = FormSupport.getIndexes(
+					source.parentElement.parentElement
 				);
+
+				const targetColumn = target.parentElement;
+				const targetIndexes = FormSupport.getIndexes(targetColumn);
+
+				const addedToPlaceholder = targetColumn.parentElement.classList.contains(
+					'placeholder'
+				);
+
+				this._handleFieldMoved({
+					addedToPlaceholder,
+					source: sourceIndexes,
+					target: targetIndexes
+				});
 			}
 
 			this._refreshDragAndDrop();
@@ -95,8 +114,11 @@ const withMoveableFields = ChildComponent => {
 			const {height} = source.getBoundingClientRect();
 			const {parentElement} = source;
 
-			parentElement.setAttribute('style', `height: ${height}px !important;`);
-			parentElement.classList.add('ddm-parent-dragging');
+			parentElement.setAttribute(
+				'style',
+				`height: ${height}px !important;`
+			);
+			parentElement.classList.add('dragging');
 		}
 
 		_handleFieldMoved(event) {
@@ -112,7 +134,6 @@ const withMoveableFields = ChildComponent => {
 	}
 
 	MoveableFields.PROPS = {
-
 		/**
 		 * @default
 		 * @instance
@@ -141,9 +162,27 @@ const withMoveableFields = ChildComponent => {
 		editingLanguageId: Config.string(),
 
 		/**
+		 * @default undefined
+		 * @instance
+		 * @memberof FormBuilder
+		 * @type {?string}
+		 */
+
+		fieldSetDefinitionURL: Config.string(),
+
+		/**
 		 * @default []
 		 * @instance
-		 * @memberof Sidebar
+		 * @memberof FormBuilder
+		 * @type {?(array|undefined)}
+		 */
+
+		fieldSets: Config.array().value([]),
+
+		/**
+		 * @default []
+		 * @instance
+		 * @memberof FormBuilder
 		 * @type {?(array|undefined)}
 		 */
 
@@ -181,16 +220,37 @@ const withMoveableFields = ChildComponent => {
 		 * @type {string}
 		 */
 
-		rules: Config.arrayOf(ruleStructure).required(),
+		portletNamespace: Config.string().required(),
 
 		/**
 		 * @default undefined
 		 * @instance
-		 * @memberof FormRenderer
+		 * @memberof FormBuilder
 		 * @type {!string}
 		 */
 
-		spritemap: Config.string().required()
+		spritemap: Config.string().required(),
+
+		/**
+		 * @instance
+		 * @memberof FormBuilder
+		 * @type {object}
+		 */
+
+		successPageSettings: Config.shapeOf({
+			body: Config.object(),
+			enabled: Config.bool(),
+			title: Config.object()
+		}).value({}),
+
+		/**
+		 * @default undefined
+		 * @instance
+		 * @memberof FormBuilder
+		 * @type {?string}
+		 */
+
+		view: Config.string()
 	};
 
 	return MoveableFields;

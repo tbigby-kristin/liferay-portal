@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.exception.DuplicateGroupException;
 import com.liferay.portal.kernel.exception.GroupFriendlyURLException;
 import com.liferay.portal.kernel.exception.GroupInheritContentException;
 import com.liferay.portal.kernel.exception.GroupKeyException;
+import com.liferay.portal.kernel.exception.GroupNameException;
 import com.liferay.portal.kernel.exception.GroupParentException;
 import com.liferay.portal.kernel.exception.LayoutSetVirtualHostException;
 import com.liferay.portal.kernel.exception.LocaleException;
@@ -149,8 +150,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + SiteAdminPortletKeys.SITE_ADMIN,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator"
 	},
 	service = Portlet.class
 )
@@ -344,9 +344,8 @@ public class SiteAdminPortlet extends MVCPortlet {
 
 		SitesUtil.resetPrototype(layoutSet);
 
-		Group group = groupLocalService.getGroup(groupId);
-
-		SitesUtil.mergeLayoutSetPrototypeLayouts(group, layoutSet);
+		SitesUtil.mergeLayoutSetPrototypeLayouts(
+			groupLocalService.getGroup(groupId), layoutSet);
 
 		layoutSetPrototype = layoutSetPrototypeService.getLayoutSetPrototype(
 			layoutSetPrototypeId);
@@ -519,6 +518,7 @@ public class SiteAdminPortlet extends MVCPortlet {
 			cause instanceof GroupFriendlyURLException ||
 			cause instanceof GroupInheritContentException ||
 			cause instanceof GroupKeyException ||
+			cause instanceof GroupNameException ||
 			cause instanceof GroupParentException ||
 			cause instanceof LayoutSetVirtualHostException ||
 			cause instanceof LocaleException ||
@@ -698,7 +698,8 @@ public class SiteAdminPortlet extends MVCPortlet {
 				actionRequest, "description");
 			type = ParamUtil.getInteger(
 				actionRequest, "type", GroupConstants.TYPE_SITE_OPEN);
-			friendlyURL = ParamUtil.getString(actionRequest, "friendlyURL");
+			friendlyURL = ParamUtil.getString(
+				actionRequest, "groupFriendlyURL");
 			manualMembership = ParamUtil.getBoolean(
 				actionRequest, "manualMembership", true);
 			inheritContent = ParamUtil.getBoolean(
@@ -734,11 +735,22 @@ public class SiteAdminPortlet extends MVCPortlet {
 				actionRequest, "manualMembership",
 				liveGroup.isManualMembership());
 			friendlyURL = ParamUtil.getString(
-				actionRequest, "friendlyURL", liveGroup.getFriendlyURL());
+				actionRequest, "groupFriendlyURL", liveGroup.getFriendlyURL());
 			inheritContent = ParamUtil.getBoolean(
 				actionRequest, "inheritContent", liveGroup.isInheritContent());
 			active = ParamUtil.getBoolean(
 				actionRequest, "active", liveGroup.isActive());
+
+			UnicodeProperties unicodeProperties =
+				PropertiesParamUtil.getProperties(
+					actionRequest, "TypeSettingsProperties--");
+
+			Locale defaultLocale = LocaleUtil.fromLanguageId(
+				unicodeProperties.getProperty("languageId"));
+
+			if (!liveGroup.isGuest()) {
+				validateDefaultLocaleGroupName(nameMap, defaultLocale);
+			}
 
 			liveGroup = groupService.updateGroup(
 				liveGroupId, parentGroupId, nameMap, descriptionMap, type,
@@ -1055,6 +1067,15 @@ public class SiteAdminPortlet extends MVCPortlet {
 		themeDisplay.setSiteGroupId(liveGroup.getGroupId());
 
 		return liveGroup;
+	}
+
+	protected void validateDefaultLocaleGroupName(
+			Map<Locale, String> nameMap, Locale defaultLocale)
+		throws PortalException {
+
+		if ((nameMap == null) || Validator.isNull(nameMap.get(defaultLocale))) {
+			throw new GroupNameException();
+		}
 	}
 
 	@Reference

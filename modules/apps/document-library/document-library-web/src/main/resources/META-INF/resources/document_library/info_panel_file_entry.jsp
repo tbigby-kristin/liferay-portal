@@ -23,14 +23,7 @@ boolean hideActions = GetterUtil.getBoolean(request.getAttribute("info_panel_fil
 
 DLViewFileVersionDisplayContext dlViewFileVersionDisplayContext = dlDisplayContextProvider.getDLViewFileVersionDisplayContext(request, response, fileVersion);
 
-long assetClassPK = 0;
-
-if (!fileVersion.isApproved() && !fileVersion.getVersion().equals(DLFileEntryConstants.VERSION_DEFAULT) && !fileEntry.isInTrash()) {
-	assetClassPK = fileVersion.getFileVersionId();
-}
-else {
-	assetClassPK = fileEntry.getFileEntryId();
-}
+long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 %>
 
 <div class="sidebar-header">
@@ -42,7 +35,9 @@ else {
 		</ul>
 	</c:if>
 
-	<h4><%= HtmlUtil.escape(fileVersion.getTitle()) %></h4>
+	<h1 class="sidebar-title">
+		<%= HtmlUtil.escape(fileVersion.getTitle()) %>
+	</h1>
 
 	<c:if test="<%= dlViewFileVersionDisplayContext.isVersionInfoVisible() %>">
 		<clay:label
@@ -58,20 +53,20 @@ else {
 
 <div class="sidebar-body">
 
-<%
-String tabsNames = "details";
+	<%
+	String tabsNames = "details";
 
-if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
-	tabsNames += ",versions";
-}
-%>
+	if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
+		tabsNames += ",versions";
+	}
+	%>
 
-<liferay-ui:tabs
-	cssClass="navbar-no-collapse"
-	names="<%= tabsNames %>"
-	refresh="<%= false %>"
->
-	<liferay-ui:section>
+	<liferay-ui:tabs
+		cssClass="navbar-no-collapse"
+		names="<%= tabsNames %>"
+		refresh="<%= false %>"
+	>
+		<liferay-ui:section>
 
 			<%
 			String thumbnailSrc = DLURLHelperUtil.getThumbnailSrc(fileEntry, fileVersion, themeDisplay);
@@ -116,51 +111,108 @@ if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
 				</div>
 			</liferay-dynamic-section:dynamic-section>
 
-			<c:if test="<%= dlViewFileVersionDisplayContext.isDownloadLinkVisible() %>">
+			<c:if test="<%= dlViewFileVersionDisplayContext.isDownloadLinkVisible() || dlViewFileVersionDisplayContext.isSharingLinkVisible() %>">
 				<div class="sidebar-section">
 					<div class="btn-group sidebar-panel">
-						<div class="btn-group-item">
-							<clay:link
-								buttonStyle="primary"
-								elementClasses='<%= "btn-sm" %>'
-								href="<%= DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true) %>"
-								label='<%= LanguageUtil.get(resourceBundle, "download") %>'
-								title='<%= LanguageUtil.format(resourceBundle, "file-size-x", TextFormatter.formatStorageSize(fileVersion.getSize(), locale), false) %>'
-							/>
-						</div>
+						<c:if test="<%= dlViewFileVersionDisplayContext.isDownloadLinkVisible() %>">
+							<c:choose>
+								<c:when test="<%= PropsValues.DL_FILE_ENTRY_CONVERSIONS_ENABLED && DocumentConversionUtil.isEnabled() %>">
 
-						<c:if test="<%= PropsValues.DL_FILE_ENTRY_CONVERSIONS_ENABLED && DocumentConversionUtil.isEnabled() %>">
+									<%
+									String[] conversions = DocumentConversionUtil.getConversions(fileVersion.getExtension());
+									%>
 
-							<%
-							final String[] conversions = DocumentConversionUtil.getConversions(fileVersion.getExtension());
-							%>
+									<c:choose>
+										<c:when test="<%= conversions.length > 0 %>">
+											<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>">
+												<clay:dropdown-menu
+													dropdownItems="<%=
+														new JSPDropdownItemList(pageContext) {
+															{
+																ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
 
-							<c:if test="<%= conversions.length > 0 %>">
-								<div class="btn-group-item">
-									<div class="d-inline-block">
-										<clay:dropdown-menu
-											dropdownItems="<%=
-												new JSPDropdownItemList(pageContext) {
-													{
-														ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
+																Map<String, Object> data = new HashMap<>(1);
 
-														for (String conversion : conversions) {
-															add(
-																dropdownItem -> {
-																	dropdownItem.setHref(DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, "&targetExtension=" + conversion));
-																	dropdownItem.setLabel(StringUtil.toUpperCase(conversion));
-																});
+																data.put("analytics-file-entry-id", String.valueOf(fileEntry.getFileEntryId()));
+
+																add(
+																	dropdownItem -> {
+																		dropdownItem.setData(data);
+																		dropdownItem.setHref(DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true));
+																		dropdownItem.setLabel(LanguageUtil.get(request, "this-version"));
+																		dropdownItem.setSeparator(true);
+																	});
+
+																addGroup(
+																	dropdownGroupItem -> {
+																		dropdownGroupItem.setDropdownItems(
+																			new DropdownItemList() {
+																				{
+																					for (String conversion : conversions) {
+																						add(
+																							dropdownItem -> {
+																								dropdownItem.setData(data);
+																								dropdownItem.setHref(DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, "&targetExtension=" + conversion));
+																								dropdownItem.setLabel(StringUtil.toUpperCase(conversion));
+																							});
+																					}
+																				}
+																			});
+																		dropdownGroupItem.setLabel(LanguageUtil.get(request, "convert-to"));
+																	}
+																);
+
+															}
 														}
-													}
-												}
-											%>"
-											style="secondary"
-											triggerCssClasses="btn-outline-borderless btn-sm"
-											label="<%= LanguageUtil.get(request, "download-as") %>"
+													%>"
+													style="primary"
+													triggerCssClasses="btn-sm"
+													label="<%= LanguageUtil.get(request, "download") %>"
+												/>
+											</div>
+										</c:when>
+										<c:otherwise>
+
+											<%
+											Map<String, String> data = new HashMap<>(1);
+
+											data.put("analytics-file-entry-id", String.valueOf(fileEntry.getFileEntryId()));
+											%>
+
+											<div class="btn-group-item">
+												<clay:link
+													buttonStyle="primary"
+													data="<%= data %>"
+													elementClasses='<%= "btn-sm" %>'
+													href="<%= DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true) %>"
+													label='<%= LanguageUtil.get(resourceBundle, "download") %>'
+													title='<%= LanguageUtil.format(resourceBundle, "file-size-x", TextFormatter.formatStorageSize(fileVersion.getSize(), locale), false) %>'
+												/>
+											</div>
+										</c:otherwise>
+									</c:choose>
+								</c:when>
+								<c:otherwise>
+									<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>">
+										<clay:link
+											buttonStyle="primary"
+											elementClasses='<%= "btn-sm" %>'
+											href="<%= DLURLHelperUtil.getDownloadURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, false, true) %>"
+											label='<%= LanguageUtil.get(resourceBundle, "download") %>'
+											title='<%= LanguageUtil.format(resourceBundle, "file-size-x", TextFormatter.formatStorageSize(fileVersion.getSize(), locale), false) %>'
 										/>
 									</div>
-								</div>
-							</c:if>
+								</c:otherwise>
+							</c:choose>
+						</c:if>
+
+						<c:if test="<%= dlViewFileVersionDisplayContext.isSharingLinkVisible() %>">
+							<div class="btn-group-item">
+								<liferay-sharing:button
+									className="<%= DLFileEntryConstants.getClassName() %>"
+									classPK="<%= fileEntry.getFileEntryId() %>"
+								/>
+							</div>
 						</c:if>
 					</div>
 
@@ -177,9 +229,33 @@ if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
 						else {
 							urlLabel = LanguageUtil.format(request, "version-x-url", fileVersion.getVersion());
 						}
+
+						String urlInputId = liferayPortletResponse.getNamespace() + "urlInput";
+
+						Map<String, String> urlButtonData = new HashMap<>();
+
+						urlButtonData.put("clipboard-target", "#" + urlInputId);
 						%>
 
-						<aui:input label="<%= urlLabel %>" name="url" type="resource" value="<%= DLURLHelperUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, !isLatestVersion, true) %>" />
+						<div class="form-group">
+							<label for="<%= urlInputId %>"><%= urlLabel %></label>
+
+							<div class="input-group input-group-sm">
+								<div class="input-group-item input-group-prepend">
+									<input class="form-control" id="<%= urlInputId %>" value="<%= DLURLHelperUtil.getPreviewURL(fileEntry, fileVersion, themeDisplay, StringPool.BLANK, !isLatestVersion, true) %>" />
+								</div>
+
+								<span class="input-group-append input-group-item input-group-item-shrink">
+									<clay:button
+										data="<%= urlButtonData %>"
+										elementClasses="btn-secondary dm-infopanel-copy-clipboard lfr-portal-tooltip"
+										icon="paste"
+										style="secondary"
+										title='<%= LanguageUtil.get(resourceBundle, "copy-link") %>'
+									/>
+								</span>
+							</div>
+						</div>
 
 						<c:if test="<%= portletDisplay.isWebDAVEnabled() && fileEntry.isSupportsSocial() && isLatestVersion %>">
 
@@ -192,9 +268,37 @@ if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
 							else {
 								webDavHelpMessage = LanguageUtil.format(request, "webdav-help", "https://dev.liferay.com/discover/portal/-/knowledge_base/7-0/publishing-files#desktop-access-to-documents-and-media", false);
 							}
+
+							String webDavURLInputId = liferayPortletResponse.getNamespace() + "webDavURLInput";
+
+							Map<String, String> webDavButtonData = new HashMap<>();
+
+							webDavButtonData.put("clipboard-target", "#" + webDavURLInputId);
 							%>
 
-							<aui:input helpMessage="<%= webDavHelpMessage %>" name="webDavURL" type="resource" value="<%= DLURLHelperUtil.getWebDavURL(themeDisplay, fileEntry.getFolder(), fileEntry) %>" />
+							<div class="form-group">
+								<label for="<%= webDavURLInputId %>">
+									<liferay-ui:message key='<%= TextFormatter.format("webDavURL", TextFormatter.K) %>' />
+
+									<liferay-ui:icon-help message="<%= webDavHelpMessage %>" />
+								</label>
+
+								<div class="input-group input-group-sm">
+									<div class="input-group-item input-group-prepend">
+										<input class="form-control" id="<%= webDavURLInputId %>" value="<%= DLURLHelperUtil.getWebDavURL(themeDisplay, fileEntry.getFolder(), fileEntry) %>" />
+									</div>
+
+									<span class="input-group-append input-group-item input-group-item-shrink">
+										<clay:button
+											data="<%= webDavButtonData %>"
+											elementClasses="btn-secondary dm-infopanel-copy-clipboard lfr-portal-tooltip"
+											icon="paste"
+											style="secondary"
+											title='<%= LanguageUtil.get(resourceBundle, "copy-link") %>'
+										/>
+									</span>
+								</div>
+							</div>
 						</c:if>
 					</div>
 				</div>
@@ -244,6 +348,12 @@ if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
 				<dd class="sidebar-dd">
 					<liferay-ui:message arguments="<%= new Object[] {dateFormatDateTime.format(fileVersion.getCreateDate()), HtmlUtil.escape(fileVersion.getUserName())} %>" key="x-by-x" translateArguments="<%= false %>" />
 				</dd>
+
+				<%
+				request.setAttribute("info_panel_location.jsp-parentFolder", fileEntry.getFolder());
+				%>
+
+				<liferay-util:include page="/document_library/info_panel_location.jsp" servletContext="<%= application %>" />
 
 				<liferay-asset:asset-tags-available
 					className="<%= DLFileEntryConstants.getClassName() %>"
@@ -438,17 +548,21 @@ if (dlViewFileVersionDisplayContext.isVersionInfoVisible()) {
 				%>
 
 			</liferay-ui:panel-container>
-	</liferay-ui:section>
+		</liferay-ui:section>
 
-	<c:if test="<%= dlViewFileVersionDisplayContext.isVersionInfoVisible() %>">
-		<liferay-ui:section>
+		<c:if test="<%= dlViewFileVersionDisplayContext.isVersionInfoVisible() %>">
+			<liferay-ui:section>
 
 				<%
 				request.setAttribute("info_panel.jsp-fileEntry", fileEntry);
 				%>
 
 				<liferay-util:include page="/document_library/file_entry_history.jsp" servletContext="<%= application %>" />
-		</liferay-ui:section>
-	</c:if>
-	</div>
-</liferay-ui:tabs>
+			</liferay-ui:section>
+		</c:if>
+	</liferay-ui:tabs>
+</div>
+
+<liferay-frontend:component
+	module="document_library/js/InfoPanel.es"
+/>

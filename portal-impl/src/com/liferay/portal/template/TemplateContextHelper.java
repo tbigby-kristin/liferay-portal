@@ -137,11 +137,10 @@ public class TemplateContextHelper {
 			templateHandler.getTemplateVariableGroups(
 				classPK, language, locale);
 
-		String[] restrictedVariables = templateHandler.getRestrictedVariables(
-			language);
-
 		TemplateVariableGroup portalServicesTemplateVariableGroup =
-			new TemplateVariableGroup("portal-services", restrictedVariables);
+			new TemplateVariableGroup(
+				"portal-services",
+				templateHandler.getRestrictedVariables(language));
 
 		portalServicesTemplateVariableGroup.setAutocompleteEnabled(false);
 
@@ -212,9 +211,8 @@ public class TemplateContextHelper {
 	public TemplateControlContext getTemplateControlContext() {
 		Thread currentThread = Thread.currentThread();
 
-		ClassLoader contextClassLoader = currentThread.getContextClassLoader();
-
-		return new TemplateControlContext(null, contextClassLoader);
+		return new TemplateControlContext(
+			null, currentThread.getContextClassLoader());
 	}
 
 	public void prepare(
@@ -241,10 +239,10 @@ public class TemplateContextHelper {
 			(PortletRequest)httpServletRequest.getAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST);
 
-		if (portletRequest != null) {
-			if (portletRequest instanceof RenderRequest) {
-				contextObjects.put("renderRequest", portletRequest);
-			}
+		if ((portletRequest != null) &&
+			(portletRequest instanceof RenderRequest)) {
+
+			contextObjects.put("renderRequest", portletRequest);
 		}
 
 		// Render response
@@ -253,10 +251,10 @@ public class TemplateContextHelper {
 			(PortletResponse)httpServletRequest.getAttribute(
 				JavaConstants.JAVAX_PORTLET_RESPONSE);
 
-		if (portletResponse != null) {
-			if (portletResponse instanceof RenderResponse) {
-				contextObjects.put("renderResponse", portletResponse);
-			}
+		if ((portletResponse != null) &&
+			(portletResponse instanceof RenderResponse)) {
+
+			contextObjects.put("renderResponse", portletResponse);
 		}
 
 		// XML request

@@ -112,7 +112,7 @@ definition {
 		UserBar.gotoDropdownItem(dropdownItem = "My Profile");
 
 		AssertTextEquals(
-			locator1 = "Home#USER_NAME_HEADER",
+			locator1 = "Home#SITE_NAME",
 			value1 = "<userfn> userln");
 	}
 
@@ -183,7 +183,7 @@ definition {
 				orgName = "${suborgName}");
 		}
 
-		ProductMenu.gotoSite(site = "College of Agricultural Science");
+		Navigator.openSiteURL(siteName = "College of Agricultural Science");
 
 		ProductMenu.gotoPortlet(
 			category = "People",
@@ -192,7 +192,7 @@ definition {
 
 		Site.assignUserGroupAsMemberCP(userGroupName = "Agricultural Science");
 
-		ProductMenu.gotoSite(site = "College of Business");
+		Navigator.openSiteURL(siteName = "College of Business");
 
 		ProductMenu.gotoPortlet(
 			category = "People",
@@ -204,7 +204,7 @@ definition {
 		}
 
 		for (var siteName : list "Accounting,Business Administration") {
-			ProductMenu.gotoSite(site = "${siteName}");
+			Navigator.openSiteURL(siteName = "${siteName}");
 
 			ProductMenu.gotoPortlet(
 				category = "People",
@@ -223,7 +223,9 @@ definition {
 
 		ProductMenuHelper.expandCategory(category = "Configuration");
 
-		AssertElementNotPresent(locator1 = "ProductMenu#PRODUCT_MENU_PANEL_MENU_ITEM");
+		AssertElementNotPresent(
+			key_portlet = "Settings",
+			locator1 = "ProductMenu#PORTLET");
 	}
 
 	@priority = "4"
@@ -887,7 +889,6 @@ definition {
 
 			Organization.viewParentOrganizationCP(
 				orgName = "Suborganization Name ${count}",
-				parentOrgExist = "true",
 				parentOrgName = "Organization Name 2",
 				subOrgName = "Suborganization Name ${count}");
 
@@ -1214,8 +1215,10 @@ definition {
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
 
-		User.deactivateCP(
-			deactivateType = "Actions",
+		UsersAndOrganizationsNavigator.gotoOrganizations();
+
+		Organization.deactivateMemberCP(
+			orgName = "Organization Name",
 			userFirstName = "userfn2");
 
 		ProductMenu.gotoPortlet(
@@ -1223,9 +1226,11 @@ definition {
 			panel = "Control Panel",
 			portlet = "Users and Organizations");
 
-		User.activateCP(
-			userName = "userfn2 userln2",
-			userScreenName = "usersn2");
+		UsersAndOrganizationsNavigator.gotoOrganizations();
+
+		Organization.activateMemberCP(
+			orgName = "Organization Name",
+			userFirstName = "userfn2");
 
 		User.logoutUserPG();
 

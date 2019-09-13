@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserNotificationEvent;
@@ -56,8 +55,6 @@ import javax.portlet.PortletURL;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -80,8 +77,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.name=" + InviteMembersPortletKeys.INVITE_MEMBERS,
 		"javax.portlet.resource-bundle=content.Language",
 		"javax.portlet.security-role-ref=guest,power-user,user",
-		"javax.portlet.supported-public-render-parameter=invitedMembersCount",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.supported-public-render-parameter=invitedMembersCount"
 	},
 	service = Portlet.class
 )
@@ -222,19 +218,14 @@ public class InviteMembersPortlet extends MVCPortlet {
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			actionRequest);
 
-		Group group = _groupLocalService.getGroup(groupId);
-
 		PortletURL portletURL = PortletProviderUtil.getPortletURL(
-			actionRequest, group, UserNotificationEvent.class.getName(),
-			PortletProvider.Action.VIEW);
+			actionRequest, _groupLocalService.getGroup(groupId),
+			UserNotificationEvent.class.getName(), PortletProvider.Action.VIEW);
 
 		serviceContext.setAttribute("redirectURL", portletURL.toString());
 
-		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
-			actionRequest);
-
 		String createAccountURL = _portal.getCreateAccountURL(
-			httpServletRequest, themeDisplay);
+			_portal.getHttpServletRequest(actionRequest), themeDisplay);
 
 		serviceContext.setAttribute("createAccountURL", createAccountURL);
 

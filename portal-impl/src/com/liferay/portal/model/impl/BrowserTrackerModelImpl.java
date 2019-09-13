@@ -44,8 +44,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the BrowserTracker service. Represents a row in the &quot;BrowserTracker&quot; database table, with each column mapped to a property of this class.
  *
@@ -57,11 +55,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see BrowserTrackerImpl
  * @generated
  */
-@ProviderType
 public class BrowserTrackerModelImpl
 	extends BaseModelImpl<BrowserTracker> implements BrowserTrackerModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a browser tracker model instance should use the <code>BrowserTracker</code> interface instead.
@@ -379,7 +376,12 @@ public class BrowserTrackerModelImpl
 	@Override
 	public BrowserTracker toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, BrowserTracker>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -546,8 +548,12 @@ public class BrowserTrackerModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, BrowserTracker>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, BrowserTracker>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _mvccVersion;
 	private long _browserTrackerId;

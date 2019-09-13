@@ -63,6 +63,17 @@
 	<td></td>
 	<td></td>
 </tr>
+<tr>
+	<td>FRAGMENT_CHECKBOX</td>
+	<td>//div[contains(@class,'fragments-editor__floating-toolbar')]//label[contains(.,'${checkboxName}')]//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<!--FRAGMENT_COMMENT-->
+<tr>
+	<td>FRAGMENT_COMMENT_ICON</td>
+	<td>//button[*[name()='svg'][contains(@class,'fragments-editor__topper__icon')]]</td>
+	<td></td>
+</tr>
 <!--FRAGMENT_HEADER-->
 <tr>
 	<td>FRAGMENT_HEADER</td>
@@ -72,11 +83,6 @@
 <tr>
 	<td>FRAGMENT_HEADER_POSITION</td>
 	<td>//div[contains(@class,'fragment-entry-link')]/section[${key_position}]//li[contains(.,'${key_fragmentName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_HEADER_DELETE_BUTTON</td>
-	<td>//div[contains(@class,'fragment-entry-link-wrapper')]//ul[contains(.,'${key_fragmentName}')]//li[contains(@class,'tbar-item')][2]/button</td>
 	<td></td>
 </tr>
 </tbody>

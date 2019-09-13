@@ -86,10 +86,9 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.template-path=/META-INF/resources/",
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + JournalContentPortletKeys.JOURNAL_CONTENT,
+		"javax.portlet.portlet-mode=application/vnd.wap.xhtml+xml;view",
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user",
-		"javax.portlet.supports.mime-type=application/vnd.wap.xhtml+xml",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=guest,power-user,user"
 	},
 	service = Portlet.class
 )
@@ -181,22 +180,13 @@ public class JournalContentPortlet extends MVCPortlet {
 			RenderRequest renderRequest, RenderResponse renderResponse)
 		throws IOException, PortletException {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
 		renderRequest.setAttribute(
 			JournalWebKeys.JOURNAL_CONTENT, _journalContent);
 
 		try {
-			JournalContentDisplayContext journalContentDisplayContext =
-				JournalContentDisplayContext.create(
-					renderRequest, renderResponse,
-					themeDisplay.getPortletDisplay(), _CLASS_NAME_ID,
-					_ddmTemplateModelResourcePermission);
-
-			renderRequest.setAttribute(
-				JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT,
-				journalContentDisplayContext);
+			JournalContentDisplayContext.create(
+				renderRequest, renderResponse, _CLASS_NAME_ID,
+				_ddmTemplateModelResourcePermission);
 		}
 		catch (PortalException pe) {
 			if (_log.isDebugEnabled()) {
@@ -247,23 +237,13 @@ public class JournalContentPortlet extends MVCPortlet {
 			}
 		}
 		else {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)resourceRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
 			resourceRequest.setAttribute(
 				JournalWebKeys.JOURNAL_CONTENT, _journalContent);
 
 			try {
-				JournalContentDisplayContext journalContentDisplayContext =
-					JournalContentDisplayContext.create(
-						resourceRequest, resourceResponse,
-						themeDisplay.getPortletDisplay(), _CLASS_NAME_ID,
-						_ddmTemplateModelResourcePermission);
-
-				resourceRequest.setAttribute(
-					JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT,
-					journalContentDisplayContext);
+				JournalContentDisplayContext.create(
+					resourceRequest, resourceResponse, _CLASS_NAME_ID,
+					_ddmTemplateModelResourcePermission);
 			}
 			catch (PortalException pe) {
 				if (_log.isDebugEnabled()) {

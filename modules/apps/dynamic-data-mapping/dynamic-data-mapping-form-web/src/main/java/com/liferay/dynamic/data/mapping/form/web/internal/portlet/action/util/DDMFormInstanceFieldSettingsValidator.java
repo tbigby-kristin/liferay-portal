@@ -21,7 +21,7 @@ import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorEvaluateR
 import com.liferay.dynamic.data.mapping.form.evaluator.DDMFormEvaluatorFieldContextKey;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldType;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
-import com.liferay.dynamic.data.mapping.form.web.FormInstanceFieldSettingsException;
+import com.liferay.dynamic.data.mapping.form.web.internal.FormInstanceFieldSettingsException;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
@@ -74,19 +74,14 @@ public class DDMFormInstanceFieldSettingsValidator {
 	}
 
 	protected DDMFormValues createDDMFormFieldFormValues(
-		JSONObject jsonObject, DDMForm fieldSettingsDDMForm) {
+		JSONObject jsonObject, DDMForm fieldSettingsDDMForm,
+		Set<Locale> availableLocales, Locale defaultLocale) {
 
 		DDMFormValues fieldSettingsDDMFormValues = new DDMFormValues(
 			fieldSettingsDDMForm);
 
-		Locale defaultLocale = fieldSettingsDDMForm.getDefaultLocale();
-
-		fieldSettingsDDMFormValues.setDefaultLocale(defaultLocale);
-
-		Set<Locale> availableLocales =
-			fieldSettingsDDMForm.getAvailableLocales();
-
 		fieldSettingsDDMFormValues.setAvailableLocales(availableLocales);
+		fieldSettingsDDMFormValues.setDefaultLocale(defaultLocale);
 
 		DDMFormContextVisitor ddmFormContextVisitor = new DDMFormContextVisitor(
 			jsonObject.getJSONArray("pages"));
@@ -216,7 +211,8 @@ public class DDMFormInstanceFieldSettingsValidator {
 					DDMFormValues fieldDDMFormValues =
 						createDDMFormFieldFormValues(
 							jsonObject.getJSONObject("settingsContext"),
-							fieldDDMForm);
+							fieldDDMForm, ddmForm.getAvailableLocales(),
+							ddmForm.getDefaultLocale());
 
 					DDMFormEvaluatorEvaluateResponse
 						ddmFormEvaluatorEvaluateResponse = doEvaluate(

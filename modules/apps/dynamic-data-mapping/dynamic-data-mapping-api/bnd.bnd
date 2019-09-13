@@ -7,6 +7,7 @@ Export-Package:\
 	com.liferay.dynamic.data.mapping.constants,\
 	com.liferay.dynamic.data.mapping.data.provider,\
 	com.liferay.dynamic.data.mapping.data.provider.display,\
+	com.liferay.dynamic.data.mapping.data.provider.settings,\
 	com.liferay.dynamic.data.mapping.exception,\
 	com.liferay.dynamic.data.mapping.expression,\
 	com.liferay.dynamic.data.mapping.expression.model,\
@@ -17,6 +18,7 @@ Export-Package:\
 	com.liferay.dynamic.data.mapping.form.renderer,\
 	com.liferay.dynamic.data.mapping.form.values.factory,\
 	com.liferay.dynamic.data.mapping.form.values.query,\
+	com.liferay.dynamic.data.mapping.info.display.field,\
 	com.liferay.dynamic.data.mapping.io,\
 	com.liferay.dynamic.data.mapping.io.exporter,\
 	com.liferay.dynamic.data.mapping.model,\

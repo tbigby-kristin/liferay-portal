@@ -19,10 +19,8 @@ import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.ModelListenerRegistrationUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AbstractTestRule;
-import com.liferay.portal.kernel.test.rule.ArquillianUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.service.test.ServiceTestUtil;
-import com.liferay.portal.tools.DBUpgrader;
 
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,22 +50,6 @@ public class PersistenceTestRule extends AbstractTestRule<Object, Object> {
 
 	@Override
 	public Object beforeClass(Description description) {
-		if (_initialized || ArquillianUtil.isArquillianTest(description)) {
-			return null;
-		}
-
-		try {
-			DBUpgrader.upgrade();
-		}
-		catch (Throwable t) {
-			throw new ExceptionInInitializerError(t);
-		}
-		finally {
-			CacheRegistryUtil.setActive(true);
-		}
-
-		_initialized = true;
-
 		return null;
 	}
 
@@ -98,7 +80,5 @@ public class PersistenceTestRule extends AbstractTestRule<Object, Object> {
 
 	private PersistenceTestRule() {
 	}
-
-	private static boolean _initialized;
 
 }

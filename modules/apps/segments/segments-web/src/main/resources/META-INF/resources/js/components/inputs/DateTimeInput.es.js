@@ -1,7 +1,21 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import dateFns from 'date-fns';
 import propTypes from 'prop-types';
 import React from 'react';
-import {PROPERTY_TYPES} from 'utils/constants.es';
+import {PROPERTY_TYPES} from '../../utils/constants.es';
 
 const INPUT_DATE_FORMAT = 'YYYY-MM-DD';
 
@@ -12,7 +26,7 @@ class DateTimeInput extends React.Component {
 		value: propTypes.string
 	};
 
-	state = {}
+	state = {};
 
 	static getDerivedStateFromProps(props, state) {
 		let returnVal = null;
@@ -30,7 +44,7 @@ class DateTimeInput extends React.Component {
 		const value = event.target.value;
 
 		this.setState({value});
-	}
+	};
 
 	_handleDateBlur = event => {
 		const date = dateFns.format(event.target.value, INPUT_DATE_FORMAT);
@@ -41,16 +55,15 @@ class DateTimeInput extends React.Component {
 					value: date
 				},
 				() => {
-					this.props.onChange(
-						{
-							type: PROPERTY_TYPES.DATE_TIME,
-							value: dateFns.parse(date, INPUT_DATE_FORMAT).toISOString()
-						}
-					);
+					this.props.onChange({
+						type: PROPERTY_TYPES.DATE_TIME,
+						value: dateFns
+							.parse(date, INPUT_DATE_FORMAT)
+							.toISOString()
+					});
 				}
 			);
-		}
-		else {
+		} else {
 			const resetDate = dateFns.format(new Date(), INPUT_DATE_FORMAT);
 
 			this.setState(
@@ -58,16 +71,16 @@ class DateTimeInput extends React.Component {
 					value: resetDate
 				},
 				() => {
-					this.props.onChange(
-						{
-							type: PROPERTY_TYPES.DATE_TIME,
-							value: dateFns.parse(resetDate, INPUT_DATE_FORMAT).toISOString()
-						}
-					);
+					this.props.onChange({
+						type: PROPERTY_TYPES.DATE_TIME,
+						value: dateFns
+							.parse(resetDate, INPUT_DATE_FORMAT)
+							.toISOString()
+					});
 				}
 			);
 		}
-	}
+	};
 
 	render() {
 		const {value} = this.state;

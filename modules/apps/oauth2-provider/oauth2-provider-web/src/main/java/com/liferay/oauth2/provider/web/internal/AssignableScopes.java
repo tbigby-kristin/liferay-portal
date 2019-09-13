@@ -153,14 +153,17 @@ public class AssignableScopes {
 		return applicationNames;
 	}
 
-	public Set<String> getApplicationScopeDescription(String applicationName) {
+	public Set<String> getApplicationScopeDescription(
+		long companyId, String applicationName) {
+
 		Stream<LiferayOAuth2Scope> stream = _liferayOAuth2Scopes.stream();
 
 		return stream.filter(
 			liferayOAuth2Scope -> applicationName.equals(
 				liferayOAuth2Scope.getApplicationName())
 		).map(
-			this::getScopeDescription
+			liferayOAuth2Scope -> getScopeDescription(
+				companyId, liferayOAuth2Scope)
 		).collect(
 			Collectors.toSet()
 		);
@@ -170,10 +173,12 @@ public class AssignableScopes {
 		return _liferayOAuth2Scopes;
 	}
 
-	public String getScopeDescription(LiferayOAuth2Scope liferayOAuth2Scope) {
+	public String getScopeDescription(
+		long companyId, LiferayOAuth2Scope liferayOAuth2Scope) {
+
 		ScopeDescriptor scopeDescriptor =
 			_scopeDescriptorLocator.getScopeDescriptor(
-				liferayOAuth2Scope.getApplicationName());
+				companyId, liferayOAuth2Scope.getApplicationName());
 
 		if (scopeDescriptor == null) {
 			return liferayOAuth2Scope.getScope();

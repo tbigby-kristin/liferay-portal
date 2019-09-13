@@ -1,4 +1,18 @@
-;(function(A, Liferay) {
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+(function(A, Liferay) {
 	var Tabs = Liferay.namespace('Portal.Tabs');
 	var ToolTip = Liferay.namespace('Portal.ToolTip');
 
@@ -41,7 +55,12 @@
 		var el;
 
 		for (var i = 0; i < names.length; i++) {
-			el = A.one('#' + namespace + Liferay.Util.toCharCode(names[i]) + 'TabsSection');
+			el = A.one(
+				'#' +
+					namespace +
+					Liferay.Util.toCharCode(names[i]) +
+					'TabsSection'
+			);
 
 			if (el) {
 				el.hide();
@@ -60,12 +79,12 @@
 
 			if (tab && tabSection) {
 				var details = {
-					id: id,
-					names: names,
-					namespace: namespace,
+					id,
+					names,
+					namespace,
 					selectedIndex: names.indexOf(id),
 					tabItem: tab,
-					tabSection: tabSection
+					tabSection
 				};
 
 				if (callback && A.Lang.isFunction(callback)) {
@@ -78,12 +97,9 @@
 		['aui-base']
 	);
 
-	Liferay.publish(
-		'showTab',
-		{
-			defaultFn: Liferay.Portal.Tabs._show
-		}
-	);
+	Liferay.publish('showTab', {
+		defaultFn: Liferay.Portal.Tabs._show
+	});
 
 	ToolTip._getText = function(id) {
 		var node = A.one('#' + id);
@@ -140,13 +156,16 @@
 					A.bind('_syncUIPosAlign', cached)
 				);
 
-				hideTooltipTask = A.debounce('_onBoundingBoxMouseleave', cached.get('stickDuration'), cached);
+				hideTooltipTask = A.debounce(
+					'_onBoundingBoxMouseleave',
+					cached.get('stickDuration'),
+					cached
+				);
 
 				instance._hideTooltipTask = hideTooltipTask;
 
 				instance._cached = cached;
-			}
-			else {
+			} else {
 				cached.setAttrs(tooltipConfig);
 			}
 
@@ -178,7 +197,7 @@
 
 			boundingBox.on(
 				'hover',
-				function(event) {
+				function() {
 					hideTooltipTask.cancel();
 
 					obj.once('mouseenter', hideTooltipTask.cancel);

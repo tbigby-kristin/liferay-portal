@@ -205,13 +205,11 @@ public class VarPoshiElement extends PoshiElement {
 			sb.append(" ");
 		}
 
-		if (Validator.isNotNull(valueAttributeName)) {
-			if (valueAttributeName.equals("from")) {
-				if (attribute("type") != null) {
-					sb.append(attributeValue("type"));
-					sb.append(" ");
-				}
-			}
+		if (Validator.isNotNull(valueAttributeName) &&
+			valueAttributeName.equals("from") && (attribute("type") != null)) {
+
+			sb.append(attributeValue("type"));
+			sb.append(" ");
 		}
 
 		String name = attributeValue("name");

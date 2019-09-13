@@ -21,8 +21,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMFormInstanceVersion}.
@@ -32,7 +30,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMFormInstanceVersion
  * @generated
  */
-@ProviderType
 public class DDMFormInstanceVersionWrapper
 	extends BaseModelWrapper<DDMFormInstanceVersion>
 	implements DDMFormInstanceVersion, ModelWrapper<DDMFormInstanceVersion> {
@@ -47,6 +44,7 @@ public class DDMFormInstanceVersionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("formInstanceVersionId", getFormInstanceVersionId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -69,6 +67,12 @@ public class DDMFormInstanceVersionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long formInstanceVersionId = (Long)attributes.get(
 			"formInstanceVersionId");
 
@@ -308,6 +312,16 @@ public class DDMFormInstanceVersionWrapper
 	@Override
 	public long getGroupId() {
 		return model.getGroupId();
+	}
+
+	/**
+	 * Returns the mvcc version of this ddm form instance version.
+	 *
+	 * @return the mvcc version of this ddm form instance version
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -593,6 +607,11 @@ public class DDMFormInstanceVersionWrapper
 		return model.isScheduled();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm form instance version model instance should use the <code>DDMFormInstanceVersion</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -728,6 +747,16 @@ public class DDMFormInstanceVersionWrapper
 	@Override
 	public void setGroupId(long groupId) {
 		model.setGroupId(groupId);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm form instance version.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm form instance version
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

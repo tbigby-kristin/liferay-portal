@@ -25,8 +25,8 @@ import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.trash.TrashActionKeys;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.trash.TrashHelper;
+import com.liferay.trash.constants.TrashActionKeys;
 import com.liferay.trash.kernel.exception.RestoreEntryException;
 import com.liferay.trash.kernel.model.TrashEntry;
 import com.liferay.trash.kernel.model.TrashEntryConstants;
@@ -302,6 +303,21 @@ public class WikiPageTrashHandler extends BaseWikiTrashHandler {
 	@Override
 	public boolean isMovable() {
 		return false;
+	}
+
+	@Override
+	public boolean isRestorable(long classPK) throws PortalException {
+		WikiPage page = _wikiPageLocalService.getLatestPage(
+			classPK, WorkflowConstants.STATUS_ANY, false);
+
+		if (!hasTrashPermission(
+				PermissionThreadLocal.getPermissionChecker(), page.getGroupId(),
+				classPK, TrashActionKeys.RESTORE)) {
+
+			return false;
+		}
+
+		return !page.isInTrashContainer();
 	}
 
 	@Override

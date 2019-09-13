@@ -47,8 +47,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the SiteFriendlyURL service. Represents a row in the &quot;SiteFriendlyURL&quot; database table, with each column mapped to a property of this class.
  *
@@ -60,11 +58,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SiteFriendlyURLImpl
  * @generated
  */
-@ProviderType
 public class SiteFriendlyURLModelImpl
 	extends BaseModelImpl<SiteFriendlyURL> implements SiteFriendlyURLModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a site friendly url model instance should use the <code>SiteFriendlyURL</code> interface instead.
@@ -114,21 +111,6 @@ public class SiteFriendlyURLModelImpl
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
 
-	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.site.service.util.ServiceProps.get(
-			"value.object.entity.cache.enabled.com.liferay.site.model.SiteFriendlyURL"),
-		true);
-
-	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.site.service.util.ServiceProps.get(
-			"value.object.finder.cache.enabled.com.liferay.site.model.SiteFriendlyURL"),
-		true);
-
-	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(
-		com.liferay.site.service.util.ServiceProps.get(
-			"value.object.column.bitmask.enabled.com.liferay.site.model.SiteFriendlyURL"),
-		true);
-
 	public static final long COMPANYID_COLUMN_BITMASK = 1L;
 
 	public static final long FRIENDLYURL_COLUMN_BITMASK = 2L;
@@ -141,9 +123,13 @@ public class SiteFriendlyURLModelImpl
 
 	public static final long SITEFRIENDLYURLID_COLUMN_BITMASK = 32L;
 
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
-		com.liferay.site.service.util.ServiceProps.get(
-			"lock.expiration.time.com.liferay.site.model.SiteFriendlyURL"));
+	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
+		_entityCacheEnabled = entityCacheEnabled;
+	}
+
+	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
+		_finderCacheEnabled = finderCacheEnabled;
+	}
 
 	public SiteFriendlyURLModelImpl() {
 	}
@@ -566,7 +552,12 @@ public class SiteFriendlyURLModelImpl
 	@Override
 	public SiteFriendlyURL toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, SiteFriendlyURL>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -638,12 +629,12 @@ public class SiteFriendlyURLModelImpl
 
 	@Override
 	public boolean isEntityCacheEnabled() {
-		return ENTITY_CACHE_ENABLED;
+		return _entityCacheEnabled;
 	}
 
 	@Override
 	public boolean isFinderCacheEnabled() {
-		return FINDER_CACHE_ENABLED;
+		return _finderCacheEnabled;
 	}
 
 	@Override
@@ -812,8 +803,15 @@ public class SiteFriendlyURLModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, SiteFriendlyURL>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, SiteFriendlyURL>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
+	private static boolean _entityCacheEnabled;
+	private static boolean _finderCacheEnabled;
 
 	private String _uuid;
 	private String _originalUuid;

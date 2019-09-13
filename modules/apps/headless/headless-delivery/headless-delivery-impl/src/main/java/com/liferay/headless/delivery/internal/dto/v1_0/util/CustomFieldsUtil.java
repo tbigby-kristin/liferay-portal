@@ -23,6 +23,7 @@ import com.liferay.headless.delivery.dto.v1_0.Geo;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -60,8 +61,10 @@ public class CustomFieldsUtil {
 
 		Set<Map.Entry<String, Serializable>> entries = attributes.entrySet();
 
-		return entries.stream(
-		).filter(
+		Stream<Map.Entry<String, Serializable>> entriesStream =
+			entries.stream();
+
+		return entriesStream.filter(
 			entry -> {
 				UnicodeProperties unicodeProperties =
 					expandoBridge.getAttributeProperties(entry.getKey());
@@ -107,12 +110,12 @@ public class CustomFieldsUtil {
 					else if (ExpandoColumnConstants.DOUBLE_ARRAY ==
 								attributeType) {
 
-						return _toDoubleArray((List)data);
+						return ArrayUtil.toDoubleArray((List<Number>)data);
 					}
 					else if (ExpandoColumnConstants.FLOAT_ARRAY ==
 								attributeType) {
 
-						return _toFloatArray((List)data);
+						return ArrayUtil.toFloatArray((List<Number>)data);
 					}
 					else if (ExpandoColumnConstants.GEOLOCATION ==
 								attributeType) {
@@ -128,12 +131,12 @@ public class CustomFieldsUtil {
 					else if (ExpandoColumnConstants.INTEGER_ARRAY ==
 								attributeType) {
 
-						return _toIntegerArray((List)data);
+						return ArrayUtil.toIntArray((List<Number>)data);
 					}
 					else if (ExpandoColumnConstants.LONG_ARRAY ==
 								attributeType) {
 
-						return _toLongArray((List)data);
+						return ArrayUtil.toLongArray((List<Number>)data);
 					}
 					else if (ExpandoColumnConstants.STRING_ARRAY ==
 								attributeType) {
@@ -158,7 +161,9 @@ public class CustomFieldsUtil {
 		int attributeType, Locale locale, Object value) {
 
 		if (ExpandoColumnConstants.STRING_LOCALIZED == attributeType) {
-			return ((Map<Locale, String>)value).get(locale);
+			Map<Locale, String> map = (Map<Locale, String>)value;
+
+			return map.get(locale);
 		}
 		else if (ExpandoColumnConstants.DATE == attributeType) {
 			return DateUtil.getDate(
@@ -258,39 +263,6 @@ public class CustomFieldsUtil {
 				name = entry.getKey();
 			}
 		};
-	}
-
-	private static Serializable _toDoubleArray(List<Double> doubles) {
-		return doubles.stream(
-		).mapToDouble(
-			Double::doubleValue
-		).toArray();
-	}
-
-	private static Serializable _toFloatArray(List<Double> doubles) {
-		float[] floats = new float[doubles.size()];
-
-		for (int i = 0; i < doubles.size(); i++) {
-			Double aDouble = doubles.get(i);
-
-			floats[i] = aDouble.floatValue();
-		}
-
-		return floats;
-	}
-
-	private static Serializable _toIntegerArray(List<Integer> integers) {
-		return integers.stream(
-		).mapToInt(
-			Integer::intValue
-		).toArray();
-	}
-
-	private static Serializable _toLongArray(List<Integer> integers) {
-		return integers.stream(
-		).mapToLong(
-			Integer::longValue
-		).toArray();
 	}
 
 }

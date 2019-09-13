@@ -128,12 +128,6 @@
 	<#list layoutSetModels as layoutSetModel>
 		${dataFactory.toInsertSQL(layoutSetModel)}
 	</#list>
-
-	<#local layoutSetVersionModels = dataFactory.newLayoutSetVersionModels(layoutSetModels)>
-
-	<#list layoutSetVersionModels as layoutSetVersionModel>
-		${dataFactory.toInsertSQL(layoutSetVersionModel)}
-	</#list>
 </#macro>
 
 <#macro insertLayout
@@ -142,8 +136,6 @@
 	${dataFactory.toInsertSQL(_layoutModel)}
 
 	${dataFactory.toInsertSQL(dataFactory.newLayoutFriendlyURLModel(_layoutModel))}
-
-	${dataFactory.toInsertSQL(dataFactory.newLayoutVersionModel(_layoutModel))}
 </#macro>
 
 <#macro insertMBDiscussion

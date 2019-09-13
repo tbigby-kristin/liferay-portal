@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -156,6 +157,17 @@ public class FragmentCollectionServiceImpl
 		return fragmentCollectionPersistence.findByG_LikeN(
 			groupId, _customSQL.keywords(name, false, WildcardMode.SURROUND)[0],
 			start, end, orderByComparator);
+	}
+
+	@Override
+	public List<FragmentCollection> getFragmentCollections(long[] groupIds) {
+		List<FragmentCollection> fragmentCollections = new ArrayList<>();
+
+		for (long groupId : groupIds) {
+			fragmentCollections.addAll(getFragmentCollections(groupId));
+		}
+
+		return fragmentCollections;
 	}
 
 	@Override

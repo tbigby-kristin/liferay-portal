@@ -1,4 +1,18 @@
 /**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+/**
  * The Autocomplete Input Caretoffset Component.
  *
  * @deprecated since 7.2, unused
@@ -32,15 +46,10 @@ AUI.add(
 
 		var STR_INPUT_NODE = 'inputNode';
 
-		var AutcompleteInputCaretOffset = function() {
-		};
+		var AutcompleteInputCaretOffset = function() {};
 
 		AutcompleteInputCaretOffset.prototype = {
-			TPL_CARET: '<span class="input-caret">&nbsp</span>',
-
-			TPL_INPUT_MIRROR: '<div class="liferay-autocomplete-input-mirror"></div>',
-
-			_applyMirrorContent: function() {
+			_applyMirrorContent() {
 				var instance = this;
 
 				var input = instance.get(STR_INPUT_NODE);
@@ -51,13 +60,17 @@ AUI.add(
 
 				if (caretIndex === value.length) {
 					value += instance.TPL_CARET;
-				}
-				else {
+				} else {
 					if (instance.get('caretAtTerm')) {
-						caretIndex = instance._getPrevTrigger(value, caretIndex).index + 1;
+						caretIndex =
+							instance._getPrevTrigger(value, caretIndex).index +
+							1;
 					}
 
-					value = value.substring(0, caretIndex) + instance.TPL_CARET + value.substring(caretIndex + 1);
+					value =
+						value.substring(0, caretIndex) +
+						instance.TPL_CARET +
+						value.substring(caretIndex + 1);
 				}
 
 				instance._inputMirror.html(value);
@@ -65,21 +78,19 @@ AUI.add(
 				return value;
 			},
 
-			_applyMirrorStyles: function() {
+			_applyMirrorStyles() {
 				var instance = this;
 
 				var inputNode = instance.get(STR_INPUT_NODE);
 
 				var inputMirror = instance._inputMirror;
 
-				MIRROR_STYLES.forEach(
-					function(item, index) {
-						inputMirror.setStyle(item, inputNode.getStyle(item));
-					}
-				);
+				MIRROR_STYLES.forEach(function(item) {
+					inputMirror.setStyle(item, inputNode.getStyle(item));
+				});
 			},
 
-			_createInputMirror: function() {
+			_createInputMirror() {
 				var instance = this;
 
 				if (!instance._inputMirror) {
@@ -91,7 +102,7 @@ AUI.add(
 				}
 			},
 
-			_getCaretOffset: function(node) {
+			_getCaretOffset(node) {
 				var instance = this;
 
 				instance._createInputMirror();
@@ -106,13 +117,20 @@ AUI.add(
 				var scrollLeft = inputEl.scrollLeft;
 				var scrollTop = inputEl.scrollTop;
 
-				var inputCaretEl = instance._inputMirror.one('.input-caret').getDOM();
+				var inputCaretEl = instance._inputMirror
+					.one('.input-caret')
+					.getDOM();
 
 				return {
 					x: inputCaretEl.offsetLeft + scrollLeft,
 					y: inputCaretEl.offsetTop - scrollTop
 				};
-			}
+			},
+
+			TPL_CARET: '<span class="input-caret">&nbsp</span>',
+
+			TPL_INPUT_MIRROR:
+				'<div class="liferay-autocomplete-input-mirror"></div>'
 		};
 
 		A.Base.mix(Liferay.AutoCompleteTextarea, [AutcompleteInputCaretOffset]);

@@ -22,12 +22,15 @@ import com.liferay.portal.kernel.security.auth.AuthException;
 import com.liferay.portal.kernel.security.auth.tunnel.TunnelAuthenticationManagerUtil;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifier;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierResult;
-import com.liferay.portal.kernel.security.service.access.policy.ServiceAccessPolicyThreadLocal;
+import com.liferay.portal.kernel.security.service.access.policy.ServiceAccessPolicy;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,8 +64,14 @@ public class TunnelAuthVerifier implements AuthVerifier {
 				String serviceAccessPolicyName = (String)properties.get(
 					"service.access.policy.name");
 
-				ServiceAccessPolicyThreadLocal.addActiveServiceAccessPolicyName(
-					serviceAccessPolicyName);
+				Map<String, Object> settings = authVerifierResult.getSettings();
+
+				List<String> serviceAccessPolicyNames =
+					(List<String>)settings.computeIfAbsent(
+						ServiceAccessPolicy.SERVICE_ACCESS_POLICY_NAMES,
+						value -> new ArrayList<>());
+
+				serviceAccessPolicyNames.add(serviceAccessPolicyName);
 			}
 		}
 		catch (AuthException ae) {
@@ -103,10 +112,8 @@ public class TunnelAuthVerifier implements AuthVerifier {
 
 		String[] credentials = new String[2];
 
-		long userId = TunnelAuthenticationManagerUtil.getUserId(
-			httpServletRequest);
-
-		credentials[0] = String.valueOf(userId);
+		credentials[0] = String.valueOf(
+			TunnelAuthenticationManagerUtil.getUserId(httpServletRequest));
 
 		credentials[1] = StringPool.BLANK;
 

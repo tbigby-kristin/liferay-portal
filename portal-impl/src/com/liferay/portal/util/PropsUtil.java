@@ -16,6 +16,7 @@ package com.liferay.portal.util;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.ConfigurationFactoryImpl;
 import com.liferay.portal.configuration.ConfigurationImpl;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.Filter;
@@ -299,25 +300,12 @@ public class PropsUtil {
 	private static String _getDefaultLiferayHome() {
 		String defaultLiferayHome = null;
 
-		if (ServerDetector.isGlassfish()) {
-			defaultLiferayHome =
-				SystemProperties.get("com.sun.aas.installRoot") + "/..";
-		}
-		else if (ServerDetector.isJBoss()) {
+		if (ServerDetector.isJBoss()) {
 			defaultLiferayHome = SystemProperties.get("jboss.home.dir") + "/..";
-		}
-		else if (ServerDetector.isJOnAS()) {
-			defaultLiferayHome = SystemProperties.get("jonas.base") + "/..";
 		}
 		else if (ServerDetector.isWebLogic()) {
 			defaultLiferayHome =
 				SystemProperties.get("env.DOMAIN_HOME") + "/..";
-		}
-		else if (ServerDetector.isJetty()) {
-			defaultLiferayHome = SystemProperties.get("jetty.home") + "/..";
-		}
-		else if (ServerDetector.isResin()) {
-			defaultLiferayHome = SystemProperties.get("resin.home") + "/..";
 		}
 		else if (ServerDetector.isTomcat()) {
 			defaultLiferayHome = SystemProperties.get("catalina.base") + "/..";
@@ -433,9 +421,7 @@ public class PropsUtil {
 
 		// Liferay home directory
 
-		_configuration = new ConfigurationImpl(
-			PropsUtil.class.getClassLoader(), PropsFiles.PORTAL,
-			CompanyConstants.SYSTEM, null);
+		_configuration = ConfigurationFactoryImpl.CONFIGURATION_PORTAL;
 
 		String liferayHome = _configuration.get(PropsKeys.LIFERAY_HOME);
 

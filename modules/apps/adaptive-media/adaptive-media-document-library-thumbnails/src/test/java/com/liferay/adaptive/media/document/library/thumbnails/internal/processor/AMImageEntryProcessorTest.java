@@ -15,6 +15,7 @@
 package com.liferay.adaptive.media.document.library.thumbnails.internal.processor;
 
 import com.liferay.adaptive.media.AdaptiveMedia;
+import com.liferay.adaptive.media.document.library.thumbnails.internal.configuration.AMSystemImagesConfiguration;
 import com.liferay.adaptive.media.image.finder.AMImageFinder;
 import com.liferay.adaptive.media.image.mime.type.AMImageMimeTypeProvider;
 import com.liferay.adaptive.media.image.validator.AMImageValidator;
@@ -22,6 +23,8 @@ import com.liferay.adaptive.media.processor.AMAsyncProcessor;
 import com.liferay.adaptive.media.processor.AMAsyncProcessorLocator;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.util.PrefsProps;
+import com.liferay.portal.kernel.util.PrefsPropsUtil;
 
 import java.io.InputStream;
 
@@ -58,11 +61,18 @@ public class AMImageEntryProcessorTest {
 			_amImageMimeTypeProvider);
 
 		ReflectionTestUtil.setFieldValue(
+			_amImageEntryProcessor, "_amSystemImagesConfiguration",
+			_amSystemImagesConfiguration);
+
+		ReflectionTestUtil.setFieldValue(
 			_amImageEntryProcessor, "_amImageValidator", _amImageValidator);
 
 		ReflectionTestUtil.setFieldValue(
 			_amImageEntryProcessor, "_amAsyncProcessorLocator",
 			_amAsyncProcessorLocator);
+
+		ReflectionTestUtil.setFieldValue(
+			PrefsPropsUtil.class, "_prefsProps", _prefsProps);
 	}
 
 	@Test
@@ -656,6 +666,9 @@ public class AMImageEntryProcessorTest {
 		Mockito.mock(AMImageMimeTypeProvider.class);
 	private final AMImageValidator _amImageValidator = Mockito.mock(
 		AMImageValidator.class);
+	private final AMSystemImagesConfiguration _amSystemImagesConfiguration =
+		Mockito.mock(AMSystemImagesConfiguration.class);
 	private final FileVersion _fileVersion = Mockito.mock(FileVersion.class);
+	private final PrefsProps _prefsProps = Mockito.mock(PrefsProps.class);
 
 }

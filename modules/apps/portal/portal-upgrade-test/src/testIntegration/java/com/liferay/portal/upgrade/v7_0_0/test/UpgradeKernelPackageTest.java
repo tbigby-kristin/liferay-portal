@@ -124,7 +124,6 @@ public class UpgradeKernelPackageTest extends UpgradeKernelPackage {
 		_assertTableAndColumn(dbInspector, "Counter", "name");
 		_assertTableAndColumn(dbInspector, "Lock_", "className");
 		_assertTableAndColumn(dbInspector, "ResourceAction", "name");
-		_assertTableAndColumn(dbInspector, "ResourceBlock", "name");
 		_assertTableAndColumn(dbInspector, "ResourcePermission", "name");
 		_assertTableAndColumn(dbInspector, "ListType", "type_");
 		_assertTableAndColumn(
@@ -195,8 +194,9 @@ public class UpgradeKernelPackageTest extends UpgradeKernelPackage {
 
 			upgradeLongTextTable(
 				"textData", "id",
-				"select textData, id from UpgradeKernelPackageTest where " +
-					"textData like '%" + _CLASS_NAME_OLD + "%'",
+				StringBundler.concat(
+					"select textData, id from UpgradeKernelPackageTest where ",
+					"textData like '%", _CLASS_NAME_OLD, "%'"),
 				"update UpgradeKernelPackageTest set textData = ? where id = ?",
 				_TEST_CLASS_NAMES[0]);
 

@@ -25,13 +25,11 @@ import java.util.TreeSet;
 public abstract class BaseReadWriteResourceMonitor
 	extends BaseResourceMonitor implements ReadWriteResourceMonitor {
 
-	public BaseReadWriteResourceMonitor(
-		String etcdServerURL, String monitorName, Integer readMaxConnections) {
-
-		super(etcdServerURL, monitorName, readMaxConnections);
+	public BaseReadWriteResourceMonitor(String etcdServerURL, String name) {
+		super(etcdServerURL, name);
 
 		_writeResourceMonitor = new DefaultResourceMonitor(
-			etcdServerURL, monitorName + "_write", 1);
+			etcdServerURL, name + "_write");
 	}
 
 	@Override

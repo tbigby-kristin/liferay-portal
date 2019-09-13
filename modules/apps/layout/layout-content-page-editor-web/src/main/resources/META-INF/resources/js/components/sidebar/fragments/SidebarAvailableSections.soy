@@ -9,6 +9,7 @@
 		fragmentEntries: list<[
 			fragmentEntryId: string,
 			fragmentEntryKey: string,
+			groupId: string,
 			imagePreviewURL: string,
 			name: string
 		]>,
@@ -65,6 +66,7 @@
 									{param events: ['itemClick': $_handleEntryClick] /}
 									{param icon: 'plus' /}
 									{param imagePreviewURL: $fragmentEntry.imagePreviewURL /}
+									{param itemGroupId: $fragmentEntry.groupId /}
 									{param itemId: $fragmentEntry.fragmentEntryKey /}
 									{param itemName: $fragmentEntry.name /}
 									{param key: $fragmentEntry.fragmentEntryKey /}

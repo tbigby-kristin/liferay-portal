@@ -71,9 +71,8 @@ public class ForPoshiElement extends PoshiElement {
 	public void parsePoshiScript(String poshiScript)
 		throws PoshiScriptParserException {
 
-		String blockName = getBlockName(poshiScript);
-
-		String parentheticalContent = getParentheticalContent(blockName);
+		String parentheticalContent = getParentheticalContent(
+			getBlockName(poshiScript));
 
 		Matcher matcher = _blockParameterPattern.matcher(parentheticalContent);
 

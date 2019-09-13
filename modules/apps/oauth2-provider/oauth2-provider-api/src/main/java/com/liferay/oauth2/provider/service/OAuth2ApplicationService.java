@@ -51,7 +51,7 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 public interface OAuth2ApplicationService extends BaseService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link OAuth2ApplicationServiceUtil} to access the o auth2 application remote service. Add custom service methods to <code>com.liferay.oauth2.provider.service.impl.OAuth2ApplicationServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -66,7 +66,7 @@ public interface OAuth2ApplicationService extends BaseService {
 		throws PortalException;
 
 	/**
-	 * @deprecated As of Mueller (7.2.x), since 7.2, unused
+	 * @deprecated As of Mueller (7.2.x)
 	 */
 	@Deprecated
 	public OAuth2Application addOAuth2Application(
@@ -123,7 +123,7 @@ public interface OAuth2ApplicationService extends BaseService {
 		throws PortalException;
 
 	/**
-	 * @deprecated As of Mueller (7.2.x), since 7.2, unused
+	 * @deprecated As of Mueller (7.2.x)
 	 */
 	@Deprecated
 	public OAuth2Application updateOAuth2Application(

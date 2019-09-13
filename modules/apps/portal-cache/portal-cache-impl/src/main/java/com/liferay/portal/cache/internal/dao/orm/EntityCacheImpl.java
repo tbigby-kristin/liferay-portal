@@ -197,7 +197,7 @@ public class EntityCacheImpl
 			try {
 				session = sessionFactory.openSession();
 
-				return (Serializable)session.load(clazz, primaryKey);
+				return (Serializable)session.get(clazz, primaryKey);
 			}
 			finally {
 				sessionFactory.closeSession(session);
@@ -238,20 +238,22 @@ public class EntityCacheImpl
 				try {
 					session = sessionFactory.openSession();
 
-					loadResult = (Serializable)session.load(clazz, primaryKey);
+					loadResult = (Serializable)session.get(clazz, primaryKey);
 				}
 				finally {
-					if (loadResult == null) {
-						result = StringPool.BLANK;
-					}
-					else {
-						result = ((BaseModel<?>)loadResult).toCacheModel();
-
-						PortalCacheHelperUtil.putWithoutReplicator(
-							portalCache, primaryKey, result);
-					}
-
 					sessionFactory.closeSession(session);
+				}
+
+				if (loadResult == null) {
+					result = StringPool.BLANK;
+				}
+				else {
+					BaseModel<?> baseModel = (BaseModel<?>)loadResult;
+
+					result = baseModel.toCacheModel();
+
+					PortalCacheHelperUtil.putWithoutReplicator(
+						portalCache, primaryKey, result);
 				}
 			}
 
@@ -298,7 +300,9 @@ public class EntityCacheImpl
 			return;
 		}
 
-		result = ((BaseModel<?>)result).toCacheModel();
+		BaseModel<?> baseModel = (BaseModel<?>)result;
+
+		result = baseModel.toCacheModel();
 
 		if (_isLocalCacheEnabled()) {
 			Map<Serializable, Serializable> localCache = _localCache.get();

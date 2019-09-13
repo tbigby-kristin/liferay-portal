@@ -1,9 +1,24 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import getCN from 'classnames';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
 import ThemeContext from '../../ThemeContext.es';
 import {DragTypes} from '../../utils/drag-types.es';
 import {DropTarget as dropTarget} from 'react-dnd';
+import EmptyPlaceholder from './EmptyPlaceholder.es';
 
 /**
  * Prevents items from being dropped from other contributors.
@@ -52,26 +67,35 @@ class EmptyDropZone extends Component {
 			hover
 		} = this.props;
 
-		const emptyZoneClasses = getCN(
-			'empty-drop-zone-root',
-			{
-				'empty-drop-zone-dashed border-primary rounded': !canDrop || !hover
-			}
-		);
+		const displayEmptyDropZone = canDrop || !emptyContributors;
+
+		const emptyZoneClasses = getCN('empty-drop-zone-root', {
+			'empty-drop-zone-dashed border-primary rounded':
+				displayEmptyDropZone && (!canDrop || !hover)
+		});
 
 		const targetClasses = getCN(
-			emptyContributors ? 'empty-drop-zone-target' : 'drop-zone-target p-5',
+			emptyContributors
+				? 'empty-drop-zone-target'
+				: 'drop-zone-target p-5',
 			{
-				'empty-drop-zone-target-solid dnd-hover border-primary rounded': canDrop && hover
+				'empty-drop-zone-target-solid dnd-hover border-primary rounded':
+					canDrop && hover
 			}
 		);
 
 		return (
 			<div className={emptyZoneClasses}>
 				{connectDropTarget(
-					<div className={targetClasses}>
-						<div className="empty-drop-zone-indicator" />
-					</div>
+					displayEmptyDropZone ? (
+						<div className={targetClasses}>
+							<div className="empty-drop-zone-indicator" />
+						</div>
+					) : (
+						<div>
+							<EmptyPlaceholder />
+						</div>
+					)
 				)}
 			</div>
 		);

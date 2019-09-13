@@ -50,8 +50,6 @@ import javax.portlet.PortletException;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
  * @author Ryan Park
  */
@@ -73,11 +71,9 @@ public class TasksPortlet extends MVCPortlet {
 		else {
 			JSONObject jsonObject = JSONUtil.put("success", Boolean.TRUE);
 
-			HttpServletResponse httpServletResponse =
-				PortalUtil.getHttpServletResponse(actionResponse);
-
 			ServletResponseUtil.write(
-				httpServletResponse, jsonObject.toString());
+				PortalUtil.getHttpServletResponse(actionResponse),
+				jsonObject.toString());
 		}
 	}
 
@@ -85,10 +81,6 @@ public class TasksPortlet extends MVCPortlet {
 	public void processAction(
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws IOException, PortletException {
-
-		if (!isProcessActionRequest(actionRequest)) {
-			return;
-		}
 
 		if (!callActionMethod(actionRequest, actionResponse)) {
 			return;

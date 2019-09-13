@@ -116,13 +116,6 @@ public class LoginUtil {
 			"[$USER_ID$]",
 			LanguageUtil.get(themeDisplay.getLocale(), "the-user-id"));
 
-		if (showPasswordTerms) {
-			definitionTerms.put(
-				"[$USER_PASSWORD$]",
-				LanguageUtil.get(
-					themeDisplay.getLocale(), "the-user-password"));
-		}
-
 		definitionTerms.put(
 			"[$USER_SCREENNAME$]",
 			LanguageUtil.get(themeDisplay.getLocale(), "the-user-screen-name"));
@@ -238,7 +231,7 @@ public class LoginUtil {
 
 		Company company = themeDisplay.getCompany();
 
-		if (!company.isSendPassword() && !company.isSendPasswordResetLink()) {
+		if (!company.isSendPasswordResetLink()) {
 			return;
 		}
 

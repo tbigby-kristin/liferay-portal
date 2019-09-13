@@ -252,9 +252,8 @@ public class GetterUtil {
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public static Date get(
@@ -634,9 +633,8 @@ public class GetterUtil {
 		if (negative) {
 			return result;
 		}
-		else {
-			return -result;
-		}
+
+		return -result;
 	}
 
 	public static int[] getIntegerValues(Object value) {
@@ -747,9 +745,8 @@ public class GetterUtil {
 		if (negative) {
 			return result;
 		}
-		else {
-			return -result;
-		}
+
+		return -result;
 	}
 
 	public static long[] getLongValues(Object value) {
@@ -1034,9 +1031,8 @@ public class GetterUtil {
 		if (negative) {
 			return result;
 		}
-		else {
-			return -result;
-		}
+
+		return -result;
 	}
 
 	private static long _parseLong(String value, long defaultValue) {
@@ -1097,9 +1093,8 @@ public class GetterUtil {
 		if (negative) {
 			return result;
 		}
-		else {
-			return -result;
-		}
+
+		return -result;
 	}
 
 	private static short _parseShort(String value, short defaultValue) {

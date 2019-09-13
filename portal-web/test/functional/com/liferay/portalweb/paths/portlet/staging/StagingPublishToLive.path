@@ -71,6 +71,11 @@
 </tr>
 <!--PAGES-->
 <tr>
+	<td>PAGES_CHOOSE_PAGE_DELETION_CHECKBOX</td>
+	<td>//span[contains(.,'Publish Page Deletions')]//span[contains(@class,'deletions')]/../../input</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGES_TO_PUBLISH_CHECKBOX_CHECKED</td>
 	<td>//div[@class='pages-selector']//div[normalize-space()='${key_entryName}' and contains(@class,'checked')]//span[contains(@class,'icon-check')]</td>
 	<td></td>
@@ -93,7 +98,7 @@
 </tr>
 <tr>
 	<td>SIMPLE_PUBLICATION_DELETION</td>
-	<td>//span[contains(@class,'deletions') and contains(.,'${key_itemName}')]</td>
+	<td>//li[contains(.,'${key_itemName}')]//span[contains(@class,'deletions')]</td>
 	<td></td>
 </tr>
 <tr>

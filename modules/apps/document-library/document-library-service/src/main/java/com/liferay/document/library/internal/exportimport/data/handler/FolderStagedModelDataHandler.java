@@ -397,8 +397,9 @@ public class FolderStagedModelDataHandler
 	}
 
 	protected void importFolderFileEntryTypes(
-		PortletDataContext portletDataContext, Element folderElement,
-		Folder folder, Folder importedFolder, ServiceContext serviceContext) {
+			PortletDataContext portletDataContext, Element folderElement,
+			Folder folder, Folder importedFolder, ServiceContext serviceContext)
+		throws PortalException {
 
 		if (!folder.isDefaultRepository()) {
 			return;
@@ -454,14 +455,15 @@ public class FolderStagedModelDataHandler
 		}
 
 		if (!currentFolderFileEntryTypeIds.isEmpty()) {
-			DLFolder dlFolder = (DLFolder)importedFolder.getModel();
+			DLFolder dlFolder = _dlFolderLocalService.getDLFolder(
+				importedFolder.getFolderId());
 
 			dlFolder.setDefaultFileEntryTypeId(defaultFileEntryTypeId);
 			dlFolder.setRestrictionType(
 				DLFolderConstants.
 					RESTRICTION_TYPE_FILE_ENTRY_TYPES_AND_WORKFLOW);
 
-			_dlFolderLocalService.updateDLFolder(dlFolder);
+			dlFolder = _dlFolderLocalService.updateDLFolder(dlFolder);
 
 			_dlFileEntryTypeLocalService.updateFolderFileEntryTypes(
 				dlFolder, currentFolderFileEntryTypeIds, defaultFileEntryTypeId,

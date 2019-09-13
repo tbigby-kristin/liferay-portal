@@ -1,8 +1,23 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import 'clay-multi-select';
 import 'clay-sticker';
+import dom from 'metal-dom';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
-import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
+import {PortletBase} from 'frontend-js-web';
 
 import templates from './Sharing.soy';
 
@@ -17,32 +32,35 @@ class Sharing extends PortletBase {
 		this._userEmailAddresses = [];
 	}
 
+	attached() {
+		const portalElement = dom.toElement('#clay_dropdown_portal');
+
+		if (portalElement) {
+			dom.addClasses(portalElement, 'show');
+		}
+	}
+
 	/**
 	 * Fetches autocomplete results
 	 * @private
 	 * @review
 	 */
 	_dataSource(query) {
-		return this.fetch(
-			this.sharingUserAutocompleteURL,
-			{
-				query
-			}
-		).then(
-			res => res.json()
-		).then(
-			users => users.map(
-				({emailAddress, fullName, portraitURL, userId}) => ({
+		return this.fetch(this.sharingUserAutocompleteURL, {
+			query
+		})
+			.then(res => res.json())
+			.then(users =>
+				users.map(({emailAddress, fullName, portraitURL, userId}) => ({
 					emailAddress,
 					fullName,
 					label: fullName,
 					portraitURL,
 					spritemap: this.spritemap,
-					userId: userId,
+					userId,
 					value: emailAddress
-				})
-			)
-		);
+				}))
+			);
 	}
 
 	/**
@@ -54,17 +72,14 @@ class Sharing extends PortletBase {
 		e.preventDefault();
 
 		if (e.data && e.target.refs.autocomplete._query) {
-			e.target.filteredItems = e.data.map(
-				(element, index) => ({
-					data: element,
-					index,
-					matches: [],
-					score: 0,
-					value: element
-				})
-			);
-		}
-		else {
+			e.target.filteredItems = e.data.map((element, index) => ({
+				data: element,
+				index,
+				matches: [],
+				score: 0,
+				value: element
+			}));
+		} else {
 			e.target.filteredItems = [];
 		}
 
@@ -95,7 +110,8 @@ class Sharing extends PortletBase {
 		const target = event.target;
 
 		const name = target.name;
-		const value = target.type === 'checkbox' ? target.checked : target.value;
+		const value =
+			target.type === 'checkbox' ? target.checked : target.value;
 
 		this[name] = value;
 	}
@@ -109,48 +125,44 @@ class Sharing extends PortletBase {
 	 * @review
 	 */
 	_handleEmailAddressAdded(event) {
-		let {item, selectedItems} = event.data;
+		const {item, selectedItems} = event.data;
 
 		this._userEmailAddresses = selectedItems;
 
 		this.emailAddressErrorMessage = '';
 		this._inputValue = '';
 
-		let itemAdded = item.value;
+		const itemAdded = item.value;
 
 		if (!this._isEmailAddressValid(itemAdded)) {
-			this.emailAddressErrorMessage = Liferay.Language.get('please-enter-a-valid-email-address');
+			this.emailAddressErrorMessage = Liferay.Language.get(
+				'please-enter-a-valid-email-address'
+			);
 			this._inputValue = itemAdded;
 			this._userEmailAddresses.pop();
-		}
-		else {
-			this.fetch(
-				this.sharingVerifyEmailAddressURL,
-				{
-					emailAddress: itemAdded
-				}
-			).then(
-				response => response.json()
-			).then(
-				result => {
-					let {userExists} = result;
+		} else {
+			this.fetch(this.sharingVerifyEmailAddressURL, {
+				emailAddress: itemAdded
+			})
+				.then(response => response.json())
+				.then(result => {
+					const {userExists} = result;
 
 					if (!userExists) {
-						this.emailAddressErrorMessage = Liferay.Util.sub(Liferay.Language.get('user-x-does-not-exist'), itemAdded);
+						this.emailAddressErrorMessage = Liferay.Util.sub(
+							Liferay.Language.get('user-x-does-not-exist'),
+							itemAdded
+						);
 
 						this._userEmailAddresses = this._userEmailAddresses.filter(
 							item => item.value != itemAdded
 						);
 
-						setTimeout(
-							() => {
-								this._inputValue = itemAdded;
-							},
-							0
-						);
+						setTimeout(() => {
+							this._inputValue = itemAdded;
+						}, 0);
 					}
-				}
-			);
+				});
 		}
 	}
 
@@ -192,47 +204,42 @@ class Sharing extends PortletBase {
 		if (!this.submitting && this._validateRequiredEmailAddress()) {
 			this.submitting = true;
 
-			this.fetch(
-				this.shareActionURL,
-				{
-					classNameId: this._classNameId,
-					classPK: this._classPK,
-					shareable: this.shareable,
-					sharingEntryPermissionDisplayActionId: this.sharingEntryPermissionDisplayActionId,
-					userEmailAddress: this._userEmailAddresses.map(({value}) => value).join(',')
-				}
-			)
-				.then(
-					response => {
-						this.submitting = false;
+			this.fetch(this.shareActionURL, {
+				classNameId: this._classNameId,
+				classPK: this._classPK,
+				shareable: this.shareable,
+				sharingEntryPermissionDisplayActionId: this
+					.sharingEntryPermissionDisplayActionId,
+				userEmailAddress: this._userEmailAddresses
+					.map(({value}) => value)
+					.join(',')
+			})
+				.then(response => {
+					this.submitting = false;
 
-						const jsonResponse = response.json();
+					const jsonResponse = response.json();
 
-						return response.ok ?
-							jsonResponse :
-							jsonResponse.then(
-								json => {
-									const error = new Error(json.errorMessage || response.statusText);
-									throw Object.assign(error, {response});
-								}
-							)
-						;
-					}
-				)
-				.then(
-					json => {
-						parent.Liferay.Portlet.refresh(`#p_p_id${this._refererPortletNamespace}`);
+					return response.ok
+						? jsonResponse
+						: jsonResponse.then(json => {
+								const error = new Error(
+									json.errorMessage || response.statusText
+								);
+								throw Object.assign(error, {response});
+						  });
+				})
+				.then(json => {
+					parent.Liferay.Portlet.refresh(
+						`#p_p_id${this._refererPortletNamespace}`
+					);
 
-						this._showNotification(json.successMessage);
-					}
-				)
-				.catch(
-					error => {
-						this.submitting = false;
+					this._showNotification(json.successMessage);
+				})
+				.catch(error => {
+					this.submitting = false;
 
-						this._showNotification(error.message, true);
-					}
-				);
+					this._showNotification(error.message, true);
+				});
 		}
 	}
 
@@ -249,7 +256,7 @@ class Sharing extends PortletBase {
 
 		const openToastParams = {
 			events: {
-				'attached': this._closeDialog.bind(this)
+				attached: this._closeDialog.bind(this)
 			},
 			message
 		};
@@ -283,7 +290,9 @@ class Sharing extends PortletBase {
 	_validateRequiredEmailAddress() {
 		const valid = !!this._userEmailAddresses.length;
 
-		this.emailAddressErrorMessage = valid ? '' : Liferay.Language.get('this-field-is-required');
+		this.emailAddressErrorMessage = valid
+			? ''
+			: Liferay.Language.get('this-field-is-required');
 
 		return valid;
 	}
@@ -296,15 +305,15 @@ class Sharing extends PortletBase {
  * @type {!Object}
  */
 Sharing.STATE = {
+	_inputValue: Config.string().internal(),
 	emailAddressErrorMessage: Config.string().value(''),
-	shareable: Config.bool().value(true),
 	shareActionURL: Config.string().required(),
+	shareable: Config.bool().value(true),
 	sharingEntryPermissionDisplayActionId: Config.string().required(),
 	sharingUserAutocompleteURL: Config.string().required(),
 	sharingVerifyEmailAddressURL: Config.string().required(),
 	spritemap: Config.string().required(),
-	submitting: Config.bool().value(false),
-	_inputValue: Config.string().internal()
+	submitting: Config.bool().value(false)
 };
 
 Soy.register(Sharing, templates);

@@ -61,17 +61,20 @@ if (user2 != null) {
 
 <div class="lfr-button-column" id="<portlet:namespace />buttonColumn">
 	<div class="lfr-button-column-content">
-		<aui:button-row cssClass="edit-toolbar" id='<%= renderResponse.getNamespace() + "userToolbar" %>' />
+		<aui:button-row cssClass="btn-group edit-toolbar" id='<%= renderResponse.getNamespace() + "userToolbar" %>' />
 
 		<div class="btn view-more-button">
-			<i class="icon-ellipsis-horizontal"></i>
+			<liferay-ui:icon
+				icon="ellipsis-h"
+				markupView="lexicon"
+			/>
 
 			<liferay-ui:message key="more" />
 		</div>
 	</div>
 </div>
 
-<aui:script position="inline" use="aui-dialog-iframe-deprecated,aui-io-plugin-deprecated,aui-io-request-deprecated,aui-toolbar,liferay-util-window">
+<aui:script position="inline" use="aui-dialog-iframe-deprecated,aui-io-plugin-deprecated,aui-toolbar,liferay-util-window">
 	var buttonRow = A.one('#<portlet:namespace />userToolbar');
 
 	var contactsToolbarChildren = [];
@@ -80,7 +83,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: '<%= showAddAsConnectionButton ? "" : "hide" %>',
-				icon: 'icon-plus-sign',
 				id: '<portlet:namespace />addConnectionButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "connect") %>',
 				on: {
@@ -97,7 +99,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: '<%= showRemoveAsConnectionButton ? "" : "hide" %>',
-				icon: 'icon-minus-sign',
 				id: '<portlet:namespace />removeConnectionButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "disconnect") %>',
 				on: {
@@ -114,7 +115,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: 'more <%= showFollowButton ? "" : "hide" %>',
-				icon: 'icon-plus-sign',
 				id: '<portlet:namespace />followButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "follow") %>',
 				on: {
@@ -131,7 +131,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: 'more <%= showUnFollowButton ? "" : "hide" %>',
-				icon: 'icon-minus-sign',
 				id: '<portlet:namespace />unfollowButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "unfollow") %>',
 				on: {
@@ -148,7 +147,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: 'more <%= showBlockButton ? "" : "hide" %>',
-				icon: 'icon-ban-circle',
 				id: '<portlet:namespace />blockButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "block") %>',
 				on: {
@@ -165,7 +163,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: 'more <%= showUnBlockButton ? "" : "hide" %>',
-				icon: 'icon-ok',
 				id: '<portlet:namespace />unblockButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "unblock") %>',
 				on: {
@@ -182,7 +179,6 @@ if (user2 != null) {
 		new A.Button(
 			{
 				cssClass: 'more',
-				icon: 'icon-save',
 				id: '<portlet:namespace />exportButton',
 				label: '<%= UnicodeLanguageUtil.get(request, "vcard") %>',
 				on: {
@@ -259,27 +255,24 @@ if (user2 != null) {
 
 		var searchInput = A.one('.contacts-portlet #<portlet:namespace />name');
 
-		A.io.request(
-			uri,
-			{
-				after: {
-					failure: function(event, id, obj) {
-						Liferay.component('contactsCenter').showMessage(false);
-					},
-					success: function(event, id, obj) {
-						Liferay.component('contactsCenter').renderSelectedContacts(this.get('responseData'), lastNameAnchor);
-					}
-				},
-				data: {
-					<portlet:namespace />end: end,
-					<portlet:namespace />filterBy: contactFilerSelectValue,
-					<portlet:namespace />jsonFormat: true,
-					<portlet:namespace />keywords: searchInput.get('value'),
-					<portlet:namespace />start: 0,
-					<portlet:namespace />userIds: userIds.join()
-				},
-				dataType: 'JSON'
-			}
-		);
+		var data = new URLSearchParams({
+			<portlet:namespace />end: end,
+			<portlet:namespace />filterBy: contactFilerSelectValue,
+			<portlet:namespace />jsonFormat: true,
+			<portlet:namespace />keywords: searchInput.get('value'),
+			<portlet:namespace />start: 0,
+			<portlet:namespace />userIds: userIds.join()
+		});
+
+		Liferay.Util.fetch(uri, {
+			body: data,
+			method: 'POST'
+		}).then(function(response) {
+			return response.json();
+		}).then(function(data) {
+			Liferay.component('contactsCenter').renderSelectedContacts(data, lastNameAnchor);
+		}).catch(function() {
+			Liferay.component('contactsCenter').showMessage(false);
+		});
 	}
 </aui:script>

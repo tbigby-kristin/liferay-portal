@@ -23,7 +23,6 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.journal.constants.JournalWebKeys;
-import com.liferay.journal.content.web.internal.constants.JournalContentWebKeys;
 import com.liferay.journal.content.web.internal.display.context.JournalContentDisplayContext;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.util.JournalContent;
@@ -34,12 +33,10 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.WebKeys;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -78,10 +75,6 @@ public class JournalContentConfigurationAction
 			HttpServletResponse httpServletResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 		PortletRequest portletRequest =
 			(PortletRequest)httpServletRequest.getAttribute(
 				JavaConstants.JAVAX_PORTLET_REQUEST);
@@ -94,15 +87,9 @@ public class JournalContentConfigurationAction
 			JournalWebKeys.JOURNAL_CONTENT, _journalContent);
 
 		try {
-			JournalContentDisplayContext journalContentDisplayContext =
-				JournalContentDisplayContext.create(
-					portletRequest, portletResponse,
-					themeDisplay.getPortletDisplay(), _CLASS_NAME_ID,
-					_ddmTemplateModelResourcePermission);
-
-			httpServletRequest.setAttribute(
-				JournalContentWebKeys.JOURNAL_CONTENT_DISPLAY_CONTEXT,
-				journalContentDisplayContext);
+			JournalContentDisplayContext.create(
+				portletRequest, portletResponse, _CLASS_NAME_ID,
+				_ddmTemplateModelResourcePermission);
 		}
 		catch (PortalException pe) {
 			if (_log.isDebugEnabled()) {
@@ -119,13 +106,11 @@ public class JournalContentConfigurationAction
 			ActionResponse actionResponse)
 		throws Exception {
 
-		String articleId = getArticleId(actionRequest);
+		setPreference(actionRequest, "articleId", getArticleId(actionRequest));
 
-		setPreference(actionRequest, "articleId", articleId);
-
-		long articleGroupId = getArticleGroupId(actionRequest);
-
-		setPreference(actionRequest, "groupId", String.valueOf(articleGroupId));
+		setPreference(
+			actionRequest, "groupId",
+			String.valueOf(getArticleGroupId(actionRequest)));
 
 		super.processAction(portletConfig, actionRequest, actionResponse);
 	}

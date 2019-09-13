@@ -14,6 +14,7 @@
 
 package com.liferay.source.formatter.checks;
 
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.ReleaseInfo;
@@ -31,6 +32,11 @@ import java.util.regex.Pattern;
  * @author Hugo Huijser
  */
 public class JavaDeprecatedJavadocCheck extends BaseFileCheck {
+
+	@Override
+	public boolean isLiferaySourceCheck() {
+		return true;
+	}
 
 	@Override
 	protected String doProcess(
@@ -116,6 +122,27 @@ public class JavaDeprecatedJavadocCheck extends BaseFileCheck {
 					content, s, StringUtil.toLowerCase(s), matcher.start(7));
 			}
 
+			if (deprecatedInfo.matches(", since [0-9.]+(, [\\S\\s]*)?")) {
+				int x = deprecatedInfo.indexOf(CharPool.COMMA, 1);
+
+				if (x == -1) {
+					return StringUtil.replaceFirst(
+						content, deprecatedInfo, StringPool.BLANK,
+						matcher.start(7));
+				}
+
+				String s = deprecatedInfo.substring(0, x);
+
+				return StringUtil.replaceFirst(
+					content, s, StringPool.BLANK, matcher.start(7));
+			}
+
+			if (deprecatedInfo.equals(", unused")) {
+				return StringUtil.replaceFirst(
+					content, deprecatedInfo, StringPool.BLANK,
+					matcher.start(7));
+			}
+
 			if (deprecatedInfo.endsWith(StringPool.PERIOD) &&
 				!deprecatedInfo.matches("[\\S\\s]*\\.[ \n][\\S\\s]*")) {
 
@@ -168,6 +195,7 @@ public class JavaDeprecatedJavadocCheck extends BaseFileCheck {
 	private static final Map<String, String> _releaseInfoMap =
 		new HashMap<String, String>() {
 			{
+				put("Athanasius", "7.3.x");
 				put("Bunyan", "6.0.x");
 				put("Judson", "7.1.x");
 				put("Mueller", "7.2.x");

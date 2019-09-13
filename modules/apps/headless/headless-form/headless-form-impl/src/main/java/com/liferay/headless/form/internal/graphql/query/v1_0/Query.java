@@ -16,6 +16,7 @@ package com.liferay.headless.form.internal.graphql.query.v1_0;
 
 import com.liferay.headless.form.dto.v1_0.Form;
 import com.liferay.headless.form.dto.v1_0.FormDocument;
+import com.liferay.headless.form.dto.v1_0.FormPage;
 import com.liferay.headless.form.dto.v1_0.FormRecord;
 import com.liferay.headless.form.dto.v1_0.FormStructure;
 import com.liferay.headless.form.resource.v1_0.FormDocumentResource;
@@ -24,18 +25,25 @@ import com.liferay.headless.form.resource.v1_0.FormResource;
 import com.liferay.headless.form.resource.v1_0.FormStructureResource;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLTypeExtension;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
-import graphql.annotations.annotationTypes.GraphQLField;
-import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
-import graphql.annotations.annotationTypes.GraphQLName;
-
-import java.util.Collection;
+import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.service.component.ComponentServiceObjects;
 
@@ -78,18 +86,26 @@ public class Query {
 			formStructureResourceComponentServiceObjects;
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {form(formId: ___){availableLanguages, creator, dateCreated, dateModified, datePublished, defaultLanguage, description, formRecords, formRecordsIds, id, name, siteId, structure, structureId}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Form getForm(@GraphQLName("formId") Long formId) throws Exception {
+	public Form form(@GraphQLName("formId") Long formId) throws Exception {
 		return _applyComponentServiceObjects(
 			_formResourceComponentServiceObjects,
 			this::_populateResourceContext,
 			formResource -> formResource.getForm(formId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {forms(page: ___, pageSize: ___, siteId: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<Form> getSiteFormsPage(
+	public FormPage forms(
 			@GraphQLName("siteId") Long siteId,
 			@GraphQLName("pageSize") int pageSize,
 			@GraphQLName("page") int page)
@@ -98,17 +114,18 @@ public class Query {
 		return _applyComponentServiceObjects(
 			_formResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			formResource -> {
-				Page paginationPage = formResource.getSiteFormsPage(
-					siteId, Pagination.of(pageSize, page));
-
-				return paginationPage.getItems();
-			});
+			formResource -> new FormPage(
+				formResource.getSiteFormsPage(
+					siteId, Pagination.of(page, pageSize))));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {formDocument(formDocumentId: ___){contentUrl, description, encodingFormat, fileExtension, folderId, id, siteId, sizeInBytes, title}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public FormDocument getFormDocument(
+	public FormDocument formDocument(
 			@GraphQLName("formDocumentId") Long formDocumentId)
 		throws Exception {
 
@@ -119,10 +136,13 @@ public class Query {
 				formDocumentId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {formRecord(formRecordId: ___){creator, dateCreated, dateModified, datePublished, draft, formFieldValues, formId, id}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public FormRecord getFormRecord(
-			@GraphQLName("formRecordId") Long formRecordId)
+	public FormRecord formRecord(@GraphQLName("formRecordId") Long formRecordId)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -132,9 +152,13 @@ public class Query {
 				formRecordId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {formFormRecords(formId: ___, page: ___, pageSize: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<FormRecord> getFormFormRecordsPage(
+	public FormRecordPage formFormRecords(
 			@GraphQLName("formId") Long formId,
 			@GraphQLName("pageSize") int pageSize,
 			@GraphQLName("page") int page)
@@ -143,17 +167,18 @@ public class Query {
 		return _applyComponentServiceObjects(
 			_formRecordResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			formRecordResource -> {
-				Page paginationPage = formRecordResource.getFormFormRecordsPage(
-					formId, Pagination.of(pageSize, page));
-
-				return paginationPage.getItems();
-			});
+			formRecordResource -> new FormRecordPage(
+				formRecordResource.getFormFormRecordsPage(
+					formId, Pagination.of(page, pageSize))));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {formFormRecordByLatestDraft(formId: ___){creator, dateCreated, dateModified, datePublished, draft, formFieldValues, formId, id}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public FormRecord getFormFormRecordByLatestDraft(
+	public FormRecord formFormRecordByLatestDraft(
 			@GraphQLName("formId") Long formId)
 		throws Exception {
 
@@ -164,9 +189,13 @@ public class Query {
 				formRecordResource.getFormFormRecordByLatestDraft(formId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {formStructure(formStructureId: ___){availableLanguages, creator, dateCreated, dateModified, description, formPages, formSuccessPage, id, name, siteId}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public FormStructure getFormStructure(
+	public FormStructure formStructure(
 			@GraphQLName("formStructureId") Long formStructureId)
 		throws Exception {
 
@@ -177,9 +206,13 @@ public class Query {
 				formStructureId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {formStructures(page: ___, pageSize: ___, siteId: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<FormStructure> getSiteFormStructuresPage(
+	public FormStructurePage formStructures(
 			@GraphQLName("siteId") Long siteId,
 			@GraphQLName("pageSize") int pageSize,
 			@GraphQLName("page") int page)
@@ -188,13 +221,145 @@ public class Query {
 		return _applyComponentServiceObjects(
 			_formStructureResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			formStructureResource -> {
-				Page paginationPage =
-					formStructureResource.getSiteFormStructuresPage(
-						siteId, Pagination.of(pageSize, page));
+			formStructureResource -> new FormStructurePage(
+				formStructureResource.getSiteFormStructuresPage(
+					siteId, Pagination.of(page, pageSize))));
+	}
 
-				return paginationPage.getItems();
-			});
+	@GraphQLTypeExtension(Form.class)
+	public class GetFormFormRecordByLatestDraftTypeExtension {
+
+		public GetFormFormRecordByLatestDraftTypeExtension(Form form) {
+			_form = form;
+		}
+
+		@GraphQLField
+		public FormRecord formRecordByLatestDraft() throws Exception {
+			return _applyComponentServiceObjects(
+				_formRecordResourceComponentServiceObjects,
+				Query.this::_populateResourceContext,
+				formRecordResource ->
+					formRecordResource.getFormFormRecordByLatestDraft(
+						_form.getId()));
+		}
+
+		private Form _form;
+
+	}
+
+	@GraphQLTypeExtension(FormRecord.class)
+	public class GetFormTypeExtension {
+
+		public GetFormTypeExtension(FormRecord formRecord) {
+			_formRecord = formRecord;
+		}
+
+		@GraphQLField
+		public Form form() throws Exception {
+			return _applyComponentServiceObjects(
+				_formResourceComponentServiceObjects,
+				Query.this::_populateResourceContext,
+				formResource -> formResource.getForm(_formRecord.getFormId()));
+		}
+
+		private FormRecord _formRecord;
+
+	}
+
+	@GraphQLName("FormPage")
+	public class FormPage {
+
+		public FormPage(Page formPage) {
+			items = formPage.getItems();
+			page = formPage.getPage();
+			pageSize = formPage.getPageSize();
+			totalCount = formPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<Form> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
+	}
+
+	@GraphQLName("FormDocumentPage")
+	public class FormDocumentPage {
+
+		public FormDocumentPage(Page formDocumentPage) {
+			items = formDocumentPage.getItems();
+			page = formDocumentPage.getPage();
+			pageSize = formDocumentPage.getPageSize();
+			totalCount = formDocumentPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<FormDocument> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
+	}
+
+	@GraphQLName("FormRecordPage")
+	public class FormRecordPage {
+
+		public FormRecordPage(Page formRecordPage) {
+			items = formRecordPage.getItems();
+			page = formRecordPage.getPage();
+			pageSize = formRecordPage.getPageSize();
+			totalCount = formRecordPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<FormRecord> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
+	}
+
+	@GraphQLName("FormStructurePage")
+	public class FormStructurePage {
+
+		public FormStructurePage(Page formStructurePage) {
+			items = formStructurePage.getItems();
+			page = formStructurePage.getPage();
+			pageSize = formStructurePage.getPageSize();
+			totalCount = formStructurePage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<FormStructure> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
 	}
 
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R
@@ -219,35 +384,49 @@ public class Query {
 	private void _populateResourceContext(FormResource formResource)
 		throws Exception {
 
-		formResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		formResource.setContextAcceptLanguage(_acceptLanguage);
+		formResource.setContextCompany(_company);
+		formResource.setContextHttpServletRequest(_httpServletRequest);
+		formResource.setContextHttpServletResponse(_httpServletResponse);
+		formResource.setContextUriInfo(_uriInfo);
+		formResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(
 			FormDocumentResource formDocumentResource)
 		throws Exception {
 
-		formDocumentResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		formDocumentResource.setContextAcceptLanguage(_acceptLanguage);
+		formDocumentResource.setContextCompany(_company);
+		formDocumentResource.setContextHttpServletRequest(_httpServletRequest);
+		formDocumentResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		formDocumentResource.setContextUriInfo(_uriInfo);
+		formDocumentResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(FormRecordResource formRecordResource)
 		throws Exception {
 
-		formRecordResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		formRecordResource.setContextAcceptLanguage(_acceptLanguage);
+		formRecordResource.setContextCompany(_company);
+		formRecordResource.setContextHttpServletRequest(_httpServletRequest);
+		formRecordResource.setContextHttpServletResponse(_httpServletResponse);
+		formRecordResource.setContextUriInfo(_uriInfo);
+		formRecordResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(
 			FormStructureResource formStructureResource)
 		throws Exception {
 
-		formStructureResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		formStructureResource.setContextAcceptLanguage(_acceptLanguage);
+		formStructureResource.setContextCompany(_company);
+		formStructureResource.setContextHttpServletRequest(_httpServletRequest);
+		formStructureResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		formStructureResource.setContextUriInfo(_uriInfo);
+		formStructureResource.setContextUser(_user);
 	}
 
 	private static ComponentServiceObjects<FormResource>
@@ -258,5 +437,14 @@ public class Query {
 		_formRecordResourceComponentServiceObjects;
 	private static ComponentServiceObjects<FormStructureResource>
 		_formStructureResourceComponentServiceObjects;
+
+	private AcceptLanguage _acceptLanguage;
+	private BiFunction<Object, String, Filter> _filterBiFunction;
+	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
+	private Company _company;
+	private HttpServletRequest _httpServletRequest;
+	private HttpServletResponse _httpServletResponse;
+	private UriInfo _uriInfo;
+	private User _user;
 
 }

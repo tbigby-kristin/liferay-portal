@@ -19,7 +19,8 @@ import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.page.template.util.LayoutPageTemplateStructureHelperUtil;
-import com.liferay.layout.test.util.constants.LayoutPortletKeys;
+import com.liferay.layout.test.constants.LayoutPortletKeys;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -42,7 +43,6 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.portal.util.test.LayoutTestUtil;
 
 import java.awt.image.BufferedImage;
 
@@ -98,7 +98,8 @@ public class LayoutCopyHelperTest {
 				sourceLayout.getUserId(), sourceLayout.getGroupId(), 0, 0,
 				_portal.getClassNameId(Layout.class), sourceLayout.getPlid(),
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
-				StringPool.BLANK, StringPool.BLANK, 0, null, _serviceContext);
+				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK, 0, null,
+				_serviceContext);
 
 		fragmentEntryLinks.add(fragmentEntryLink1);
 
@@ -107,7 +108,8 @@ public class LayoutCopyHelperTest {
 				sourceLayout.getUserId(), sourceLayout.getGroupId(), 0, 0,
 				_portal.getClassNameId(Layout.class), sourceLayout.getPlid(),
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
-				StringPool.BLANK, StringPool.BLANK, 0, null, _serviceContext);
+				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK, 0, null,
+				_serviceContext);
 
 		fragmentEntryLinks.add(fragmentEntryLink2);
 

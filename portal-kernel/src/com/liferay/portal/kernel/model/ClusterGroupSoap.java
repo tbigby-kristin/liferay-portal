@@ -19,15 +19,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services.
  *
  * @author Brian Wing Shun Chan
+ * @deprecated
  * @generated
  */
-@ProviderType
+@Deprecated
 public class ClusterGroupSoap implements Serializable {
 
 	public static ClusterGroupSoap toSoapModel(ClusterGroup model) {

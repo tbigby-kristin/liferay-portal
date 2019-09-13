@@ -154,6 +154,8 @@ definition {
 
 		AssertElementPresent.assertElementPresent(locator1 = "TextInput#SUBJECT");
 
+		Click(locator1 = "TextInput#SUBJECT");
+
 		Type(
 			locator1 = "TextInput#SUBJECT",
 			value1 = "${threadSubject}");
@@ -1533,9 +1535,16 @@ definition {
 
 		var key_userPostNumber = "${userPostNumber}";
 
-		AssertTextEquals(
-			locator1 = "MessageBoardsStatistics#TOP_POSTERS_AUTHOR_POSTS",
-			value1 = "Posts:${userPostNumber}");
+		if ("${userPostNumber}" == "1") {
+			AssertTextEquals(
+				locator1 = "MessageBoardsStatistics#TOP_POSTERS_AUTHOR_POSTS",
+				value1 = "Post: ${userPostNumber}");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "MessageBoardsStatistics#TOP_POSTERS_AUTHOR_POSTS",
+				value1 = "Posts: ${userPostNumber}");
+		}
 
 		AssertElementPresent(locator1 = "MessageBoardsStatistics#TOP_POSTERS_AUTHOR_JOIN_DATE");
 
@@ -1543,7 +1552,6 @@ definition {
 	}
 
 	macro viewWithWorkflowPG {
-		var key_repliesCount = "0";
 		var key_threadBody = "threadBody";
 		var key_threadSubject = "${threadSubject}";
 		var key_userName = "${userName}";

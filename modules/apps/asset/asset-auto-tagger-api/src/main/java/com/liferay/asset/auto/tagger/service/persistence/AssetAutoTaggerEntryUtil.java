@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -41,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see AssetAutoTaggerEntryPersistence
  * @generated
  */
-@ProviderType
 public class AssetAutoTaggerEntryUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -190,16 +188,16 @@ public class AssetAutoTaggerEntryUtil {
 	 * @param start the lower bound of the range of asset auto tagger entries
 	 * @param end the upper bound of the range of asset auto tagger entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset auto tagger entries
 	 */
 	public static List<AssetAutoTaggerEntry> findByAssetEntryId(
 		long assetEntryId, int start, int end,
 		OrderByComparator<AssetAutoTaggerEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByAssetEntryId(
-			assetEntryId, start, end, orderByComparator, retrieveFromCache);
+			assetEntryId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -363,16 +361,16 @@ public class AssetAutoTaggerEntryUtil {
 	 * @param start the lower bound of the range of asset auto tagger entries
 	 * @param end the upper bound of the range of asset auto tagger entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset auto tagger entries
 	 */
 	public static List<AssetAutoTaggerEntry> findByAssetTagId(
 		long assetTagId, int start, int end,
 		OrderByComparator<AssetAutoTaggerEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByAssetTagId(
-			assetTagId, start, end, orderByComparator, retrieveFromCache);
+			assetTagId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -509,14 +507,14 @@ public class AssetAutoTaggerEntryUtil {
 	 *
 	 * @param assetEntryId the asset entry ID
 	 * @param assetTagId the asset tag ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset auto tagger entry, or <code>null</code> if a matching asset auto tagger entry could not be found
 	 */
 	public static AssetAutoTaggerEntry fetchByA_A(
-		long assetEntryId, long assetTagId, boolean retrieveFromCache) {
+		long assetEntryId, long assetTagId, boolean useFinderCache) {
 
 		return getPersistence().fetchByA_A(
-			assetEntryId, assetTagId, retrieveFromCache);
+			assetEntryId, assetTagId, useFinderCache);
 	}
 
 	/**
@@ -672,16 +670,16 @@ public class AssetAutoTaggerEntryUtil {
 	 * @param start the lower bound of the range of asset auto tagger entries
 	 * @param end the upper bound of the range of asset auto tagger entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of asset auto tagger entries
 	 */
 	public static List<AssetAutoTaggerEntry> findAll(
 		int start, int end,
 		OrderByComparator<AssetAutoTaggerEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

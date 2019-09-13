@@ -152,12 +152,13 @@ public class EntityModelFieldMapper {
 		EntityField.Type entityFieldType = entityField.getType();
 
 		if (entityFieldType == EntityField.Type.COMPLEX) {
-			Map<String, EntityField> entityFieldsMap =
-				((ComplexEntityField)entityField).getEntityFieldsMap();
+			ComplexEntityField complexEntityField =
+				(ComplexEntityField)entityField;
 
 			return _getComplexFields(
-				entityModel.getName(), entityField.getName(), entityFieldsMap,
-				portletRequest, resourceBundle);
+				entityModel.getName(), entityField.getName(),
+				complexEntityField.getEntityFieldsMap(), portletRequest,
+				resourceBundle);
 		}
 
 		Optional<SegmentsFieldCustomizer> segmentsFieldCustomizerOptional =

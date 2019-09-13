@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DLFileEntryMetadata}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DLFileEntryMetadata
  * @generated
  */
-@ProviderType
 public class DLFileEntryMetadataWrapper
 	extends BaseModelWrapper<DLFileEntryMetadata>
 	implements DLFileEntryMetadata, ModelWrapper<DLFileEntryMetadata> {
@@ -44,6 +41,7 @@ public class DLFileEntryMetadataWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("fileEntryMetadataId", getFileEntryMetadataId());
 		attributes.put("companyId", getCompanyId());
@@ -57,6 +55,12 @@ public class DLFileEntryMetadataWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -168,6 +172,16 @@ public class DLFileEntryMetadataWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this document library file entry metadata.
+	 *
+	 * @return the mvcc version of this document library file entry metadata
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this document library file entry metadata.
 	 *
 	 * @return the primary key of this document library file entry metadata
@@ -187,6 +201,11 @@ public class DLFileEntryMetadataWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a document library file entry metadata model instance should use the <code>DLFileEntryMetadata</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -250,6 +269,16 @@ public class DLFileEntryMetadataWrapper
 	@Override
 	public void setFileVersionId(long fileVersionId) {
 		model.setFileVersionId(fileVersionId);
+	}
+
+	/**
+	 * Sets the mvcc version of this document library file entry metadata.
+	 *
+	 * @param mvccVersion the mvcc version of this document library file entry metadata
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

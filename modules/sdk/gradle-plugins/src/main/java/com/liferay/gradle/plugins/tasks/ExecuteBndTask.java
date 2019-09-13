@@ -25,6 +25,8 @@ import aQute.bnd.version.Version;
 
 import aQute.lib.utf8properties.UTF8Properties;
 
+import aQute.service.reporter.Report;
+
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.util.Validator;
 
@@ -164,7 +166,7 @@ public class ExecuteBndTask extends DefaultTask {
 				jar.write(outputFile);
 			}
 
-			BndUtils.logReport(builder, logger);
+			_logReport(builder, logger);
 
 			if (!builder.isOk()) {
 				throw new GradleException(this + " failed");
@@ -274,7 +276,37 @@ public class ExecuteBndTask extends DefaultTask {
 		_writeManifest = writeManifest;
 	}
 
-	private static File[] _toArray(FileCollection fileCollection) {
+	private void _logReport(Report report, Logger logger) {
+		if (logger.isWarnEnabled()) {
+			for (String warning : report.getWarnings()) {
+				Report.Location location = report.getLocation(warning);
+
+				if ((location != null) && (location.file != null)) {
+					logger.warn(
+						"{}:{}:{}", location.file, location.line, warning);
+				}
+				else {
+					logger.warn(warning);
+				}
+			}
+		}
+
+		if (logger.isErrorEnabled()) {
+			for (String error : report.getErrors()) {
+				Report.Location location = report.getLocation(error);
+
+				if ((location != null) && (location.file != null)) {
+					logger.error(
+						"{}:{}:{}", location.file, location.line, error);
+				}
+				else {
+					logger.error(error);
+				}
+			}
+		}
+	}
+
+	private File[] _toArray(FileCollection fileCollection) {
 		Set<File> files = fileCollection.getFiles();
 
 		return files.toArray(new File[0]);

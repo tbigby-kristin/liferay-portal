@@ -40,8 +40,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the AssetEntryAssetCategoryRel service. Represents a row in the &quot;AssetEntryAssetCategoryRel&quot; database table, with each column mapped to a property of this class.
  *
@@ -53,12 +51,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetEntryAssetCategoryRelImpl
  * @generated
  */
-@ProviderType
 public class AssetEntryAssetCategoryRelModelImpl
 	extends BaseModelImpl<AssetEntryAssetCategoryRel>
 	implements AssetEntryAssetCategoryRelModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a asset entry asset category rel model instance should use the <code>AssetEntryAssetCategoryRel</code> interface instead.
@@ -364,7 +361,12 @@ public class AssetEntryAssetCategoryRelModelImpl
 	@Override
 	public AssetEntryAssetCategoryRel toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, AssetEntryAssetCategoryRel>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -546,8 +548,15 @@ public class AssetEntryAssetCategoryRelModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, AssetEntryAssetCategoryRel>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function
+			<InvocationHandler, AssetEntryAssetCategoryRel>
+				_escapedModelProxyProviderFunction =
+					_getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 

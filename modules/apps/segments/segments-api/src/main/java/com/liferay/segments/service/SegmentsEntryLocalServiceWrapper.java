@@ -16,8 +16,6 @@ package com.liferay.segments.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link SegmentsEntryLocalService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SegmentsEntryLocalService
  * @generated
  */
-@ProviderType
 public class SegmentsEntryLocalServiceWrapper
 	implements SegmentsEntryLocalService,
 			   ServiceWrapper<SegmentsEntryLocalService> {
@@ -335,6 +332,18 @@ public class SegmentsEntryLocalServiceWrapper
 
 		return _segmentsEntryLocalService.getSegmentsEntries(
 			groupId, active, type, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.segments.model.SegmentsEntry>
+		getSegmentsEntries(
+			long groupId, boolean active, String source, String type, int start,
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.segments.model.SegmentsEntry> orderByComparator) {
+
+		return _segmentsEntryLocalService.getSegmentsEntries(
+			groupId, active, source, type, start, end, orderByComparator);
 	}
 
 	@Override

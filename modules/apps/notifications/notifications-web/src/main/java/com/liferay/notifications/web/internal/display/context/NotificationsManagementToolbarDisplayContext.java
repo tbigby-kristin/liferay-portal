@@ -20,11 +20,14 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemList;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.UserNotificationEvent;
+import com.liferay.portal.kernel.notifications.UserNotificationFeedEntry;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -85,6 +88,34 @@ public class NotificationsManagementToolbarDisplayContext {
 					});
 			}
 		};
+	}
+
+	public List<String> getAvailableActions(
+		UserNotificationEvent userNotificationEvent,
+		UserNotificationFeedEntry userNotificationFeedEntry) {
+
+		List<String> availableActions = new ArrayList<>();
+
+		if ((userNotificationFeedEntry == null) ||
+			!userNotificationFeedEntry.isApplicable()) {
+
+			return availableActions;
+		}
+
+		if (!userNotificationFeedEntry.isActionable()) {
+			availableActions.add("deleteNotifications");
+		}
+
+		if (!userNotificationEvent.isActionRequired()) {
+			if (!userNotificationEvent.isArchived()) {
+				availableActions.add("markNotificationsAsRead");
+			}
+			else {
+				availableActions.add("markNotificationsAsUnread");
+			}
+		}
+
+		return availableActions;
 	}
 
 	public String getClearResultsURL() {

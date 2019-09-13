@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_2_0.dtd">
 
-<service-builder auto-namespace-tables="false" dependency-injector="ds" package-path="com.liferay.change.tracking">
+<service-builder auto-import-default-references="false" auto-namespace-tables="false" dependency-injector="ds" mvcc-enabled="true" package-path="com.liferay.change.tracking">
 	<namespace>CT</namespace>
 	<entity local-service="true" name="CTCollection" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -26,11 +26,6 @@
 		<column name="statusByUserName" type="String" uad-anonymize-field-name="fullName" />
 		<column name="statusDate" type="Date" />
 
-		<!-- Relationships -->
-
-		<column entity="CTEntry" mapping-table="CTCollections_CTEntries" name="entries" type="Collection" />
-		<column entity="CTEntryAggregate" mapping-table="CTCollection_CTEntryAggregate" name="aggregates" type="Collection" />
-
 		<!-- Order -->
 
 		<order by="asc">
@@ -46,10 +41,17 @@
 			<finder-column name="companyId" />
 			<finder-column name="name" />
 		</finder>
+		<finder name="C_S" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="status" />
+		</finder>
 
 		<!-- References -->
 
 		<reference entity="CTEntry" package-path="com.liferay.change.tracking" />
+		<reference entity="CTPreferences" package-path="com.liferay.change.tracking" />
+		<reference entity="CTProcess" package-path="com.liferay.change.tracking" />
+		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="CTEntry" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -61,73 +63,82 @@
 
 		<column name="companyId" type="long" />
 		<column name="userId" type="long" />
-		<column name="userName" type="String" uad-anonymize-field-name="fullName" />
 		<column name="createDate" type="Date" />
 		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
 
-		<column name="originalCTCollectionId" type="long" />
+		<column name="ctCollectionId" type="long" />
 		<column name="modelClassNameId" type="long" />
 		<column name="modelClassPK" type="long" />
+		<column name="modelMvccVersion" type="long" />
 		<column name="modelResourcePrimKey" type="long" />
 		<column name="changeType" type="int" />
 		<column name="collision" type="boolean" />
 		<column name="status" type="int" />
 
-		<!-- Relationships -->
-
-		<column entity="CTEntryAggregate" mapping-table="CTEntryAggregates_CTEntries" name="bags" type="Collection" />
-		<column entity="CTCollection" mapping-table="CTCollections_CTEntries" name="collections" type="Collection" />
-
 		<!-- Finder methods -->
 
-		<finder name="ModelClassNameId" return-type="Collection">
+		<finder name="CTCollectionId" return-type="Collection">
+			<finder-column name="ctCollectionId" />
+		</finder>
+		<finder name="C_MCNI" return-type="Collection">
+			<finder-column name="ctCollectionId" />
 			<finder-column name="modelClassNameId" />
 		</finder>
-		<finder name="MCNI_MCPK" return-type="CTEntry" unique="true">
+		<finder name="C_MRPK" return-type="Collection">
+			<finder-column name="ctCollectionId" />
+			<finder-column name="modelResourcePrimKey" />
+		</finder>
+		<finder name="C_S" return-type="Collection">
+			<finder-column name="ctCollectionId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_MCNI_MCPK" return-type="CTEntry" unique="true">
+			<finder-column name="ctCollectionId" />
 			<finder-column name="modelClassNameId" />
 			<finder-column name="modelClassPK" />
+		</finder>
+		<finder name="C_MCNI_S" return-type="Collection">
+			<finder-column name="ctCollectionId" />
+			<finder-column name="modelClassNameId" />
+			<finder-column name="status" />
+		</finder>
+		<finder name="C_MRPK_S" return-type="Collection">
+			<finder-column name="ctCollectionId" />
+			<finder-column name="modelResourcePrimKey" />
+			<finder-column name="status" />
 		</finder>
 
 		<!-- References -->
 
 		<reference entity="CTCollection" package-path="com.liferay.change.tracking" />
-		<reference entity="CTEntryAggregate" package-path="com.liferay.change.tracking" />
 	</entity>
-	<entity local-service="true" name="CTEntryAggregate" remote-service="false" trash-enabled="false" uuid="false">
+	<entity local-service="true" name="CTPreferences" remote-service="false" trash-enabled="false" uuid="false">
 
 		<!-- PK fields -->
 
-		<column name="ctEntryAggregateId" primary="true" type="long" />
+		<column name="ctPreferencesId" primary="true" type="long" />
 
 		<!-- Audit fields -->
 
 		<column name="companyId" type="long" />
 		<column name="userId" type="long" />
-		<column name="userName" type="String" uad-anonymize-field-name="fullName" />
-		<column name="createDate" type="Date" />
-		<column name="modifiedDate" type="Date" />
 
 		<!-- Other fields -->
 
-		<column name="ownerCTEntryId" type="long" />
-		<column name="status" type="int" />
-
-		<!-- Relationships -->
-
-		<column entity="CTCollection" mapping-table="CTCollection_CTEntryAggregate" name="collections" type="Collection" />
-		<column entity="CTEntry" mapping-table="CTEntryAggregates_CTEntries" name="entries" type="Collection" />
+		<column name="ctCollectionId" type="long" />
+		<column name="confirmationEnabled" type="boolean" />
 
 		<!-- Finder methods -->
 
-		<finder name="OwnerCTEntryId" return-type="Collection">
-			<finder-column name="ownerCTEntryId" />
+		<finder name="CollectionId" return-type="Collection">
+			<finder-column name="ctCollectionId" />
 		</finder>
-
-		<!-- References -->
-
-		<reference entity="CTEntry" package-path="com.liferay.change.tracking" />
+		<finder name="C_U" return-type="CTPreferences" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="userId" />
+		</finder>
 	</entity>
 	<entity local-service="true" name="CTProcess" remote-service="false" trash-enabled="false" uuid="false">
 
@@ -160,7 +171,9 @@
 
 		<!-- References -->
 
+		<reference entity="CTCollection" package-path="com.liferay.change.tracking" />
 		<reference entity="Company" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
 	<exceptions>
 		<exception>CTCollectionDescription</exception>

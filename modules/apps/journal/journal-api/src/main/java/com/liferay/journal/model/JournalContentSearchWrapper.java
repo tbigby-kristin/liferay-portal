@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link JournalContentSearch}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalContentSearch
  * @generated
  */
-@ProviderType
 public class JournalContentSearchWrapper
 	extends BaseModelWrapper<JournalContentSearch>
 	implements JournalContentSearch, ModelWrapper<JournalContentSearch> {
@@ -46,6 +43,7 @@ public class JournalContentSearchWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("contentSearchId", getContentSearchId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -59,6 +57,12 @@ public class JournalContentSearchWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long contentSearchId = (Long)attributes.get("contentSearchId");
 
 		if (contentSearchId != null) {
@@ -153,6 +157,16 @@ public class JournalContentSearchWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this journal content search.
+	 *
+	 * @return the mvcc version of this journal content search
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the portlet ID of this journal content search.
 	 *
 	 * @return the portlet ID of this journal content search
@@ -192,6 +206,11 @@ public class JournalContentSearchWrapper
 		return model.isPrivateLayout();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a journal content search model instance should use the <code>JournalContentSearch</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -245,6 +264,16 @@ public class JournalContentSearchWrapper
 	@Override
 	public void setLayoutId(long layoutId) {
 		model.setLayoutId(layoutId);
+	}
+
+	/**
+	 * Sets the mvcc version of this journal content search.
+	 *
+	 * @param mvccVersion the mvcc version of this journal content search
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

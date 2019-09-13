@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.annotations.DDMForm;
 import com.liferay.dynamic.data.mapping.annotations.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidationExpression;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -76,9 +77,7 @@ public class DDMFormFieldFactoryHelper {
 				value = getPropertyValue(value);
 			}
 
-			String key = entry.getKey();
-
-			ddmFormField.setProperty(key, value);
+			ddmFormField.setProperty(entry.getKey(), value);
 		}
 
 		ddmFormField.setDataType(getDDMFormFieldDataType());
@@ -276,12 +275,22 @@ public class DDMFormFieldFactoryHelper {
 	}
 
 	protected DDMFormFieldValidation getDDMFormFieldValidation() {
+		if (Validator.isNull(_ddmFormField.validationExpression()) &&
+			Validator.isNull(_ddmFormField.validationErrorMessage())) {
+
+			return null;
+		}
+
 		DDMFormFieldValidation ddmFormFieldValidation =
 			new DDMFormFieldValidation();
 
 		if (Validator.isNotNull(_ddmFormField.validationExpression())) {
-			ddmFormFieldValidation.setExpression(
-				_ddmFormField.validationExpression());
+			ddmFormFieldValidation.setDDMFormFieldValidationExpression(
+				new DDMFormFieldValidationExpression() {
+					{
+						setValue(_ddmFormField.validationExpression());
+					}
+				});
 		}
 
 		if (Validator.isNotNull(_ddmFormField.validationErrorMessage())) {
@@ -295,7 +304,8 @@ public class DDMFormFieldFactoryHelper {
 					_defaultLocale, languageKey);
 			}
 
-			ddmFormFieldValidation.setErrorMessage(validationErrorMessage);
+			ddmFormFieldValidation.setErrorMessageLocalizedValue(
+				createLocalizedValue(validationErrorMessage));
 		}
 
 		return ddmFormFieldValidation;
@@ -310,10 +320,8 @@ public class DDMFormFieldFactoryHelper {
 	}
 
 	protected String getLocalizedValue(Locale locale, String value) {
-		ResourceBundle resourceBundle = _ddmFormFactoryHelper.getResourceBundle(
-			locale);
-
-		return LanguageUtil.get(resourceBundle, value);
+		return LanguageUtil.get(
+			_ddmFormFactoryHelper.getResourceBundle(locale), value);
 	}
 
 	protected Map<String, Object> getProperties() {

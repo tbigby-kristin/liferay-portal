@@ -16,6 +16,7 @@ package com.liferay.layout.admin.web.internal.portlet.action;
 
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
+import com.liferay.layout.seo.service.LayoutSEOEntryService;
 import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
@@ -48,11 +49,10 @@ import com.liferay.portal.util.PropsValues;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -145,6 +145,15 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 			nameMap, titleMap, descriptionMap, keywordsMap, robotsMap, type,
 			hidden, friendlyURLMap, !deleteLogo, iconBytes, serviceContext);
 
+		boolean useCustomCanonicalURL = ParamUtil.getBoolean(
+			actionRequest, "useCustomCanonicalURL");
+		Map<Locale, String> canonicalURLMap =
+			LocalizationUtil.getLocalizationMap(actionRequest, "canonicalURL");
+
+		_layoutSEOEntryService.updateLayoutSEOEntry(
+			groupId, privateLayout, layoutId, useCustomCanonicalURL,
+			canonicalURLMap, serviceContext);
+
 		Layout draftLayout = _layoutLocalService.fetchLayout(
 			_portal.getClassNameId(Layout.class), layout.getPlid());
 
@@ -155,6 +164,10 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 				descriptionMap, keywordsMap, robotsMap, type,
 				draftLayout.isHidden(), draftLayout.getFriendlyURLMap(),
 				!deleteLogo, iconBytes, serviceContext);
+
+			_layoutSEOEntryService.updateLayoutSEOEntry(
+				groupId, privateLayout, draftLayout.getLayoutId(),
+				useCustomCanonicalURL, canonicalURLMap, serviceContext);
 		}
 
 		themeDisplay.clearLayoutFriendlyURL(layout);
@@ -219,13 +232,11 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 				layoutTypeSettingsProperties.toString());
 		}
 
-		HttpServletResponse httpServletResponse =
-			_portal.getHttpServletResponse(actionResponse);
-
 		EventsProcessorUtil.process(
 			PropsKeys.LAYOUT_CONFIGURATION_ACTION_UPDATE,
 			layoutTypePortlet.getConfigurationActionUpdate(),
-			uploadPortletRequest, httpServletResponse);
+			uploadPortletRequest,
+			_portal.getHttpServletResponse(actionResponse));
 
 		_actionUtil.updateLookAndFeel(
 			actionRequest, themeDisplay.getCompanyId(), liveGroupId,
@@ -234,7 +245,10 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
-		if (Validator.isNull(redirect) || redirect.endsWith(oldFriendlyURL)) {
+		if (Validator.isNull(redirect) ||
+			(redirect.contains(oldFriendlyURL) &&
+			 !Objects.equals(layout.getFriendlyURL(), oldFriendlyURL))) {
+
 			redirect = _portal.getLayoutFullURL(layout, themeDisplay);
 		}
 
@@ -255,6 +269,9 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private LayoutSEOEntryService _layoutSEOEntryService;
 
 	@Reference
 	private LayoutService _layoutService;

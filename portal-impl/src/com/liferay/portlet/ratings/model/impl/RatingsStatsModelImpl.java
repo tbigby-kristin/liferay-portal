@@ -43,8 +43,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the RatingsStats service. Represents a row in the &quot;RatingsStats&quot; database table, with each column mapped to a property of this class.
  *
@@ -56,11 +54,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see RatingsStatsImpl
  * @generated
  */
-@ProviderType
 public class RatingsStatsModelImpl
 	extends BaseModelImpl<RatingsStats> implements RatingsStatsModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a ratings stats model instance should use the <code>RatingsStats</code> interface instead.
@@ -426,7 +423,12 @@ public class RatingsStatsModelImpl
 	@Override
 	public RatingsStats toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, RatingsStats>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -603,8 +605,12 @@ public class RatingsStatsModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, RatingsStats>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, RatingsStats>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _statsId;
 	private long _companyId;

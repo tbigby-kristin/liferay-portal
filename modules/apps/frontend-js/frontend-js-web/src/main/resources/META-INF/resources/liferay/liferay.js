@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 Liferay = window.Liferay || {};
 
 (function($, Liferay) {
@@ -22,11 +36,10 @@ Liferay = window.Liferay || {};
 
 		var parts = path.split('.');
 
-		for (var part; parts.length && (part = parts.shift());) {
+		for (var part; parts.length && (part = parts.shift()); ) {
 			if (obj[part] && obj[part] !== Object.prototype[part]) {
 				obj = obj[part];
-			}
-			else {
+			} else {
 				obj = obj[part] = {};
 			}
 		}
@@ -34,24 +47,20 @@ Liferay = window.Liferay || {};
 		return obj;
 	};
 
-	$.ajaxSetup(
-		{
-			data: {},
-			type: 'POST'
-		}
-	);
+	$.ajaxSetup({
+		data: {},
+		type: 'POST'
+	});
 
-	$.ajaxPrefilter(
-		function(options) {
-			if (options.crossDomain) {
-				options.contents.script = false;
-			}
-
-			if (options.url) {
-				options.url = Liferay.Util.getURLWithSessionId(options.url);
-			}
+	$.ajaxPrefilter(function(options) {
+		if (options.crossDomain) {
+			options.contents.script = false;
 		}
-	);
+
+		if (options.url) {
+			options.url = Liferay.Util.getURLWithSessionId(options.url);
+		}
+	});
 
 	var jqueryInit = $.prototype.init;
 
@@ -63,52 +72,46 @@ Liferay = window.Liferay || {};
 		return new jqueryInit(selector, context, root);
 	};
 
-	$(document).on(
-		'show.bs.collapse',
-		function(event) {
-			var target = $(event.target);
+	$(document).on('show.bs.collapse', function(event) {
+		var target = $(event.target);
 
-			var ancestor = target.parents('.panel-group');
+		var ancestor = target.parents('.panel-group');
 
-			if (target.hasClass('panel-collapse') && ancestor.length) {
-				var openChildren = ancestor.find('.panel-collapse.in').not(target);
+		if (target.hasClass('panel-collapse') && ancestor.length) {
+			var openChildren = ancestor.find('.panel-collapse.in').not(target);
 
-				if (openChildren.length && ancestor.find('[data-parent="#' + ancestor.attr('id') + '"]').length) {
-					openChildren.removeClass('in');
-				}
-			}
-
-			if (target.hasClass('in')) {
-				target.addClass('show');
-				target.removeClass('in');
-
-				target.collapse('hide');
-
-				return false;
+			if (
+				openChildren.length &&
+				ancestor.find('[data-parent="#' + ancestor.attr('id') + '"]')
+					.length
+			) {
+				openChildren.removeClass('in');
 			}
 		}
-	);
 
-	$(document).on(
-		'show.bs.dropdown',
-		function() {
-			Liferay.fire(
-				'dropdownShow',
-				{
-					src: 'BootstrapDropdown'
-				}
-			);
-		}
-	);
+		if (target.hasClass('in')) {
+			target.addClass('show');
+			target.removeClass('in');
 
-	Liferay.on(
-		'dropdownShow',
-		function(event) {
-			if (event.src !== 'BootstrapDropdown') {
-				$('.dropdown.show .dropdown-toggle[data-toggle="dropdown"]').dropdown('toggle');
-			}
+			target.collapse('hide');
+
+			return false;
 		}
-	);
+	});
+
+	$(document).on('show.bs.dropdown', function() {
+		Liferay.fire('dropdownShow', {
+			src: 'BootstrapDropdown'
+		});
+	});
+
+	Liferay.on('dropdownShow', function(event) {
+		if (event.src !== 'BootstrapDropdown') {
+			$(
+				'.dropdown.show .dropdown-toggle[data-toggle="dropdown"]'
+			).dropdown('toggle');
+		}
+	});
 
 	/**
 	 * OPTIONS
@@ -123,9 +126,9 @@ Liferay = window.Liferay || {};
 	 */
 
 	var Service = function() {
-		var instance = this;
-
-		var args = Service.parseInvokeArgs(Array.prototype.slice.call(arguments, 0));
+		var args = Service.parseInvokeArgs(
+			Array.prototype.slice.call(arguments, 0)
+		);
 
 		return Service.invoke.apply(Service, args);
 	};
@@ -165,8 +168,6 @@ Liferay = window.Liferay || {};
 	};
 
 	Service.parseIOConfig = function(args) {
-		var instance = this;
-
 		var payload = args[0];
 
 		var ioConfig = payload.io || {};
@@ -186,20 +187,27 @@ Liferay = window.Liferay || {};
 			ioConfig.complete = function(xhr) {
 				var response = xhr.responseJSON;
 
-				if ((response !== null) && !response.hasOwnProperty('exception')) {
+				if (
+					response !== null &&
+					!Object.prototype.hasOwnProperty.call(response, 'exception')
+				) {
 					if (callbackSuccess) {
 						callbackSuccess.call(this, response);
 					}
-				}
-				else if (callbackException) {
-					var exception = response ? response.exception : 'The server returned an empty response';
+				} else if (callbackException) {
+					var exception = response
+						? response.exception
+						: 'The server returned an empty response';
 
 					callbackException.call(this, exception, response);
 				}
 			};
 		}
 
-		if (!ioConfig.hasOwnProperty('cache') && REGEX_METHOD_GET.test(ioConfig.type)) {
+		if (
+			!Object.prototype.hasOwnProperty.call(ioConfig, 'cache') &&
+			REGEX_METHOD_GET.test(ioConfig.type)
+		) {
 			ioConfig.cache = false;
 		}
 
@@ -211,8 +219,6 @@ Liferay = window.Liferay || {};
 	};
 
 	Service.parseIOFormConfig = function(ioConfig, args) {
-		var instance = this;
-
 		var form = args[1];
 
 		if (isNode(form)) {
@@ -249,8 +255,8 @@ Liferay = window.Liferay || {};
 		ioConfig = Object.assign(
 			{
 				data: {
-					cmd: cmd,
-					p_auth: p_auth
+					cmd,
+					p_auth
 				},
 				dataType: 'JSON'
 			},
@@ -258,53 +264,51 @@ Liferay = window.Liferay || {};
 		);
 
 		if (ioConfig.form) {
-			if (ioConfig.form.enctype == STR_MULTIPART && isFunction(window.FormData)) {
+			if (
+				ioConfig.form.enctype == STR_MULTIPART &&
+				isFunction(window.FormData)
+			) {
 				ioConfig.data = new FormData(ioConfig.form);
 
 				ioConfig.data.append('cmd', cmd);
 				ioConfig.data.append('p_auth', p_auth);
-			}
-			else {
-				$(ioConfig.form).serializeArray().forEach(
-					function(item) {
+			} else {
+				$(ioConfig.form)
+					.serializeArray()
+					.forEach(function(item) {
 						ioConfig.data[item.name] = item.value;
-					}
-				);
+					});
 			}
 
 			delete ioConfig.form;
 		}
 
-		return $.ajax(
-			instance.URL_INVOKE,
-			ioConfig
-		);
+		return $.ajax(instance.URL_INVOKE, ioConfig);
 	};
 
-	['get', 'delete', 'post', 'put', 'update'].forEach(
-		function(item) {
-			var methodName = item;
+	function getHttpMethodFunction(httpMethodName) {
+		return function() {
+			var args = Array.prototype.slice.call(arguments, 0);
 
-			if (item === 'delete') {
-				methodName = 'del';
-			}
+			var method = {method: httpMethodName};
 
-			Service[methodName] = function() {
-				var args = Array.prototype.slice.call(arguments, 0);
+			args.push(method);
 
-				var method = {method: item};
+			return Service.apply(Service, args);
+		};
+	}
 
-				args.push(method);
-
-				return Service.apply(Service, args);
-			};
-		}
-	);
+	Service.get = getHttpMethodFunction('get');
+	Service.del = getHttpMethodFunction('delete');
+	Service.post = getHttpMethodFunction('post');
+	Service.put = getHttpMethodFunction('put');
+	Service.update = getHttpMethodFunction('update');
 
 	Liferay.Service = Service;
 
 	Liferay.Template = {
-		PORTLET: '<div class="portlet"><div class="portlet-topper"><div class="portlet-title"></div></div><div class="portlet-content"></div><div class="forbidden-action"></div></div>'
+		PORTLET:
+			'<div class="portlet"><div class="portlet-topper"><div class="portlet-title"></div></div><div class="portlet-content"></div><div class="forbidden-action"></div></div>'
 	};
 })(AUI.$, Liferay);
 
@@ -313,7 +317,7 @@ Liferay = window.Liferay || {};
 		A.namespace('config.io'),
 		{
 			method: 'POST',
-			uriFormatter: function(value) {
+			uriFormatter(value) {
 				return Liferay.Util.getURLWithSessionId(value);
 			}
 		},

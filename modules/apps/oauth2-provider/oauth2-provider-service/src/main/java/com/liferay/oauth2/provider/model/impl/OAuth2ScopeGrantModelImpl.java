@@ -41,8 +41,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the OAuth2ScopeGrant service. Represents a row in the &quot;OAuth2ScopeGrant&quot; database table, with each column mapped to a property of this class.
  *
@@ -54,11 +52,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see OAuth2ScopeGrantImpl
  * @generated
  */
-@ProviderType
 public class OAuth2ScopeGrantModelImpl
 	extends BaseModelImpl<OAuth2ScopeGrant> implements OAuth2ScopeGrantModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a o auth2 scope grant model instance should use the <code>OAuth2ScopeGrant</code> interface instead.
@@ -479,7 +476,12 @@ public class OAuth2ScopeGrantModelImpl
 	@Override
 	public OAuth2ScopeGrant toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, OAuth2ScopeGrant>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -696,8 +698,13 @@ public class OAuth2ScopeGrantModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, OAuth2ScopeGrant>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, OAuth2ScopeGrant>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
 	private static boolean _entityCacheEnabled;
 	private static boolean _finderCacheEnabled;
 

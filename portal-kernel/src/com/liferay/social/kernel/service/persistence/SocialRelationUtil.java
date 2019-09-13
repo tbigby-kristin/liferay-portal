@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the social relation service. This utility wraps <code>com.liferay.portlet.social.service.persistence.impl.SocialRelationPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SocialRelationPersistence
  * @generated
  */
-@ProviderType
 public class SocialRelationUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -182,16 +179,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -353,16 +350,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -533,16 +530,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByCompanyId(
 		long companyId, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByCompanyId(
-			companyId, start, end, orderByComparator, retrieveFromCache);
+			companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -702,16 +699,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByUserId1(
 		long userId1, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUserId1(
-			userId1, start, end, orderByComparator, retrieveFromCache);
+			userId1, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -868,16 +865,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByUserId2(
 		long userId2, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUserId2(
-			userId2, start, end, orderByComparator, retrieveFromCache);
+			userId2, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1033,16 +1030,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByType(
 		int type, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByType(
-			type, start, end, orderByComparator, retrieveFromCache);
+			type, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1202,16 +1199,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByC_T(
 		long companyId, int type, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByC_T(
-			companyId, type, start, end, orderByComparator, retrieveFromCache);
+			companyId, type, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1386,16 +1383,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByU1_U2(
 		long userId1, long userId2, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByU1_U2(
-			userId1, userId2, start, end, orderByComparator, retrieveFromCache);
+			userId1, userId2, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1570,16 +1567,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByU1_T(
 		long userId1, int type, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByU1_T(
-			userId1, type, start, end, orderByComparator, retrieveFromCache);
+			userId1, type, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1754,16 +1751,16 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching social relations
 	 */
 	public static List<SocialRelation> findByU2_T(
 		long userId2, int type, int start, int end,
 		OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByU2_T(
-			userId2, type, start, end, orderByComparator, retrieveFromCache);
+			userId2, type, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1910,14 +1907,14 @@ public class SocialRelationUtil {
 	 * @param userId1 the user id1
 	 * @param userId2 the user id2
 	 * @param type the type
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching social relation, or <code>null</code> if a matching social relation could not be found
 	 */
 	public static SocialRelation fetchByU1_U2_T(
-		long userId1, long userId2, int type, boolean retrieveFromCache) {
+		long userId1, long userId2, int type, boolean useFinderCache) {
 
 		return getPersistence().fetchByU1_U2_T(
-			userId1, userId2, type, retrieveFromCache);
+			userId1, userId2, type, useFinderCache);
 	}
 
 	/**
@@ -2068,15 +2065,15 @@ public class SocialRelationUtil {
 	 * @param start the lower bound of the range of social relations
 	 * @param end the upper bound of the range of social relations (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of social relations
 	 */
 	public static List<SocialRelation> findAll(
 		int start, int end, OrderByComparator<SocialRelation> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

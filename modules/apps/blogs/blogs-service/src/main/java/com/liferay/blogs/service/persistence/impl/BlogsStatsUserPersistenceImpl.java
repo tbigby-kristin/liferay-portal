@@ -32,8 +32,7 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.service.persistence.CompanyProvider;
-import com.liferay.portal.kernel.service.persistence.CompanyProviderWrapper;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -53,7 +52,6 @@ import java.util.Objects;
 
 import javax.sql.DataSource;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -70,12 +68,11 @@ import org.osgi.service.component.annotations.Reference;
  * @generated
  */
 @Component(service = BlogsStatsUserPersistence.class)
-@ProviderType
 public class BlogsStatsUserPersistenceImpl
 	extends BasePersistenceImpl<BlogsStatsUser>
 	implements BlogsStatsUserPersistence {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>BlogsStatsUserUtil</code> to access the blogs stats user persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -159,14 +156,14 @@ public class BlogsStatsUserPersistenceImpl
 	 * @param start the lower bound of the range of blogs stats users
 	 * @param end the upper bound of the range of blogs stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching blogs stats users
 	 */
 	@Override
 	public List<BlogsStatsUser> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<BlogsStatsUser> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -176,17 +173,20 @@ public class BlogsStatsUserPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByGroupId;
-			finderArgs = new Object[] {groupId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByGroupId;
+				finderArgs = new Object[] {groupId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByGroupId;
 			finderArgs = new Object[] {groupId, start, end, orderByComparator};
 		}
 
 		List<BlogsStatsUser> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<BlogsStatsUser>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -252,10 +252,14 @@ public class BlogsStatsUserPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -663,14 +667,14 @@ public class BlogsStatsUserPersistenceImpl
 	 * @param start the lower bound of the range of blogs stats users
 	 * @param end the upper bound of the range of blogs stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching blogs stats users
 	 */
 	@Override
 	public List<BlogsStatsUser> findByUserId(
 		long userId, int start, int end,
 		OrderByComparator<BlogsStatsUser> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -680,17 +684,20 @@ public class BlogsStatsUserPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByUserId;
-			finderArgs = new Object[] {userId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByUserId;
+				finderArgs = new Object[] {userId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByUserId;
 			finderArgs = new Object[] {userId, start, end, orderByComparator};
 		}
 
 		List<BlogsStatsUser> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<BlogsStatsUser>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -756,10 +763,14 @@ public class BlogsStatsUserPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1160,18 +1171,22 @@ public class BlogsStatsUserPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param userId the user ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching blogs stats user, or <code>null</code> if a matching blogs stats user could not be found
 	 */
 	@Override
 	public BlogsStatsUser fetchByG_U(
-		long groupId, long userId, boolean retrieveFromCache) {
+		long groupId, long userId, boolean useFinderCache) {
 
-		Object[] finderArgs = new Object[] {groupId, userId};
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {groupId, userId};
+		}
 
 		Object result = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			result = finderCache.getResult(
 				_finderPathFetchByG_U, finderArgs, this);
 		}
@@ -1213,8 +1228,10 @@ public class BlogsStatsUserPersistenceImpl
 				List<BlogsStatsUser> list = q.list();
 
 				if (list.isEmpty()) {
-					finderCache.putResult(
-						_finderPathFetchByG_U, finderArgs, list);
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByG_U, finderArgs, list);
+					}
 				}
 				else {
 					BlogsStatsUser blogsStatsUser = list.get(0);
@@ -1225,7 +1242,9 @@ public class BlogsStatsUserPersistenceImpl
 				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(_finderPathFetchByG_U, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(_finderPathFetchByG_U, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1391,14 +1410,14 @@ public class BlogsStatsUserPersistenceImpl
 	 * @param start the lower bound of the range of blogs stats users
 	 * @param end the upper bound of the range of blogs stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching blogs stats users
 	 */
 	@Override
 	public List<BlogsStatsUser> findByG_NotE(
 		long groupId, int entryCount, int start, int end,
 		OrderByComparator<BlogsStatsUser> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -1411,7 +1430,7 @@ public class BlogsStatsUserPersistenceImpl
 
 		List<BlogsStatsUser> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<BlogsStatsUser>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -1483,10 +1502,14 @@ public class BlogsStatsUserPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1527,7 +1550,7 @@ public class BlogsStatsUserPersistenceImpl
 		msg.append("groupId=");
 		msg.append(groupId);
 
-		msg.append(", entryCount=");
+		msg.append(", entryCount!=");
 		msg.append(entryCount);
 
 		msg.append("}");
@@ -1587,7 +1610,7 @@ public class BlogsStatsUserPersistenceImpl
 		msg.append("groupId=");
 		msg.append(groupId);
 
-		msg.append(", entryCount=");
+		msg.append(", entryCount!=");
 		msg.append(entryCount);
 
 		msg.append("}");
@@ -1933,14 +1956,14 @@ public class BlogsStatsUserPersistenceImpl
 	 * @param start the lower bound of the range of blogs stats users
 	 * @param end the upper bound of the range of blogs stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching blogs stats users
 	 */
 	@Override
 	public List<BlogsStatsUser> findByC_NotE(
 		long companyId, int entryCount, int start, int end,
 		OrderByComparator<BlogsStatsUser> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -1953,7 +1976,7 @@ public class BlogsStatsUserPersistenceImpl
 
 		List<BlogsStatsUser> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<BlogsStatsUser>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -2025,10 +2048,14 @@ public class BlogsStatsUserPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -2069,7 +2096,7 @@ public class BlogsStatsUserPersistenceImpl
 		msg.append("companyId=");
 		msg.append(companyId);
 
-		msg.append(", entryCount=");
+		msg.append(", entryCount!=");
 		msg.append(entryCount);
 
 		msg.append("}");
@@ -2129,7 +2156,7 @@ public class BlogsStatsUserPersistenceImpl
 		msg.append("companyId=");
 		msg.append(companyId);
 
-		msg.append(", entryCount=");
+		msg.append(", entryCount!=");
 		msg.append(entryCount);
 
 		msg.append("}");
@@ -2476,14 +2503,14 @@ public class BlogsStatsUserPersistenceImpl
 	 * @param start the lower bound of the range of blogs stats users
 	 * @param end the upper bound of the range of blogs stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching blogs stats users
 	 */
 	@Override
 	public List<BlogsStatsUser> findByU_L(
 		long userId, Date lastPostDate, int start, int end,
 		OrderByComparator<BlogsStatsUser> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -2493,10 +2520,13 @@ public class BlogsStatsUserPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByU_L;
-			finderArgs = new Object[] {userId, _getTime(lastPostDate)};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByU_L;
+				finderArgs = new Object[] {userId, _getTime(lastPostDate)};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByU_L;
 			finderArgs = new Object[] {
 				userId, _getTime(lastPostDate), start, end, orderByComparator
@@ -2505,7 +2535,7 @@ public class BlogsStatsUserPersistenceImpl
 
 		List<BlogsStatsUser> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<BlogsStatsUser>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -2589,10 +2619,14 @@ public class BlogsStatsUserPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -3144,7 +3178,7 @@ public class BlogsStatsUserPersistenceImpl
 		blogsStatsUser.setNew(true);
 		blogsStatsUser.setPrimaryKey(statsUserId);
 
-		blogsStatsUser.setCompanyId(companyProvider.getCompanyId());
+		blogsStatsUser.setCompanyId(CompanyThreadLocal.getCompanyId());
 
 		return blogsStatsUser;
 	}
@@ -3492,13 +3526,13 @@ public class BlogsStatsUserPersistenceImpl
 	 * @param start the lower bound of the range of blogs stats users
 	 * @param end the upper bound of the range of blogs stats users (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of blogs stats users
 	 */
 	@Override
 	public List<BlogsStatsUser> findAll(
 		int start, int end, OrderByComparator<BlogsStatsUser> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -3508,17 +3542,20 @@ public class BlogsStatsUserPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindAll;
-			finderArgs = FINDER_ARGS_EMPTY;
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindAll;
+				finderArgs = FINDER_ARGS_EMPTY;
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<BlogsStatsUser> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<BlogsStatsUser>)finderCache.getResult(
 				finderPath, finderArgs, this);
 		}
@@ -3568,10 +3605,14 @@ public class BlogsStatsUserPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -3786,7 +3827,7 @@ public class BlogsStatsUserPersistenceImpl
 
 	@Override
 	@Reference(
-		target = BlogsPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = BlogsPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -3817,9 +3858,6 @@ public class BlogsStatsUserPersistenceImpl
 	}
 
 	private boolean _columnBitmaskEnabled;
-
-	@Reference(service = CompanyProviderWrapper.class)
-	protected CompanyProvider companyProvider;
 
 	@Reference
 	protected EntityCache entityCache;
@@ -3857,5 +3895,14 @@ public class BlogsStatsUserPersistenceImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BlogsStatsUserPersistenceImpl.class);
+
+	static {
+		try {
+			Class.forName(BlogsPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

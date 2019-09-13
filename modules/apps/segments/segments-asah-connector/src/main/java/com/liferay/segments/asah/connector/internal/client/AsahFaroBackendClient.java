@@ -14,9 +14,12 @@
 
 package com.liferay.segments.asah.connector.internal.client;
 
+import com.liferay.segments.asah.connector.internal.client.model.DXPVariants;
+import com.liferay.segments.asah.connector.internal.client.model.Experiment;
 import com.liferay.segments.asah.connector.internal.client.model.Individual;
 import com.liferay.segments.asah.connector.internal.client.model.IndividualSegment;
 import com.liferay.segments.asah.connector.internal.client.model.Results;
+import com.liferay.segments.asah.connector.internal.client.model.Topic;
 import com.liferay.segments.asah.connector.internal.client.util.OrderByField;
 
 import java.util.List;
@@ -24,45 +27,94 @@ import java.util.List;
 /**
  * @author Shinn Lok
  * @author David Arques
+ * @author Sarai Díaz
  */
 public interface AsahFaroBackendClient {
+
+	/**
+	 * Adds an {@link Experiment}.
+	 *
+	 * @param  experiment experiment to be created
+	 * @return the created experiment
+	 * @review
+	 */
+	public Experiment addExperiment(Experiment experiment);
+
+	/**
+	 * Deletes an {@link Experiment}.
+	 *
+	 * @param  experimentId the ID of the experiment to be removed
+	 * @review
+	 */
+	public void deleteExperiment(String experimentId);
 
 	/**
 	 * Returns the ID of the data source connected to the client.
 	 *
 	 * @return the ID of the data source connected to the client
-	 * @review
 	 */
 	public String getDataSourceId();
 
 	/**
-	 * Returns a {@link Results} of {@link Individual} that are members of an
-	 * individual segment.
+	 * Returns the individual matching the primary key for the data source {@link
+	 * #getDataSourceId()}.
 	 *
-	 * @param  individualSegmentId the ID of the individual segment
+	 * @param  individualPK the primary key of the individual
+	 * @return the individual matching the primary key, or {@code null} if no
+	 *         matches were found
+	 */
+	public Individual getIndividual(String individualPK);
+
+	/**
+	 * Returns the results of an individual that is a member of an individual
+	 * segment.
+	 *
+	 * @param  individualSegmentId the individual segment's ID
 	 * @param  cur the current page (one-based numbering)
 	 * @param  delta the page size
 	 * @param  orderByFields the sort fields
-	 * @return a {@link Results} of {@link Individual} that are members of an
-	 *         individual segment
-	 * @review
+	 * @return the results of an individual that is a member of an individual
+	 *         segment
 	 */
 	public Results<Individual> getIndividualResults(
 		String individualSegmentId, int cur, int delta,
 		List<OrderByField> orderByFields);
 
 	/**
-	 * Returns a {@link Results} of active {@link IndividualSegment} with
-	 * members.
+	 * Returns the results of an active individual segment with members.
 	 *
 	 * @param  cur the current page (one-based numbering)
 	 * @param  delta the page size
 	 * @param  orderByFields the sort fields
-	 * @return a {@link Results} of active {@link IndividualSegment} with
-	 *         members
-	 * @review
+	 * @return the results of an active individual segment with members
 	 */
 	public Results<IndividualSegment> getIndividualSegmentResults(
 		int cur, int delta, List<OrderByField> orderByFields);
+
+	/**
+	 * Returns the results for interest terms for the user.
+	 *
+	 * @param  userId the user's ID
+	 * @return the results for interest terms for the user
+	 */
+	public Results<Topic> getInterestTermsResults(String userId);
+
+	/**
+	 * Updates an {@link Experiment}.
+	 *
+	 * @param  experiment experiment to be updated
+	 * @review
+	 */
+	public void updateExperiment(Experiment experiment);
+
+	/**
+	 * Updates a set of {@link DXPVariants}.
+	 *
+	 * @param experimentId the experiment ID
+	 * @param dxpVariants list of experiment variants
+	 * @review
+	 */
+	public void updateExperimentDXPVariants(
+		String experimentId, DXPVariants dxpVariants);
 
 }

@@ -6,14 +6,13 @@
 {template .render}
 	{@param? _handleLookAndFeeldButtonClick: any}
 	{@param? _handlePanelButtonClick: any}
-	{@param? lookAndFeelURL: string}
 	{@param? _selectedSidebarPanel: [
 		icon: string,
 		label: string,
 		sidebarPanelId: string
 	]}
-	{@param? selectedSidebarPanelId: string}
 	{@param? sidebarPanels: list<[
+		type: string,
 		icon: string,
 		label: string,
 		sidebarPanelId: string
@@ -24,85 +23,88 @@
 	<div class="fragments-editor-sidebar-content">
 		<div class="fragments-editor-sidebar-section">
 			{if $_selectedSidebarPanel}
-				<h1 class="fragments-editor-sidebar-section__title">
-					{$_selectedSidebarPanel.label ?: ''}
-				</h1>
-			{/if}
-
-			{if $selectedSidebarPanelId == 'sections'}
-				{call com.liferay.layout.content.page.editor.web.SidebarSectionsPanel.render}
-					{param store: $store /}
-				{/call}
-			{elseif $selectedSidebarPanelId == 'elements'}
-				{call com.liferay.layout.content.page.editor.web.SidebarElementsPanel.render}
-					{param store: $store /}
-				{/call}
-			{elseif $selectedSidebarPanelId == 'mapping'}
-				{call com.liferay.layout.content.page.editor.web.SidebarMappingPanel.render}
-					{param store: $store /}
-				{/call}
-			{elseif $selectedSidebarPanelId == 'page-structure'}
-				{call com.liferay.layout.content.page.editor.web.SidebarPageStructurePanel.render}
-					{param store: $store /}
-				{/call}
-			{elseif $selectedSidebarPanelId == 'widgets'}
-				{call com.liferay.layout.content.page.editor.web.SidebarWidgetsPanel.render}
-					{param store: $store /}
-				{/call}
+				{if $_selectedSidebarPanel.sidebarPanelId == 'sections'}
+					{call com.liferay.layout.content.page.editor.web.SidebarSectionsPanel.render}
+						{param store: $store /}
+					{/call}
+				{elseif $_selectedSidebarPanel.sidebarPanelId == 'elements'}
+					{call com.liferay.layout.content.page.editor.web.SidebarElementsPanel.render}
+						{param store: $store /}
+					{/call}
+				{elseif $_selectedSidebarPanel.sidebarPanelId == 'mapping'}
+					{call com.liferay.layout.content.page.editor.web.SidebarMappingPanel.render}
+						{param store: $store /}
+					{/call}
+				{elseif $_selectedSidebarPanel.sidebarPanelId == 'page-structure'}
+					{call com.liferay.layout.content.page.editor.web.SidebarPageStructurePanel.render}
+						{param store: $store /}
+					{/call}
+				{elseif $_selectedSidebarPanel.sidebarPanelId == 'contents'}
+					{call com.liferay.layout.content.page.editor.web.SidebarPageContentsPanel.render}
+						{param store: $store /}
+					{/call}
+				{elseif $_selectedSidebarPanel.sidebarPanelId == 'widgets'}
+					{call com.liferay.layout.content.page.editor.web.SidebarWidgetsPanel.render}
+						{param store: $store /}
+					{/call}
+				{elseif $_selectedSidebarPanel.sidebarPanelId == 'comments'}
+					{call com.liferay.layout.content.page.editor.web.SidebarCommentsPanel.render}
+						{param store: $store /}
+					{/call}
+				{/if}
 			{/if}
 		</div>
 
 		<div class="fragments-editor-sidebar-sections-buttons" role="group">
 			{if $sidebarPanels}
 				{foreach $sidebarPanel in $sidebarPanels}
-					{let $sectionButtonClasses kind="text"}
-						btn
-						{sp}btn-unstyled
-						{sp}lfr-portal-tooltip
-						{sp}text-center
-						{sp}fragments-editor-sidebar-sections-buttons__btn
+					{if $sidebarPanel.sidebarPanelId == 'separator'}
+						<hr>
+					{else}
+						{let $sectionButtonClasses kind="text"}
+							btn
+							{sp}btn-unstyled
+							{sp}lfr-portal-tooltip
+							{sp}text-center
+							{sp}fragments-editor-sidebar-sections-buttons__btn
 
-						{if $_selectedSidebarPanel and ($sidebarPanel.sidebarPanelId == $selectedSidebarPanelId)}
-							{sp}fragments-editor-sidebar-sections-buttons__btn--active
-						{/if}
-					{/let}
+							{if $_selectedSidebarPanel and ($sidebarPanel.sidebarPanelId == $_selectedSidebarPanel.sidebarPanelId)}
+								{sp}fragments-editor-sidebar-sections-buttons__btn--active
+							{/if}
+						{/let}
 
-					<button
-						class="{$sectionButtonClasses}"
-						data-onclick="{$_handlePanelButtonClick}"
-						data-sidebar-panel-id="{$sidebarPanel.sidebarPanelId}"
-						data-title="{$sidebarPanel.label}"
-						type="button"
-					>
-						<svg class="lexicon-icon">
-							<use xlink:href="{$spritemap ?: ''}#{$sidebarPanel.icon}"></use>
-						</svg>
-					</button>
+						{let $sectionButtonAttributes kind="attributes"}
+							class="{$sectionButtonClasses}"
+							data-sidebar-panel-id="{$sidebarPanel.sidebarPanelId}"
+							data-title="{$sidebarPanel.label}"
+							type="button"
+
+							{if $sidebarPanel.sidebarPanelId == 'lookAndFeel'}
+								data-onclick="{$_handleLookAndFeeldButtonClick}"
+							{else}
+								data-onclick="{$_handlePanelButtonClick}"
+							{/if}
+						{/let}
+
+						<button {$sectionButtonAttributes}>
+							<svg class="lexicon-icon">
+								<use xlink:href="{$spritemap ?: ''}#{$sidebarPanel.icon}"></use>
+							</svg>
+						</button>
+					{/if}
 				{/foreach}
-			{/if}
-
-			<hr>
-
-			{if $lookAndFeelURL}
-				{let $sectionButtonClasses kind="text"}
-					btn
-					{sp}btn-unstyled
-					{sp}lfr-portal-tooltip
-					{sp}text-center
-					{sp}fragments-editor-sidebar-sections-buttons__btn
-				{/let}
-
-				<button
-						class="{$sectionButtonClasses}"
-						data-onclick="{$_handleLookAndFeeldButtonClick}"
-						data-title="{msg desc=""}look-and-feel{/msg}"
-						type="button"
-				>
-					<svg class="lexicon-icon">
-						<use xlink:href="{$spritemap ?: ''}#format"></use>
-					</svg>
-				</button>
 			{/if}
 		</div>
 	</div>
+{/template}
+
+/**
+ * Sidebar Header
+ */
+{template .sidebarHeader}
+	{@param content: html}
+
+	<h1 class="fragments-editor-sidebar-section__title">
+		{$content}
+	</h1>
 {/template}

@@ -39,7 +39,9 @@ import org.springframework.mock.web.MockServletContext;
 
 /**
  * @author Shuyang Zhou
+ * @deprecated As of Mueller (7.2.x), with no direct replacement
  */
+@Deprecated
 public class MainServletClassTestRule extends ClassTestRule<Void> {
 
 	public static final MainServletClassTestRule INSTANCE =

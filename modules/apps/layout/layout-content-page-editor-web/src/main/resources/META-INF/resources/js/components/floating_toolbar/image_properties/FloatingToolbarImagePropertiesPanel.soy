@@ -5,18 +5,13 @@
  */
 {template .render}
 	{@param item: ?}
-	{@param? _imageTargetOptions: list<[
-		targetTypeId: string,
-		label: string
-	]>}
+	{@param? _handleAltTextInputChange: any}
 	{@param? _handleClearImageButtonClick: any}
-	{@param? _handleImageLinkInputChange: any}
-	{@param? _handleImageTargetOptionChange: any}
 	{@param? _handleSelectImageButtonClick: any}
 
-	<div class="floating-toolbar-spacing-panel">
+	<div class="floating-toolbar-spacing-panel p-3">
 		{let $isMapped: (
-			(isNonnull($item.editableValues.classNameId)) and ($item.editableValues.classNameId != '') or
+			(isNonnull($item.editableValues.fieldId)) and ($item.editableValues.fieldId != '') or
 			(isNonnull($item.editableValues.mappedField)) and ($item.editableValues.mappedField != '')
 		) /}
 
@@ -31,7 +26,7 @@
 					id="floatingToolbarImagePropertiesPanelSelectImage"
 					readonly="readonly"
 					type="text"
-					value="{$item.editableValues.config ? $item.editableValues.config.imageSource ?: '' : ''}"
+					value="{$item.editableValues.config ? $item.editableValues.config.imageTitle ?: $item.editableValues.config.imageSource ?: '' : ''}"
 				/>
 			</div>
 
@@ -49,7 +44,7 @@
 
 					<div class="btn-group-item">
 						<button
-							class="btn btn-secondary btn-sm"
+							class="btn btn-secondary btn-outline-borderless btn-sm"
 							data-onclick="{$_handleClearImageButtonClick}"
 							type="button"
 						>
@@ -60,46 +55,35 @@
 			</div>
 		{/if}
 
-		{call .imageLink}
-			{param _handleImageLinkInputChange: $_handleImageLinkInputChange /}
-			{param item: $item /}
-		{/call}
-
-		{call .imageTargetOptions}
-			{param _handleImageTargetOptionChange: $_handleImageTargetOptionChange /}
-			{param imageTargetOptions: $_imageTargetOptions /}
+		{call .altText}
+			{param _handleAltTextInputChange: $_handleAltTextInputChange /}
 			{param item: $item /}
 		{/call}
 	</div>
 {/template}
 
 /**
- * Image Link Input
+ * Alternative text Input
  */
-{template .imageLink}
+{template .altText}
 	{@param item: ?}
-	{@param? _handleImageLinkInputChange: any}
+	{@param? _handleAltTextInputChange: any}
 
 	<div class="form-group">
-		<label for="floatingToolbarImagePropertiesPanelImageLink">
-			{msg desc=""}link{/msg}
+		<label for="floatingToolbarImagePropertiesPanelAltText">
+			{msg desc=""}image-description{/msg}
 		</label>
 
-		{let $inputPlaceholder kind="text"}
-			{msg desc=""}url{/msg}
-		{/let}
-
 		{let $inputValue kind="text"}
-			{if $item.editableValues.config and $item.editableValues.config.imageLink}
-				{$item.editableValues.config.imageLink}
+			{if $item.editableValues.config and $item.editableValues.config.alt}
+				{$item.editableValues.config.alt}
 			{/if}
 		{/let}
 
 		<input
 			class="form-control form-control-sm"
-			data-onchange="{$_handleImageLinkInputChange}"
-			id="floatingToolbarImagePropertiesPanelImageLink"
-			placeholder="{$inputPlaceholder}"
+			data-onchange="{$_handleAltTextInputChange}"
+			id="floatingToolbarImagePropertiesPanelAltText"
 			title="{$inputValue}"
 			type="text"
 			value="{$inputValue}"
@@ -127,62 +111,5 @@
 
 	<option {$optionAttributes}>
 		{$imagePosition.label}
-	</option>
-{/template}
-
-/**
- * Image target options
- */
-{template .imageTargetOptions}
-	{@param item: ?}
-	{@param? _handleImageTargetOptionChange: any}
-	{@param? imageTargetOptions: list<[
-		targetTypeId: string,
-		label: string
-	]>}
-
-	{if $imageTargetOptions}
-		<div class="form-group">
-			<label for="floatingToolbarImagePropertiesPanelImageTarget">
-				{msg desc=""}target{/msg}
-			</label>
-
-			<select
-				class="form-control form-control-sm"
-				data-onchange="{$_handleImageTargetOptionChange}"
-				id="floatingToolbarImagePropertiesPanelImageTarget"
-			>
-				{foreach $imageTarget in $imageTargetOptions}
-					{call .imageTargetOption}
-						{param imageTarget: $imageTarget /}
-						{param item: $item /}
-						{param key: $imageTarget.targetTypeId /}
-					{/call}
-				{/foreach}
-			</select>
-		</div>
-	{/if}
-{/template}
-
-/**
- * Image Target option
- */
-{template .imageTargetOption}
-	{@param imageTarget: [
-		targetTypeId: string,
-		label: string
-	]}
-	{@param item: ?}
-
-	{let $optionAttributes kind="attributes"}
-		value="{$imageTarget.targetTypeId}"
-
-		{if $item.editableValues.config and $item.editableValues.config.imageTarget == $imageTarget.targetTypeId}
-			selected
-		{/if}
-	{/let}
-
-	<option {$optionAttributes}>
-		{$imageTarget.label}
 	</option>
 {/template}

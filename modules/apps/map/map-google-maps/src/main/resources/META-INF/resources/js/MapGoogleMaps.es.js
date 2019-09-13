@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import MapBase from 'map-common/js/MapBase.es';
 import {toElement} from 'metal-dom';
 
@@ -12,7 +26,6 @@ import GoogleMapsSearch from './GoogleMapsSearch.es';
  * @review
  */
 class MapGoogleMaps extends MapBase {
-
 	/**
 	 * Creates a new map using Google Map's API
 	 * @param  {Array} args List of arguments to be passed to State
@@ -43,8 +56,8 @@ class MapGoogleMaps extends MapBase {
 		if (this.data && this.data.features) {
 			const bounds = new google.maps.LatLngBounds();
 
-			this.data.features.forEach(
-				feature => bounds.extend(
+			this.data.features.forEach(feature =>
+				bounds.extend(
 					new google.maps.LatLng(
 						feature.geometry.coordinates[1],
 						feature.geometry.coordinates[0]

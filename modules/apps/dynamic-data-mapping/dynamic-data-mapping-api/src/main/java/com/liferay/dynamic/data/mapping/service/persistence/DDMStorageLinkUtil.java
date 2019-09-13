@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -41,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see DDMStorageLinkPersistence
  * @generated
  */
-@ProviderType
 public class DDMStorageLinkUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -184,16 +182,16 @@ public class DDMStorageLinkUtil {
 	 * @param start the lower bound of the range of ddm storage links
 	 * @param end the upper bound of the range of ddm storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddm storage links
 	 */
 	public static List<DDMStorageLink> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<DDMStorageLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -358,16 +356,16 @@ public class DDMStorageLinkUtil {
 	 * @param start the lower bound of the range of ddm storage links
 	 * @param end the upper bound of the range of ddm storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddm storage links
 	 */
 	public static List<DDMStorageLink> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<DDMStorageLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -509,13 +507,13 @@ public class DDMStorageLinkUtil {
 	 * Returns the ddm storage link where classPK = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param classPK the class pk
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching ddm storage link, or <code>null</code> if a matching ddm storage link could not be found
 	 */
 	public static DDMStorageLink fetchByClassPK(
-		long classPK, boolean retrieveFromCache) {
+		long classPK, boolean useFinderCache) {
 
-		return getPersistence().fetchByClassPK(classPK, retrieveFromCache);
+		return getPersistence().fetchByClassPK(classPK, useFinderCache);
 	}
 
 	/**
@@ -601,16 +599,16 @@ public class DDMStorageLinkUtil {
 	 * @param start the lower bound of the range of ddm storage links
 	 * @param end the upper bound of the range of ddm storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddm storage links
 	 */
 	public static List<DDMStorageLink> findByStructureId(
 		long structureId, int start, int end,
 		OrderByComparator<DDMStorageLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByStructureId(
-			structureId, start, end, orderByComparator, retrieveFromCache);
+			structureId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -778,17 +776,16 @@ public class DDMStorageLinkUtil {
 	 * @param start the lower bound of the range of ddm storage links
 	 * @param end the upper bound of the range of ddm storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddm storage links
 	 */
 	public static List<DDMStorageLink> findByStructureVersionId(
 		long structureVersionId, int start, int end,
 		OrderByComparator<DDMStorageLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByStructureVersionId(
-			structureVersionId, start, end, orderByComparator,
-			retrieveFromCache);
+			structureVersionId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -943,17 +940,16 @@ public class DDMStorageLinkUtil {
 	 * @param start the lower bound of the range of ddm storage links
 	 * @param end the upper bound of the range of ddm storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching ddm storage links
 	 */
 	public static List<DDMStorageLink> findByStructureVersionId(
 		long[] structureVersionIds, int start, int end,
 		OrderByComparator<DDMStorageLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByStructureVersionId(
-			structureVersionIds, start, end, orderByComparator,
-			retrieveFromCache);
+			structureVersionIds, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1108,15 +1104,15 @@ public class DDMStorageLinkUtil {
 	 * @param start the lower bound of the range of ddm storage links
 	 * @param end the upper bound of the range of ddm storage links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of ddm storage links
 	 */
 	public static List<DDMStorageLink> findAll(
 		int start, int end, OrderByComparator<DDMStorageLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

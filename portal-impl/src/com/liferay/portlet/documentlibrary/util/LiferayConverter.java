@@ -488,10 +488,10 @@ public abstract class LiferayConverter {
 
 		ICodec.ID iCodecID = outputICodec.getID();
 
-		if (iCodecID.equals(ICodec.ID.CODEC_ID_VORBIS)) {
-			if (originalBitRate < 64000) {
-				return 64000;
-			}
+		if (iCodecID.equals(ICodec.ID.CODEC_ID_VORBIS) &&
+			(originalBitRate < 64000)) {
+
+			return 64000;
 		}
 
 		return originalBitRate;
@@ -770,9 +770,10 @@ public abstract class LiferayConverter {
 			return inputIVideoPicture;
 		}
 
-		if (iVideoResampler.resample(
-				resampledIVideoPicture, inputIVideoPicture) < 0) {
+		int result = iVideoResampler.resample(
+			resampledIVideoPicture, inputIVideoPicture);
 
+		if (result < 0) {
 			throw new RuntimeException("Unable to resample video");
 		}
 

@@ -80,14 +80,32 @@ public class JournalArticleModelResourcePermissionRegistrar {
 				_portletResourcePermission,
 				(modelResourcePermission, consumer) -> {
 					consumer.accept(
-						new StagedModelPermissionLogic<>(
+						new StagedModelPermissionLogic<JournalArticle>(
 							_stagingPermission, JournalPortletKeys.JOURNAL,
-							JournalArticle::getResourcePrimKey));
+							JournalArticle::getResourcePrimKey) {
+
+							@Override
+							public Boolean contains(
+								PermissionChecker permissionChecker,
+								String name, JournalArticle journalArticle,
+								String actionId) {
+
+								if (actionId.equals(ActionKeys.SUBSCRIBE)) {
+									return null;
+								}
+
+								return super.contains(
+									permissionChecker, name, journalArticle,
+									actionId);
+							}
+
+						});
 					consumer.accept(
 						new WorkflowedModelPermissionLogic<>(
 							_workflowPermission, modelResourcePermission,
 							_groupLocalService, JournalArticle::getId));
-					consumer.accept(new JournalArticleConfigurationLogic());
+					consumer.accept(
+						new JournalArticleConfigurationModelResourcePermissionLogic());
 					consumer.accept(
 						new DynamicInheritancePermissionLogic<>(
 							_journalFolderModelResourcePermission,
@@ -153,7 +171,7 @@ public class JournalArticleModelResourcePermissionRegistrar {
 	@Reference
 	private WorkflowPermission _workflowPermission;
 
-	private class JournalArticleConfigurationLogic
+	private class JournalArticleConfigurationModelResourcePermissionLogic
 		implements ModelResourcePermissionLogic<JournalArticle> {
 
 		@Override

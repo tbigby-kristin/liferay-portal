@@ -1,4 +1,22 @@
-import {FRAGMENTS_EDITOR_ITEM_BORDERS, FRAGMENTS_EDITOR_ITEM_TYPES} from '../utils/constants';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import {
+	FRAGMENTS_EDITOR_ITEM_BORDERS,
+	FRAGMENTS_EDITOR_ITEM_TYPES,
+	MAPPING_SOURCE_TYPE_IDS
+} from '../utils/constants';
 
 const ARROW_DOWN_KEYCODE = 40;
 
@@ -18,24 +36,70 @@ function deepClone(objectToClone) {
 
 	if (typeof cloned == 'object' && cloned !== null) {
 		if (Array.isArray(cloned)) {
-			cloned = objectToClone.map(
-				arrayItem => deepClone(arrayItem)
-			);
-		}
-		else {
+			cloned = objectToClone.map(arrayItem => deepClone(arrayItem));
+		} else {
 			cloned = Object.assign({}, cloned);
 
-			Object
-				.keys(cloned)
-				.forEach(
-					clonedKey => {
-						cloned[clonedKey] = deepClone(cloned[clonedKey]);
-					}
-				);
+			Object.keys(cloned).forEach(clonedKey => {
+				cloned[clonedKey] = deepClone(cloned[clonedKey]);
+			});
 		}
 	}
 
 	return cloned;
+}
+
+/**
+ * Checks if the given editable is mapped
+ * @param {object} editableValues
+ * @private
+ * @return {boolean}
+ * @review
+ */
+function editableIsMapped(editableValues) {
+	return Boolean(
+		editableValues.mappedField ||
+			editableIsMappedToAssetEntry(editableValues)
+	);
+}
+
+/**
+ * Checks if the given editable is mapped to an asset entry
+ * @param {object} editableValues
+ * @private
+ * @return {boolean}
+ * @review
+ */
+function editableIsMappedToAssetEntry(editableValues) {
+	return Boolean(
+		editableValues.classNameId &&
+			editableValues.classPK &&
+			editableValues.fieldId
+	);
+}
+
+/**
+ * Checks if the given editable should be highlighted
+ * @param {string} activeItemId
+ * @param {string} activeItemType
+ * @param {object} structure
+ * @private
+ * @return {boolean}
+ * @review
+ */
+function editableShouldBeHighlighted(
+	activeItemId,
+	activeItemType,
+	fragmentEntryLinkId,
+	structure
+) {
+	const parentFragmentIsInActiveItemPath = itemIsInPath(
+		getItemPath(activeItemId, activeItemType, structure),
+		fragmentEntryLinkId,
+		FRAGMENTS_EDITOR_ITEM_TYPES.fragment
+	);
+
+	return parentFragmentIsInActiveItemPath;
 }
 
 /**
@@ -46,11 +110,7 @@ function deepClone(objectToClone) {
  */
 function getColumn(structure, columnId) {
 	return structure
-		.map(
-			row => row.columns.find(
-				_column => _column.columnId === columnId
-			)
-		)
+		.map(row => row.columns.find(_column => _column.columnId === columnId))
 		.filter(column => column)
 		.find(column => column);
 }
@@ -62,11 +122,7 @@ function getColumn(structure, columnId) {
  * @param {string} targetBorder
  * @return {number}
  */
-function getDropRowPosition(
-	structure,
-	targetRowId,
-	targetBorder
-) {
+function getDropRowPosition(structure, targetRowId, targetBorder) {
 	let position = structure.length;
 
 	const targetPosition = structure.findIndex(
@@ -76,13 +132,23 @@ function getDropRowPosition(
 	if (targetPosition > -1 && targetBorder) {
 		if (targetBorder === FRAGMENTS_EDITOR_ITEM_BORDERS.top) {
 			position = targetPosition;
-		}
-		else {
+		} else {
 			position = targetPosition + 1;
 		}
 	}
 
 	return position;
+}
+
+/**
+ * Get HTML element from itemId and itemType in fragment list
+ * @param {string} itemId
+ * @param {string} itemType
+ */
+function getFragmentEntryLinkListElement(itemId, itemType) {
+	return document.querySelector(
+		`.fragment-entry-link-list [data-fragments-editor-item-id="${itemId}"][data-fragments-editor-item-type="${itemType}"]`
+	);
 }
 
 /**
@@ -95,9 +161,9 @@ function getDropRowPosition(
  */
 function getFragmentColumn(structure, fragmentEntryLinkId) {
 	return structure
-		.map(
-			row => row.columns.find(
-				_column => _column.fragmentEntryLinkIds.find(
+		.map(row =>
+			row.columns.find(_column =>
+				_column.fragmentEntryLinkIds.find(
 					fragmentId => fragmentId === fragmentEntryLinkId
 				)
 			)
@@ -115,12 +181,11 @@ function getFragmentColumn(structure, fragmentEntryLinkId) {
  * @return {number}
  */
 function getFragmentRowIndex(structure, fragmentEntryLinkId) {
-	return structure.findIndex(
-		row => row.columns.find(
-			column => column.fragmentEntryLinkIds.find(
-				_fragmentEntryLinkId => (
+	return structure.findIndex(row =>
+		row.columns.find(column =>
+			column.fragmentEntryLinkIds.find(
+				_fragmentEntryLinkId =>
 					_fragmentEntryLinkId === fragmentEntryLinkId
-				)
 			)
 		)
 	);
@@ -136,8 +201,7 @@ function getItemMoveDirection(keycode) {
 
 	if (keycode === ARROW_UP_KEYCODE) {
 		direction = MOVE_ITEM_DIRECTIONS.UP;
-	}
-	else if (keycode === ARROW_DOWN_KEYCODE) {
+	} else if (keycode === ARROW_DOWN_KEYCODE) {
 		direction = MOVE_ITEM_DIRECTIONS.DOWN;
 	}
 
@@ -163,7 +227,10 @@ function getItemPath(itemId, itemType, structure) {
 			}
 		];
 
-		if (itemType === FRAGMENTS_EDITOR_ITEM_TYPES.editable) {
+		if (
+			itemType === FRAGMENTS_EDITOR_ITEM_TYPES.editable ||
+			itemType === FRAGMENTS_EDITOR_ITEM_TYPES.backgroundImageEditable
+		) {
 			const [fragmentEntryLinkId] = itemId.split('-');
 
 			if (fragmentEntryLinkId) {
@@ -176,13 +243,13 @@ function getItemPath(itemId, itemType, structure) {
 					)
 				];
 			}
-		}
-		else if (itemType === FRAGMENTS_EDITOR_ITEM_TYPES.fragment) {
-			const column = [].concat(
-				...structure.map(row => row.columns)
-			).find(
-				_column => _column.fragmentEntryLinkIds.indexOf(itemId) !== -1
-			);
+		} else if (itemType === FRAGMENTS_EDITOR_ITEM_TYPES.fragment) {
+			const column = []
+				.concat(...structure.map(row => row.columns))
+				.find(
+					_column =>
+						_column.fragmentEntryLinkIds.indexOf(itemId) !== -1
+				);
 
 			if (column) {
 				itemPath = [
@@ -194,12 +261,9 @@ function getItemPath(itemId, itemType, structure) {
 					)
 				];
 			}
-		}
-		else if (itemType === FRAGMENTS_EDITOR_ITEM_TYPES.column) {
-			const row = structure.find(
-				row => row.columns.find(
-					column => column.columnId === itemId
-				)
+		} else if (itemType === FRAGMENTS_EDITOR_ITEM_TYPES.column) {
+			const row = structure.find(row =>
+				row.columns.find(column => column.columnId === itemId)
 			);
 
 			if (row) {
@@ -219,6 +283,28 @@ function getItemPath(itemId, itemType, structure) {
 }
 
 /**
+ * @param {string} subtypeLabel
+ * @return {Array<{id: string, label: string}>} Source types
+ * @private
+ * @review
+ */
+function getMappingSourceTypes(subtypeLabel) {
+	return [
+		{
+			id: MAPPING_SOURCE_TYPE_IDS.structure,
+			label: Liferay.Util.sub(
+				Liferay.Language.get('x-default'),
+				subtypeLabel
+			)
+		},
+		{
+			id: MAPPING_SOURCE_TYPE_IDS.content,
+			label: Liferay.Language.get('specific-content')
+		}
+	];
+}
+
+/**
  * Get the fragmentEntryLinkIds of the fragments inside the given row
  * @param {{columns: Array<{fragmentEntryLinkIds: Array<string>}>}} row
  * @return {string[]}
@@ -227,13 +313,11 @@ function getItemPath(itemId, itemType, structure) {
 function getRowFragmentEntryLinkIds(row) {
 	let fragmentEntryLinkIds = [];
 
-	row.columns.forEach(
-		column => {
-			fragmentEntryLinkIds = fragmentEntryLinkIds.concat(
-				column.fragmentEntryLinkIds
-			);
-		}
-	);
+	row.columns.forEach(column => {
+		fragmentEntryLinkIds = fragmentEntryLinkIds.concat(
+			column.fragmentEntryLinkIds
+		);
+	});
 
 	return fragmentEntryLinkIds;
 }
@@ -245,9 +329,7 @@ function getRowFragmentEntryLinkIds(row) {
  * @return {number}
  */
 function getRowIndex(structure, rowId) {
-	return structure.findIndex(
-		row => (row.rowId === rowId)
-	);
+	return structure.findIndex(row => row.rowId === rowId);
 }
 
 /**
@@ -261,8 +343,7 @@ function getTargetBorder(direction) {
 
 	if (direction === MOVE_ITEM_DIRECTIONS.UP) {
 		targetBorder = FRAGMENTS_EDITOR_ITEM_BORDERS.top;
-	}
-	else if (direction === MOVE_ITEM_DIRECTIONS.DOWN) {
+	} else if (direction === MOVE_ITEM_DIRECTIONS.DOWN) {
 		targetBorder = FRAGMENTS_EDITOR_ITEM_BORDERS.bottom;
 	}
 
@@ -279,9 +360,13 @@ function getTargetBorder(direction) {
 function getWidget(widgets, portletId) {
 	let widget = null;
 
-	for (const widgetCategory of widgets) {
-		const {categories = [], portlets = []} = widgetCategory;
-		const categoryPortlet = portlets.find(_portlet => _portlet.portletId === portletId);
+	const widgetsLength = widgets.length;
+
+	for (let i = 0; i < widgetsLength; i++) {
+		const {categories = [], portlets = []} = widgets[i];
+		const categoryPortlet = portlets.find(
+			_portlet => _portlet.portletId === portletId
+		);
 		const subCategoryPortlet = getWidget(categories, portletId);
 
 		if (categoryPortlet) {
@@ -307,22 +392,22 @@ function getWidget(widgets, portletId) {
 function getWidgetPath(widgets, portletId, _path = ['widgets']) {
 	let widgetPath = null;
 
-	for (let categoryIndex = 0; categoryIndex < widgets.length; categoryIndex += 1) {
+	for (
+		let categoryIndex = 0;
+		categoryIndex < widgets.length;
+		categoryIndex += 1
+	) {
 		const {categories = [], portlets = []} = widgets[categoryIndex];
 
 		const categoryPortletIndex = portlets.findIndex(
 			_portlet => _portlet.portletId === portletId
 		);
 
-		const subCategoryPortletPath = getWidgetPath(
-			categories,
-			portletId,
-			[
-				..._path,
-				categoryIndex.toString(),
-				'categories'
-			]
-		);
+		const subCategoryPortletPath = getWidgetPath(categories, portletId, [
+			..._path,
+			categoryIndex.toString(),
+			'categories'
+		]);
 
 		if (categoryPortletIndex !== -1) {
 			widgetPath = [
@@ -356,12 +441,17 @@ function itemIsInPath(path, itemId, itemType) {
 
 export {
 	deepClone,
+	editableIsMapped,
+	editableIsMappedToAssetEntry,
+	editableShouldBeHighlighted,
 	getColumn,
 	getDropRowPosition,
+	getFragmentEntryLinkListElement,
 	getItemPath,
 	getFragmentColumn,
 	getFragmentRowIndex,
 	getItemMoveDirection,
+	getMappingSourceTypes,
 	getRowFragmentEntryLinkIds,
 	getRowIndex,
 	getTargetBorder,

@@ -17,14 +17,14 @@
 <%@ include file="/init.jsp" %>
 
 <%
-long[] groupIds = (long[])request.getAttribute(UADWebKeys.GROUP_IDS);
 List<ScopeDisplay> scopeDisplays = (List<ScopeDisplay>)request.getAttribute(UADWebKeys.SCOPE_DISPLAYS);
 int totalReviewableUADEntitiesCount = (int)request.getAttribute(UADWebKeys.TOTAL_UAD_ENTITIES_COUNT);
 List<UADApplicationSummaryDisplay> uadApplicationSummaryDisplays = (List<UADApplicationSummaryDisplay>)request.getAttribute(UADWebKeys.UAD_APPLICATION_SUMMARY_DISPLAY_LIST);
 List<UADDisplay> uadDisplays = (List<UADDisplay>)request.getAttribute(UADWebKeys.APPLICATION_UAD_DISPLAYS);
 ViewUADEntitiesDisplay viewUADEntitiesDisplay = (ViewUADEntitiesDisplay)request.getAttribute(UADWebKeys.VIEW_UAD_ENTITIES_DISPLAY);
 
-String scope = ParamUtil.getString(request, "scope", UADConstants.SCOPE_PERSONAL_SITE);
+long[] groupIds = viewUADEntitiesDisplay.getGroupIds();
+String scope = viewUADEntitiesDisplay.getScope();
 
 portletDisplay.setShowBackIcon(true);
 
@@ -218,8 +218,7 @@ renderResponse.setTitle(StringBundler.concat(selectedUser.getFullName(), " - ", 
 	<portlet:param name="scope" value="<%= scope %>" />
 </portlet:renderURL>
 
-<aui:script require="metal-dom/src/dom as dom,metal-uri/src/Uri">
-	const Uri = metalUriSrcUri.default;
+<aui:script require="metal-dom/src/dom as dom">
 
 	const baseURL = '<%= reviewUADDataURL %>';
 
@@ -232,9 +231,9 @@ renderResponse.setTitle(StringBundler.concat(selectedUser.getFullName(), " - ", 
 	registerClickHandler(
 		<portlet:namespace />applicationPanelBody,
 		function(event) {
-			const url = new Uri(baseURL);
+			const url = new URL(baseURL, window.location.origin);
 
-			url.setParameterValue('<portlet:namespace />applicationKey', event.target.value);
+			url.searchParams.set('<portlet:namespace />applicationKey', event.target.value);
 
 			Liferay.Util.navigate(url.toString());
 		}
@@ -244,9 +243,9 @@ renderResponse.setTitle(StringBundler.concat(selectedUser.getFullName(), " - ", 
 		registerClickHandler(
 			<portlet:namespace />entitiesTypePanelBody,
 			function(event) {
-				const url = new Uri(baseURL);
+				const url = new URL(baseURL, window.location.origin);
 
-				url.setParameterValue('<portlet:namespace />uadRegistryKey', event.target.value);
+				url.searchParams.set('<portlet:namespace />uadRegistryKey', event.target.value);
 
 				Liferay.Util.navigate(url.toString());
 			}
@@ -256,10 +255,10 @@ renderResponse.setTitle(StringBundler.concat(selectedUser.getFullName(), " - ", 
 	registerClickHandler(
 		<portlet:namespace />scopePanelBody,
 		function(event) {
-			const url = new Uri(baseURL);
+			const url = new URL(baseURL, window.location.origin);
 
-			url.setParameterValue('<portlet:namespace />applicationKey', '');
-			url.setParameterValue('<portlet:namespace />scope', event.target.value);
+			url.searchParams.set('<portlet:namespace />applicationKey', '');
+			url.searchParams.set('<portlet:namespace />scope', event.target.value);
 
 			Liferay.Util.navigate(url.toString());
 		}

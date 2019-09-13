@@ -9,7 +9,7 @@ definition {
 	macro adaptRemainingImages {
 		var key_imageName = "${imageName}";
 
-		if (IsElementNotPresent(locator1 = "AdaptiveMediaTable#PROGRESS")) {
+		if (IsElementNotPresent(locator1 = "AdaptiveMediaTable#PROGRESS_SUCCESS")) {
 			Click(locator1 = "AdaptiveMediaTable#IMAGE_RESOLUTION_OPTIONS");
 
 			MenuItem.click(menuItem = "Adapt Remaining");
@@ -122,10 +122,7 @@ definition {
 			locator1 = "AdaptiveMediaTable#STATE",
 			value1 = "Disabled");
 
-		AssertCssValue(
-			locator1 = "AdaptiveMediaTable#PROGRESS_BAR_COLOR",
-			locator2 = "opacity",
-			value1 = "0.5");
+		AssertElementPresent(locator1 = "AdaptiveMediaTable#PROGRESS_DISABLED");
 	}
 
 	macro editImageResolution {

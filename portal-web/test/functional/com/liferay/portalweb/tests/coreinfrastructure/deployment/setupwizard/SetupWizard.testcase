@@ -48,10 +48,9 @@ definition {
 		Smoke.runSmoke();
 	}
 
-	@priority = "5"
+	@priority = "4"
 	test HypersonicWithSpecialContent {
 		property database.types = "hypersonic";
-		property portal.acceptance = "false";
 		property test.name.skip.portal.instance = "SetupWizard#HypersonicWithSpecialContent";
 
 		SetupWizard.configurePortalNamePG(portalName = "");
@@ -114,33 +113,6 @@ definition {
 		AssertTextEquals.assertPartialText(
 			locator1 = "Message#ERROR_ENTER_A_VALID_EMAIL_ADDRESS",
 			value1 = "Please enter a valid email address.");
-	}
-
-	@priority = "5"
-	test MySQLWithXSSContent {
-		property database.types = "mysql";
-		property test.name.skip.portal.instance = "SetupWizard#MySQLWithXSSContent";
-
-		SetupWizard.configurePG(
-			administratorEmail = "test@liferay.com",
-			administratorFirstName = '''<script>alert("xss")</script>''',
-			administratorLastName = '''<script>alert("xss")</script>''',
-			databasePassword = PropsUtil.get("database.mysql.password"),
-			databaseType = "MySQL",
-			databaseUserName = PropsUtil.get("database.mysql.username"),
-			jdbcDriverClassName = PropsUtil.get("database.mysql.driver"),
-			jdbcURL = PropsUtil.get("database.mysql.url"),
-			portalName = '''<script>alert("xss")</script>''');
-
-		AssertAlertNotPresent();
-
-		var actualScript = '''<script>alert("xss")</script>''';
-
-		var escapedScript = '''\x3cscript\x3ealert("xss")\x3c/script\x3e''';
-
-		AssertHTMLSourceTextNotPresent(value1 = "${actualScript}");
-
-		AssertHTMLSourceTextPresent(value1 = "${escapedScript}");
 	}
 
 	@priority = "5"

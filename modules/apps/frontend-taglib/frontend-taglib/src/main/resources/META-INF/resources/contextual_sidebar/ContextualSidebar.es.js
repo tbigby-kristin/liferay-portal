@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import {isFunction, isObject} from 'metal';
 import Soy from 'metal-soy';
@@ -11,7 +25,6 @@ import templates from './ContextualSidebar.soy';
  */
 
 class ContextualSidebar extends Component {
-
 	/**
 	 * @inheritDoc
 	 * @review
@@ -20,15 +33,26 @@ class ContextualSidebar extends Component {
 	created() {
 		document.body.classList.add('has-contextual-sidebar');
 
-		this._productMenuToggle = $('.product-menu-toggle');
-		this._productMenu = $(this._productMenuToggle.data('target'));
-
-		this._handleOpenProductMenu = this._handleOpenProductMenu.bind(this);
-
-		this._productMenu.on(
-			'openStart.lexicon.sidenav',
-			this._handleOpenProductMenu
+		const productMenuToggle = document.querySelector(
+			'.product-menu-toggle'
 		);
+
+		if (productMenuToggle) {
+			this._productMenuToggle = productMenuToggle;
+
+			this._handleOpenProductMenu = this._handleOpenProductMenu.bind(
+				this
+			);
+
+			const sidenav = Liferay.SideNavigation.instance(
+				this._productMenuToggle
+			);
+
+			this._toggleHandle = sidenav.on(
+				'openStart.lexicon.sidenav',
+				this._handleOpenProductMenu
+			);
+		}
 	}
 
 	/**
@@ -39,7 +63,7 @@ class ContextualSidebar extends Component {
 	disposed() {
 		document.body.classList.remove('has-contextual-sidebar');
 
-		this._productMenu.off(
+		this._toggleHandle.removeListener(
 			'openStart.lexicon.sidenav',
 			this._handleOpenProductMenu
 		);
@@ -51,14 +75,10 @@ class ContextualSidebar extends Component {
 	 */
 
 	prepareStateForRender(state) {
-		return Object.assign(
-			{},
-			state,
-			{
-				body: Soy.toIncDom(this.body || ''),
-				header: Soy.toIncDom(this.header || '')
-			}
-		);
+		return Object.assign({}, state, {
+			body: Soy.toIncDom(this.body || ''),
+			header: Soy.toIncDom(this.header || '')
+		});
 	}
 
 	/**
@@ -78,9 +98,8 @@ class ContextualSidebar extends Component {
 		if (this.visible) {
 			document.body.classList.add('contextual-sidebar-visible');
 
-			this._productMenuToggle.sideNavigation('hide');
-		}
-		else {
+			Liferay.SideNavigation.hide(this._productMenuToggle);
+		} else {
 			document.body.classList.remove('contextual-sidebar-visible');
 		}
 	}
@@ -106,6 +125,16 @@ class ContextualSidebar extends Component {
  */
 
 ContextualSidebar.STATE = {
+	/**
+	 * Internal property for subscribing to sidenav events.
+	 * @default undefined
+	 * @instance
+	 * @memberOf ContextualSidebar
+	 * @review
+	 * @type {EventHandle}
+	 */
+
+	_toggleHandle: Config.internal(),
 
 	/**
 	 * Sidebar body content
@@ -117,11 +146,11 @@ ContextualSidebar.STATE = {
 	 */
 
 	body: Config.any()
-		.setter(
-			body => {
-				return isObject(body) && !isFunction(body) ? body.value.content : body;
-			}
-		)
+		.setter(body => {
+			return isObject(body) && !isFunction(body)
+				? body.value.content
+				: body;
+		})
 		.required(),
 
 	/**
@@ -156,11 +185,11 @@ ContextualSidebar.STATE = {
 	 */
 
 	header: Config.any()
-		.setter(
-			header => {
-				return isObject(header) && !isFunction(header) ? header.value.content : header;
-			}
-		)
+		.setter(header => {
+			return isObject(header) && !isFunction(header)
+				? header.value.content
+				: header;
+		})
 		.required(),
 
 	/**
@@ -194,18 +223,7 @@ ContextualSidebar.STATE = {
 	 * @type {!boolean}
 	 */
 
-	visible: Config.bool().required(),
-
-	/**
-	 * Internal property that keeps an existing ProductMenu sidebar synced.
-	 * @default undefined
-	 * @instance
-	 * @memberOf ContextualSidebar
-	 * @review
-	 * @type {object}
-	 */
-
-	_productMenu: Config.internal()
+	visible: Config.bool().required()
 };
 
 Soy.register(ContextualSidebar, templates);

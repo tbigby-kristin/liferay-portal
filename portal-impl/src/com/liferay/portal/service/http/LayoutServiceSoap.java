@@ -24,8 +24,6 @@ import java.rmi.RemoteException;
 import java.util.Locale;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the SOAP utility for the
  * <code>LayoutServiceUtil</code> service
@@ -65,7 +63,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutServiceHttp
  * @generated
  */
-@ProviderType
 public class LayoutServiceSoap {
 
 	/**
@@ -655,6 +652,24 @@ public class LayoutServiceSoap {
 	}
 
 	public static com.liferay.portal.kernel.model.LayoutSoap[] getLayouts(
+			long groupId, boolean privateLayout, String type)
+		throws RemoteException {
+
+		try {
+			java.util.List<com.liferay.portal.kernel.model.Layout> returnValue =
+				LayoutServiceUtil.getLayouts(groupId, privateLayout, type);
+
+			return com.liferay.portal.kernel.model.LayoutSoap.toSoapModels(
+				returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portal.kernel.model.LayoutSoap[] getLayouts(
 			long groupId, String type)
 		throws RemoteException {
 
@@ -935,7 +950,7 @@ public class LayoutServiceSoap {
 	 To see how the URL is normalized when accessed see {@link
 	 com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	 String)}.
-	 * @param iconImage whether the icon image will be updated
+	 * @param hasIconImage if the layout has a custom icon image
 	 * @param iconBytes the byte array of the layout's new icon image
 	 * @param serviceContext the service context to be applied. Can set the
 	 modification date and expando bridge attributes for the layout.
@@ -951,7 +966,7 @@ public class LayoutServiceSoap {
 			String[] keywordsMapValues, String[] robotsMapLanguageIds,
 			String[] robotsMapValues, String type, boolean hidden,
 			String[] friendlyURLMapLanguageIds, String[] friendlyURLMapValues,
-			boolean iconImage, byte[] iconBytes,
+			boolean hasIconImage, byte[] iconBytes,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws RemoteException {
 
@@ -979,7 +994,7 @@ public class LayoutServiceSoap {
 					groupId, privateLayout, layoutId, parentLayoutId,
 					localeNamesMap, localeTitlesMap, descriptionMap,
 					keywordsMap, robotsMap, type, hidden, friendlyURLMap,
-					iconImage, iconBytes, serviceContext);
+					hasIconImage, iconBytes, serviceContext);
 
 			return com.liferay.portal.kernel.model.LayoutSoap.toSoapModel(
 				returnValue);
@@ -1286,6 +1301,24 @@ public class LayoutServiceSoap {
 		try {
 			com.liferay.portal.kernel.model.Layout returnValue =
 				LayoutServiceUtil.updatePriority(plid, priority);
+
+			return com.liferay.portal.kernel.model.LayoutSoap.toSoapModel(
+				returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portal.kernel.model.LayoutSoap updateType(
+			long plid, String type)
+		throws RemoteException {
+
+		try {
+			com.liferay.portal.kernel.model.Layout returnValue =
+				LayoutServiceUtil.updateType(plid, type);
 
 			return com.liferay.portal.kernel.model.LayoutSoap.toSoapModel(
 				returnValue);

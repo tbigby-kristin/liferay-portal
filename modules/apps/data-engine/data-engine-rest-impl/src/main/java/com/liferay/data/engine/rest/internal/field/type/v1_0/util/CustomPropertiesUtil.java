@@ -14,7 +14,6 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0.util;
 
-import com.liferay.data.engine.rest.internal.field.type.v1_0.DataFieldOption;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
@@ -34,17 +33,6 @@ import java.util.Map;
  * @author Marcela Cunha
  */
 public class CustomPropertiesUtil {
-
-	public static List<DataFieldOption> getDataFieldOptions(
-		Map<String, Object> customProperties, String key) {
-
-		if (MapUtil.isEmpty(customProperties)) {
-			return Collections.emptyList();
-		}
-
-		return (List<DataFieldOption>)GetterUtil.getObject(
-			customProperties.get(key), Collections.emptyList());
-	}
 
 	public static <K, V> Map<K, V> getMap(
 		Map<String, Object> customProperties, String key) {
@@ -71,6 +59,13 @@ public class CustomPropertiesUtil {
 		}
 
 		return GetterUtil.getString(customProperties.get(key), defaultValue);
+	}
+
+	public static <T> T getValue(
+		Map<String, Object> customProperties, String key) {
+
+		return (T)GetterUtil.getObject(
+			customProperties.get(key), Collections.emptyMap());
 	}
 
 	public static List<String> getValues(

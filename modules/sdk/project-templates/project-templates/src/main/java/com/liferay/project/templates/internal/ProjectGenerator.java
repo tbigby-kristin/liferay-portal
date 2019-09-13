@@ -17,11 +17,11 @@ package com.liferay.project.templates.internal;
 import aQute.bnd.version.Version;
 import aQute.bnd.version.VersionRange;
 
+import com.liferay.project.templates.FileUtil;
 import com.liferay.project.templates.ProjectTemplateCustomizer;
 import com.liferay.project.templates.ProjectTemplates;
 import com.liferay.project.templates.ProjectTemplatesArgs;
 import com.liferay.project.templates.WorkspaceUtil;
-import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.ProjectTemplatesUtil;
 import com.liferay.project.templates.internal.util.Validator;
 
@@ -31,10 +31,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
-
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 import java.util.Iterator;
 import java.util.List;
@@ -60,25 +56,38 @@ public class ProjectGenerator {
 		String artifactId = projectTemplatesArgs.getName();
 		String author = projectTemplatesArgs.getAuthor();
 		String className = projectTemplatesArgs.getClassName();
+		String dependencyInjector =
+			projectTemplatesArgs.getDependencyInjector();
 		boolean dependencyManagementEnabled =
 			projectTemplatesArgs.isDependencyManagementEnabled();
+		String framework = projectTemplatesArgs.getFramework();
+		String frameworkDependencies =
+			projectTemplatesArgs.getFrameworkDependencies();
 		String groupId = projectTemplatesArgs.getGroupId();
 		String liferayVersion = projectTemplatesArgs.getLiferayVersion();
 		String packageName = projectTemplatesArgs.getPackageName();
-
 		String template = projectTemplatesArgs.getTemplate();
+		String viewType = projectTemplatesArgs.getViewType();
 
 		if (template.equals("portlet")) {
 			projectTemplatesArgs.setTemplate("mvc-portlet");
 		}
 
-		File templateFile = _getTemplateFile(projectTemplatesArgs);
+		File templateFile = ProjectTemplatesUtil.getTemplateFile(
+			projectTemplatesArgs);
 
 		String liferayVersions = FileUtil.getManifestProperty(
 			templateFile, "Liferay-Versions");
 
 		if ((liferayVersions != null) &&
 			!_isInVersionRange(liferayVersion, liferayVersions)) {
+
+			if (template.startsWith("npm-")) {
+				throw new IllegalArgumentException(
+					"NPM portlet project templates generated from this tool " +
+						"are not supported for specified Liferay version. " +
+							"See LPS-97950 for full details.");
+			}
 
 			throw new IllegalArgumentException(
 				"Specified Liferay version is invalid. Must be in range " +
@@ -132,12 +141,17 @@ public class ProjectGenerator {
 		_setProperty(properties, "author", author);
 		_setProperty(properties, "buildType", buildType);
 		_setProperty(properties, "className", className);
+		_setProperty(properties, "dependencyInjector", dependencyInjector);
 		_setProperty(
 			properties, "dependencyManagementEnabled",
 			String.valueOf(dependencyManagementEnabled));
+		_setProperty(properties, "framework", framework);
+		_setProperty(
+			properties, "frameworkDependencies", frameworkDependencies);
 		_setProperty(properties, "liferayVersion", liferayVersion);
 		_setProperty(properties, "package", packageName);
 		_setProperty(properties, "projectType", projectType);
+		_setProperty(properties, "viewType", viewType);
 
 		archetypeGenerationRequest.setProperties(properties);
 
@@ -174,57 +188,6 @@ public class ProjectGenerator {
 		}
 
 		return archetypeGenerationResult;
-	}
-
-	private static File _getTemplateFile(
-			ProjectTemplatesArgs projectTemplatesArgs)
-		throws Exception {
-
-		String template = projectTemplatesArgs.getTemplate();
-		String templateVersion = projectTemplatesArgs.getTemplateVersion();
-
-		for (File archetypesDir : projectTemplatesArgs.getArchetypesDirs()) {
-			if (!archetypesDir.isDirectory()) {
-				continue;
-			}
-
-			Path archetypesDirPath = archetypesDir.toPath();
-
-			try (DirectoryStream<Path> directoryStream =
-					Files.newDirectoryStream(
-						archetypesDirPath, "*.project.templates.*")) {
-
-				for (Path path : directoryStream) {
-					String fileName = String.valueOf(path.getFileName());
-
-					String templateName = ProjectTemplatesUtil.getTemplateName(
-						fileName);
-
-					if (templateName.equals(template)) {
-						File templateFile = path.toFile();
-
-						if (templateVersion != null) {
-							String bundleVersion = FileUtil.getManifestProperty(
-								templateFile, "Bundle-Version");
-
-							if (templateVersion.equals(bundleVersion)) {
-								return templateFile;
-							}
-
-							continue;
-						}
-
-						return templateFile;
-					}
-				}
-			}
-		}
-
-		String artifactId =
-			ProjectTemplates.TEMPLATE_BUNDLE_PREFIX +
-				template.replace('-', '.');
-
-		return ProjectTemplatesUtil.getArchetypeFile(artifactId);
 	}
 
 	private static boolean _isInVersionRange(

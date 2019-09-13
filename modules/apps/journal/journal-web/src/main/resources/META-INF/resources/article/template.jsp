@@ -25,7 +25,6 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 DDMTemplate ddmTemplate = journalEditArticleDisplayContext.getDDMTemplate();
 %>
 
-<aui:input name="groupId" type="hidden" value="<%= journalEditArticleDisplayContext.getGroupId() %>" />
 <aui:input name="ddmTemplateKey" type="hidden" value="<%= (ddmTemplate != null) ? ddmTemplate.getTemplateKey() : StringPool.BLANK %>" />
 
 <c:choose>
@@ -40,10 +39,10 @@ DDMTemplate ddmTemplate = journalEditArticleDisplayContext.getDDMTemplate();
 			<c:if test="<%= (article != null) && !article.isNew() && (journalEditArticleDisplayContext.getClassNameId() == JournalArticleConstants.CLASSNAME_ID_DEFAULT) %>">
 				<div class="input-group-item input-group-item-shrink">
 					<clay:button
+						elementClasses="btn-secondary"
 						icon="view"
 						id='<%= liferayPortletResponse.getNamespace() + "previewWithTemplate" %>'
 						monospaced="<%= true %>"
-						style="secondary"
 					/>
 				</div>
 			</c:if>
@@ -106,8 +105,10 @@ DDMTemplate ddmTemplate = journalEditArticleDisplayContext.getDDMTemplate();
 
 					var languageId = '<%= themeDisplay.getLanguageId() %>';
 
-					if (document.<portlet:namespace />fm1.<portlet:namespace />languageId.value != '') {
-						languageId = document.<portlet:namespace />fm1.<portlet:namespace />languageId.value;
+					var inputComponent = Liferay.component('<portlet:namespace />titleMapAsXML');
+
+					if (inputComponent) {
+						languageId = inputComponent.getSelectedLanguageId();
 					}
 
 					uri = Liferay.Util.addParams('<portlet:namespace />languageId=' + languageId, uri);

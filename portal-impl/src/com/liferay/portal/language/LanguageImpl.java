@@ -915,17 +915,15 @@ public class LanguageImpl implements Language, Serializable {
 			return LanguageResources.fixValue(value);
 		}
 
-		if (value == null) {
-			if ((key.length() > 0) &&
-				(key.charAt(key.length() - 1) == CharPool.CLOSE_BRACKET)) {
+		if ((key.length() > 0) &&
+			(key.charAt(key.length() - 1) == CharPool.CLOSE_BRACKET)) {
 
-				int pos = key.lastIndexOf(CharPool.OPEN_BRACKET);
+			int pos = key.lastIndexOf(CharPool.OPEN_BRACKET);
 
-				if (pos != -1) {
-					key = key.substring(0, pos);
+			if (pos != -1) {
+				key = key.substring(0, pos);
 
-					return get(locale, key, defaultValue);
-				}
+				return get(locale, key, defaultValue);
 			}
 		}
 
@@ -1008,9 +1006,7 @@ public class LanguageImpl implements Language, Serializable {
 
 	@Override
 	public String getBCP47LanguageId(HttpServletRequest httpServletRequest) {
-		Locale locale = PortalUtil.getLocale(httpServletRequest);
-
-		return getBCP47LanguageId(locale);
+		return getBCP47LanguageId(PortalUtil.getLocale(httpServletRequest));
 	}
 
 	@Override
@@ -1020,9 +1016,7 @@ public class LanguageImpl implements Language, Serializable {
 
 	@Override
 	public String getBCP47LanguageId(PortletRequest portletRequest) {
-		Locale locale = PortalUtil.getLocale(portletRequest);
-
-		return getBCP47LanguageId(locale);
+		return getBCP47LanguageId(PortalUtil.getLocale(portletRequest));
 	}
 
 	@Override
@@ -1084,18 +1078,14 @@ public class LanguageImpl implements Language, Serializable {
 	 */
 	@Override
 	public String getLanguageId(PortletRequest portletRequest) {
-		HttpServletRequest httpServletRequest =
-			PortalUtil.getHttpServletRequest(portletRequest);
-
-		return getLanguageId(httpServletRequest);
+		return getLanguageId(PortalUtil.getHttpServletRequest(portletRequest));
 	}
 
 	/**
-	 * Returns the last time in milliseconds when there was any change in the
-	 * languages list company or group
+	 * Returns the last time (in milliseconds) there was a change in the
+	 * language's list, company, or group.
 	 *
 	 * @return the last moodified time in milliseconds
-	 * @review
 	 */
 	@Override
 	public long getLastModified() {
@@ -1682,9 +1672,7 @@ public class LanguageImpl implements Language, Serializable {
 	}
 
 	private static CompanyLocalesBag _getCompanyLocalesBag() {
-		Long companyId = CompanyThreadLocal.getCompanyId();
-
-		return _getCompanyLocalesBag(companyId);
+		return _getCompanyLocalesBag(CompanyThreadLocal.getCompanyId());
 	}
 
 	private static CompanyLocalesBag _getCompanyLocalesBag(long companyId) {
@@ -1974,7 +1962,9 @@ public class LanguageImpl implements Language, Serializable {
 	private static PortalCache<Long, Serializable> _groupLocalesPortalCache;
 	private static volatile long _lastModified = System.currentTimeMillis();
 	private static final Pattern _pattern = Pattern.compile(
-		"Liferay\\.Language\\.get\\([\"']([^)]+)[\"']\\)");
+		"Liferay\\s*\\.\\s*Language\\s*\\.\\s*get\\s*" +
+			"\\(\\s*[\"']([^)]+)[\"']\\s*\\)",
+		Pattern.MULTILINE);
 
 	private static final Synchronizer<Long, Serializable> _removeSynchronizer =
 		new Synchronizer<Long, Serializable>() {

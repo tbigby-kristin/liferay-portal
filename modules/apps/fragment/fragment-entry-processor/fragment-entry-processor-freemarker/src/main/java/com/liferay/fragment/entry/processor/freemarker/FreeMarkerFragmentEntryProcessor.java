@@ -14,14 +14,16 @@
 
 package com.liferay.fragment.entry.processor.freemarker;
 
-import com.liferay.fragment.entry.processor.freemarker.configuration.FreeMarkerFragmentEntryProcessorConfiguration;
+import com.liferay.fragment.entry.processor.freemarker.internal.configuration.FreeMarkerFragmentEntryProcessorConfiguration;
 import com.liferay.fragment.exception.FragmentEntryContentException;
 import com.liferay.fragment.model.FragmentEntryLink;
-import com.liferay.fragment.processor.DefaultFragmentEntryProcessorContext;
 import com.liferay.fragment.processor.FragmentEntryProcessor;
 import com.liferay.fragment.processor.FragmentEntryProcessorContext;
+import com.liferay.fragment.util.FragmentEntryConfigUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -36,8 +38,11 @@ import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,6 +60,13 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class FreeMarkerFragmentEntryProcessor
 	implements FragmentEntryProcessor {
+
+	@Override
+	public JSONObject getDefaultEditableValuesJSONObject(
+		String html, String configuration) {
+
+		return JSONFactoryUtil.createJSONObject();
+	}
 
 	@Override
 	public String processFragmentEntryLinkHTML(
@@ -96,13 +108,33 @@ public class FreeMarkerFragmentEntryProcessor
 
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL,
-			new StringTemplateResource("template_id", "[#ftl]\n" + html), true);
+			new StringTemplateResource("template_id", "[#ftl] " + html), true);
 
 		template.put(TemplateConstants.WRITER, unsyncStringWriter);
 
 		TemplateManager templateManager =
 			TemplateManagerUtil.getTemplateManager(
 				TemplateConstants.LANG_TYPE_FTL);
+
+		Map<String, Object> contextObjects = new HashMap<>();
+
+		JSONObject configurationValuesJSONObject =
+			FragmentEntryConfigUtil.getConfigurationJSONObject(
+				fragmentEntryLink.getConfiguration(),
+				fragmentEntryLink.getEditableValues(),
+				fragmentEntryProcessorContext.getSegmentsExperienceIds());
+
+		contextObjects.put("configuration", configurationValuesJSONObject);
+
+		contextObjects.put(
+			"fragmentEntryLinkUuid", fragmentEntryLink.getUuid());
+
+		contextObjects.putAll(
+			FragmentEntryConfigUtil.getContextObjects(
+				configurationValuesJSONObject,
+				fragmentEntryLink.getConfiguration()));
+
+		templateManager.addContextObjects(template, contextObjects);
 
 		templateManager.addTaglibSupport(
 			template, fragmentEntryProcessorContext.getHttpServletRequest(),
@@ -114,41 +146,16 @@ public class FreeMarkerFragmentEntryProcessor
 			template.processTemplate(unsyncStringWriter);
 		}
 		catch (TemplateException te) {
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				"content.Language", getClass());
-
-			String message = LanguageUtil.get(
-				resourceBundle, "freemarker-syntax-is-invalid");
-
-			throw new FragmentEntryContentException(message, te);
+			throw new FragmentEntryContentException(_getMessage(te), te);
 		}
 
 		return unsyncStringWriter.toString();
 	}
 
 	@Override
-	public String processFragmentEntryLinkHTML(
-			FragmentEntryLink fragmentEntryLink, String html, String mode,
-			Locale locale, long[] segmentsExperienceIds, long previewClassPK,
-			int previewType)
+	public void validateFragmentEntryHTML(String html, String configuration)
 		throws PortalException {
 
-		DefaultFragmentEntryProcessorContext
-			defaultFragmentEntryProcessorContext =
-				new DefaultFragmentEntryProcessorContext(
-					null, null, mode, locale);
-
-		defaultFragmentEntryProcessorContext.setPreviewClassPK(previewClassPK);
-		defaultFragmentEntryProcessorContext.setPreviewType(previewType);
-		defaultFragmentEntryProcessorContext.setSegmentsExperienceIds(
-			segmentsExperienceIds);
-
-		return processFragmentEntryLinkHTML(
-			fragmentEntryLink, html, defaultFragmentEntryProcessorContext);
-	}
-
-	@Override
-	public void validateFragmentEntryHTML(String html) throws PortalException {
 		FreeMarkerFragmentEntryProcessorConfiguration
 			freeMarkerFragmentEntryProcessorConfiguration =
 				_configurationProvider.getCompanyConfiguration(
@@ -161,7 +168,7 @@ public class FreeMarkerFragmentEntryProcessor
 
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL,
-			new StringTemplateResource("template_id", "[#ftl]\n" + html), true);
+			new StringTemplateResource("template_id", "[#ftl] " + html), true);
 
 		try {
 			HttpServletRequest httpServletRequest = null;
@@ -175,28 +182,58 @@ public class FreeMarkerFragmentEntryProcessor
 				httpServletResponse = serviceContext.getResponse();
 			}
 
-			if ((httpServletRequest != null) && (httpServletResponse != null)) {
+			if ((httpServletRequest != null) &&
+				(httpServletRequest.getAttribute(WebKeys.THEME_DISPLAY) !=
+					null)) {
+
 				TemplateManager templateManager =
 					TemplateManagerUtil.getTemplateManager(
 						TemplateConstants.LANG_TYPE_FTL);
+
+				Map<String, Object> contextObjects = new HashMap<>();
+
+				JSONObject configurationDefaultValuesJSONObject =
+					FragmentEntryConfigUtil.
+						getConfigurationDefaultValuesJSONObject(configuration);
+
+				contextObjects.put(
+					"configuration", configurationDefaultValuesJSONObject);
+
+				contextObjects.putAll(
+					FragmentEntryConfigUtil.getContextObjects(
+						configurationDefaultValuesJSONObject, configuration));
+
+				templateManager.addContextObjects(template, contextObjects);
 
 				templateManager.addTaglibSupport(
 					template, httpServletRequest, httpServletResponse);
 
 				template.prepare(httpServletRequest);
-			}
 
-			template.processTemplate(new UnsyncStringWriter());
+				template.processTemplate(new UnsyncStringWriter());
+			}
 		}
 		catch (TemplateException te) {
-			ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-				"content.Language", getClass());
-
-			String message = LanguageUtil.get(
-				resourceBundle, "freemarker-syntax-is-invalid");
-
-			throw new FragmentEntryContentException(message, te);
+			throw new FragmentEntryContentException(_getMessage(te), te);
 		}
+	}
+
+	private String _getMessage(TemplateException te) {
+		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
+			"content.Language", getClass());
+
+		String message = LanguageUtil.get(
+			resourceBundle, "freemarker-syntax-is-invalid");
+
+		Throwable causeThrowable = te.getCause();
+
+		String causeThrowableMessage = causeThrowable.getLocalizedMessage();
+
+		if (Validator.isNotNull(causeThrowableMessage)) {
+			message = message + "\n\n" + causeThrowableMessage;
+		}
+
+		return message;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

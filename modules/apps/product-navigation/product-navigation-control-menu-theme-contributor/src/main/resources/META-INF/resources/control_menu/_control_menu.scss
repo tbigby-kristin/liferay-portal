@@ -1,5 +1,6 @@
 .has-control-menu {
-	.affix, #wrapper {
+	.affix,
+	#wrapper {
 		margin-top: $has-control-menu-margin-top-mobile;
 
 		.portlet-boundary > span:first-child {
@@ -16,7 +17,7 @@
 			margin-top: -$has-control-menu-margin-top-mobile;
 		}
 
-		@include sm() {
+		@include media-breakpoint-up(sm) {
 			margin-top: $has-control-menu-margin-top-desktop;
 
 			.portlet-boundary > span:first-child {
@@ -30,39 +31,57 @@
 		}
 	}
 
-	&.has-customization-menu .affix, &.has-customization-menu #wrapper {
-		margin-top: ($has-control-menu-margin-top-mobile + $has-customization-menu-margin-top-mobile);
+	&.has-customization-menu .affix,
+	&.has-customization-menu #wrapper {
+		margin-top: (
+			$has-control-menu-margin-top-mobile +
+				$has-customization-menu-margin-top-mobile
+		);
 
 		.portlet-boundary > span:first-child {
 			display: block;
 			position: relative;
-			top: -($has-control-menu-margin-top-mobile + $has-customization-menu-margin-top-mobile);
+			top: -($has-control-menu-margin-top-mobile +
+						$has-customization-menu-margin-top-mobile);
 			visibility: hidden;
 		}
 
 		:target::before {
 			content: '';
 			display: block;
-			height: ($has-control-menu-margin-top-mobile + $has-customization-menu-margin-top-mobile);
-			margin-top: -($has-control-menu-margin-top-mobile + $has-customization-menu-margin-top-mobile);
+			height: (
+				$has-control-menu-margin-top-mobile +
+					$has-customization-menu-margin-top-mobile
+			);
+			margin-top: -($has-control-menu-margin-top-mobile +
+						$has-customization-menu-margin-top-mobile);
 		}
 
-		@include sm() {
-			margin-top: ($has-control-menu-margin-top-desktop + $has-customization-menu-margin-top-desktop);
+		@include media-breakpoint-up(sm) {
+			margin-top: (
+				$has-control-menu-margin-top-desktop +
+					$has-customization-menu-margin-top-desktop
+			);
 
 			.portlet-boundary > span:first-child {
-				top: -($has-control-menu-margin-top-desktop + $has-customization-menu-margin-top-desktop);
+				top: -($has-control-menu-margin-top-desktop +
+							$has-customization-menu-margin-top-desktop);
 			}
 
 			:target::before {
-				height: ($has-control-menu-margin-top-desktop + $has-customization-menu-margin-top-desktop);
-				margin-top: -($has-control-menu-margin-top-desktop + $has-customization-menu-margin-top-desktop);
+				height: (
+					$has-control-menu-margin-top-desktop +
+						$has-customization-menu-margin-top-desktop
+				);
+				margin-top: -($has-control-menu-margin-top-desktop +
+							$has-customization-menu-margin-top-desktop);
 			}
 		}
 	}
 }
 
-.affix, .control-menu {
+.affix,
+.control-menu {
 	left: 0;
 	position: fixed;
 	right: 0;
@@ -92,15 +111,17 @@ a.control-menu-icon,
 	> .container-fluid {
 		padding: 8px;
 
-		@include sm() {
+		@include media-breakpoint-up(sm) {
 			padding: 12px;
 		}
 	}
 
-	a, button {
+	a,
+	button {
 		color: $control-menu-level-1-link-color;
 
-		&:focus, &:hover {
+		&:focus,
+		&:hover {
 			color: $control-menu-level-1-link-hover-color;
 			text-decoration: none;
 		}
@@ -118,41 +139,43 @@ a.control-menu-icon,
 }
 
 .control-menu-level-1-heading {
-	color: #FFF;
+	color: #fff;
 	font-size: 1rem;
 	font-weight: bold;
 }
 
 .control-menu-level-1-nav {
-	@include display(flex);
-	@include flex-wrap(wrap);
-	@include justify-content(space-between);
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
 
 	> li > .control-menu-nav > .control-menu-nav-item {
-		@include xs {
+		@include media-breakpoint-up(xs) {
 			margin-left: 4px;
 			margin-right: 4px;
 		}
 
-		@include sm {
+		@include media-breakpoint-up(sm) {
 			margin-left: 8px;
 			margin-right: 8px;
 		}
 	}
 
 	> .control-menu-nav-item {
-		@include align-self(center);
+		align-self: center;
 	}
 }
 
 .control-menu-level-2 {
 	background-color: $control-menu-level-2-bg;
-	border-bottom: 1px solid #E7E7ED;
+	border-bottom: 1px solid #e7e7ed;
 	color: $control-menu-level-2-color;
 	padding-bottom: 7px;
 	padding-top: 6px;
 
-	a, a:focus, a:hover {
+	a,
+	a:focus,
+	a:hover {
 		color: $control-menu-level-2-link-color;
 	}
 
@@ -169,7 +192,7 @@ a.control-menu-icon,
 		text-transform: none;
 	}
 
-	@include sm() {
+	@include media-breakpoint-up(sm) {
 		left: 0;
 		position: absolute;
 		right: 0;
@@ -180,7 +203,7 @@ a.control-menu-icon,
 		}
 	}
 
-	@include media-query(null, $screen-xs-max) {
+	@include media-breakpoint-down(sm) {
 		bottom: 0;
 		display: none;
 		left: 0;
@@ -190,7 +213,7 @@ a.control-menu-icon,
 		z-index: 1;
 
 		&.open {
-			background-color: transparentize(#29343D, 0.1);
+			background-color: transparentize(#29343d, 0.1);
 			display: block;
 			overflow: auto;
 		}
@@ -210,11 +233,11 @@ a.control-menu-icon,
 }
 
 .control-menu-level-2-nav {
-	@include display(flex);
-	@include flex-wrap(wrap);
-	@include justify-content(space-between);
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
 
-	@include media-query(null, $screen-xs-max) {
+	@include media-breakpoint-down(sm) {
 		> .control-menu-nav-item {
 			margin-bottom: 55px;
 		}
@@ -236,9 +259,8 @@ a.control-menu-icon,
 }
 
 .control-menu-nav {
-	@include align-items(center);
-	@include display(flex);
-
+	align-items: center;
+	display: flex;
 	font-size: 16px;
 	list-style: none;
 	margin-bottom: 0;
@@ -250,10 +272,9 @@ a.control-menu-icon,
 }
 
 .control-menu-nav-item-content {
-	@include display(flex);
-	@include flex(1 1 0);
-	@include justify-content(center);
-
+	display: flex;
+	flex: 1 1 0;
+	justify-content: center;
 	min-width: 64px;
 	width: 0;
 
@@ -265,9 +286,7 @@ a.control-menu-icon,
 		overflow: hidden;
 		text-overflow: ellipsis;
 		top: 50%;
-
-		@include transform(translateY(-50%));
-
+		transform: translateY(-50%);
 		white-space: nowrap;
 	}
 
@@ -277,12 +296,14 @@ a.control-menu-icon,
 }
 
 .control-menu-nav-item-field {
-	@include flex(0 1 auto);
+	flex: 0 1 auto;
 }
 
-.live-link, .staging-link {
-	a, a:focus {
-		color: #869CAD;
+.live-link,
+.staging-link {
+	a,
+	a:focus {
+		color: #869cad;
 	}
 
 	&.active {
@@ -297,7 +318,7 @@ a.control-menu-icon,
 		}
 
 		a {
-			color: #FFF;
+			color: #fff;
 		}
 	}
 }
@@ -312,20 +333,19 @@ a.control-menu-icon,
 
 %control-menu-icon-monospaced {
 	height: 32px;
-	line-height: 34px;
+	line-height: 32px;
 	text-align: center;
 	width: 32px;
 }
 
 .tools-control-group {
-	@include flex(1);
-	@include flex-wrap(wrap);
-
+	flex: 1;
+	flex-wrap: wrap;
 	min-width: 50px;
 
 	> .control-menu-nav {
-		@include flex-wrap(wrap);
-		@include justify-content(center);
+		flex-wrap: wrap;
+		justify-content: center;
 
 		> li > .lfr-portal-tooltip > .control-menu-icon {
 			@extend %control-menu-icon-monospaced;

@@ -16,7 +16,6 @@ package com.liferay.gradle.plugins.node.tasks;
 
 import com.liferay.gradle.plugins.node.internal.util.FileUtil;
 import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
-import com.liferay.gradle.plugins.node.internal.util.NodePluginUtil;
 import com.liferay.gradle.util.Validator;
 
 import groovy.json.JsonOutput;
@@ -52,7 +51,7 @@ import org.gradle.util.GUtil;
 /**
  * @author Andrea Di Giorgi
  */
-public class PublishNodeModuleTask extends ExecuteNpmTask {
+public class PublishNodeModuleTask extends ExecutePackageManagerTask {
 
 	@Override
 	public void executeNode() throws Exception {
@@ -292,11 +291,11 @@ public class PublishNodeModuleTask extends ExecuteNpmTask {
 	}
 
 	private File _getNpmrcFile() {
-		File scriptFile = getScriptFile();
-
-		if (!NodePluginUtil.isYarnScriptFile(scriptFile)) {
+		if (isUseNpm()) {
 			return new File(getTemporaryDir(), "npmrc");
 		}
+
+		File scriptFile = getScriptFile();
 
 		return new File(scriptFile.getParentFile(), ".npmrc");
 	}

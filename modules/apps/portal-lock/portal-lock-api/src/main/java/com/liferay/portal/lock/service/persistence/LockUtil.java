@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -42,10 +41,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see LockPersistence
  * @generated
  */
-@ProviderType
 public class LockUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -179,15 +177,15 @@ public class LockUtil {
 	 * @param start the lower bound of the range of locks
 	 * @param end the upper bound of the range of locks (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching locks
 	 */
 	public static List<Lock> findByUuid(
 		String uuid, int start, int end,
-		OrderByComparator<Lock> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<Lock> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -346,15 +344,15 @@ public class LockUtil {
 	 * @param start the lower bound of the range of locks
 	 * @param end the upper bound of the range of locks (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching locks
 	 */
 	public static List<Lock> findByUuid_C(
 		String uuid, long companyId, int start, int end,
-		OrderByComparator<Lock> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<Lock> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -525,15 +523,15 @@ public class LockUtil {
 	 * @param start the lower bound of the range of locks
 	 * @param end the upper bound of the range of locks (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching locks
 	 */
 	public static List<Lock> findByClassName(
 		String className, int start, int end,
-		OrderByComparator<Lock> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<Lock> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByClassName(
-			className, start, end, orderByComparator, retrieveFromCache);
+			className, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -694,15 +692,15 @@ public class LockUtil {
 	 * @param start the lower bound of the range of locks
 	 * @param end the upper bound of the range of locks (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching locks
 	 */
 	public static List<Lock> findByLtExpirationDate(
 		Date expirationDate, int start, int end,
-		OrderByComparator<Lock> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<Lock> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByLtExpirationDate(
-			expirationDate, start, end, orderByComparator, retrieveFromCache);
+			expirationDate, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -832,13 +830,13 @@ public class LockUtil {
 	 *
 	 * @param className the class name
 	 * @param key the key
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching lock, or <code>null</code> if a matching lock could not be found
 	 */
 	public static Lock fetchByC_K(
-		String className, String key, boolean retrieveFromCache) {
+		String className, String key, boolean useFinderCache) {
 
-		return getPersistence().fetchByC_K(className, key, retrieveFromCache);
+		return getPersistence().fetchByC_K(className, key, useFinderCache);
 	}
 
 	/**
@@ -985,15 +983,15 @@ public class LockUtil {
 	 * @param start the lower bound of the range of locks
 	 * @param end the upper bound of the range of locks (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of locks
 	 */
 	public static List<Lock> findAll(
 		int start, int end, OrderByComparator<Lock> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

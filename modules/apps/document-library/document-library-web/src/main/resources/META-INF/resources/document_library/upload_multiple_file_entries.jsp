@@ -105,7 +105,7 @@ if (portletTitleBasedNavigation) {
 						PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "add-multiple-file-entries"), currentURL);
 						%>
 
-						<aui:script use="aui-base,aui-io-request,aui-loading-mask-deprecated,node-load">
+						<aui:script use="aui-base,aui-loading-mask-deprecated,node-load">
 							Liferay.provide(
 								window,
 								'<portlet:namespace />updateMultipleFiles',
@@ -145,97 +145,100 @@ if (portletTitleBasedNavigation) {
 										ddmForm.updateDDMFormInputValue();
 									}
 
-									A.io.request(
+									Liferay.Util.fetch(
 										document.<portlet:namespace />fm2.action,
 										{
-											after: {
-												failure: function(event, id, obj) {
-													var selectedItems = A.all('#<portlet:namespace />fileUpload li.selected');
+											body: new FormData(document.<portlet:namespace />fm2),
+											method: 'POST'
+										}
+									)
+										.then(
+											function(response) {
+												return response.json();
+											}
+										)
+										.then(
+											function(response) {
+												var itemFailed = false;
 
-													selectedItems.removeClass('selectable').removeClass('selected').addClass('upload-error');
+												for (var i = 0; i < response.length; i++) {
+													var item = response[i];
 
-													selectedItems.append('<span class="card-bottom error-message"><%= UnicodeLanguageUtil.get(request, "an-unexpected-error-occurred-while-deleting-the-file") %></span>');
+													var checkBox = A.one('input[data-fileName="' + item.originalFileName + '"]');
 
-													selectedItems.all('input').remove(true);
+													var li = checkBox.ancestor();
 
-													commonFileMetadataContainer.loadingmask.hide();
-												},
-												success: function(event, id, obj) {
-													var jsonArray = this.get('responseData');
+													checkBox.remove(true);
 
-													var itemFailed = false;
+													li.removeClass('selectable').removeClass('selected');
 
-													for (var i = 0; i < jsonArray.length; i++) {
-														var item = jsonArray[i];
+													var cssClass = null;
+													var childHTML = null;
 
-														var checkBox = A.one('input[data-fileName="' + item.originalFileName + '"]');
+													if (item.added) {
+														cssClass = 'file-saved';
 
-														var li = checkBox.ancestor();
+														var originalFileName = item.originalFileName;
 
-														checkBox.remove(true);
+														var pos = originalFileName.indexOf('<%= TempFileEntryUtil.TEMP_RANDOM_SUFFIX %>');
 
-														li.removeClass('selectable').removeClass('selected');
+														if (pos != -1) {
+															originalFileName = originalFileName.substr(0, pos);
+														}
 
-														var cssClass = null;
-														var childHTML = null;
-
-														if (item.added) {
-															cssClass = 'file-saved';
-
-															var originalFileName = item.originalFileName;
-
-															var pos = originalFileName.indexOf('<%= TempFileEntryUtil.TEMP_RANDOM_SUFFIX %>');
-
-															if (pos != -1) {
-																originalFileName = originalFileName.substr(0, pos);
-															}
-
-															if (originalFileName === item.fileName) {
-																childHTML = '<span class="card-bottom success-message"><%= UnicodeLanguageUtil.get(request, "successfully-saved") %></span>';
-															}
-															else {
-																childHTML = '<span class="card-bottom success-message"><%= UnicodeLanguageUtil.get(request, "successfully-saved") %> (' + item.fileName + ')</span>';
-															}
+														if (originalFileName === item.fileName) {
+															childHTML = '<span class="card-bottom success-message"><%= UnicodeLanguageUtil.get(request, "successfully-saved") %></span>';
 														}
 														else {
-															cssClass = 'upload-error';
-
-															childHTML = '<span class="card-bottom error-message">' + item.errorMessage + '</span>';
-
-															itemFailed = true;
+															childHTML = '<span class="card-bottom success-message"><%= UnicodeLanguageUtil.get(request, "successfully-saved") %> (' + item.fileName + ')</span>';
 														}
-
-														li.addClass(cssClass);
-														li.append(childHTML);
-													}
-
-													<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/document_library/upload_multiple_file_entries" var="uploadMultipleFileEntries">
-														<portlet:param name="repositoryId" value="<%= String.valueOf(repositoryId) %>" />
-														<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
-													</liferay-portlet:resourceURL>
-
-													if (commonFileMetadataContainer.io) {
-														commonFileMetadataContainer.io.start();
 													}
 													else {
-														commonFileMetadataContainer.load('<%= uploadMultipleFileEntries %>');
+														cssClass = 'upload-error';
+
+														childHTML = '<span class="card-bottom error-message">' + item.errorMessage + '</span>';
+
+														itemFailed = true;
 													}
 
-													Liferay.fire('filesSaved');
-
-													commonFileMetadataContainer.unplug(A.LoadingMask);
-
-													if (!itemFailed) {
-														location.href = '<%= HtmlUtil.escapeJS(redirect) %>';
-													}
+													li.addClass(cssClass);
+													li.append(childHTML);
 												}
-											},
-											dataType: 'JSON',
-											form: {
-												id: document.<portlet:namespace />fm2
+
+												<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/document_library/upload_multiple_file_entries" var="uploadMultipleFileEntries">
+													<portlet:param name="repositoryId" value="<%= String.valueOf(repositoryId) %>" />
+													<portlet:param name="folderId" value="<%= String.valueOf(folderId) %>" />
+												</liferay-portlet:resourceURL>
+
+												if (commonFileMetadataContainer.io) {
+													commonFileMetadataContainer.io.start();
+												}
+												else {
+													commonFileMetadataContainer.load('<%= uploadMultipleFileEntries %>');
+												}
+
+												Liferay.fire('filesSaved');
+
+												commonFileMetadataContainer.unplug(A.LoadingMask);
+
+												if (!itemFailed) {
+													location.href = '<%= HtmlUtil.escapeJS(redirect) %>';
+												}
 											}
-										}
-									);
+										)
+										.catch(
+											function(error) {
+												var selectedItems = A.all('#<portlet:namespace />fileUpload li.selected');
+
+												selectedItems.removeClass('selectable').removeClass('selected').addClass('upload-error');
+
+												selectedItems.append('<span class="card-bottom error-message"><%= UnicodeLanguageUtil.get(request, "an-unexpected-error-occurred-while-deleting-the-file") %></span>');
+
+												selectedItems.all('input').remove(true);
+
+												commonFileMetadataContainer.loadingmask.hide();
+											}
+										);
 								},
 								['aui-base']
 							);

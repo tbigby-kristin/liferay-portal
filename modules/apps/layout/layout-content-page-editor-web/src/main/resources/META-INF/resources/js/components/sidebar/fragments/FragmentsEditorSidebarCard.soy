@@ -9,6 +9,7 @@
 	{@param itemName: string}
 	{@param? _handleClick: any}
 	{@param? imagePreviewURL: string}
+	{@param? itemGroupId: string}
 	{@param? spritemap: string}
 
 	{let $sidebarCardClasses kind="text"}
@@ -16,11 +17,13 @@
 		{sp}fragments-editor__drag-source
 		{sp}fragments-editor__drag-source--sidebar-fragment
 		{sp}fragments-editor-sidebar-section__card
+		{sp}overflow-hidden
 	{/let}
 
 	<div
 		class="{$sidebarCardClasses}"
 		data-drag-source-label="{$itemName}"
+		data-item-group-id="{$itemGroupId ?: ''}"
 		data-item-id="{$itemId}"
 		data-item-name="{$itemName}"
 	>
@@ -49,6 +52,7 @@
 				<div class="autofit-col">
 					<button
 						class="btn btn-sm btn-outline-secondary btn-outline-borderless btn-monospaced"
+						data-item-group-id="{$itemGroupId ?: ''}"
 						data-item-id="{$itemId}"
 						data-item-name="{$itemName}"
 						data-onclick="{$_handleClick}"

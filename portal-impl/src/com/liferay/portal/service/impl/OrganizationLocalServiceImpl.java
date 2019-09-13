@@ -40,12 +40,11 @@ import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroupRole;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.search.BaseModelSearchResult;
-import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
@@ -348,11 +347,10 @@ public class OrganizationLocalServiceImpl
 	public void addOrganizationResources(long userId, Organization organization)
 		throws PortalException {
 
-		String name = Organization.class.getName();
-
 		resourceLocalService.addResources(
-			organization.getCompanyId(), 0, userId, name,
-			organization.getOrganizationId(), false, false, false);
+			organization.getCompanyId(), 0, userId,
+			Organization.class.getName(), organization.getOrganizationId(),
+			false, false, false);
 	}
 
 	/**
@@ -377,9 +375,8 @@ public class OrganizationLocalServiceImpl
 	 */
 	@Override
 	public void deleteLogo(long organizationId) throws PortalException {
-		Organization organization = getOrganization(organizationId);
-
-		PortalUtil.updateImageId(organization, false, null, "logoId", 0, 0, 0);
+		PortalUtil.updateImageId(
+			getOrganization(organizationId), false, null, "logoId", 0, 0, 0);
 	}
 
 	/**
@@ -480,10 +477,8 @@ public class OrganizationLocalServiceImpl
 
 		// Resources
 
-		String name = Organization.class.getName();
-
 		resourceLocalService.deleteResource(
-			organization.getCompanyId(), name,
+			organization.getCompanyId(), Organization.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL,
 			organization.getOrganizationId());
 
@@ -712,9 +707,7 @@ public class OrganizationLocalServiceImpl
 			organizationIds.length);
 
 		for (long organizationId : organizationIds) {
-			Organization organization = getOrganization(organizationId);
-
-			organizations.add(organization);
+			organizations.add(getOrganization(organizationId));
 		}
 
 		return organizations;
@@ -1872,7 +1865,7 @@ public class OrganizationLocalServiceImpl
 	 * @param  countryId the primary key of the organization's country
 	 * @param  statusId the organization's workflow status
 	 * @param  comments the comments about the organization
-	 * @param  logo whether to update the ogranization's logo
+	 * @param  hasLogo if the organization has a custom logo
 	 * @param  logoBytes the new logo image data
 	 * @param  site whether the organization is to be associated with a main
 	 *         site
@@ -1886,7 +1879,7 @@ public class OrganizationLocalServiceImpl
 	public Organization updateOrganization(
 			long companyId, long organizationId, long parentOrganizationId,
 			String name, String type, long regionId, long countryId,
-			long statusId, String comments, boolean logo, byte[] logoBytes,
+			long statusId, String comments, boolean hasLogo, byte[] logoBytes,
 			boolean site, ServiceContext serviceContext)
 		throws PortalException {
 
@@ -1916,7 +1909,7 @@ public class OrganizationLocalServiceImpl
 		organization.setComments(comments);
 
 		PortalUtil.updateImageId(
-			organization, logo, logoBytes, "logoId",
+			organization, hasLogo, logoBytes, "logoId",
 			_userFileUploadsSettings.getImageMaxSize(),
 			_userFileUploadsSettings.getImageMaxHeight(),
 			_userFileUploadsSettings.getImageMaxWidth());
@@ -2337,9 +2330,8 @@ public class OrganizationLocalServiceImpl
 			(User user) -> {
 				if (!user.isDefaultUser()) {
 					try {
-						Document document = indexer.getDocument(user);
-
-						indexableActionableDynamicQuery.addDocuments(document);
+						indexableActionableDynamicQuery.addDocuments(
+							indexer.getDocument(user));
 					}
 					catch (PortalException pe) {
 						if (_log.isWarnEnabled()) {
@@ -2364,9 +2356,7 @@ public class OrganizationLocalServiceImpl
 	}
 
 	protected void reindexUsers(long organizationId) throws PortalException {
-		Organization organization = getOrganization(organizationId);
-
-		reindexUsers(organization);
+		reindexUsers(getOrganization(organizationId));
 	}
 
 	protected void reindexUsers(long[] organizationIds) throws PortalException {
@@ -2456,14 +2446,12 @@ public class OrganizationLocalServiceImpl
 			companyId, name);
 
 		if ((organization != null) &&
-			StringUtil.equalsIgnoreCase(organization.getName(), name)) {
+			StringUtil.equalsIgnoreCase(organization.getName(), name) &&
+			((organizationId <= 0) ||
+			 (organization.getOrganizationId() != organizationId))) {
 
-			if ((organizationId <= 0) ||
-				(organization.getOrganizationId() != organizationId)) {
-
-				throw new DuplicateOrganizationException(
-					"There is another organization named " + name);
-			}
+			throw new DuplicateOrganizationException(
+				"There is another organization named " + name);
 		}
 
 		boolean countryRequired = _organizationTypesSettings.isCountryRequired(

@@ -18,12 +18,13 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
@@ -31,6 +32,7 @@ import com.liferay.portal.kernel.test.util.UserGroupTestUtil;
 import com.liferay.portal.service.persistence.constants.UserGroupFinderConstants;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.users.admin.kernel.util.UsersAdminUtil;
 
 import java.util.LinkedHashMap;
@@ -140,6 +142,29 @@ public class UserGroupLocalServiceTest {
 		List<UserGroup> userGroups = _search(keywords, emptyParams);
 
 		Assert.assertEquals(userGroups.toString(), 1, userGroups.size());
+	}
+
+	@Test
+	public void testSearchUserGroupsWithNullParamsAndIndexerDisabled()
+		throws Exception {
+
+		Object value = ReflectionTestUtil.getAndSetFieldValue(
+			PropsValues.class, "USER_GROUPS_SEARCH_WITH_INDEX", Boolean.FALSE);
+
+		try {
+			LinkedHashMap<String, Object> nullParams = null;
+
+			String keywords = null;
+
+			List<UserGroup> userGroups = _search(keywords, nullParams);
+
+			Assert.assertEquals(
+				userGroups.toString(), _count + 2, userGroups.size());
+		}
+		finally {
+			ReflectionTestUtil.setFieldValue(
+				PropsValues.class, "USER_GROUPS_SEARCH_WITH_INDEX", value);
+		}
 	}
 
 	@Test

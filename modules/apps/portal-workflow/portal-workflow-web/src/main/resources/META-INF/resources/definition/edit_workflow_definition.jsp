@@ -202,12 +202,7 @@ renderResponse.setTitle((workflowDefinition == null) ? LanguageUtil.get(request,
 				<div class="card-horizontal main-content-card">
 					<div class="card-row-padded">
 						<liferay-ui:error exception="<%= RequiredWorkflowDefinitionException.class %>">
-
-							<%
-							RequiredWorkflowDefinitionException rwde = (RequiredWorkflowDefinitionException)errorException;
-							%>
-
-							<liferay-ui:message arguments="<%= workflowDefinitionDisplayContext.getMessageArguments(rwde.getWorkflowDefinitionLinks()) %>" key="<%= workflowDefinitionDisplayContext.getMessageKey(rwde.getWorkflowDefinitionLinks()) %>" translateArguments="<%= false %>" />
+							<liferay-ui:message arguments="<%= workflowDefinitionDisplayContext.getMessageArguments((RequiredWorkflowDefinitionException)errorException) %>" key="<%= workflowDefinitionDisplayContext.getMessageKey((RequiredWorkflowDefinitionException)errorException) %>" translateArguments="<%= false %>" />
 						</liferay-ui:error>
 
 						<liferay-ui:error exception="<%= WorkflowDefinitionFileException.class %>">
@@ -307,7 +302,7 @@ renderResponse.setTitle((workflowDefinition == null) ? LanguageUtil.get(request,
 	</c:if>
 </div>
 
-<aui:script use="aui-ace-editor,liferay-xml-formatter,liferay-workflow-web">
+<aui:script use="aui-ace-editor,liferay-workflow-web">
 	var STR_VALUE = 'value';
 
 	var contentEditor = new A.AceEditor(
@@ -320,15 +315,7 @@ renderResponse.setTitle((workflowDefinition == null) ? LanguageUtil.get(request,
 		}
 	).render();
 
-	var xmlFormatter = new Liferay.XMLFormatter();
-
-	var content = xmlFormatter.format('<%= HtmlUtil.escapeJS(content) %>');
-
-	if (content) {
-		content = content.trim();
-	}
-
-	contentEditor.set(STR_VALUE, content);
+	contentEditor.set(STR_VALUE, Liferay.Util.formatXML('<%= HtmlUtil.escapeJS(content) %>'));
 
 	var uploadFile = document.getElementById('<portlet:namespace />upload');
 
@@ -468,13 +455,4 @@ renderResponse.setTitle((workflowDefinition == null) ? LanguageUtil.get(request,
 			}
 		);
 	}
-
-	var sidenavSlider = $('#<portlet:namespace />infoPanelId');
-
-	sidenavSlider.on(
-		'open.lexicon.sidenav',
-		function(event) {
-			$(document).trigger('screenChange.lexicon.sidenav');
-		}
-	);
 </aui:script>

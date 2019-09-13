@@ -279,18 +279,33 @@ public class BatchBuild extends BaseBuild {
 				continue;
 			}
 
-			Pattern buildURLPattern = null;
+			Matcher axisBuildURLMatcher;
 
 			if (fromArchive) {
-				buildURLPattern = AxisBuild.archiveBuildURLPattern;
+				Pattern archiveBuildURLPattern =
+					AxisBuild.archiveBuildURLPattern;
+
+				axisBuildURLMatcher = archiveBuildURLPattern.matcher(
+					axisBuildURL);
+
+				if (!axisBuildURLMatcher.find()) {
+					throw new RuntimeException(
+						JenkinsResultsParserUtil.combine(
+							"Unable to match archived axis build URL ",
+							axisBuildURL, " with archived build URL pattern.",
+							archiveBuildURLPattern.pattern()));
+				}
 			}
 			else {
-				buildURLPattern = AxisBuild.buildURLPattern;
+				MultiPattern buildURLMultiPattern =
+					AxisBuild.buildURLMultiPattern;
+
+				axisBuildURLMatcher = buildURLMultiPattern.find(axisBuildURL);
+
+				if (axisBuildURLMatcher == null) {
+					continue;
+				}
 			}
-
-			Matcher axisBuildURLMatcher = buildURLPattern.matcher(axisBuildURL);
-
-			axisBuildURLMatcher.find();
 
 			String axisVariable = axisBuildURLMatcher.group("axisVariable");
 

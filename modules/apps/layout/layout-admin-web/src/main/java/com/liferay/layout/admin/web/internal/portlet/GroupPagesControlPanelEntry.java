@@ -22,8 +22,10 @@ import com.liferay.portal.kernel.portlet.ControlPanelEntry;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.staging.StagingGroupHelper;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Jorge Ferrer
@@ -41,6 +43,12 @@ public class GroupPagesControlPanelEntry extends BaseControlPanelEntry {
 	public boolean hasAccessPermissionDenied(
 			PermissionChecker permissionChecker, Group group, Portlet portlet)
 		throws Exception {
+
+		if (_stagingGroupHelper.isLocalStagingGroup(group) &&
+			group.isCompany()) {
+
+			return false;
+		}
 
 		if (group.isLayout()) {
 			return true;
@@ -64,5 +72,8 @@ public class GroupPagesControlPanelEntry extends BaseControlPanelEntry {
 		return super.hasPermissionImplicitlyGranted(
 			permissionChecker, group, portlet);
 	}
+
+	@Reference
+	private StagingGroupHelper _stagingGroupHelper;
 
 }

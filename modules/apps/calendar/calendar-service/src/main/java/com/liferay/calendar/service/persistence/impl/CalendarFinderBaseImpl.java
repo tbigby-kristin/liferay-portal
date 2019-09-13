@@ -55,7 +55,7 @@ public abstract class CalendarFinderBaseImpl
 
 	@Override
 	@Reference(
-		target = CalendarPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		target = CalendarPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
 		unbind = "-"
 	)
 	public void setConfiguration(Configuration configuration) {
@@ -85,5 +85,14 @@ public abstract class CalendarFinderBaseImpl
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CalendarFinderBaseImpl.class);
+
+	static {
+		try {
+			Class.forName(CalendarPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

@@ -28,6 +28,7 @@ import com.liferay.poshi.runner.util.GetterUtil;
 import com.liferay.poshi.runner.util.HtmlUtil;
 import com.liferay.poshi.runner.util.OSDetector;
 import com.liferay.poshi.runner.util.PropsValues;
+import com.liferay.poshi.runner.util.ResourceUtil;
 import com.liferay.poshi.runner.util.RuntimeVariables;
 import com.liferay.poshi.runner.util.StringPool;
 import com.liferay.poshi.runner.util.StringUtil;
@@ -108,8 +109,7 @@ import org.sikuli.api.robot.Mouse;
 import org.sikuli.api.robot.desktop.DesktopKeyboard;
 import org.sikuli.api.robot.desktop.DesktopMouse;
 import org.sikuli.api.visual.Canvas;
-import org.sikuli.api.visual.CanvasBuilder.ElementAdder;
-import org.sikuli.api.visual.CanvasBuilder.ElementAreaSetter;
+import org.sikuli.api.visual.CanvasBuilder;
 import org.sikuli.api.visual.DesktopCanvas;
 
 import org.w3c.dom.Document;
@@ -1218,9 +1218,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public String getFirstNumberIncrement(String locator) {
-		String firstNumber = getFirstNumber(locator);
-
-		return String.valueOf(GetterUtil.getInteger(firstNumber) + 1);
+		return String.valueOf(
+			GetterUtil.getInteger(getFirstNumber(locator)) + 1);
 	}
 
 	public Node getHtmlNode(String locator) {
@@ -1352,9 +1351,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		if (!exceptions.isEmpty()) {
 			throw new Exception(exceptions.get(0));
 		}
-		else {
-			throw new TimeoutException();
-		}
+
+		throw new TimeoutException();
 	}
 
 	@Override
@@ -1562,9 +1560,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public boolean isConfirmation(String pattern) {
-		String confirmation = getConfirmation();
-
-		return pattern.equals(confirmation);
+		return pattern.equals(getConfirmation());
 	}
 
 	@Override
@@ -1650,9 +1646,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 			return false;
 		}
 
-		String[] selectedLabels = getSelectedLabels(selectLocator);
-
-		List<String> selectedLabelsList = Arrays.asList(selectedLabels);
+		List<String> selectedLabelsList = Arrays.asList(
+			getSelectedLabels(selectLocator));
 
 		return !selectedLabelsList.contains(pattern);
 	}
@@ -1726,9 +1721,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	public boolean isSikuliImagePresent(String image) throws Exception {
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
-		if (screenRegion.find(imageTarget) != null) {
+		if (screenRegion.find(getImageTarget(image)) != null) {
 			return true;
 		}
 
@@ -1816,6 +1809,35 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	@Override
 	public void javaScriptClick(String locator) {
 		executeJavaScriptEvent(locator, "MouseEvent", "click");
+	}
+
+	@Override
+	public void javaScriptDragAndDropToObject(
+			String sourceLocator, String targetLocator)
+		throws Exception {
+
+		WebElement sourceElement = getWebElement(sourceLocator);
+
+		WrapsDriver wrapsDriver = (WrapsDriver)sourceElement;
+
+		WebDriver wrappedWebDriver = wrapsDriver.getWrappedDriver();
+
+		JavascriptExecutor javascriptExecutor =
+			(JavascriptExecutor)wrappedWebDriver;
+
+		StringBuilder sb = new StringBuilder();
+
+		String simulateJSContent = ResourceUtil.read(
+			"com/liferay/poshi/runner/dependencies/simulate_drag_and_drop.js");
+
+		sb.append(simulateJSContent);
+
+		sb.append("\nSimulate.dragAndDrop(arguments[0], arguments[1]);");
+
+		WebElement targetElement = getWebElement(targetLocator);
+
+		javascriptExecutor.executeScript(
+			sb.toString(), sourceElement, targetElement);
 	}
 
 	public String javaScriptGetText(String locator, String timeout)
@@ -2289,16 +2311,12 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public void scrollWebElementIntoView(String locator) throws Exception {
-		WebElement webElement = getWebElement(locator);
-
-		scrollWebElementIntoView(webElement);
+		scrollWebElementIntoView(getWebElement(locator));
 	}
 
 	@Override
 	public void select(String selectLocator, String optionLocator) {
-		WebElement webElement = getWebElement(selectLocator);
-
-		Select select = new Select(webElement);
+		Select select = new Select(getWebElement(selectLocator));
 
 		String label = optionLocator;
 
@@ -2583,9 +2601,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	public void sikuliAssertElementNotPresent(String image) throws Exception {
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
-		if (screenRegion.wait(imageTarget, 5000) != null) {
+		if (screenRegion.wait(getImageTarget(image), 5000) != null) {
 			throw new Exception("Element is present");
 		}
 	}
@@ -2594,9 +2610,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	public void sikuliAssertElementPresent(String image) throws Exception {
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
-		screenRegion = screenRegion.wait(imageTarget, 5000);
+		screenRegion = screenRegion.wait(getImageTarget(image), 5000);
 
 		if (screenRegion == null) {
 			throw new Exception("Element is not present");
@@ -2604,9 +2618,9 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		Canvas canvas = new DesktopCanvas();
 
-		ElementAdder elementAdder = canvas.add();
+		CanvasBuilder.ElementAdder elementAdder = canvas.add();
 
-		ElementAreaSetter elementAreaSetter = elementAdder.box();
+		CanvasBuilder.ElementAreaSetter elementAreaSetter = elementAdder.box();
 
 		elementAreaSetter.around(screenRegion);
 
@@ -2619,9 +2633,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
-		ScreenRegion imageTargetScreenRegion = screenRegion.find(imageTarget);
+		ScreenRegion imageTargetScreenRegion = screenRegion.find(
+			getImageTarget(image));
 
 		if (imageTargetScreenRegion != null) {
 			mouse.click(imageTargetScreenRegion.getCenter());
@@ -2636,10 +2649,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
 		List<ScreenRegion> imageTargetScreenRegions = screenRegion.findAll(
-			imageTarget);
+			getImageTarget(image));
 
 		ScreenRegion imageTargetScreenRegion = imageTargetScreenRegions.get(
 			GetterUtil.getInteger(index));
@@ -2655,9 +2666,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
-		screenRegion = screenRegion.find(imageTarget);
+		screenRegion = screenRegion.find(getImageTarget(image));
 
 		Mouse mouse = new DesktopMouse();
 
@@ -2707,9 +2716,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	public void sikuliMouseMove(String image) throws Exception {
 		ScreenRegion screenRegion = new DesktopScreenRegion();
 
-		ImageTarget imageTarget = getImageTarget(image);
-
-		screenRegion = screenRegion.find(imageTarget);
+		screenRegion = screenRegion.find(getImageTarget(image));
 
 		Mouse mouse = new DesktopMouse();
 
@@ -2883,7 +2890,9 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	public void typeAceEditor(String locator, String value) {
 		WebElement webElement = getWebElement(locator);
 
-		if (locator.endsWith("/textarea")) {
+		String webElementTagName = webElement.getTagName();
+
+		if (webElementTagName.equals("textarea")) {
 			webElement.sendKeys(Keys.chord(Keys.CONTROL, "a"));
 
 			webElement.sendKeys(Keys.DELETE);
@@ -3078,10 +3087,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		filePath = LiferaySeleniumHelper.getSourceDirFilePath(filePath);
 
-		filePath = FileUtil.fixFilePath(filePath);
-
-		if (value.endsWith(".jar") || value.endsWith(".war") ||
-			value.endsWith(".zip")) {
+		if (value.endsWith(".jar") || value.endsWith(".lar") ||
+			value.endsWith(".war") || value.endsWith(".zip")) {
 
 			File file = new File(filePath);
 
@@ -3096,6 +3103,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 				filePath = archiveFilePath;
 			}
 		}
+
+		filePath = FileUtil.fixFilePath(filePath);
 
 		uploadFile(location, filePath);
 	}
@@ -4150,9 +4159,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	protected void selectByRegexpText(String selectLocator, String regexp) {
-		WebElement webElement = getWebElement(selectLocator);
-
-		Select select = new Select(webElement);
+		Select select = new Select(getWebElement(selectLocator));
 
 		List<WebElement> optionWebElements = select.getOptions();
 
@@ -4176,9 +4183,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	protected void selectByRegexpValue(String selectLocator, String regexp) {
-		WebElement webElement = getWebElement(selectLocator);
-
-		Select select = new Select(webElement);
+		Select select = new Select(getWebElement(selectLocator));
 
 		List<WebElement> optionWebElements = select.getOptions();
 

@@ -23,11 +23,14 @@ import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.user.associated.data.display.UADDisplay;
 import com.liferay.user.associated.data.display.UADHierarchyDeclaration;
 import com.liferay.user.associated.data.web.internal.util.UADLanguageUtil;
 
 import java.io.Serializable;
+
+import java.lang.reflect.InvocationTargetException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 
+import javax.portlet.ActionRequest;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderResponse;
 
@@ -103,7 +107,10 @@ public class UADHierarchyDisplay {
 
 		baseURL.setParameter("applicationKey", applicationKey);
 		baseURL.setParameter("p_u_i_d", puid);
-		baseURL.setParameter("scope", scope);
+
+		if (Validator.isNotNull(scope)) {
+			baseURL.setParameter("scope", scope);
+		}
 
 		PortletURL applicationURL = PortletURLUtil.clone(
 			baseURL, renderResponse);
@@ -274,6 +281,57 @@ public class UADHierarchyDisplay {
 		return _containerTypeClasses[0];
 	}
 
+	public <T> String getParentContainerURL(
+			ActionRequest actionRequest,
+			LiferayPortletResponse liferayPortletResponse)
+		throws Exception {
+
+		String className = ParamUtil.getString(
+			actionRequest, "parentContainerClass");
+
+		if (Validator.isNull(className)) {
+			return null;
+		}
+
+		PortletURL portletURL = liferayPortletResponse.createRenderURL();
+
+		String applicationKey = ParamUtil.getString(
+			actionRequest, "applicationKey");
+		String primaryKey = ParamUtil.getString(
+			actionRequest, "parentContainerId");
+		String puid = ParamUtil.getString(actionRequest, "p_u_i_d");
+		String scope = ParamUtil.getString(actionRequest, "scope");
+
+		portletURL.setParameter("applicationKey", applicationKey);
+		portletURL.setParameter("p_u_i_d", puid);
+
+		if (Validator.isNotNull(scope)) {
+			portletURL.setParameter("scope", scope);
+		}
+
+		UADDisplay uadDisplay = _getUADDisplayByTypeClassName(className);
+
+		Object container = uadDisplay.get(primaryKey);
+
+		Class<?> parentContainerClass = uadDisplay.getParentContainerClass();
+
+		String parentContainerId = String.valueOf(
+			uadDisplay.getParentContainerId(container));
+
+		if (parentContainerId.equals("0") || parentContainerId.equals("-1")) {
+			portletURL.setParameter("mvcRenderCommandName", "/review_uad_data");
+		}
+		else {
+			portletURL.setParameter(
+				"mvcRenderCommandName", "/view_uad_hierarchy");
+			portletURL.setParameter(
+				"parentContainerClass", parentContainerClass.getName());
+			portletURL.setParameter("parentContainerId", parentContainerId);
+		}
+
+		return portletURL.toString();
+	}
+
 	public <T> Serializable getPrimaryKey(T object) {
 		T unwrappedObject = unwrap(object);
 
@@ -331,6 +389,16 @@ public class UADHierarchyDisplay {
 		renderURL.setParameter("scope", scope);
 
 		return renderURL.toString();
+	}
+
+	public <T> boolean isInTrash(T object)
+		throws IllegalAccessException, InvocationTargetException {
+
+		T unwrappedObject = unwrap(object);
+
+		UADDisplay uadDisplay = _getUADDisplayByObject(unwrappedObject);
+
+		return uadDisplay.isInTrash(unwrappedObject);
 	}
 
 	public <T> boolean isUserOwned(T object, long userId) {

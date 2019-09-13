@@ -29,8 +29,8 @@ import com.liferay.dynamic.data.mapping.util.DDMFormFactory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.test.util.ResourcePermissionTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -132,6 +133,12 @@ public class DDMRESTDataProviderTest {
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"outputParameterType", "[\"list\"]"));
 
+		String outputParameterId = StringUtil.randomString();
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterId", outputParameterId));
+
 		long ddmDataProviderInstanceId = saveDDMDataProviderInstance(
 			ddmFormValues, false, false);
 
@@ -149,7 +156,8 @@ public class DDMRESTDataProviderTest {
 		Assert.assertNotNull(ddmDataProviderResponse);
 
 		Optional<List<KeyValuePair>> optionalKeyValuePairs =
-			ddmDataProviderResponse.getOutputOptional("output", List.class);
+			ddmDataProviderResponse.getOutputOptional(
+				outputParameterId, List.class);
 
 		Assert.assertTrue(optionalKeyValuePairs.isPresent());
 
@@ -288,6 +296,12 @@ public class DDMRESTDataProviderTest {
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"outputParameterType", "[\"list\"]"));
 
+		String outputParameterId = StringUtil.randomString();
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterId", outputParameterId));
+
 		long ddmDataProviderInstanceId = saveDDMDataProviderInstance(
 			ddmFormValues, false, false);
 
@@ -307,7 +321,8 @@ public class DDMRESTDataProviderTest {
 		Assert.assertNotNull(ddmDataProviderResponse);
 
 		Optional<List<KeyValuePair>> optionalKeyValuePairs =
-			ddmDataProviderResponse.getOutputOptional("output", List.class);
+			ddmDataProviderResponse.getOutputOptional(
+				outputParameterId, List.class);
 
 		Assert.assertTrue(optionalKeyValuePairs.isPresent());
 
@@ -382,6 +397,12 @@ public class DDMRESTDataProviderTest {
 			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
 				"outputParameterType", "[\"list\"]"));
 
+		String outputParameterId = StringUtil.randomString();
+
+		outputParameters.addNestedDDMFormFieldValue(
+			DDMFormValuesTestUtil.createUnlocalizedDDMFormFieldValue(
+				"outputParameterId", outputParameterId));
+
 		long ddmDataProviderInstanceId = saveDDMDataProviderInstance(
 			ddmFormValues, true, true);
 
@@ -401,7 +422,8 @@ public class DDMRESTDataProviderTest {
 		Assert.assertNotNull(ddmDataProviderResponse);
 
 		Optional<List<KeyValuePair>> optionalKeyValuePairs =
-			ddmDataProviderResponse.getOutputOptional("output", List.class);
+			ddmDataProviderResponse.getOutputOptional(
+				outputParameterId, List.class);
 
 		Assert.assertTrue(optionalKeyValuePairs.isPresent());
 

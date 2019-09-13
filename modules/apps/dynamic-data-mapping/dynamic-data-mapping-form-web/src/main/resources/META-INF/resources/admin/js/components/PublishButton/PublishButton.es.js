@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import ClayButton from 'clay-button';
 import Component from 'metal-jsx';
 import {Config} from 'metal-state';
@@ -15,12 +29,14 @@ class PublishButton extends Component {
 		return (
 			<ClayButton
 				elementClasses={'btn-default'}
-				events={
-					{
-						click: this._handleButtonClicked.bind(this)
-					}
+				events={{
+					click: this._handleButtonClicked.bind(this)
+				}}
+				label={
+					published
+						? Liferay.Language.get('unpublish-form')
+						: Liferay.Language.get('publish-form')
 				}
-				label={published ? Liferay.Language.get('unpublish-form') : Liferay.Language.get('publish-form')}
 				ref={'button'}
 				spritemap={spritemap}
 			/>
@@ -33,8 +49,7 @@ class PublishButton extends Component {
 
 		if (published) {
 			promise = this.unpublish(event);
-		}
-		else {
+		} else {
 			promise = this.publish(event);
 		}
 

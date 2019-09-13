@@ -25,6 +25,24 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.liferay</groupId>
+			<artifactId>com.liferay.frontend.taglib</artifactId>
+			<version>2.2.17</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay</groupId>
+			<artifactId>com.liferay.frontend.taglib.clay</artifactId>
+			<version>2.2.12</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay</groupId>
+			<artifactId>com.liferay.frontend.taglib.soy</artifactId>
+			<version>3.0.3</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay</groupId>
 			<artifactId>com.liferay.social.bookmarks.api</artifactId>
 			<version>1.0.0</version>
 			<scope>provided</scope>
@@ -33,6 +51,12 @@
 			<groupId>com.liferay.portal</groupId>
 			<artifactId>com.liferay.portal.kernel</artifactId>
 			<version>3.0.0</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.liferay.portal</groupId>
+			<artifactId>com.liferay.util.taglib</artifactId>
+			<version>3.1.2</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

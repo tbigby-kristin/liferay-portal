@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.service.http.TunnelUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the HTTP utility for the
  * <code>AssetEntryServiceUtil</code> service
@@ -51,7 +49,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetEntryServiceSoap
  * @generated
  */
-@ProviderType
 public class AssetEntryServiceHttp {
 
 	public static com.liferay.asset.kernel.model.AssetEntry fetchEntry(
@@ -272,6 +269,44 @@ public class AssetEntryServiceHttp {
 		}
 	}
 
+	public static com.liferay.asset.kernel.model.AssetEntry getEntry(
+			HttpPrincipal httpPrincipal, String className, long classPK)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				AssetEntryServiceUtil.class, "getEntry",
+				_getEntryParameterTypes6);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, className, classPK);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception e) {
+				if (e instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						e;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					e);
+			}
+
+			return (com.liferay.asset.kernel.model.AssetEntry)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException se) {
+			_log.error(se, se);
+
+			throw se;
+		}
+	}
+
 	public static void incrementViewCounter(
 			HttpPrincipal httpPrincipal,
 			com.liferay.asset.kernel.model.AssetEntry assetEntry)
@@ -280,7 +315,7 @@ public class AssetEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				AssetEntryServiceUtil.class, "incrementViewCounter",
-				_incrementViewCounterParameterTypes6);
+				_incrementViewCounterParameterTypes7);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, assetEntry);
@@ -315,7 +350,7 @@ public class AssetEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				AssetEntryServiceUtil.class, "incrementViewCounter",
-				_incrementViewCounterParameterTypes7);
+				_incrementViewCounterParameterTypes8);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, className, classPK);
@@ -361,7 +396,7 @@ public class AssetEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				AssetEntryServiceUtil.class, "updateEntry",
-				_updateEntryParameterTypes8);
+				_updateEntryParameterTypes9);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, groupId, createDate, modifiedDate, className,
@@ -410,7 +445,7 @@ public class AssetEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				AssetEntryServiceUtil.class, "updateEntry",
-				_updateEntryParameterTypes9);
+				_updateEntryParameterTypes10);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, groupId, createDate, modifiedDate, className,
@@ -459,7 +494,7 @@ public class AssetEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				AssetEntryServiceUtil.class, "updateEntry",
-				_updateEntryParameterTypes10);
+				_updateEntryParameterTypes11);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, groupId, createDate, modifiedDate, className,
@@ -514,11 +549,14 @@ public class AssetEntryServiceHttp {
 	private static final Class<?>[] _getEntryParameterTypes5 = new Class[] {
 		long.class
 	};
-	private static final Class<?>[] _incrementViewCounterParameterTypes6 =
-		new Class[] {com.liferay.asset.kernel.model.AssetEntry.class};
+	private static final Class<?>[] _getEntryParameterTypes6 = new Class[] {
+		String.class, long.class
+	};
 	private static final Class<?>[] _incrementViewCounterParameterTypes7 =
+		new Class[] {com.liferay.asset.kernel.model.AssetEntry.class};
+	private static final Class<?>[] _incrementViewCounterParameterTypes8 =
 		new Class[] {String.class, long.class};
-	private static final Class<?>[] _updateEntryParameterTypes8 = new Class[] {
+	private static final Class<?>[] _updateEntryParameterTypes9 = new Class[] {
 		long.class, java.util.Date.class, java.util.Date.class, String.class,
 		long.class, String.class, long.class, long[].class, String[].class,
 		boolean.class, boolean.class, java.util.Date.class,
@@ -526,7 +564,7 @@ public class AssetEntryServiceHttp {
 		String.class, String.class, String.class, String.class, String.class,
 		String.class, int.class, int.class, Double.class
 	};
-	private static final Class<?>[] _updateEntryParameterTypes9 = new Class[] {
+	private static final Class<?>[] _updateEntryParameterTypes10 = new Class[] {
 		long.class, java.util.Date.class, java.util.Date.class, String.class,
 		long.class, String.class, long.class, long[].class, String[].class,
 		boolean.class, boolean.class, java.util.Date.class,
@@ -534,7 +572,7 @@ public class AssetEntryServiceHttp {
 		String.class, String.class, String.class, String.class, int.class,
 		int.class, Double.class
 	};
-	private static final Class<?>[] _updateEntryParameterTypes10 = new Class[] {
+	private static final Class<?>[] _updateEntryParameterTypes11 = new Class[] {
 		long.class, java.util.Date.class, java.util.Date.class, String.class,
 		long.class, String.class, long.class, long[].class, String[].class,
 		boolean.class, java.util.Date.class, java.util.Date.class,

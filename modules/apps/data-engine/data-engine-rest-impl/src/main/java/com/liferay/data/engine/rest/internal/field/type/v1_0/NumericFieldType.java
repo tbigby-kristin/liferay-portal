@@ -14,11 +14,12 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.field.type.FieldTypeTracker;
+import com.liferay.data.engine.field.type.util.LocalizedValueUtil;
 import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -49,7 +50,7 @@ import org.osgi.service.component.annotations.Component;
 		"data.engine.field.type.display.order:Integer=8",
 		"data.engine.field.type.group=customized",
 		"data.engine.field.type.icon=caret-double",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/Numeric/Numeric.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Numeric/Numeric.es",
 		"data.engine.field.type.label=numeric-field-type-label"
 	},
 	service = FieldType.class
@@ -57,11 +58,12 @@ import org.osgi.service.component.annotations.Component;
 public class NumericFieldType extends BaseFieldType {
 
 	@Override
-	public SPIDataDefinitionField deserialize(JSONObject jsonObject)
+	public SPIDataDefinitionField deserialize(
+			FieldTypeTracker fieldTypeTracker, JSONObject jsonObject)
 		throws Exception {
 
 		SPIDataDefinitionField spiDataDefinitionField = super.deserialize(
-			jsonObject);
+			fieldTypeTracker, jsonObject);
 
 		Map<String, Object> customProperties =
 			spiDataDefinitionField.getCustomProperties();
@@ -71,10 +73,6 @@ public class NumericFieldType extends BaseFieldType {
 			"placeholder",
 			LocalizedValueUtil.toLocalizedValues(
 				jsonObject.getJSONObject("placeholder")));
-		customProperties.put(
-			"predefinedValue",
-			LocalizedValueUtil.toLocalizedValues(
-				jsonObject.getJSONObject("predefinedValue")));
 		customProperties.put(
 			"tooltip",
 			LocalizedValueUtil.toLocalizedValues(
@@ -90,10 +88,12 @@ public class NumericFieldType extends BaseFieldType {
 
 	@Override
 	public JSONObject toJSONObject(
+			FieldTypeTracker fieldTypeTracker,
 			SPIDataDefinitionField spiDataDefinitionField)
 		throws Exception {
 
-		JSONObject jsonObject = super.toJSONObject(spiDataDefinitionField);
+		JSONObject jsonObject = super.toJSONObject(
+			fieldTypeTracker, spiDataDefinitionField);
 
 		jsonObject.put(
 			"dataType",
@@ -105,12 +105,6 @@ public class NumericFieldType extends BaseFieldType {
 				CustomPropertiesUtil.getMap(
 					spiDataDefinitionField.getCustomProperties(),
 					"placeholder"))
-		).put(
-			"predefinedValue",
-			LocalizedValueUtil.toJSONObject(
-				CustomPropertiesUtil.getMap(
-					spiDataDefinitionField.getCustomProperties(),
-					"predefinedValue"))
 		).put(
 			"tooltip",
 			LocalizedValueUtil.toJSONObject(
@@ -139,15 +133,6 @@ public class NumericFieldType extends BaseFieldType {
 					spiDataDefinitionField.getCustomProperties(),
 					"placeholder"),
 				LanguageUtil.getLanguageId(httpServletRequest)));
-		context.put(
-			"predefinedValue",
-			_format(
-				MapUtil.getString(
-					CustomPropertiesUtil.getMap(
-						spiDataDefinitionField.getCustomProperties(),
-						"predefinedValue"),
-					LanguageUtil.getLanguageId(httpServletRequest)),
-				httpServletRequest));
 		context.put("symbols", _getSymbols(httpServletRequest));
 		context.put(
 			"tooltip",

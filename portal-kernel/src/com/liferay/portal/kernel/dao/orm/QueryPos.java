@@ -22,13 +22,10 @@ import java.sql.Timestamp;
 
 import java.util.Date;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
-@ProviderType
 public class QueryPos {
 
 	public static QueryPos getInstance(Query query) {
@@ -265,25 +262,37 @@ public class QueryPos {
 			add((BigDecimal)obj);
 		}
 		else if (clazz == Boolean.class) {
-			add(((Boolean)obj).booleanValue());
+			Boolean booleanObj = (Boolean)obj;
+
+			add(booleanObj.booleanValue());
 		}
 		else if (clazz == Date.class) {
 			add(CalendarUtil.getTimestamp((Date)obj));
 		}
 		else if (clazz == Double.class) {
-			add(((Double)obj).doubleValue());
+			Double doubleObj = (Double)obj;
+
+			add(doubleObj.doubleValue());
 		}
 		else if (clazz == Float.class) {
-			add(((Float)obj).floatValue());
+			Float floatObj = (Float)obj;
+
+			add(floatObj.floatValue());
 		}
 		else if (clazz == Integer.class) {
-			add(((Integer)obj).intValue());
+			Integer integerObj = (Integer)obj;
+
+			add(integerObj.intValue());
 		}
 		else if (clazz == Long.class) {
-			add(((Long)obj).longValue());
+			Long longObj = (Long)obj;
+
+			add(longObj.longValue());
 		}
 		else if (clazz == Short.class) {
-			add(((Short)obj).shortValue());
+			Short shortObj = (Short)obj;
+
+			add(shortObj.shortValue());
 		}
 		else if (clazz == String.class) {
 			add((String)obj);

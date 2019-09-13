@@ -122,10 +122,7 @@ public class StagedLayoutSetStagedModelDataHandler
 			portletDataContext.isPrivateLayout());
 
 		for (Layout layout : layoutSetLayouts) {
-			String sourcePrototypeLayoutUuid =
-				layout.getSourcePrototypeLayoutUuid();
-
-			if (Validator.isNull(sourcePrototypeLayoutUuid)) {
+			if (Validator.isNull(layout.getSourcePrototypeLayoutUuid())) {
 				continue;
 			}
 
@@ -189,11 +186,30 @@ public class StagedLayoutSetStagedModelDataHandler
 			if (!sourceLayoutUuids.contains(layout.getUuid()) &&
 				!layoutPlids.containsValue(layout.getPlid())) {
 
+				String layoutUUID = layout.getUuid();
+				long stagingGroupID = portletDataContext.getSourceGroupId();
+
 				try {
+					Layout stagedLayout =
+						_layoutLocalService.fetchLayoutByUuidAndGroupId(
+							layoutUUID, stagingGroupID,
+							!layout.isPublicLayout());
+
+					if ((stagedLayout != null) &&
+						_exportImportHelper.isLayoutRevisionInReview(
+							stagedLayout)) {
+
+						continue;
+					}
+
 					_layoutLocalService.deleteLayout(
 						layout, false, serviceContext);
 				}
 				catch (Exception e) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"Unable to delete layout with UUID " + layoutUUID);
+					}
 				}
 			}
 		}
@@ -467,10 +483,9 @@ public class StagedLayoutSetStagedModelDataHandler
 		}
 
 		if ((image != null) && (image.getTextObj() != null)) {
-			String logoPath = ExportImportPathUtil.getRootPath(
-				portletDataContext);
-
-			logoPath += "/logo";
+			String logoPath = ExportImportPathUtil.getModelPath(
+				stagedLayoutSet,
+				image.getImageId() + StringPool.PERIOD + image.getType());
 
 			Element rootElement = portletDataContext.getExportDataRootElement();
 
@@ -780,20 +795,18 @@ public class StagedLayoutSetStagedModelDataHandler
 				portletDataContext.getGroupId(), privateLayout, parentLayoutId);
 
 			for (Layout layout : siblingLayouts) {
-				if (!updatedPlids.contains(layout.getPlid())) {
-					if (hasSiblingLayoutWithSamePriority(
-							layout, siblingLayouts)) {
+				if (!updatedPlids.contains(layout.getPlid()) &&
+					hasSiblingLayoutWithSamePriority(layout, siblingLayouts)) {
 
-						do {
-							int priority = layout.getPriority();
+					do {
+						int priority = layout.getPriority();
 
-							layout.setPriority(++priority);
-						}
-						while (hasSiblingLayoutWithSamePriority(
-									layout, siblingLayouts));
-
-						_layoutLocalService.updateLayout(layout);
+						layout.setPriority(++priority);
 					}
+					while (hasSiblingLayoutWithSamePriority(
+								layout, siblingLayouts));
+
+					_layoutLocalService.updateLayout(layout);
 				}
 			}
 		}
@@ -819,17 +832,22 @@ public class StagedLayoutSetStagedModelDataHandler
 				importedLayoutSet.getSettingsProperties();
 
 			boolean showSearchHeader = GetterUtil.getBoolean(
+				settingsProperties.getProperty(
+					"lfr-theme:regular:show-header-search"),
+				true);
+
+			boolean importedShowSearchHeader = GetterUtil.getBoolean(
 				importedSettingsProperties.getProperty(
 					"lfr-theme:regular:show-header-search"),
 				true);
 
-			if (!showSearchHeader) {
+			if (showSearchHeader != importedShowSearchHeader) {
 				settingsProperties.setProperty(
 					"lfr-theme:regular:show-header-search",
-					String.valueOf(showSearchHeader));
-			}
+					String.valueOf(importedShowSearchHeader));
 
-			_layoutSetLocalService.updateLayoutSet(layoutSet);
+				_layoutSetLocalService.updateLayoutSet(layoutSet);
+			}
 		}
 	}
 
@@ -853,15 +871,19 @@ public class StagedLayoutSetStagedModelDataHandler
 				importedLayoutSet.getSettingsProperties();
 
 			boolean showSiteName = GetterUtil.getBoolean(
+				settingsProperties.getProperty(
+					Sites.SHOW_SITE_NAME, Boolean.TRUE.toString()));
+
+			boolean importedShowSiteName = GetterUtil.getBoolean(
 				importedSettingsProperties.getProperty(
 					Sites.SHOW_SITE_NAME, Boolean.TRUE.toString()));
 
-			if (!showSiteName) {
+			if (showSiteName != importedShowSiteName) {
 				settingsProperties.setProperty(
-					Sites.SHOW_SITE_NAME, String.valueOf(showSiteName));
-			}
+					Sites.SHOW_SITE_NAME, String.valueOf(importedShowSiteName));
 
-			_layoutSetLocalService.updateLayoutSet(layoutSet);
+				_layoutSetLocalService.updateLayoutSet(layoutSet);
+			}
 		}
 	}
 

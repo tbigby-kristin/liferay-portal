@@ -16,8 +16,6 @@ package com.liferay.portal.kernel.service;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the remote service utility for Layout. This utility wraps
  * <code>com.liferay.portal.service.impl.LayoutServiceImpl</code> and is an
@@ -30,10 +28,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutService
  * @generated
  */
-@ProviderType
 public class LayoutServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.LayoutServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -417,6 +414,13 @@ public class LayoutServiceUtil {
 	}
 
 	public static java.util.List<com.liferay.portal.kernel.model.Layout>
+			getLayouts(long groupId, boolean privateLayout, String type)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().getLayouts(groupId, privateLayout, type);
+	}
+
+	public static java.util.List<com.liferay.portal.kernel.model.Layout>
 		getLayouts(long groupId, String type) {
 
 		return getService().getLayouts(groupId, type);
@@ -654,7 +658,7 @@ public class LayoutServiceUtil {
 	 To see how the URL is normalized when accessed see {@link
 	 com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	 String)}.
-	 * @param iconImage whether the icon image will be updated
+	 * @param hasIconImage if the layout has a custom icon image
 	 * @param iconBytes the byte array of the layout's new icon image
 	 * @param serviceContext the service context to be applied. Can set the
 	 modification date and expando bridge attributes for the layout.
@@ -671,13 +675,14 @@ public class LayoutServiceUtil {
 			java.util.Map<java.util.Locale, String> robotsMap, String type,
 			boolean hidden,
 			java.util.Map<java.util.Locale, String> friendlyURLMap,
-			boolean iconImage, byte[] iconBytes, ServiceContext serviceContext)
+			boolean hasIconImage, byte[] iconBytes,
+			ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateLayout(
 			groupId, privateLayout, layoutId, parentLayoutId, localeNamesMap,
 			localeTitlesMap, descriptionMap, keywordsMap, robotsMap, type,
-			hidden, friendlyURLMap, iconImage, iconBytes, serviceContext);
+			hidden, friendlyURLMap, hasIconImage, iconBytes, serviceContext);
 	}
 
 	/**
@@ -871,6 +876,13 @@ public class LayoutServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updatePriority(plid, priority);
+	}
+
+	public static com.liferay.portal.kernel.model.Layout updateType(
+			long plid, String type)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateType(plid, type);
 	}
 
 	public static LayoutService getService() {

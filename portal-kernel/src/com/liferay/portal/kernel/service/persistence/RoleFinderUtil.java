@@ -16,13 +16,10 @@ package com.liferay.portal.kernel.service.persistence;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class RoleFinderUtil {
 
 	public static int countByGroupRoleAndTeamRole(
@@ -246,12 +243,6 @@ public class RoleFinderUtil {
 		findByU_G(long userId, long[] groupIds) {
 
 		return getFinder().findByU_G(userId, groupIds);
-	}
-
-	public static java.util.List<com.liferay.portal.kernel.model.Role>
-		findByR_N_A(long resourceBlockId, String className, String actionId) {
-
-		return getFinder().findByR_N_A(resourceBlockId, className, actionId);
 	}
 
 	public static java.util.List<com.liferay.portal.kernel.model.Role>

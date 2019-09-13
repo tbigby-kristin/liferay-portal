@@ -29,7 +29,6 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 
 import java.util.Collections;
-import java.util.Locale;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -83,14 +82,17 @@ public class FragmentEntryProcessorRegistryImpl
 	}
 
 	@Override
-	public JSONObject getDefaultEditableValuesJSONObject(String html) {
+	public JSONObject getDefaultEditableValuesJSONObject(
+		String html, String configuration) {
+
 		JSONObject jsonObject = _jsonFactory.createJSONObject();
 
 		for (FragmentEntryProcessor fragmentEntryProcessor :
 				_serviceTrackerList) {
 
 			JSONObject defaultEditableValuesJSONObject =
-				fragmentEntryProcessor.getDefaultEditableValuesJSONObject(html);
+				fragmentEntryProcessor.getDefaultEditableValuesJSONObject(
+					html, configuration);
 
 			if (defaultEditableValuesJSONObject != null) {
 				Class<?> clazz = fragmentEntryProcessor.getClass();
@@ -105,8 +107,8 @@ public class FragmentEntryProcessorRegistryImpl
 
 	@Override
 	public String processFragmentEntryLinkCSS(
-			FragmentEntryLink fragmentEntryLink, String mode, Locale locale,
-			long[] segmentsExperienceIds, long previewClassPK, int previewType)
+			FragmentEntryLink fragmentEntryLink,
+			FragmentEntryProcessorContext fragmentEntryProcessorContext)
 		throws PortalException {
 
 		String css = fragmentEntryLink.getCss();
@@ -115,8 +117,7 @@ public class FragmentEntryProcessorRegistryImpl
 				_serviceTrackerList) {
 
 			css = fragmentEntryProcessor.processFragmentEntryLinkCSS(
-				fragmentEntryLink, css, mode, locale, segmentsExperienceIds,
-				previewClassPK, previewType);
+				fragmentEntryLink, css, fragmentEntryProcessorContext);
 		}
 
 		return css;
@@ -141,30 +142,14 @@ public class FragmentEntryProcessorRegistryImpl
 	}
 
 	@Override
-	public String processFragmentEntryLinkHTML(
-			FragmentEntryLink fragmentEntryLink, String mode, Locale locale,
-			long[] segmentsExperienceIds, long previewClassPK, int previewType)
+	public void validateFragmentEntryHTML(String html, String configuration)
 		throws PortalException {
 
-		String html = fragmentEntryLink.getHtml();
-
 		for (FragmentEntryProcessor fragmentEntryProcessor :
 				_serviceTrackerList) {
 
-			html = fragmentEntryProcessor.processFragmentEntryLinkHTML(
-				fragmentEntryLink, html, mode, locale, segmentsExperienceIds,
-				previewClassPK, previewType);
-		}
-
-		return html;
-	}
-
-	@Override
-	public void validateFragmentEntryHTML(String html) throws PortalException {
-		for (FragmentEntryProcessor fragmentEntryProcessor :
-				_serviceTrackerList) {
-
-			fragmentEntryProcessor.validateFragmentEntryHTML(html);
+			fragmentEntryProcessor.validateFragmentEntryHTML(
+				html, configuration);
 		}
 	}
 

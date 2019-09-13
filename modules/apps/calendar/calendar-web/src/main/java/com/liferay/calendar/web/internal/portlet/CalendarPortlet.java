@@ -178,8 +178,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + CalendarPortletKeys.CALENDAR,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator,power-user,user",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator,power-user,user"
 	},
 	service = Portlet.class
 )
@@ -737,9 +736,8 @@ public class CalendarPortlet extends MVCPortlet {
 			return;
 		}
 
-		Calendar calendar = _calendarService.getCalendar(calendarId);
-
-		portletRequest.setAttribute(CalendarWebKeys.CALENDAR, calendar);
+		portletRequest.setAttribute(
+			CalendarWebKeys.CALENDAR, _calendarService.getCalendar(calendarId));
 	}
 
 	protected void getCalendarBooking(PortletRequest portletRequest)
@@ -758,11 +756,9 @@ public class CalendarPortlet extends MVCPortlet {
 			return;
 		}
 
-		CalendarBooking calendarBooking =
-			_calendarBookingService.getCalendarBooking(calendarBookingId);
-
 		portletRequest.setAttribute(
-			CalendarWebKeys.CALENDAR_BOOKING, calendarBooking);
+			CalendarWebKeys.CALENDAR_BOOKING,
+			_calendarBookingService.getCalendarBooking(calendarBookingId));
 	}
 
 	protected void getCalendarResource(PortletRequest portletRequest)
@@ -1249,10 +1245,8 @@ public class CalendarPortlet extends MVCPortlet {
 
 		long calendarId = ParamUtil.getLong(resourceRequest, "calendarId");
 
-		Calendar calendar = _calendarService.getCalendar(calendarId);
-
 		JSONObject jsonObject = CalendarUtil.toCalendarJSONObject(
-			themeDisplay, calendar);
+			themeDisplay, _calendarService.getCalendar(calendarId));
 
 		writeJSON(resourceRequest, resourceResponse, jsonObject);
 	}
@@ -1445,10 +1439,8 @@ public class CalendarPortlet extends MVCPortlet {
 				continue;
 			}
 
-			if (calendarResource.isUser()) {
-				if (!showUserEvents) {
-					continue;
-				}
+			if (calendarResource.isUser() && !showUserEvents) {
+				continue;
 			}
 
 			Group group = _groupLocalService.getGroup(calendar.getGroupId());
@@ -1543,10 +1535,8 @@ public class CalendarPortlet extends MVCPortlet {
 			timeZoneId = user.getTimeZoneId();
 		}
 
-		TimeZone timeZone = TimeZone.getTimeZone(timeZoneId);
-
 		java.util.Calendar nowCalendar = CalendarFactoryUtil.getCalendar(
-			timeZone);
+			TimeZone.getTimeZone(timeZoneId));
 
 		JSONObject jsonObject = JSONUtil.put(
 			"day", nowCalendar.get(java.util.Calendar.DAY_OF_MONTH)

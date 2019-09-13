@@ -104,9 +104,10 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 
 		Version requiredSchemaVersion = getRequiredSchemaVersion();
 
-		if (requiredSchemaVersion.compareTo(
-				getCurrentSchemaVersion(connection)) <= 0) {
+		int result = requiredSchemaVersion.compareTo(
+			getCurrentSchemaVersion(connection));
 
+		if (result <= 0) {
 			return true;
 		}
 
@@ -183,6 +184,13 @@ public class PortalUpgradeProcess extends UpgradeProcess {
 				PortalUpgradeProcessRegistryImpl();
 
 		v72xPortalUpgradeProcessRegistry.registerUpgradeProcesses(
+			_upgradeProcesses);
+
+		PortalUpgradeProcessRegistry portalUpgradeProcessRegistry73x =
+			new com.liferay.portal.upgrade.v7_3_x.
+				PortalUpgradeProcessRegistryImpl();
+
+		portalUpgradeProcessRegistry73x.registerUpgradeProcesses(
 			_upgradeProcesses);
 	}
 

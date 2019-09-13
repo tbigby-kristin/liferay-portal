@@ -37,7 +37,17 @@ public interface FragmentEntryProcessor {
 		return null;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default JSONObject getDefaultEditableValuesJSONObject(String html) {
+		return null;
+	}
+
+	public default JSONObject getDefaultEditableValuesJSONObject(
+		String html, String configuration) {
+
 		return null;
 	}
 
@@ -46,14 +56,13 @@ public interface FragmentEntryProcessor {
 			FragmentEntryProcessorContext fragmentEntryProcessorContext)
 		throws PortalException {
 
-		return processFragmentEntryLinkCSS(
-			fragmentEntryLink, css, fragmentEntryProcessorContext.getMode(),
-			fragmentEntryProcessorContext.getLocale(),
-			fragmentEntryProcessorContext.getSegmentsExperienceIds(),
-			fragmentEntryProcessorContext.getPreviewClassPK(),
-			fragmentEntryProcessorContext.getPreviewType());
+		return css;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkCSS(
 			FragmentEntryLink fragmentEntryLink, String css, String mode,
 			Locale locale, long[] segmentsExperienceIds)
@@ -63,6 +72,10 @@ public interface FragmentEntryProcessor {
 			fragmentEntryLink, css, mode, locale, segmentsExperienceIds, 0);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkCSS(
 			FragmentEntryLink fragmentEntryLink, String css, String mode,
 			Locale locale, long[] segmentsExperienceIds, long previewClassPK)
@@ -73,15 +86,34 @@ public interface FragmentEntryProcessor {
 			previewClassPK, AssetRendererFactory.TYPE_LATEST_APPROVED);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkCSS(
 			FragmentEntryLink fragmentEntryLink, String css, String mode,
 			Locale locale, long[] segmentsExperienceIds, long previewClassPK,
 			int previewType)
 		throws PortalException {
 
-		return css;
+		DefaultFragmentEntryProcessorContext
+			defaultFragmentEntryProcessorContext =
+				new DefaultFragmentEntryProcessorContext(
+					null, null, mode, locale);
+
+		defaultFragmentEntryProcessorContext.setPreviewClassPK(previewClassPK);
+		defaultFragmentEntryProcessorContext.setPreviewType(previewType);
+		defaultFragmentEntryProcessorContext.setSegmentsExperienceIds(
+			segmentsExperienceIds);
+
+		return processFragmentEntryLinkCSS(
+			fragmentEntryLink, css, defaultFragmentEntryProcessorContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkHTML(
 			FragmentEntryLink fragmentEntryLink, String html)
 		throws PortalException {
@@ -95,14 +127,13 @@ public interface FragmentEntryProcessor {
 			FragmentEntryProcessorContext fragmentEntryProcessorContext)
 		throws PortalException {
 
-		return processFragmentEntryLinkHTML(
-			fragmentEntryLink, html, fragmentEntryProcessorContext.getMode(),
-			fragmentEntryProcessorContext.getLocale(),
-			fragmentEntryProcessorContext.getSegmentsExperienceIds(),
-			fragmentEntryProcessorContext.getPreviewClassPK(),
-			fragmentEntryProcessorContext.getPreviewType());
+		return fragmentEntryLink.getHtml();
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkHTML(
 			FragmentEntryLink fragmentEntryLink, String html, String mode)
 		throws PortalException {
@@ -111,6 +142,10 @@ public interface FragmentEntryProcessor {
 			fragmentEntryLink, html, mode, LocaleUtil.getMostRelevantLocale());
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkHTML(
 			FragmentEntryLink fragmentEntryLink, String html, String mode,
 			Locale locale)
@@ -120,6 +155,10 @@ public interface FragmentEntryProcessor {
 			fragmentEntryLink, html, mode, locale, new long[0]);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkHTML(
 			FragmentEntryLink fragmentEntryLink, String html, String mode,
 			Locale locale, long[] segmentsExperienceIds)
@@ -129,6 +168,10 @@ public interface FragmentEntryProcessor {
 			fragmentEntryLink, html, mode, locale, segmentsExperienceIds, 0);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	public default String processFragmentEntryLinkHTML(
 			FragmentEntryLink fragmentEntryLink, String html, String mode,
 			Locale locale, long[] segmentsExperienceIds, long previewClassPK)
@@ -139,12 +182,41 @@ public interface FragmentEntryProcessor {
 			previewClassPK, AssetRendererFactory.TYPE_LATEST_APPROVED);
 	}
 
-	public String processFragmentEntryLinkHTML(
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
+	public default String processFragmentEntryLinkHTML(
 			FragmentEntryLink fragmentEntryLink, String html, String mode,
 			Locale locale, long[] segmentsExperienceIds, long previewClassPK,
 			int previewType)
-		throws PortalException;
+		throws PortalException {
 
-	public void validateFragmentEntryHTML(String html) throws PortalException;
+		DefaultFragmentEntryProcessorContext
+			defaultFragmentEntryProcessorContext =
+				new DefaultFragmentEntryProcessorContext(
+					null, null, mode, locale);
+
+		defaultFragmentEntryProcessorContext.setPreviewClassPK(previewClassPK);
+		defaultFragmentEntryProcessorContext.setPreviewType(previewType);
+		defaultFragmentEntryProcessorContext.setSegmentsExperienceIds(
+			segmentsExperienceIds);
+
+		return processFragmentEntryLinkHTML(
+			fragmentEntryLink, html, defaultFragmentEntryProcessorContext);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
+	public default void validateFragmentEntryHTML(String html)
+		throws PortalException {
+
+		validateFragmentEntryHTML(html, null);
+	}
+
+	public void validateFragmentEntryHTML(String html, String configuration)
+		throws PortalException;
 
 }

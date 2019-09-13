@@ -16,12 +16,21 @@
 
 <%@ include file="/html/init.jsp" %>
 
+<liferay-util:dynamic-include key="com.liferay.dynamic.data.mapping.taglib#/html/start.jsp#pre" />
+
 <div class="lfr-ddm-container" id="<%= randomNamespace %>">
 	<c:if test="<%= ddmForm != null %>">
 		<div class="input-group-item input-group-item-shrink input-localized-content <%= hideClass %>" role="menu" style="justify-content: flex-end;">
 
 			<%
-			String defaultLanguageId = LocaleUtil.toLanguageId(defaultEditLocale);
+			String defaultLanguageId = null;
+
+			if (defaultEditLocale == null) {
+				defaultLanguageId = LocaleUtil.toLanguageId(ddmForm.getDefaultLocale());
+			}
+			else {
+				defaultLanguageId = LocaleUtil.toLanguageId(defaultEditLocale);
+			}
 
 			String normalizedDefaultLanguageId = StringUtil.replace(defaultLanguageId, '_', '-');
 			%>
@@ -45,7 +54,14 @@
 
 						uniqueLanguageIds.add(defaultLanguageId);
 
-						Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(groupId);
+						Set<Locale> availableLocales;
+
+						if (defaultEditLocale == null) {
+							availableLocales = ddmForm.getAvailableLocales();
+						}
+						else {
+							availableLocales = LanguageUtil.getAvailableLocales(groupId);
+						}
 
 						for (Locale availableLocale : availableLocales) {
 							String curLanguageId = LocaleUtil.toLanguageId(availableLocale);
@@ -188,3 +204,5 @@
 			Liferay.on('destroyPortlet', onDestroyPortlet);
 		</aui:script>
 	</c:if>
+
+<liferay-util:dynamic-include key="com.liferay.dynamic.data.mapping.taglib#/html/start.jsp#post" />

@@ -58,8 +58,6 @@ import java.util.TreeSet;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the SegmentsExperience service. Represents a row in the &quot;SegmentsExperience&quot; database table, with each column mapped to a property of this class.
  *
@@ -72,12 +70,11 @@ import org.osgi.annotation.versioning.ProviderType;
  * @generated
  */
 @JSON(strict = true)
-@ProviderType
 public class SegmentsExperienceModelImpl
 	extends BaseModelImpl<SegmentsExperience>
 	implements SegmentsExperienceModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a segments experience model instance should use the <code>SegmentsExperience</code> interface instead.
@@ -89,7 +86,8 @@ public class SegmentsExperienceModelImpl
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
 		{"createDate", Types.TIMESTAMP}, {"modifiedDate", Types.TIMESTAMP},
-		{"segmentsEntryId", Types.BIGINT}, {"classNameId", Types.BIGINT},
+		{"segmentsEntryId", Types.BIGINT},
+		{"segmentsExperienceKey", Types.VARCHAR}, {"classNameId", Types.BIGINT},
 		{"classPK", Types.BIGINT}, {"name", Types.VARCHAR},
 		{"priority", Types.INTEGER}, {"active_", Types.BOOLEAN},
 		{"lastPublishDate", Types.TIMESTAMP}
@@ -108,6 +106,7 @@ public class SegmentsExperienceModelImpl
 		TABLE_COLUMNS_MAP.put("createDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("modifiedDate", Types.TIMESTAMP);
 		TABLE_COLUMNS_MAP.put("segmentsEntryId", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("segmentsExperienceKey", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
@@ -117,7 +116,7 @@ public class SegmentsExperienceModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table SegmentsExperience (uuid_ VARCHAR(75) null,segmentsExperienceId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,segmentsEntryId LONG,classNameId LONG,classPK LONG,name STRING null,priority INTEGER,active_ BOOLEAN,lastPublishDate DATE null)";
+		"create table SegmentsExperience (uuid_ VARCHAR(75) null,segmentsExperienceId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,segmentsEntryId LONG,segmentsExperienceKey VARCHAR(75) null,classNameId LONG,classPK LONG,name STRING null,priority INTEGER,active_ BOOLEAN,lastPublishDate DATE null)";
 
 	public static final String TABLE_SQL_DROP = "drop table SegmentsExperience";
 
@@ -133,21 +132,6 @@ public class SegmentsExperienceModelImpl
 
 	public static final String TX_MANAGER = "liferayTransactionManager";
 
-	public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.segments.service.util.ServiceProps.get(
-			"value.object.entity.cache.enabled.com.liferay.segments.model.SegmentsExperience"),
-		true);
-
-	public static final boolean FINDER_CACHE_ENABLED = GetterUtil.getBoolean(
-		com.liferay.segments.service.util.ServiceProps.get(
-			"value.object.finder.cache.enabled.com.liferay.segments.model.SegmentsExperience"),
-		true);
-
-	public static final boolean COLUMN_BITMASK_ENABLED = GetterUtil.getBoolean(
-		com.liferay.segments.service.util.ServiceProps.get(
-			"value.object.column.bitmask.enabled.com.liferay.segments.model.SegmentsExperience"),
-		true);
-
 	public static final long ACTIVE_COLUMN_BITMASK = 1L;
 
 	public static final long CLASSNAMEID_COLUMN_BITMASK = 2L;
@@ -162,7 +146,17 @@ public class SegmentsExperienceModelImpl
 
 	public static final long SEGMENTSENTRYID_COLUMN_BITMASK = 64L;
 
-	public static final long UUID_COLUMN_BITMASK = 128L;
+	public static final long SEGMENTSEXPERIENCEKEY_COLUMN_BITMASK = 128L;
+
+	public static final long UUID_COLUMN_BITMASK = 256L;
+
+	public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
+		_entityCacheEnabled = entityCacheEnabled;
+	}
+
+	public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
+		_finderCacheEnabled = finderCacheEnabled;
+	}
 
 	/**
 	 * Converts the soap model instance into a normal model instance.
@@ -186,6 +180,7 @@ public class SegmentsExperienceModelImpl
 		model.setCreateDate(soapModel.getCreateDate());
 		model.setModifiedDate(soapModel.getModifiedDate());
 		model.setSegmentsEntryId(soapModel.getSegmentsEntryId());
+		model.setSegmentsExperienceKey(soapModel.getSegmentsExperienceKey());
 		model.setClassNameId(soapModel.getClassNameId());
 		model.setClassPK(soapModel.getClassPK());
 		model.setName(soapModel.getName());
@@ -218,10 +213,6 @@ public class SegmentsExperienceModelImpl
 
 		return models;
 	}
-
-	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(
-		com.liferay.segments.service.util.ServiceProps.get(
-			"lock.expiration.time.com.liferay.segments.model.SegmentsExperience"));
 
 	public SegmentsExperienceModelImpl() {
 	}
@@ -403,6 +394,13 @@ public class SegmentsExperienceModelImpl
 			"segmentsEntryId",
 			(BiConsumer<SegmentsExperience, Long>)
 				SegmentsExperience::setSegmentsEntryId);
+		attributeGetterFunctions.put(
+			"segmentsExperienceKey",
+			SegmentsExperience::getSegmentsExperienceKey);
+		attributeSetterBiConsumers.put(
+			"segmentsExperienceKey",
+			(BiConsumer<SegmentsExperience, String>)
+				SegmentsExperience::setSegmentsExperienceKey);
 		attributeGetterFunctions.put(
 			"classNameId", SegmentsExperience::getClassNameId);
 		attributeSetterBiConsumers.put(
@@ -618,6 +616,32 @@ public class SegmentsExperienceModelImpl
 
 	public long getOriginalSegmentsEntryId() {
 		return _originalSegmentsEntryId;
+	}
+
+	@JSON
+	@Override
+	public String getSegmentsExperienceKey() {
+		if (_segmentsExperienceKey == null) {
+			return "";
+		}
+		else {
+			return _segmentsExperienceKey;
+		}
+	}
+
+	@Override
+	public void setSegmentsExperienceKey(String segmentsExperienceKey) {
+		_columnBitmask |= SEGMENTSEXPERIENCEKEY_COLUMN_BITMASK;
+
+		if (_originalSegmentsExperienceKey == null) {
+			_originalSegmentsExperienceKey = _segmentsExperienceKey;
+		}
+
+		_segmentsExperienceKey = segmentsExperienceKey;
+	}
+
+	public String getOriginalSegmentsExperienceKey() {
+		return GetterUtil.getString(_originalSegmentsExperienceKey);
 	}
 
 	@Override
@@ -946,7 +970,12 @@ public class SegmentsExperienceModelImpl
 	@Override
 	public SegmentsExperience toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, SegmentsExperience>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -968,6 +997,8 @@ public class SegmentsExperienceModelImpl
 		segmentsExperienceImpl.setCreateDate(getCreateDate());
 		segmentsExperienceImpl.setModifiedDate(getModifiedDate());
 		segmentsExperienceImpl.setSegmentsEntryId(getSegmentsEntryId());
+		segmentsExperienceImpl.setSegmentsExperienceKey(
+			getSegmentsExperienceKey());
 		segmentsExperienceImpl.setClassNameId(getClassNameId());
 		segmentsExperienceImpl.setClassPK(getClassPK());
 		segmentsExperienceImpl.setName(getName());
@@ -1032,12 +1063,12 @@ public class SegmentsExperienceModelImpl
 
 	@Override
 	public boolean isEntityCacheEnabled() {
-		return ENTITY_CACHE_ENABLED;
+		return _entityCacheEnabled;
 	}
 
 	@Override
 	public boolean isFinderCacheEnabled() {
-		return FINDER_CACHE_ENABLED;
+		return _finderCacheEnabled;
 	}
 
 	@Override
@@ -1063,6 +1094,9 @@ public class SegmentsExperienceModelImpl
 			segmentsExperienceModelImpl._segmentsEntryId;
 
 		segmentsExperienceModelImpl._setOriginalSegmentsEntryId = false;
+
+		segmentsExperienceModelImpl._originalSegmentsExperienceKey =
+			segmentsExperienceModelImpl._segmentsExperienceKey;
 
 		segmentsExperienceModelImpl._originalClassNameId =
 			segmentsExperienceModelImpl._classNameId;
@@ -1136,6 +1170,18 @@ public class SegmentsExperienceModelImpl
 		}
 
 		segmentsExperienceCacheModel.segmentsEntryId = getSegmentsEntryId();
+
+		segmentsExperienceCacheModel.segmentsExperienceKey =
+			getSegmentsExperienceKey();
+
+		String segmentsExperienceKey =
+			segmentsExperienceCacheModel.segmentsExperienceKey;
+
+		if ((segmentsExperienceKey != null) &&
+			(segmentsExperienceKey.length() == 0)) {
+
+			segmentsExperienceCacheModel.segmentsExperienceKey = null;
+		}
 
 		segmentsExperienceCacheModel.classNameId = getClassNameId();
 
@@ -1229,8 +1275,15 @@ public class SegmentsExperienceModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, SegmentsExperience>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, SegmentsExperience>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
+
+	private static boolean _entityCacheEnabled;
+	private static boolean _finderCacheEnabled;
 
 	private String _uuid;
 	private String _originalUuid;
@@ -1249,6 +1302,8 @@ public class SegmentsExperienceModelImpl
 	private long _segmentsEntryId;
 	private long _originalSegmentsEntryId;
 	private boolean _setOriginalSegmentsEntryId;
+	private String _segmentsExperienceKey;
+	private String _originalSegmentsExperienceKey;
 	private long _classNameId;
 	private long _originalClassNameId;
 	private boolean _setOriginalClassNameId;

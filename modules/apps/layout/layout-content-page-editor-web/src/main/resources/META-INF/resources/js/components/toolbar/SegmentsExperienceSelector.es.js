@@ -1,13 +1,130 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import 'frontend-js-web/liferay/compat/modal/Modal.es';
 import Component from 'metal-component';
 import Soy, {Config} from 'metal-soy';
+
+import {
+	CREATE_SEGMENTS_EXPERIENCE,
+	DELETE_SEGMENTS_EXPERIENCE,
+	EDIT_SEGMENTS_EXPERIENCE,
+	SELECT_SEGMENTS_EXPERIENCE,
+	UPDATE_SEGMENTS_EXPERIENCE_PRIORITY
+} from '../../actions/actions.es';
 import getConnectedComponent from '../../store/ConnectedComponent.es';
-import './segmentsExperiences/modal.es';
-import templates from './SegmentsExperienceSelector.soy';
-import {CREATE_SEGMENTS_EXPERIENCE, DELETE_SEGMENTS_EXPERIENCE, EDIT_SEGMENTS_EXPERIENCE, SELECT_SEGMENTS_EXPERIENCE, UPDATE_SEGMENTS_EXPERIENCE_PRIORITY} from '../../actions/actions.es';
-import 'frontend-js-web/liferay/compat/modal/Modal.es';
 import {setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
+import templates from './SegmentsExperienceSelector.soy';
+import './segmentsExperiences/modal.es';
 
 const DISMISS_ALERT_ANIMATION_WAIT = 500;
+const MODAL_EXPERIENCE_STATE_KEY = 'modalExperienceState';
+
+/**
+ * Stores a given modalState
+ *
+ * @param {object} modalState
+ * @param {'creation' | 'edition'} modalState.type
+ * @param {string} modalState.experienceName
+ * @param {string} modalState.segmentsExperienceId
+ * @param {string} modalState.classPK
+ * @returns {void}
+ */
+function storeExperiencesState(modalState) {
+	window.sessionStorage.setItem(
+		MODAL_EXPERIENCE_STATE_KEY,
+		JSON.stringify(modalState)
+	);
+}
+
+/**
+ * @typedef experienceState
+ * @property {object} modalStates
+ * @property {'creation'|'edition'} modalStates.type
+ * @property {string} modalStates.experienceName
+ * @property {string} modalStates.classPK
+ * @property {string} modalStates.segmentsExperienceId
+ * @property {string} selectedSegmentsExpereinceId
+ */
+
+/**
+ * Looks for a modalState stored, wipes it and returns it;
+ *
+ * @returns {experienceState|null}
+ */
+function restoreExperiencesState() {
+	const state = window.sessionStorage.getItem(MODAL_EXPERIENCE_STATE_KEY);
+	if (state !== null) {
+		window.sessionStorage.removeItem(MODAL_EXPERIENCE_STATE_KEY);
+		return JSON.parse(state);
+	}
+	return state;
+}
+
+/**
+ * @typedef modalState
+ * @property {Object} [edition]
+ * @property {string} edition.name
+ * @property {string} edition.segmentsEntryId
+ * @property {string} edition.segmentsExperienceId
+ * @property {Object} [creation]
+ * @property {string} creation.name
+ * @property {string} creation.segmentsEntryId
+ * @property {string} creation.segmentsExperienceId
+ */
+
+/**
+ * @typedef experiencesState
+ * @property {modalState} modalState
+ * @property {string} selectedSegmentsExperienceId
+ */
+
+/**
+ * This function provides an state to restore a desired internal experiences state
+ *
+ * The state is provided conditionally
+ * if there is a modalState stored
+ * if the current page matches the one provided by that modalState
+ * and if the current url provides a segment id
+ *
+ * @param {string} classPK
+ * @param {string} incomingSegmentId
+ * @returns {modalState|null}
+ */
+function getExperiencesState(classPK, incomingSegmentId) {
+	if (!classPK) return null;
+	const prevState = restoreExperiencesState();
+
+	if (
+		incomingSegmentId &&
+		prevState &&
+		prevState.modalStates.classPK === classPK
+	) {
+		const {modalStates, selectedSegmentsExperienceId} = prevState;
+		return {
+			modalStates: {
+				[prevState.modalStates.type]: {
+					name: modalStates.experienceName,
+					segmentsEntryId: incomingSegmentId,
+					segmentsExperienceId: modalStates.segmentsExperienceId
+				}
+			},
+			selectedSegmentsExperienceId
+		};
+	}
+	return null;
+}
 
 /**
  * Tells if a priority an `obj2`
@@ -34,26 +151,9 @@ function comparePriority(obj1, obj2) {
 }
 
 /**
- * Searchs for a segment based on its Id
- * and returns its label
- * @param {Array} segments
- * @param {string} segmentsEntryId
- * @returns {string|undefined}
- * @review
- */
-function findSegmentsEntryNameById(segments, segmentsEntryId) {
-	const mostWantedSegment = segments.find(
-		segment => segment.segmentsEntryId === segmentsEntryId
-	);
-
-	return mostWantedSegment && mostWantedSegment.name;
-}
-
-/**
  * SegmentsExperienceSelector
  */
 class SegmentsExperienceSelector extends Component {
-
 	/**
 	 * Transforms `availableSegmentsEntries` and `availableSegmentsExperiences` objects into arrays
 	 * Adds `activeSegmentsExperienceName` to the component state
@@ -61,48 +161,74 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	prepareStateForRender(state) {
-		const availableSegmentsExperiencesArray = Object.values(state.availableSegmentsExperiences || [])
+		const availableSegmentsExperiencesArray = Object.values(
+			state.availableSegmentsExperiences || []
+		)
 			.sort(comparePriority)
-			.map(
-				experience => {
-					const name = findSegmentsEntryNameById(
-						Object.values(state.availableSegmentsEntries),
-						experience.segmentsEntryId
-					);
+			.map(experience => {
+				const segmentEntry =
+					state.availableSegmentsEntries[experience.segmentsEntryId];
+				const name = segmentEntry && segmentEntry.name;
 
-					const updatedExperience = setIn(
-						experience,
-						['segmentsEntryName'],
-						name
-					);
+				const updatedExperience = setIn(
+					experience,
+					['segmentsEntryName'],
+					name
+				);
 
-					return updatedExperience;
-				}
-			);
+				return updatedExperience;
+			});
 
-		const selectedSegmentsExperienceId = state.segmentsExperienceId || state.defaultSegmentsExperienceId;
+		const selectedSegmentsExperienceId =
+			state.segmentsExperienceId || state.defaultSegmentsExperienceId;
 
 		const activeExperience = availableSegmentsExperiencesArray.find(
-			experience => experience.segmentsExperienceId === selectedSegmentsExperienceId
+			experience =>
+				experience.segmentsExperienceId === selectedSegmentsExperienceId
 		);
 
-		const availableSegmentsEntries = Object.values(state.availableSegmentsEntries || [])
-			.filter(
-				segment => segment.segmentsEntryId !== state.defaultSegmentsEntryId
-			);
-
-		const innerState = Object.assign(
-			{},
-			state,
-			{
-				activeSegmentsExperienceName: activeExperience && activeExperience.name,
-				availableSegmentsEntries,
-				availableSegmentsExperiences: availableSegmentsExperiencesArray,
-				segmentsExperienceId: selectedSegmentsExperienceId
-			}
+		const availableSegmentsEntries = Object.values(
+			state.availableSegmentsEntries || []
+		).filter(
+			segment => segment.segmentsEntryId !== state.defaultSegmentsEntryId
 		);
+
+		const innerState = Object.assign({}, state, {
+			activeSegmentsExperienceName:
+				activeExperience && activeExperience.name,
+			availableSegmentsEntries,
+			availableSegmentsExperiences: availableSegmentsExperiencesArray,
+			classPK: state.classPK,
+			segmentsExperienceId: selectedSegmentsExperienceId
+		});
 
 		return innerState;
+	}
+
+	/**
+	 * The classPK only changes when the component is connected for the first time
+	 * with the store. This updates `this.modalStates` with previous persisted states
+	 * if neccesary
+	 *
+	 * @param {string} next
+	 * @review
+	 */
+	syncClassPK(next) {
+		if (next) {
+			const experiencesState = getExperiencesState(
+				next,
+				this.selectedSegmentsEntryId
+			);
+			this.modalStates = experiencesState && experiencesState.modalStates;
+			if (
+				experiencesState &&
+				experiencesState.selectedSegmentsExperienceId
+			) {
+				this._selectSegmentsExperience(
+					experiencesState.selectedSegmentsExperienceId
+				);
+			}
+		}
 	}
 
 	/**
@@ -111,11 +237,9 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_closeDropdown() {
-		this._experiencesErrorHandler(
-			{
-				creation: false
-			}
-		);
+		this._experiencesErrorHandler({
+			creation: false
+		});
 		this.openDropdown = false;
 	}
 
@@ -125,11 +249,9 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_closeCreateModal() {
-		this._experiencesModalStateHandler(
-			{
-				creation: false
-			}
-		);
+		this._experiencesModalStateHandler({
+			creation: false
+		});
 	}
 
 	/**
@@ -141,32 +263,27 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_createSegmentsExperience(name, segmentsEntryId) {
-		this.store.dispatch(
-			{
+		this.store
+			.dispatch({
 				name,
 				segmentsEntryId,
 				type: CREATE_SEGMENTS_EXPERIENCE
-			}
-		).done(
-			() => {
+			})
+			.done(() => {
 				this._closeCreateModal();
 
-				Liferay.Util.openToast(
-					{
-						title: Liferay.Language.get('the-experience-was-created-successfully'),
-						type: 'success'
-					}
-				);
-			}
-		).failed(
-			() => {
-				this._experiencesErrorHandler(
-					{
-						creation: true
-					}
-				);
-			}
-		);
+				Liferay.Util.openToast({
+					title: Liferay.Language.get(
+						'the-experience-was-created-successfully'
+					),
+					type: 'success'
+				});
+			})
+			.failed(() => {
+				this._experiencesErrorHandler({
+					creation: true
+				});
+			});
 	}
 
 	/**
@@ -177,31 +294,26 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_deleteSegmentsExperience(segmentsExperienceId) {
-		this.store.dispatch(
-			{
+		this.store
+			.dispatch({
 				segmentsExperienceId,
 				type: DELETE_SEGMENTS_EXPERIENCE
-			}
-		).done(
-			() => {
-				Liferay.Util.openToast(
-					{
-						title: Liferay.Language.get('the-experience-was-deleted-successfully'),
-						type: 'success'
-					}
-				);
-			}
-		).failed(
-			() => {
+			})
+			.done(() => {
+				Liferay.Util.openToast({
+					title: Liferay.Language.get(
+						'the-experience-was-deleted-successfully'
+					),
+					type: 'success'
+				});
+			})
+			.failed(() => {
 				this._openDropdown();
 
-				this._experiencesErrorHandler(
-					{
-						deletion: true
-					}
-				);
-			}
-		);
+				this._experiencesErrorHandler({
+					deletion: true
+				});
+			});
 	}
 
 	/**
@@ -212,16 +324,11 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_dismissCreationError() {
-		setTimeout(
-			() => {
-				this._experiencesErrorHandler(
-					{
-						creation: false
-					}
-				);
-			},
-			DISMISS_ALERT_ANIMATION_WAIT
-		);
+		setTimeout(() => {
+			this._experiencesErrorHandler({
+				creation: false
+			});
+		}, DISMISS_ALERT_ANIMATION_WAIT);
 	}
 
 	/**
@@ -232,16 +339,11 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_dismissEditionError() {
-		setTimeout(
-			() => {
-				this._experiencesErrorHandler(
-					{
-						edition: false
-					}
-				);
-			},
-			DISMISS_ALERT_ANIMATION_WAIT
-		);
+		setTimeout(() => {
+			this._experiencesErrorHandler({
+				edition: false
+			});
+		}, DISMISS_ALERT_ANIMATION_WAIT);
 	}
 
 	/**
@@ -254,16 +356,11 @@ class SegmentsExperienceSelector extends Component {
 	 */
 	_dismissDeletionError() {
 		this.refs.newExperienceBtn.focus();
-		setTimeout(
-			() => {
-				this._experiencesErrorHandler(
-					{
-						deletion: false
-					}
-				);
-			},
-			500
-		);
+		setTimeout(() => {
+			this._experiencesErrorHandler({
+				deletion: false
+			});
+		}, 500);
 	}
 
 	/**
@@ -276,14 +373,12 @@ class SegmentsExperienceSelector extends Component {
 	 * @memberof SegmentsExperienceSelector
 	 */
 	_experiencesErrorHandler(objError = {}) {
-		requestAnimationFrame(
-			() => {
-				this._segmentsExperienceErrors = Object.assign(
-					this._segmentsExperienceErrors || {},
-					objError
-				);
-			}
-		);
+		requestAnimationFrame(() => {
+			this._segmentsExperienceErrors = Object.assign(
+				this._segmentsExperienceErrors || {},
+				objError
+			);
+		});
 	}
 
 	/**
@@ -292,37 +387,30 @@ class SegmentsExperienceSelector extends Component {
 	 * @memberof SegmentsExperienceSelector
 	 */
 	_editSegmentsExperience({segmentsExperienceId, name, segmentsEntryId}) {
-		this.store.dispatch(
-			{
+		this.store
+			.dispatch({
 				name,
 				segmentsEntryId,
 				segmentsExperienceId,
 				type: EDIT_SEGMENTS_EXPERIENCE
-			}
-		).done(
-			() => {
-				this._experiencesModalStateHandler(
-					{
-						edition: false
-					}
-				);
+			})
+			.done(() => {
+				this._experiencesModalStateHandler({
+					edition: false
+				});
 
-				Liferay.Util.openToast(
-					{
-						title: Liferay.Language.get('the-experience-was-updated-successfully'),
-						type: 'success'
-					}
-				);
-			}
-		).failed(
-			() => {
-				this._experiencesErrorHandler(
-					{
-						edition: true
-					}
-				);
-			}
-		);
+				Liferay.Util.openToast({
+					title: Liferay.Language.get(
+						'the-experience-was-updated-successfully'
+					),
+					type: 'success'
+				});
+			})
+			.failed(() => {
+				this._experiencesErrorHandler({
+					edition: true
+				});
+			});
 	}
 
 	/**
@@ -333,17 +421,17 @@ class SegmentsExperienceSelector extends Component {
 	 * @private
 	 */
 	_handleDeleteButtonClick(event) {
-		this._experiencesErrorHandler(
-			{
-				deletion: false
-			}
-		);
+		this._experiencesErrorHandler({
+			deletion: false
+		});
 		const confirmed = confirm(
 			Liferay.Language.get('do-you-want-to-delete-this-experience')
 		);
 
 		if (confirmed) {
-			const segmentsExperienceId = event.currentTarget.getAttribute('data-segmentsExperienceId');
+			const segmentsExperienceId = event.currentTarget.getAttribute(
+				'data-segmentsExperienceId'
+			);
 			this._deleteSegmentsExperience(segmentsExperienceId);
 		}
 	}
@@ -357,11 +445,9 @@ class SegmentsExperienceSelector extends Component {
 	_handleDropdownBlur() {
 		cancelAnimationFrame(this.willToggleDropdownId);
 
-		this.willToggleDropdownId = requestAnimationFrame(
-			() => {
-				this._closeDropdown();
-			}
-		);
+		this.willToggleDropdownId = requestAnimationFrame(() => {
+			this._closeDropdown();
+		});
 	}
 
 	/**
@@ -393,16 +479,42 @@ class SegmentsExperienceSelector extends Component {
 	 */
 	_handleEditButtonClick(event) {
 		const name = event.currentTarget.getAttribute('data-name');
-		const segmentsEntryId = event.currentTarget.getAttribute('data-segmentsEntryId');
-		const segmentsExperienceId = event.currentTarget.getAttribute('data-segmentsExperienceId');
-
-		this._openEditModal(
-			{
-				name,
-				segmentsEntryId,
-				segmentsExperienceId
-			}
+		const segmentsEntryId = event.currentTarget.getAttribute(
+			'data-segmentsEntryId'
 		);
+		const segmentsExperienceId = event.currentTarget.getAttribute(
+			'data-segmentsExperienceId'
+		);
+
+		this._openEditModal({
+			name,
+			segmentsEntryId,
+			segmentsExperienceId
+		});
+	}
+
+	/**
+	 * @memberof SegmentsExperienceSelector
+	 */
+	_handleNewSegmentButtonClick(type, experienceName) {
+		const classPK = this.classPK;
+
+		const segmentsExperienceId =
+			(this.modalStates[type] &&
+				this.modalStates[type].segmentsExperienceId) ||
+			undefined;
+
+		storeExperiencesState({
+			modalStates: {
+				classPK,
+				experienceName,
+				segmentsExperienceId,
+				type
+			},
+			selectedSegmentsExperienceId: this.segmentsExperienceId
+		});
+
+		Liferay.Util.navigate(this.editSegmentsEntryURL);
 	}
 
 	/**
@@ -413,7 +525,8 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_handleSegmentsExperienceClick(event) {
-		const segmentsExperienceId = event.delegateTarget.dataset.segmentsExperienceId;
+		const segmentsExperienceId =
+			event.delegateTarget.dataset.segmentsExperienceId;
 		this._selectSegmentsExperience(segmentsExperienceId);
 	}
 
@@ -423,17 +536,12 @@ class SegmentsExperienceSelector extends Component {
 	 * @param {!string} name
 	 * @param {!string} segmentsEntryId
 	 */
-	_handleEditFormSubmit(
-		name,
-		segmentsEntryId
-	) {
-		this._editSegmentsExperience(
-			{
-				name,
-				segmentsEntryId,
-				segmentsExperienceId: this.modalStates.edition.segmentsExperienceId
-			}
-		);
+	_handleEditFormSubmit(name, segmentsEntryId) {
+		this._editSegmentsExperience({
+			name,
+			segmentsEntryId,
+			segmentsExperienceId: this.modalStates.edition.segmentsExperienceId
+		});
 	}
 
 	/**
@@ -444,22 +552,26 @@ class SegmentsExperienceSelector extends Component {
 	 */
 	_handleMoveExperienceUpButtonClick(event) {
 		const priority = event.currentTarget.getAttribute('data-priority');
-		const segmentsExperienceId = event.currentTarget.getAttribute('data-segmentsExperienceId');
-
-		const buttonPriorityUp = this.refs[`buttonPriorityUp${segmentsExperienceId}`];
-		const selectExperienceBtnRef = this.refs[`selectExperienceButton${segmentsExperienceId}`];
-
-		this._updatePriority(
-			{
-				focusFallbackElement: selectExperienceBtnRef,
-				payload: {
-					direction: 'up',
-					priority,
-					segmentsExperienceId
-				},
-				priorityButton: buttonPriorityUp.element
-			}
+		const segmentsExperienceId = event.currentTarget.getAttribute(
+			'data-segmentsExperienceId'
 		);
+
+		const buttonPriorityUp = this.refs[
+			`buttonPriorityUp${segmentsExperienceId}`
+		];
+		const selectExperienceBtnRef = this.refs[
+			`selectExperienceButton${segmentsExperienceId}`
+		];
+
+		this._updatePriority({
+			focusFallbackElement: selectExperienceBtnRef,
+			payload: {
+				direction: 'up',
+				priority,
+				segmentsExperienceId
+			},
+			priorityButton: buttonPriorityUp.element
+		});
 	}
 
 	/**
@@ -470,22 +582,26 @@ class SegmentsExperienceSelector extends Component {
 	 */
 	_handleMoveExperienceDownButtonClick(event) {
 		const priority = event.currentTarget.getAttribute('data-priority');
-		const segmentsExperienceId = event.currentTarget.getAttribute('data-segmentsExperienceId');
-
-		const buttonPriorityDown = this.refs[`buttonPriorityDown${segmentsExperienceId}`];
-		const selectExperienceBtnRef = this.refs[`selectExperienceButton${segmentsExperienceId}`];
-
-		this._updatePriority(
-			{
-				focusFallbackElement: selectExperienceBtnRef,
-				payload: {
-					direction: 'down',
-					priority,
-					segmentsExperienceId
-				},
-				priorityButton: buttonPriorityDown.element
-			}
+		const segmentsExperienceId = event.currentTarget.getAttribute(
+			'data-segmentsExperienceId'
 		);
+
+		const buttonPriorityDown = this.refs[
+			`buttonPriorityDown${segmentsExperienceId}`
+		];
+		const selectExperienceBtnRef = this.refs[
+			`selectExperienceButton${segmentsExperienceId}`
+		];
+
+		this._updatePriority({
+			focusFallbackElement: selectExperienceBtnRef,
+			payload: {
+				direction: 'down',
+				priority,
+				segmentsExperienceId
+			},
+			priorityButton: buttonPriorityDown.element
+		});
 	}
 
 	/**
@@ -500,13 +616,7 @@ class SegmentsExperienceSelector extends Component {
 	 * @param {!string} payload.segmentsExperienceId
 	 * @memberof SegmentsExperienceSelector
 	 */
-	_updatePriority(
-		{
-			focusFallbackElement,
-			priorityButton,
-			payload
-		}
-	) {
+	_updatePriority({focusFallbackElement, priorityButton, payload}) {
 		const onBlur = () => {
 			focusFallbackElement.focus();
 			priorityButton.removeEventListener('blur', onBlur);
@@ -515,25 +625,17 @@ class SegmentsExperienceSelector extends Component {
 		priorityButton.addEventListener('blur', onBlur);
 
 		const removeBlurListener = () => {
-			priorityButton.removeEventListener(
-				'blur',
-				onBlur
-			);
+			priorityButton.removeEventListener('blur', onBlur);
 		};
 
-		this.store.dispatch(
-			Object.assign(
-				{},
-				payload,
-				{
+		this.store
+			.dispatch(
+				Object.assign({}, payload, {
 					type: UPDATE_SEGMENTS_EXPERIENCE_PRIORITY
-				}
+				})
 			)
-		).done(
-			removeBlurListener
-		).failed(
-			removeBlurListener
-		);
+			.done(removeBlurListener)
+			.failed(removeBlurListener);
 	}
 
 	/**
@@ -553,11 +655,9 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_openCreateModal() {
-		this._experiencesModalStateHandler(
-			{
-				creation: true
-			}
-		);
+		this._experiencesModalStateHandler({
+			creation: true
+		});
 	}
 
 	/**
@@ -566,28 +666,24 @@ class SegmentsExperienceSelector extends Component {
 	 * @private
 	 * @review
 	 */
-	_openEditModal(
-		{
-			name = '',
-			segmentsEntryId = null,
-			segmentsExperienceId = null
-		}
-	) {
-		this._experiencesModalStateHandler(
-			{
-				edition: {
-					name,
-					segmentsEntryId,
-					segmentsExperienceId
-				}
+	_openEditModal({
+		name = '',
+		segmentsEntryId = null,
+		segmentsExperienceId = null
+	}) {
+		this._experiencesModalStateHandler({
+			edition: {
+				name,
+				segmentsEntryId,
+				segmentsExperienceId
 			}
-		);
+		});
 	}
 
 	/**
-	 * @param {object} [newState]
+	 * @param {object} [newState = {}]
 	 * @param {boolean} [newState.creation] - The status of the experience creation modal
-	 * @param {boolean} [newState.editon] - The status of the experience edition modal
+	 * @param {boolean} [newState.edition] - The status of the experience edition modal
 	 * @memberof SegmentsExperienceSelector
 	 */
 	_experiencesModalStateHandler(newState = {}) {
@@ -602,12 +698,10 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_selectSegmentsExperience(segmentsExperienceId) {
-		this.store.dispatch(
-			{
-				segmentsExperienceId,
-				type: SELECT_SEGMENTS_EXPERIENCE
-			}
-		);
+		this.store.dispatch({
+			segmentsExperienceId,
+			type: SELECT_SEGMENTS_EXPERIENCE
+		});
 	}
 
 	/**
@@ -616,16 +710,12 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_closeEditModal() {
-		this._experiencesErrorHandler(
-			{
-				edition: false
-			}
-		);
-		this._experiencesModalStateHandler(
-			{
-				edition: false
-			}
-		);
+		this._experiencesErrorHandler({
+			edition: false
+		});
+		this._experiencesModalStateHandler({
+			edition: false
+		});
 	}
 
 	/**
@@ -635,9 +725,10 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_toggleEditModal() {
-		const modalEditAction = this.modalStates.edition ?
-			this._closeEditModal :
-			this._openEditModal;
+		const modalEditAction =
+			this.modalStates && this.modalStates.edition
+				? this._closeEditModal
+				: this._openEditModal;
 
 		modalEditAction.call(this);
 	}
@@ -649,9 +740,9 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_toggleCreateModal() {
-		const modalAction = this.modalStates.creation ?
-			this._closeCreateModal :
-			this._openCreateModal;
+		const modalAction = this.modalStates.creation
+			? this._closeCreateModal
+			: this._openCreateModal;
 
 		modalAction.call(this);
 	}
@@ -663,19 +754,36 @@ class SegmentsExperienceSelector extends Component {
 	 * @review
 	 */
 	_toggleDropdown() {
-		const dropdownAction = this.openDropdown ?
-			this._closeDropdown :
-			this._openDropdown;
+		const dropdownAction = this.openDropdown
+			? this._closeDropdown
+			: this._openDropdown;
 
 		dropdownAction.call(this);
 	}
-
 }
 
 SegmentsExperienceSelector.STATE = {
-	modalStates: Config.object().value(null),
-	openDropdown: Config.bool().internal().value(false),
-	segmentsEntryId: Config.string().internal()
+	/**
+	 * Url to redirect the user when clicking new experience
+	 */
+	editSegmentsEntryURL: Config.string(),
+
+	/**
+	 * Contains the state of Experience edition and creation
+	 */
+	modalStates: Config.object(),
+
+	/**
+	 * Boolean to control the state of the experiences modal
+	 */
+	openDropdown: Config.bool()
+		.internal()
+		.value(false),
+
+	/**
+	 * Segments Id of a just created Segment to recover Experiences modal state
+	 */
+	selectedSegmentsEntryId: Config.string()
 };
 
 const ConnectedSegmentsExperienceSelector = getConnectedComponent(

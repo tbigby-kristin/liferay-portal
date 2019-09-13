@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMDataProviderInstanceLink}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMDataProviderInstanceLink
  * @generated
  */
-@ProviderType
 public class DDMDataProviderInstanceLinkWrapper
 	extends BaseModelWrapper<DDMDataProviderInstanceLink>
 	implements DDMDataProviderInstanceLink,
@@ -47,6 +44,7 @@ public class DDMDataProviderInstanceLinkWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"dataProviderInstanceLinkId", getDataProviderInstanceLinkId());
 		attributes.put("companyId", getCompanyId());
@@ -58,6 +56,12 @@ public class DDMDataProviderInstanceLinkWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long dataProviderInstanceLinkId = (Long)attributes.get(
 			"dataProviderInstanceLinkId");
 
@@ -116,6 +120,16 @@ public class DDMDataProviderInstanceLinkWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this ddm data provider instance link.
+	 *
+	 * @return the mvcc version of this ddm data provider instance link
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this ddm data provider instance link.
 	 *
 	 * @return the primary key of this ddm data provider instance link
@@ -135,6 +149,11 @@ public class DDMDataProviderInstanceLinkWrapper
 		return model.getStructureId();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm data provider instance link model instance should use the <code>DDMDataProviderInstanceLink</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -168,6 +187,16 @@ public class DDMDataProviderInstanceLinkWrapper
 	@Override
 	public void setDataProviderInstanceLinkId(long dataProviderInstanceLinkId) {
 		model.setDataProviderInstanceLinkId(dataProviderInstanceLinkId);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm data provider instance link.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm data provider instance link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

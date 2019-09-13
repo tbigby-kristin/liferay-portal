@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import MapBase from 'map-common/js/MapBase.es';
 import {Config} from 'metal-state';
 import {toElement} from 'metal-dom';
@@ -12,7 +26,6 @@ import OpenStreetMapMarker from './OpenStreetMapMarker.es';
  * @review
  */
 class MapOpenStreetMap extends MapBase {
-
 	/**
 	 * Creates a new map using OpenStreetMap's API
 	 * @param  {Array} args List of arguments to be passed to State
@@ -43,8 +56,8 @@ class MapOpenStreetMap extends MapBase {
 		if (this.data && this.data.features) {
 			const bounds = new L.LatLngBounds();
 
-			this.data.features.forEach(
-				feature => bounds.extend(
+			this.data.features.forEach(feature =>
+				bounds.extend(
 					new L.LatLng(
 						feature.geometry.coordinates[1],
 						feature.geometry.coordinates[0]
@@ -63,17 +76,15 @@ class MapOpenStreetMap extends MapBase {
 	 * @review
 	 */
 	addControl(control, position) {
-		const LeafLetControl = L.Control.extend(
-			{
-				onAdd() {
-					return toElement(control);
-				},
+		const LeafLetControl = L.Control.extend({
+			onAdd() {
+				return toElement(control);
+			},
 
-				options: {
-					position: MapOpenStreetMap.POSITION_MAP[position]
-				}
+			options: {
+				position: MapOpenStreetMap.POSITION_MAP[position]
 			}
-		);
+		});
 
 		this._map.addControl(new LeafLetControl());
 	}
@@ -142,12 +153,13 @@ MapOpenStreetMap.POSITION_MAP = {
  * @static
  */
 MapOpenStreetMap.STATE = Object.assign({}, MapBase.STATE, {
-
 	/**
 	 * Url used for fetching map tile information
 	 * @type {string}
 	 */
-	tileURI: Config.string().value('//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png')
+	tileURI: Config.string().value(
+		'//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+	)
 });
 
 export default MapOpenStreetMap;

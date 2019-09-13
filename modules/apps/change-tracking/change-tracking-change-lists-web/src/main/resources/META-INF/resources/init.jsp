@@ -26,19 +26,18 @@ taglib uri="http://liferay.com/tld/soy" prefix="soy" %><%@
 taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %><%@
 taglib uri="http://liferay.com/tld/ui" prefix="liferay-ui" %>
 
-<%@ page import="com.liferay.change.tracking.change.lists.web.internal.display.context.ChangeListsDisplayContext" %><%@
+<%@ page import="com.liferay.change.tracking.change.lists.web.internal.constants.CTWebConstants" %><%@
+page import="com.liferay.change.tracking.change.lists.web.internal.display.context.ChangeListsDisplayContext" %><%@
 page import="com.liferay.change.tracking.constants.CTConstants" %><%@
 page import="com.liferay.change.tracking.constants.CTPortletKeys" %><%@
 page import="com.liferay.change.tracking.engine.exception.CTCollectionDescriptionCTEngineException" %><%@
 page import="com.liferay.change.tracking.engine.exception.CTCollectionNameCTEngineException" %><%@
 page import="com.liferay.change.tracking.model.CTCollection" %><%@
-page import="com.liferay.change.tracking.service.CTCollectionLocalServiceUtil" %><%@
 page import="com.liferay.petra.string.StringPool" %><%@
 page import="com.liferay.portal.kernel.dao.search.DisplayTerms" %><%@
 page import="com.liferay.portal.kernel.dao.search.SearchContainer" %><%@
 page import="com.liferay.portal.kernel.language.LanguageUtil" %><%@
 page import="com.liferay.portal.kernel.model.ModelHintsUtil" %><%@
-page import="com.liferay.portal.kernel.portlet.LiferayWindowState" %><%@
 page import="com.liferay.portal.kernel.portlet.PortletURLFactoryUtil" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
@@ -57,7 +56,7 @@ page import="javax.portlet.PortletURL" %>
 <portlet:defineObjects />
 
 <%
-ChangeListsDisplayContext changeListsDisplayContext = new ChangeListsDisplayContext(request, renderRequest, renderResponse);
+ChangeListsDisplayContext changeListsDisplayContext = (ChangeListsDisplayContext)request.getAttribute(CTWebConstants.CHANGE_LISTS_DISPLAY_CONTEXT);
 
 portletDisplay.setShowStagingIcon(false);
 %>

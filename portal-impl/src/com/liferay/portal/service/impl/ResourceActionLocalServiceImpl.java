@@ -25,7 +25,7 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -101,28 +101,31 @@ public class ResourceActionLocalServiceImpl
 		}
 
 		long availableBits = -2;
-		Map<String, ResourceAction> resourceActionMap = new HashMap<>();
-
-		List<ResourceAction> resourceActions = getResourceActions(name);
-
-		for (ResourceAction resourceAction : resourceActions) {
-			availableBits &= ~resourceAction.getBitwiseValue();
-
-			resourceActionMap.put(resourceAction.getActionId(), resourceAction);
-		}
+		Map<String, ResourceAction> resourceActionsMap = null;
 
 		List<Object[]> keyActionIdAndBitwiseValues = null;
 
 		for (String actionId : actionIds) {
 			String key = encodeKey(name, actionId);
 
-			ResourceAction resourceAction = _resourceActions.get(key);
-
-			if (resourceAction != null) {
+			if (_resourceActions.get(key) != null) {
 				continue;
 			}
 
-			resourceAction = resourceActionMap.get(actionId);
+			if (resourceActionsMap == null) {
+				resourceActionsMap = new HashMap<>();
+
+				List<ResourceAction> resourceActions = getResourceActions(name);
+
+				for (ResourceAction resourceAction : resourceActions) {
+					availableBits &= ~resourceAction.getBitwiseValue();
+
+					resourceActionsMap.put(
+						resourceAction.getActionId(), resourceAction);
+				}
+			}
+
+			ResourceAction resourceAction = resourceActionsMap.get(actionId);
 
 			if (resourceAction == null) {
 				long bitwiseValue = 1;

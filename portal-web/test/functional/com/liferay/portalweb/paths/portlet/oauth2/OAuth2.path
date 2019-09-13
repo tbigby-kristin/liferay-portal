@@ -20,6 +20,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADMIN_CLIENT_CREDENTIALS_USER_SELECTED</td>
+	<td>//td[contains(@class,'lfr-screen-name-column')]/a[contains(.,'${key_clientCredentialsUser}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADMIN_GLOBAL_RESOURCE_SCOPE_CHECKBOX</td>
 	<td>//a[contains(.,'${key_panel}')]/following-sibling::div//input[contains(@data-slave,'${key_scopeName}')]</td>
 	<td></td>
@@ -76,7 +81,7 @@
 </tr>
 <tr>
 	<td>ADMIN_MODAL_GLOBAL_SCOPE_LINK</td>
-	<td>//li[contains(.,'${key_scopeName}')]//a[@data-slave]</td>
+	<td>//li[contains(.,'${key_scopeText}')]//a[@data-slave]</td>
 	<td></td>
 </tr>
 <tr>
@@ -90,6 +95,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>ADMIN_RESOURCE_SCOPE_ALIAS</td>
+	<td>//span[contains(@class,'badge-item') and contains(.,'${key_scopeAlias}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>ADMIN_RESOURCE_SCOPE_CHECKBOX</td>
 	<td>//input[@value='${key_scopeName}']</td>
 	<td></td>
@@ -97,6 +107,16 @@
 <tr>
 	<td>ADMIN_RESOURCE_SCOPE_CHECKED</td>
 	<td>xpath=(//div[contains(@aria-labelledby,'navResourceScopesTab')]//input[@type='checkbox'][@checked=''])[${key_matchCount}]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_RESOURCE_SCOPE_REMOVED</td>
+	<td>//span[contains(.,'${key_scopeName}') and contains(@class,'removed-scope-alias')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADMIN_RESOURCE_SCOPE_TRANSLATION</td>
+	<td>//a[contains(.,'${key_resourcePanel}')]//following-sibling::div//label[contains(@for,'scopeAlias')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -112,11 +132,6 @@
 <tr>
 	<td>ADMIN_TABLE_APP_NAME</td>
 	<td>//td[@class=' lfr-name-column' and contains(.,'${key_tableName}')]</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ADMIN_TABLE_APP_SCOPES_COUNT</td>
-	<td>//tr[td[@class=' lfr-name-column' and contains(.,'${key_tableName}')]]/td[@class=' lfr-scopes-column']</td>
 	<td></td>
 </tr>
 <tr>

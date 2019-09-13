@@ -16,8 +16,6 @@ package com.liferay.fragment.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link FragmentEntryService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see FragmentEntryService
  * @generated
  */
-@ProviderType
 public class FragmentEntryServiceWrapper
 	implements FragmentEntryService, ServiceWrapper<FragmentEntryService> {
 
@@ -35,6 +32,12 @@ public class FragmentEntryServiceWrapper
 		_fragmentEntryService = fragmentEntryService;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, long, int, int,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, int type,
@@ -46,6 +49,12 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, name, type, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, long, int, int,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, int status,
@@ -56,6 +65,12 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, name, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, long, int, int,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -68,6 +83,12 @@ public class FragmentEntryServiceWrapper
 			serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, long, int, int,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -82,6 +103,24 @@ public class FragmentEntryServiceWrapper
 
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
+			long groupId, long fragmentCollectionId, String fragmentEntryKey,
+			String name, long previewFileEntryId, int type, int status,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _fragmentEntryService.addFragmentEntry(
+			groupId, fragmentCollectionId, fragmentEntryKey, name,
+			previewFileEntryId, type, status, serviceContext);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, String, String,
+	 String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, String css,
 			String html, String js, int type, int status,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -92,6 +131,12 @@ public class FragmentEntryServiceWrapper
 			serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, String, String,
+	 String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, String css,
@@ -104,6 +149,12 @@ public class FragmentEntryServiceWrapper
 			serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, String, String,
+	 String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -117,6 +168,12 @@ public class FragmentEntryServiceWrapper
 			js, type, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntry(long, long, String, String, String, String,
+	 String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -127,6 +184,20 @@ public class FragmentEntryServiceWrapper
 		return _fragmentEntryService.addFragmentEntry(
 			groupId, fragmentCollectionId, fragmentEntryKey, name, css, html,
 			js, status, serviceContext);
+	}
+
+	@Override
+	public com.liferay.fragment.model.FragmentEntry addFragmentEntry(
+			long groupId, long fragmentCollectionId, String fragmentEntryKey,
+			String name, String css, String html, String js,
+			String configuration, long previewFileEntryId, int type, int status,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _fragmentEntryService.addFragmentEntry(
+			groupId, fragmentCollectionId, fragmentEntryKey, name, css, html,
+			js, configuration, previewFileEntryId, type, status,
+			serviceContext);
 	}
 
 	@Override
@@ -162,6 +233,11 @@ public class FragmentEntryServiceWrapper
 		return _fragmentEntryService.fetchFragmentEntry(fragmentEntryId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesCount(Long, Long)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId) {
@@ -170,6 +246,11 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesCount(Long, Long, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId, int status) {
@@ -178,6 +259,11 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, status);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesCount(Long, Long, String)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId, String name) {
@@ -186,6 +272,11 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, name);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesCount(Long, Long, String, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId, String name, int status) {
@@ -194,6 +285,11 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, name, status);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesCount(Long, Long, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCountByType(
 		long groupId, long fragmentCollectionId, int type) {
@@ -209,6 +305,11 @@ public class FragmentEntryServiceWrapper
 		return _fragmentEntryService.getFragmentEntries(fragmentCollectionId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesByStatus(Long, Long, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.fragment.model.FragmentEntry>
 		getFragmentEntries(
@@ -227,6 +328,11 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, start, end);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesByStatus(Long, Long, Integer, Integer, Integer, OrderByComparator)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.fragment.model.FragmentEntry>
 		getFragmentEntries(
@@ -251,6 +357,11 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, start, end, orderByComparator);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesByNameAndStatus(Long, Long, String, Integer, Integer, Integer, OrderByComparator)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.fragment.model.FragmentEntry>
 		getFragmentEntries(
@@ -264,6 +375,11 @@ public class FragmentEntryServiceWrapper
 			orderByComparator);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesByName(Long, Long, String, Integer, Integer, OrderByComparator)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.fragment.model.FragmentEntry>
 		getFragmentEntries(
@@ -276,6 +392,58 @@ public class FragmentEntryServiceWrapper
 			groupId, fragmentCollectionId, name, start, end, orderByComparator);
 	}
 
+	@Override
+	public java.util.List<com.liferay.fragment.model.FragmentEntry>
+		getFragmentEntriesByName(
+			long groupId, long fragmentCollectionId, String name, int start,
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.fragment.model.FragmentEntry> orderByComparator) {
+
+		return _fragmentEntryService.getFragmentEntriesByName(
+			groupId, fragmentCollectionId, name, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.fragment.model.FragmentEntry>
+		getFragmentEntriesByNameAndStatus(
+			long groupId, long fragmentCollectionId, String name, int status,
+			int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.fragment.model.FragmentEntry> orderByComparator) {
+
+		return _fragmentEntryService.getFragmentEntriesByNameAndStatus(
+			groupId, fragmentCollectionId, name, status, start, end,
+			orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.fragment.model.FragmentEntry>
+		getFragmentEntriesByStatus(
+			long groupId, long fragmentCollectionId, int status) {
+
+		return _fragmentEntryService.getFragmentEntriesByStatus(
+			groupId, fragmentCollectionId, status);
+	}
+
+	@Override
+	public java.util.List<com.liferay.fragment.model.FragmentEntry>
+		getFragmentEntriesByStatus(
+			long groupId, long fragmentCollectionId, int status, int start,
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.fragment.model.FragmentEntry> orderByComparator) {
+
+		return _fragmentEntryService.getFragmentEntriesByStatus(
+			groupId, fragmentCollectionId, status, start, end,
+			orderByComparator);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #getFragmentEntriesByTypeAndStatus(Long, Long, Integer, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.fragment.model.FragmentEntry>
 		getFragmentEntriesByType(
@@ -295,6 +463,76 @@ public class FragmentEntryServiceWrapper
 
 		return _fragmentEntryService.getFragmentEntriesByType(
 			groupId, fragmentCollectionId, type, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.fragment.model.FragmentEntry>
+		getFragmentEntriesByTypeAndStatus(
+			long groupId, long fragmentCollectionId, int type, int status) {
+
+		return _fragmentEntryService.getFragmentEntriesByTypeAndStatus(
+			groupId, fragmentCollectionId, type, status);
+	}
+
+	@Override
+	public java.util.List<com.liferay.fragment.model.FragmentEntry>
+		getFragmentEntriesByTypeAndStatus(
+			long groupId, long fragmentCollectionId, int type, int status,
+			int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.fragment.model.FragmentEntry> orderByComparator) {
+
+		return _fragmentEntryService.getFragmentEntriesByTypeAndStatus(
+			groupId, fragmentCollectionId, type, status, start, end,
+			orderByComparator);
+	}
+
+	@Override
+	public int getFragmentEntriesCount(
+		long groupId, long fragmentCollectionId) {
+
+		return _fragmentEntryService.getFragmentEntriesCount(
+			groupId, fragmentCollectionId);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByName(
+		long groupId, long fragmentCollectionId, String name) {
+
+		return _fragmentEntryService.getFragmentEntriesCountByName(
+			groupId, fragmentCollectionId, name);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByNameAndStatus(
+		long groupId, long fragmentCollectionId, String name, int status) {
+
+		return _fragmentEntryService.getFragmentEntriesCountByNameAndStatus(
+			groupId, fragmentCollectionId, name, status);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByStatus(
+		long groupId, long fragmentCollectionId, int status) {
+
+		return _fragmentEntryService.getFragmentEntriesCountByStatus(
+			groupId, fragmentCollectionId, status);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByType(
+		long groupId, long fragmentCollectionId, int type) {
+
+		return _fragmentEntryService.getFragmentEntriesCountByType(
+			groupId, fragmentCollectionId, type);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByTypeAndStatus(
+		long groupId, long fragmentCollectionId, int type, int status) {
+
+		return _fragmentEntryService.getFragmentEntriesCountByTypeAndStatus(
+			groupId, fragmentCollectionId, type, status);
 	}
 
 	/**
@@ -340,6 +578,12 @@ public class FragmentEntryServiceWrapper
 		return _fragmentEntryService.updateFragmentEntry(fragmentEntryId, name);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #updateFragmentEntry(long, String, String, String,
+	 String, String, int)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry updateFragmentEntry(
 			long fragmentEntryId, String name, String css, String html,
@@ -350,6 +594,12 @@ public class FragmentEntryServiceWrapper
 			fragmentEntryId, name, css, html, js, status);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #updateFragmentEntry(long, String, String, String,
+	 String, String, long, int)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.fragment.model.FragmentEntry updateFragmentEntry(
 			long fragmentEntryId, String name, String css, String html,
@@ -358,6 +608,28 @@ public class FragmentEntryServiceWrapper
 
 		return _fragmentEntryService.updateFragmentEntry(
 			fragmentEntryId, name, css, html, js, previewFileEntryId, status);
+	}
+
+	@Override
+	public com.liferay.fragment.model.FragmentEntry updateFragmentEntry(
+			long fragmentEntryId, String name, String css, String html,
+			String js, String configuration, int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _fragmentEntryService.updateFragmentEntry(
+			fragmentEntryId, name, css, html, js, configuration, status);
+	}
+
+	@Override
+	public com.liferay.fragment.model.FragmentEntry updateFragmentEntry(
+			long fragmentEntryId, String name, String css, String html,
+			String js, String configuration, long previewFileEntryId,
+			int status)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _fragmentEntryService.updateFragmentEntry(
+			fragmentEntryId, name, css, html, js, configuration,
+			previewFileEntryId, status);
 	}
 
 	@Override

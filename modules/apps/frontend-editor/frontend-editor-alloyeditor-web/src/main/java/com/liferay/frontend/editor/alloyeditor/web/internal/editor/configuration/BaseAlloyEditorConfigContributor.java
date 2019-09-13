@@ -46,13 +46,13 @@ public abstract class BaseAlloyEditorConfigContributor
 		ThemeDisplay themeDisplay,
 		RequestBackedPortletURLFactory requestBackedPortletURLFactory) {
 
-		jsonObject.put("allowedContent", Boolean.TRUE);
-
-		String contentsLanguageDir = getContentsLanguageDir(
-			inputEditorTaglibAttributes);
-
 		jsonObject.put(
-			"contentsLangDirection", HtmlUtil.escapeJS(contentsLanguageDir));
+			"allowedContent", Boolean.TRUE
+		).put(
+			"contentsLangDirection",
+			HtmlUtil.escapeJS(
+				getContentsLanguageDir(inputEditorTaglibAttributes))
+		);
 
 		String contentsLanguageId = getContentsLanguageId(
 			inputEditorTaglibAttributes);
@@ -84,11 +84,11 @@ public abstract class BaseAlloyEditorConfigContributor
 			inputEditorTaglibAttributes.get(
 				AlloyEditorConstants.ATTRIBUTE_NAMESPACE + ":namespace"));
 
-		String name =
-			namespace +
-				GetterUtil.getString(
-					inputEditorTaglibAttributes.get(
-						AlloyEditorConstants.ATTRIBUTE_NAMESPACE + ":name"));
+		String name = GetterUtil.getString(
+			inputEditorTaglibAttributes.get(
+				AlloyEditorConstants.ATTRIBUTE_NAMESPACE + ":name"));
+
+		name = namespace + name;
 
 		jsonObject.put("srcNode", name);
 

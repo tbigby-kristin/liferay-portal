@@ -1,81 +1,70 @@
-/* globals expect */
-import {decodeId, encodeAssetId} from '../../../src/main/resources/META-INF/resources/js/utils/FragmentsEditorIdUtils.es';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
 
-describe(
-	'FragmentsEditorIdUtils',
-	() => {
-		describe(
-			'#decodeId',
-			() => {
-				it(
-					'should decode a given base64 encoded object',
-					() => {
-						const obj = {
-							a: 'a',
-							b: 2
-						};
-						const str = btoa(JSON.stringify(obj));
+import {
+	decodeId,
+	encodeAssetId
+} from '../../../src/main/resources/META-INF/resources/js/utils/FragmentsEditorIdUtils.es';
 
-						expect(decodeId(str)).toEqual(obj);
-					}
-				);
+describe('FragmentsEditorIdUtils', () => {
+	describe('#decodeId', () => {
+		it('decodes a given base64 encoded object', () => {
+			const obj = {
+				a: 'a',
+				b: 2
+			};
+			const str = btoa(JSON.stringify(obj));
 
-				it(
-					'should throw an error when string is not base64 encoded',
-					() => {
-						const str = 'not base64 encoded';
+			expect(decodeId(str)).toEqual(obj);
+		});
 
-						expect(() => decodeId(str)).toThrow();
-					}
-				);
+		it('throws an error when string is not base64 encoded', () => {
+			const str = 'not base64 encoded';
 
-				it(
-					'should throw an error when string is not an object',
-					() => {
-						const str = btoa('not an object');
+			expect(() => decodeId(str)).toThrow();
+		});
 
-						expect(() => decodeId(str)).toThrow();
-					}
-				);
-			}
-		);
+		it('throws an error when string is not an object', () => {
+			const str = btoa('not an object');
 
-		describe(
-			'#encodeAssetId',
-			() => {
-				it(
-					'should add an encoded id to a given asset object',
-					() => {
-						const asset = {
-							assetEntryTitle: 'My asset',
-							classNameId: 11111,
-							classPK: 22222
-						};
+			expect(() => decodeId(str)).toThrow();
+		});
+	});
 
-						expect(encodeAssetId(asset)).toMatchSnapshot();
-					}
-				);
+	describe('#encodeAssetId', () => {
+		it('adds an encoded id to a given asset object', () => {
+			const asset = {
+				assetEntryTitle: 'My asset',
+				classNameId: 11111,
+				classPK: 22222
+			};
 
-				it(
-					'should throw an error when input is not an object',
-					() => {
-						const input = 'not an object';
+			expect(encodeAssetId(asset)).toMatchSnapshot();
+		});
 
-						expect(() => encodeAssetId(input)).toThrowError();
-					}
-				);
+		it('throws an error when input is not an object', () => {
+			const input = 'not an object';
 
-				it(
-					'should throw an error when input is not an asset',
-					() => {
-						const input = {
-							a: 'a',
-							b: 2
-						};
-						expect(() => encodeAssetId(input)).toThrowError();
-					}
-				);
-			}
-		);
-	}
-);
+			expect(() => encodeAssetId(input)).toThrowError();
+		});
+
+		it('throws an error when input is not an asset', () => {
+			const input = {
+				a: 'a',
+				b: 2
+			};
+			expect(() => encodeAssetId(input)).toThrowError();
+		});
+	});
+});

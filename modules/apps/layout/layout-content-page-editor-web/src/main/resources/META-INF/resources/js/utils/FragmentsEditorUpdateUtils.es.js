@@ -1,8 +1,36 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {CLEAR_DROP_TARGET, MOVE_ROW} from '../actions/actions.es';
-import {DEFAULT_COMPONENT_ROW_CONFIG, DEFAULT_SECTION_ROW_CONFIG} from './rowConstants';
-import {disableSavingChangesStatusAction, enableSavingChangesStatusAction, updateLastSaveDateAction} from '../actions/saveChanges.es';
-import {FRAGMENTS_EDITOR_DRAGGING_CLASS, FRAGMENTS_EDITOR_ROW_TYPES} from './constants';
-import {getTargetBorder, getWidget, getWidgetPath} from './FragmentsEditorGetUtils.es';
+import {
+	DEFAULT_COMPONENT_ROW_CONFIG,
+	DEFAULT_SECTION_ROW_CONFIG
+} from './rowConstants';
+import {
+	disableSavingChangesStatusAction,
+	enableSavingChangesStatusAction,
+	updateLastSaveDateAction
+} from '../actions/saveChanges.es';
+import {
+	FRAGMENTS_EDITOR_DRAGGING_CLASS,
+	FRAGMENTS_EDITOR_ROW_TYPES
+} from './constants';
+import {
+	getTargetBorder,
+	getWidget,
+	getWidgetPath
+} from './FragmentsEditorGetUtils.es';
 
 /**
  * Inserts an element in the given position of a given array and returns
@@ -43,22 +71,20 @@ function addRow(
 
 	const columns = [];
 
-	layoutColumns.forEach(
-		columnSize => {
-			columns.push(
-				{
-					columnId: `${nextColumnId}`,
-					fragmentEntryLinkIds,
-					size: columnSize
-				}
-			);
+	layoutColumns.forEach(columnSize => {
+		columns.push({
+			columnId: `${nextColumnId}`,
+			fragmentEntryLinkIds,
+			size: columnSize
+		});
 
-			nextColumnId += 1;
-		}
-	);
+		nextColumnId += 1;
+	});
 
-	const defaultConfig = type === FRAGMENTS_EDITOR_ROW_TYPES.sectionRow ?
-		DEFAULT_SECTION_ROW_CONFIG : DEFAULT_COMPONENT_ROW_CONFIG;
+	const defaultConfig =
+		type === FRAGMENTS_EDITOR_ROW_TYPES.sectionRow
+			? DEFAULT_SECTION_ROW_CONFIG
+			: DEFAULT_COMPONENT_ROW_CONFIG;
 
 	const nextStructure = add(
 		layoutData.structure,
@@ -87,22 +113,28 @@ function addRow(
  * @review
  */
 function deleteIn(object, keyPath) {
-	const lastKey = keyPath.slice(-1);
+	const [lastKey] = keyPath.slice(-1);
 	const newKeyPath = keyPath.slice(0, keyPath.length - 1);
 
-	return updateIn(
-		object,
-		newKeyPath,
-		(lastItem) => {
-			const newLastItem = lastItem instanceof Array ?
-				[...lastItem] :
-				Object.assign({}, lastItem);
+	let newObject =
+		object instanceof Array ? [...object] : Object.assign({}, object);
+
+	if (keyPath.length === 1) {
+		delete newObject[lastKey];
+	} else {
+		newObject = updateIn(object, newKeyPath, lastItem => {
+			const newLastItem =
+				lastItem instanceof Array
+					? [...lastItem]
+					: Object.assign({}, lastItem);
 
 			delete newLastItem[lastKey];
 
 			return newLastItem;
-		}
-	);
+		});
+	}
+
+	return newObject;
 }
 
 /**
@@ -116,21 +148,15 @@ function moveItem(store, moveItemAction, moveItemPayload) {
 	store
 		.dispatch(enableSavingChangesStatusAction())
 		.dispatch(
-			Object.assign(
-				{},
-				moveItemPayload,
-				{
-					type: moveItemAction
-				}
-			)
+			Object.assign({}, moveItemPayload, {
+				type: moveItemAction
+			})
 		)
 		.dispatch(updateLastSaveDateAction())
 		.dispatch(disableSavingChangesStatusAction())
-		.dispatch(
-			{
-				type: CLEAR_DROP_TARGET
-			}
-		);
+		.dispatch({
+			type: CLEAR_DROP_TARGET
+		});
 }
 
 /**
@@ -179,18 +205,10 @@ function remove(array, position) {
  * @param {!Object} removeItemPayload Data that is passed to the reducer
  * @review
  */
-function removeItem(store, removeItemAction, removeItemPayload) {
+function removeItem(store, removeAction) {
 	store
 		.dispatch(enableSavingChangesStatusAction())
-		.dispatch(
-			Object.assign(
-				{},
-				removeItemPayload,
-				{
-					type: removeItemAction
-				}
-			),
-		)
+		.dispatch(removeAction)
 		.dispatch(updateLastSaveDateAction())
 		.dispatch(disableSavingChangesStatusAction());
 }
@@ -208,11 +226,9 @@ function setDraggingItemPosition(event) {
 		const newXPos = event.clientX - draggingElement.offsetWidth / 2;
 		const newYPos = event.clientY - draggingElement.offsetHeight / 2;
 
-		requestAnimationFrame(
-			() => {
-				setElementPosition(draggingElement, newXPos, newYPos);
-			}
-		);
+		requestAnimationFrame(() => {
+			setElementPosition(draggingElement, newXPos, newYPos);
+		});
 	}
 }
 
@@ -238,11 +254,7 @@ function setElementPosition(element, xPos, yPos) {
  * @review
  */
 function setIn(object, keyPath, value) {
-	return updateIn(
-		object,
-		keyPath,
-		() => value
-	);
+	return updateIn(object, keyPath, () => value);
 }
 
 /**
@@ -263,9 +275,8 @@ function updateIn(object, keyPath, updater, defaultValue) {
 	let target = object;
 
 	if (keyPath.length > 1) {
-		target = target instanceof Array ?
-			[...target] :
-			Object.assign({}, target);
+		target =
+			target instanceof Array ? [...target] : Object.assign({}, target);
 
 		target[nextKey] = updateIn(
 			target[nextKey] || {},
@@ -273,18 +284,19 @@ function updateIn(object, keyPath, updater, defaultValue) {
 			updater,
 			defaultValue
 		);
-	}
-	else {
-		const nextValue = typeof target[nextKey] === 'undefined' ?
-			defaultValue :
-			target[nextKey];
+	} else {
+		const nextValue =
+			typeof target[nextKey] === 'undefined'
+				? defaultValue
+				: target[nextKey];
 
 		const updatedNextValue = updater(nextValue);
 
 		if (updatedNextValue !== target[nextKey]) {
-			target = target instanceof Array ?
-				[...target] :
-				Object.assign({}, target);
+			target =
+				target instanceof Array
+					? [...target]
+					: Object.assign({}, target);
 
 			target[nextKey] = updatedNextValue;
 		}
@@ -294,27 +306,34 @@ function updateIn(object, keyPath, updater, defaultValue) {
 }
 
 /**
- * Updates row
- * @param {!Object} store Store instance that dispatches the actions
- * @param {string} updateAction Update action name
- * @param {object} payload Row payload
- * @private
+ * Sets used widgets based on the portletIds array
+ * @param {!Array} widgets
+ * @param {{!Array} portletIds
+ * @return {Array}
  * @review
  */
-function updateRow(store, updateAction, payload) {
-	store
-		.dispatch(enableSavingChangesStatusAction())
-		.dispatch(
-			Object.assign(
-				{},
-				payload,
-				{
-					type: updateAction
-				}
-			)
-		)
-		.dispatch(updateLastSaveDateAction())
-		.dispatch(disableSavingChangesStatusAction());
+function updateUsedWidgets(widgets, portletIds) {
+	const filteredWidgets = [...widgets];
+
+	filteredWidgets.forEach(widgetCategory => {
+		const {categories = [], portlets = []} = widgetCategory;
+
+		widgetCategory.categories = updateUsedWidgets(categories, portletIds);
+		widgetCategory.portlets = portlets.map(portlet => {
+			if (
+				portletIds.indexOf(portlet.portletId) !== -1 &&
+				!portlet.instanceable
+			) {
+				portlet.used = true;
+			} else {
+				portlet.used = false;
+			}
+
+			return portlet;
+		});
+	});
+
+	return filteredWidgets;
 }
 
 /**
@@ -322,28 +341,30 @@ function updateRow(store, updateAction, payload) {
  * @param {Object[]} state.fragmentEntryLinks
  * @param {Object[]} state.widgets
  * @param {string} fragmentEntryLinkId
- * @return {Object} Next state
+ * @return {Object}
  */
-function updateWidgets(state, fragmentEntryLinkId) {
-	const fragmentEntryLink = state.fragmentEntryLinks[fragmentEntryLinkId];
+function updateWidgets(state, fragmentEntryLinkIds = []) {
 	let nextState = state;
 
-	if (fragmentEntryLink.portletId) {
-		const widget = getWidget(state.widgets, fragmentEntryLink.portletId);
+	fragmentEntryLinkIds.forEach(fragmentEntryLinkId => {
+		const fragmentEntryLink = state.fragmentEntryLinks[fragmentEntryLinkId];
 
-		if (!widget.instanceable && widget.used) {
-			const widgetPath = getWidgetPath(state.widgets, fragmentEntryLink.portletId);
-
-			nextState = setIn(
-				state,
-				[
-					...widgetPath,
-					'used'
-				],
-				false
+		if (fragmentEntryLink.portletId) {
+			const widget = getWidget(
+				state.widgets,
+				fragmentEntryLink.portletId
 			);
+
+			if (!widget.instanceable && widget.used) {
+				const widgetPath = getWidgetPath(
+					state.widgets,
+					fragmentEntryLink.portletId
+				);
+
+				nextState = setIn(state, [...widgetPath, 'used'], false);
+			}
 		}
-	}
+	});
 
 	return nextState;
 }
@@ -359,6 +380,6 @@ export {
 	setDraggingItemPosition,
 	setIn,
 	updateIn,
-	updateRow,
+	updateUsedWidgets,
 	updateWidgets
 };

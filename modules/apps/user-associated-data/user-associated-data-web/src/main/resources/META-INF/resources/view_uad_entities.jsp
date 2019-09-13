@@ -21,6 +21,8 @@ ViewUADEntitiesDisplay viewUADEntitiesDisplay = (ViewUADEntitiesDisplay)request.
 
 boolean topLevelView = true;
 
+String parentContainerClass = ParamUtil.getString(request, "parentContainerClass");
+
 long parentContainerId = ParamUtil.getLong(request, "parentContainerId");
 
 if (parentContainerId > 0) {
@@ -31,7 +33,7 @@ if (parentContainerId > 0) {
 	uadHierarchyDisplay.addPortletBreadcrumbEntries(request, renderResponse, locale);
 }
 
-long[] groupIds = (long[])request.getAttribute(UADWebKeys.GROUP_IDS);
+long[] groupIds = viewUADEntitiesDisplay.getGroupIds();
 %>
 
 <clay:management-toolbar
@@ -42,6 +44,9 @@ long[] groupIds = (long[])request.getAttribute(UADWebKeys.GROUP_IDS);
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="p_u_i_d" type="hidden" value="<%= String.valueOf(selectedUser.getUserId()) %>" />
 	<aui:input name="groupIds" type="hidden" value='<%= (groupIds != null) ? StringUtil.merge(groupIds) : "" %>' />
+	<aui:input name="parentContainerClass" type="hidden" value="<%= parentContainerClass %>" />
+	<aui:input name="parentContainerId" type="hidden" value="<%= String.valueOf(parentContainerId) %>" />
+	<aui:input name="scope" type="hidden" value="<%= viewUADEntitiesDisplay.getScope() %>" />
 
 	<c:choose>
 		<c:when test="<%= Objects.equals(viewUADEntitiesDisplay.getApplicationKey(), UADConstants.ALL_APPLICATIONS) %>">
@@ -74,6 +79,15 @@ long[] groupIds = (long[])request.getAttribute(UADWebKeys.GROUP_IDS);
 				showPortletBreadcrumb="<%= true %>"
 			/>
 		</div>
+
+		<liferay-ui:error key="deleteUADEntityException">
+
+			<%
+			String message = (String)errorException;
+			%>
+
+			<liferay-ui:message key="<%= message %>" localizeKey="<%= false %>" />
+		</liferay-ui:error>
 
 		<c:if test="<%= !Objects.equals(viewUADEntitiesDisplay.getApplicationKey(), UADConstants.ALL_APPLICATIONS) %>">
 			<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= true %>" id="/info_panel" var="entityTypeSidebarURL">
@@ -131,14 +145,22 @@ long[] groupIds = (long[])request.getAttribute(UADWebKeys.GROUP_IDS);
 						>
 							<aui:a href="<%= uadEntityHref %>"><%= StringUtil.shorten(columnEntry.getValue(), 200) %></aui:a>
 
-							<c:if test='<%= columnEntryKey.equals("name") && showUserIcon %>'>
-								<liferay-ui:icon
-									cssClass="disabled"
-									icon="user"
-									markupView="lexicon"
-									message="this-parent-item-does-not-belong-to-the-user-but-contains-children-items-belonging-to-the-user"
-									toolTip="<%= true %>"
-								/>
+							<c:if test='<%= columnEntryKey.equals("name") || columnEntryKey.equals("title") %>'>
+								<c:if test="<%= uadEntity.isInTrash() %>">
+									<span class="label label-secondary">
+										<span class="label-item label-item-expand"><%= StringUtil.toUpperCase(LanguageUtil.get(request, "in-trash"), locale) %></span>
+									</span>
+								</c:if>
+
+								<c:if test="<%= showUserIcon %>">
+									<liferay-ui:icon
+										cssClass="disabled"
+										icon="user"
+										markupView="lexicon"
+										message="this-parent-item-does-not-belong-to-the-user-but-contains-children-items-belonging-to-the-user"
+										toolTip="<%= true %>"
+									/>
+								</c:if>
 							</c:if>
 						</liferay-ui:search-container-column-text>
 

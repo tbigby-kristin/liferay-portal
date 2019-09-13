@@ -22,6 +22,7 @@ import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldOptions;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
+import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidationExpression;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMFormSuccessPageSettings;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -38,9 +39,11 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 
@@ -259,9 +262,9 @@ public class DDMFormBuilderContextFactoryHelper {
 			return (LocalizedValue)propertyValue;
 		}
 
-		String dataType = ddmFormFieldTypeSetting.getDataType();
+		if (Objects.equals(
+				ddmFormFieldTypeSetting.getDataType(), "ddm-options")) {
 
-		if (Objects.equals(dataType, "ddm-options")) {
 			return doCreateDDMFormFieldValue(
 				(DDMFormFieldOptions)propertyValue, availableLocales);
 		}
@@ -269,7 +272,7 @@ public class DDMFormBuilderContextFactoryHelper {
 					ddmFormFieldTypeSetting.getType(), "validation")) {
 
 			return doCreateDDMFormFieldValue(
-				(DDMFormFieldValidation)propertyValue);
+				availableLocales, (DDMFormFieldValidation)propertyValue);
 		}
 
 		return new UnlocalizedValue(String.valueOf(propertyValue));
@@ -290,17 +293,53 @@ public class DDMFormBuilderContextFactoryHelper {
 	}
 
 	protected Value doCreateDDMFormFieldValue(
+		Set<Locale> availableLocales,
 		DDMFormFieldValidation ddmFormFieldValidation) {
 
-		JSONObject jsonObject = _jsonFactory.createJSONObject();
+		if (ddmFormFieldValidation == null) {
+			return null;
+		}
 
-		jsonObject.put(
-			"errorMessage", ddmFormFieldValidation.getErrorMessage()
+		JSONObject errorMessageJSONObject = _jsonFactory.createJSONObject();
+		JSONObject parameterJSONObject = _jsonFactory.createJSONObject();
+
+		for (Locale availableLocale : availableLocales) {
+			LocalizedValue errorMessageLocalizedValue =
+				ddmFormFieldValidation.getErrorMessageLocalizedValue();
+
+			errorMessageJSONObject.put(
+				LocaleUtil.toLanguageId(availableLocale),
+				errorMessageLocalizedValue.getString(availableLocale));
+
+			LocalizedValue parameterLocalizedValue =
+				ddmFormFieldValidation.getParameterLocalizedValue();
+
+			parameterJSONObject.put(
+				LocaleUtil.toLanguageId(availableLocale),
+				parameterLocalizedValue.getString(availableLocale));
+		}
+
+		DDMFormFieldValidationExpression ddmFormFieldValidationExpression =
+			ddmFormFieldValidation.getDDMFormFieldValidationExpression();
+
+		JSONObject expressionJSONObject = _jsonFactory.createJSONObject();
+
+		expressionJSONObject.put(
+			"name",
+			GetterUtil.getString(ddmFormFieldValidationExpression.getName())
 		).put(
-			"expression", ddmFormFieldValidation.getExpression()
+			"value",
+			GetterUtil.getString(ddmFormFieldValidationExpression.getValue())
 		);
 
-		return new UnlocalizedValue(jsonObject.toString());
+		return new UnlocalizedValue(
+			JSONUtil.put(
+				"errorMessage", errorMessageJSONObject
+			).put(
+				"expression", expressionJSONObject
+			).put(
+				"parameter", parameterJSONObject
+			).toString());
 	}
 
 	protected Map<String, Object> doCreateFormContext(

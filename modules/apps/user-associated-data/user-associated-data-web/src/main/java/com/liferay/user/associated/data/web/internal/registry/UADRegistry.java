@@ -95,24 +95,15 @@ public class UADRegistry {
 	public List<UADAnonymizer> getNonreviewableApplicationUADAnonymizers(
 		String applicationKey) {
 
-		Collection<UADAnonymizer> applicationUADAnonymizers =
-			getApplicationUADAnonymizers(applicationKey);
-
-		Stream<UADDisplay> applicationUADDisplayStream =
-			getApplicationUADDisplayStream(applicationKey);
-
 		return new ArrayList<>(
 			_getNonreviewableUADAnonymizers(
-				applicationUADAnonymizers, applicationUADDisplayStream));
+				getApplicationUADAnonymizers(applicationKey),
+				getApplicationUADDisplayStream(applicationKey)));
 	}
 
 	public Collection<UADAnonymizer> getNonreviewableUADAnonymizers() {
-		Collection<UADAnonymizer> uadAnonymizers = getUADAnonymizers();
-
-		Stream<UADDisplay> uadDisplayStream = getUADDisplayStream();
-
 		return _getNonreviewableUADAnonymizers(
-			uadAnonymizers, uadDisplayStream);
+			getUADAnonymizers(), getUADDisplayStream());
 	}
 
 	public Stream<UADAnonymizer> getNonreviewableUADAnonymizerStream() {

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.Portal;
 
 import java.util.HashMap;
@@ -51,9 +52,14 @@ public class GroupModelListener extends BaseModelListener<Group> {
 
 			Map<Locale, String> nameMap = new HashMap<>();
 
-			nameMap.put(LocaleUtil.getDefault(), group.getDescriptiveName());
+			nameMap.put(
+				LocaleUtil.getSiteDefault(), group.getDescriptiveName());
 
-			calendarResource.setNameMap(nameMap);
+			calendarResource.setNameMap(
+				LocalizationUtil.populateLocalizationMap(
+					nameMap,
+					LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()),
+					group.getGroupId()));
 
 			_calendarResourceLocalService.updateCalendarResource(
 				calendarResource);

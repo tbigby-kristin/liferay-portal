@@ -21,9 +21,7 @@ import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory
 import com.liferay.dynamic.data.mapping.form.web.internal.constants.DDMFormWebKeys;
 import com.liferay.dynamic.data.mapping.form.web.internal.display.context.DDMFormDisplayContext;
 import com.liferay.dynamic.data.mapping.form.web.internal.instance.lifecycle.AddDefaultSharedFormLayoutPortalInstanceLifecycleListener;
-import com.liferay.dynamic.data.mapping.io.DDMFormFieldTypesSerializerTracker;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
-import com.liferay.dynamic.data.mapping.model.DDMFormInstanceSettings;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceRecordVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMFormInstanceService;
@@ -34,10 +32,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Release;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
-import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.servlet.SessionErrors;
@@ -86,8 +82,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/display/view.jsp",
 		"javax.portlet.name=" + DDMPortletKeys.DYNAMIC_DATA_MAPPING_FORM,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=guest,power-user,user"
 	},
 	service = Portlet.class
 )
@@ -146,9 +141,6 @@ public class DDMFormPortlet extends MVCPortlet {
 				(DDMFormDisplayContext)renderRequest.getAttribute(
 					WebKeys.PORTLET_DISPLAY_CONTEXT);
 
-			checkFormIsNotRestricted(
-				renderRequest, renderResponse, ddmFormPortletDisplayContext);
-
 			if (ddmFormPortletDisplayContext.isFormShared()) {
 				saveRefererGroupIdInRequest(
 					renderRequest, ddmFormPortletDisplayContext);
@@ -170,34 +162,6 @@ public class DDMFormPortlet extends MVCPortlet {
 		}
 
 		super.render(renderRequest, renderResponse);
-	}
-
-	protected void checkFormIsNotRestricted(
-			RenderRequest renderRequest, RenderResponse renderResponse,
-			DDMFormDisplayContext ddmFormDisplayContext)
-		throws PortalException {
-
-		DDMFormInstance ddmFormInstance =
-			ddmFormDisplayContext.getFormInstance();
-
-		if (ddmFormInstance == null) {
-			return;
-		}
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		DDMFormInstanceSettings ddmFormInstanceSettings =
-			ddmFormInstance.getSettingsModel();
-
-		Layout layout = themeDisplay.getLayout();
-
-		if (ddmFormInstanceSettings.requireAuthentication() &&
-			!layout.isPrivateLayout()) {
-
-			throw new PrincipalException.MustBeAuthenticated(
-				themeDisplay.getUserId());
-		}
 	}
 
 	protected Throwable getRootCause(Throwable throwable) {
@@ -229,10 +193,10 @@ public class DDMFormPortlet extends MVCPortlet {
 		RenderRequest renderRequest,
 		DDMFormDisplayContext ddmFormPortletDisplayContext) {
 
-		if (ddmFormPortletDisplayContext.getFormInstanceId() > 0) {
-			DDMFormInstance ddmFormInstance =
-				ddmFormPortletDisplayContext.getFormInstance();
+		DDMFormInstance ddmFormInstance =
+			ddmFormPortletDisplayContext.getFormInstance();
 
+		if (ddmFormInstance != null) {
 			renderRequest.setAttribute(
 				DDMFormWebKeys.REFERER_GROUP_ID, ddmFormInstance.getGroupId());
 		}
@@ -251,7 +215,7 @@ public class DDMFormPortlet extends MVCPortlet {
 
 		DDMFormDisplayContext ddmFormDisplayContext = new DDMFormDisplayContext(
 			renderRequest, renderResponse, _ddmFormFieldTypeServicesTracker,
-			_ddmFormFieldTypesSerializerTracker, _ddmFormInstanceLocalService,
+			_ddmFormInstanceLocalService,
 			_ddmFormInstanceRecordVersionLocalService, _ddmFormInstanceService,
 			_ddmFormInstanceVersionLocalService, _ddmFormRenderer,
 			_ddmFormValuesFactory, _ddmFormValuesMerger, _groupLocalService,
@@ -269,10 +233,6 @@ public class DDMFormPortlet extends MVCPortlet {
 
 	@Reference
 	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
-
-	@Reference
-	private DDMFormFieldTypesSerializerTracker
-		_ddmFormFieldTypesSerializerTracker;
 
 	@Reference
 	private DDMFormInstanceLocalService _ddmFormInstanceLocalService;

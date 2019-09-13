@@ -36,10 +36,10 @@ import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Portlet;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.UserPersonalSite;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -229,10 +229,9 @@ public class GroupImpl extends GroupBaseImpl {
 			name = layoutSetPrototype.getName(locale);
 		}
 		else if (isOrganization()) {
-			long organizationId = getOrganizationId();
-
 			Organization organization =
-				OrganizationLocalServiceUtil.getOrganization(organizationId);
+				OrganizationLocalServiceUtil.getOrganization(
+					getOrganizationId());
 
 			name = organization.getName();
 

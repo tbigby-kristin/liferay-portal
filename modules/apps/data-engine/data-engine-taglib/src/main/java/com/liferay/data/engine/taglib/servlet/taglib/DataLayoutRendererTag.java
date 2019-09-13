@@ -14,6 +14,7 @@
 
 package com.liferay.data.engine.taglib.servlet.taglib;
 
+import com.liferay.data.engine.renderer.DataLayoutRendererContext;
 import com.liferay.data.engine.taglib.servlet.taglib.base.BaseDataLayoutRendererTag;
 import com.liferay.data.engine.taglib.servlet.taglib.util.DataLayoutTaglibUtil;
 import com.liferay.petra.string.StringPool;
@@ -24,7 +25,7 @@ import com.liferay.portal.kernel.util.PortalUtil;
 
 import javax.portlet.RenderResponse;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.jsp.JspException;
 
 /**
  * @author Jeyvison Nascimento
@@ -32,21 +33,40 @@ import javax.servlet.http.HttpServletRequest;
 public class DataLayoutRendererTag extends BaseDataLayoutRendererTag {
 
 	@Override
-	protected void setAttributes(HttpServletRequest httpServletRequest) {
-		super.setAttributes(httpServletRequest);
+	public int doStartTag() throws JspException {
+		setNamespacedAttribute(request, "content", _getContent());
 
-		setNamespacedAttribute(httpServletRequest, "content", _getContent());
+		return super.doStartTag();
 	}
 
 	private String _getContent() {
 		String content = StringPool.BLANK;
 
 		try {
-			content = DataLayoutTaglibUtil.renderDataLayout(
-				getDataLayoutId(), request,
+			DataLayoutRendererContext dataLayoutRendererContext =
+				new DataLayoutRendererContext();
+
+			dataLayoutRendererContext.setContainerId(getContainerId());
+
+			if (getDataRecordId() != null) {
+				dataLayoutRendererContext.setDataRecordValues(
+					DataLayoutTaglibUtil.getDataRecordValues(
+						getDataRecordId(), request));
+			}
+			else {
+				dataLayoutRendererContext.setDataRecordValues(
+					getDataRecordValues());
+			}
+
+			dataLayoutRendererContext.setHttpServletRequest(request);
+			dataLayoutRendererContext.setHttpServletResponse(
 				PortalUtil.getHttpServletResponse(
 					(RenderResponse)request.getAttribute(
 						JavaConstants.JAVAX_PORTLET_RESPONSE)));
+			dataLayoutRendererContext.setPortletNamespace(getNamespace());
+
+			content = DataLayoutTaglibUtil.renderDataLayout(
+				getDataLayoutId(), dataLayoutRendererContext);
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {

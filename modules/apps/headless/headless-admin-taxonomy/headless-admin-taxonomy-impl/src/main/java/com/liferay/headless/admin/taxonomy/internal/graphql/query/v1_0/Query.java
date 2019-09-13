@@ -22,20 +22,25 @@ import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyCategoryResourc
 import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyVocabularyResource;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLTypeExtension;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
-import graphql.annotations.annotationTypes.GraphQLField;
-import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
-import graphql.annotations.annotationTypes.GraphQLName;
-
-import java.util.Collection;
+import java.util.function.BiFunction;
 
 import javax.annotation.Generated;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.service.component.ComponentServiceObjects;
 
@@ -70,9 +75,13 @@ public class Query {
 			taxonomyVocabularyResourceComponentServiceObjects;
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {keyword(keywordId: ___){creator, dateCreated, dateModified, id, keywordUsageCount, name, siteId}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Keyword getKeyword(@GraphQLName("keywordId") Long keywordId)
+	public Keyword keyword(@GraphQLName("keywordId") Long keywordId)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
@@ -81,58 +90,69 @@ public class Query {
 			keywordResource -> keywordResource.getKeyword(keywordId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {keywords(filter: ___, page: ___, pageSize: ___, search: ___, siteId: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<Keyword> getSiteKeywordsPage(
+	public KeywordPage keywords(
 			@GraphQLName("siteId") Long siteId,
 			@GraphQLName("search") String search,
-			@GraphQLName("filter") Filter filter,
+			@GraphQLName("filter") String filterString,
 			@GraphQLName("pageSize") int pageSize,
-			@GraphQLName("page") int page, @GraphQLName("sorts") Sort[] sorts)
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
 			_keywordResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			keywordResource -> {
-				Page paginationPage = keywordResource.getSiteKeywordsPage(
-					siteId, search, filter, Pagination.of(pageSize, page),
-					sorts);
-
-				return paginationPage.getItems();
-			});
+			keywordResource -> new KeywordPage(
+				keywordResource.getSiteKeywordsPage(
+					siteId, search,
+					_filterBiFunction.apply(keywordResource, filterString),
+					Pagination.of(page, pageSize),
+					_sortsBiFunction.apply(keywordResource, sortsString))));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {taxonomyCategoryTaxonomyCategories(filter: ___, page: ___, pageSize: ___, parentTaxonomyCategoryId: ___, search: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<TaxonomyCategory>
-			getTaxonomyCategoryTaxonomyCategoriesPage(
-				@GraphQLName("parentTaxonomyCategoryId") Long
-					parentTaxonomyCategoryId,
-				@GraphQLName("search") String search,
-				@GraphQLName("filter") Filter filter,
-				@GraphQLName("pageSize") int pageSize,
-				@GraphQLName("page") int page,
-				@GraphQLName("sorts") Sort[] sorts)
+	public TaxonomyCategoryPage taxonomyCategoryTaxonomyCategories(
+			@GraphQLName("parentTaxonomyCategoryId") Long
+				parentTaxonomyCategoryId,
+			@GraphQLName("search") String search,
+			@GraphQLName("filter") String filterString,
+			@GraphQLName("pageSize") int pageSize,
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
 			_taxonomyCategoryResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			taxonomyCategoryResource -> {
-				Page paginationPage =
-					taxonomyCategoryResource.
-						getTaxonomyCategoryTaxonomyCategoriesPage(
-							parentTaxonomyCategoryId, search, filter,
-							Pagination.of(pageSize, page), sorts);
-
-				return paginationPage.getItems();
-			});
+			taxonomyCategoryResource -> new TaxonomyCategoryPage(
+				taxonomyCategoryResource.
+					getTaxonomyCategoryTaxonomyCategoriesPage(
+						parentTaxonomyCategoryId, search,
+						_filterBiFunction.apply(
+							taxonomyCategoryResource, filterString),
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(
+							taxonomyCategoryResource, sortsString))));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {taxonomyCategory(taxonomyCategoryId: ___){availableLanguages, creator, dateCreated, dateModified, description, id, name, numberOfTaxonomyCategories, parentTaxonomyCategory, parentTaxonomyVocabulary, viewableBy}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public TaxonomyCategory getTaxonomyCategory(
+	public TaxonomyCategory taxonomyCategory(
 			@GraphQLName("taxonomyCategoryId") Long taxonomyCategoryId)
 		throws Exception {
 
@@ -144,58 +164,70 @@ public class Query {
 					taxonomyCategoryId));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {taxonomyVocabularyTaxonomyCategories(filter: ___, page: ___, pageSize: ___, search: ___, sorts: ___, taxonomyVocabularyId: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<TaxonomyCategory>
-			getTaxonomyVocabularyTaxonomyCategoriesPage(
-				@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
-				@GraphQLName("search") String search,
-				@GraphQLName("filter") Filter filter,
-				@GraphQLName("pageSize") int pageSize,
-				@GraphQLName("page") int page,
-				@GraphQLName("sorts") Sort[] sorts)
+	public TaxonomyCategoryPage taxonomyVocabularyTaxonomyCategories(
+			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
+			@GraphQLName("search") String search,
+			@GraphQLName("filter") String filterString,
+			@GraphQLName("pageSize") int pageSize,
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
 			_taxonomyCategoryResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			taxonomyCategoryResource -> {
-				Page paginationPage =
-					taxonomyCategoryResource.
-						getTaxonomyVocabularyTaxonomyCategoriesPage(
-							taxonomyVocabularyId, search, filter,
-							Pagination.of(pageSize, page), sorts);
-
-				return paginationPage.getItems();
-			});
+			taxonomyCategoryResource -> new TaxonomyCategoryPage(
+				taxonomyCategoryResource.
+					getTaxonomyVocabularyTaxonomyCategoriesPage(
+						taxonomyVocabularyId, search,
+						_filterBiFunction.apply(
+							taxonomyCategoryResource, filterString),
+						Pagination.of(page, pageSize),
+						_sortsBiFunction.apply(
+							taxonomyCategoryResource, sortsString))));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {taxonomyVocabularies(filter: ___, page: ___, pageSize: ___, search: ___, siteId: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Collection<TaxonomyVocabulary> getSiteTaxonomyVocabulariesPage(
+	public TaxonomyVocabularyPage taxonomyVocabularies(
 			@GraphQLName("siteId") Long siteId,
 			@GraphQLName("search") String search,
-			@GraphQLName("filter") Filter filter,
+			@GraphQLName("filter") String filterString,
 			@GraphQLName("pageSize") int pageSize,
-			@GraphQLName("page") int page, @GraphQLName("sorts") Sort[] sorts)
+			@GraphQLName("page") int page,
+			@GraphQLName("sort") String sortsString)
 		throws Exception {
 
 		return _applyComponentServiceObjects(
 			_taxonomyVocabularyResourceComponentServiceObjects,
 			this::_populateResourceContext,
-			taxonomyVocabularyResource -> {
-				Page paginationPage =
-					taxonomyVocabularyResource.getSiteTaxonomyVocabulariesPage(
-						siteId, search, filter, Pagination.of(pageSize, page),
-						sorts);
-
-				return paginationPage.getItems();
-			});
+			taxonomyVocabularyResource -> new TaxonomyVocabularyPage(
+				taxonomyVocabularyResource.getSiteTaxonomyVocabulariesPage(
+					siteId, search,
+					_filterBiFunction.apply(
+						taxonomyVocabularyResource, filterString),
+					Pagination.of(page, pageSize),
+					_sortsBiFunction.apply(
+						taxonomyVocabularyResource, sortsString))));
 	}
 
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {taxonomyVocabulary(taxonomyVocabularyId: ___){assetTypes, availableLanguages, creator, dateCreated, dateModified, description, id, name, numberOfTaxonomyCategories, siteId, viewableBy}}"}' -u 'test@liferay.com:test'
+	 */
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public TaxonomyVocabulary getTaxonomyVocabulary(
+	public TaxonomyVocabulary taxonomyVocabulary(
 			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId)
 		throws Exception {
 
@@ -205,6 +237,150 @@ public class Query {
 			taxonomyVocabularyResource ->
 				taxonomyVocabularyResource.getTaxonomyVocabulary(
 					taxonomyVocabularyId));
+	}
+
+	@GraphQLTypeExtension(TaxonomyVocabulary.class)
+	public class GetTaxonomyVocabularyTaxonomyCategoriesPageTypeExtension {
+
+		public GetTaxonomyVocabularyTaxonomyCategoriesPageTypeExtension(
+			TaxonomyVocabulary taxonomyVocabulary) {
+
+			_taxonomyVocabulary = taxonomyVocabulary;
+		}
+
+		@GraphQLField
+		public TaxonomyCategoryPage taxonomyCategories(
+				@GraphQLName("search") String search,
+				@GraphQLName("filter") String filterString,
+				@GraphQLName("pageSize") int pageSize,
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
+			throws Exception {
+
+			return _applyComponentServiceObjects(
+				_taxonomyCategoryResourceComponentServiceObjects,
+				Query.this::_populateResourceContext,
+				taxonomyCategoryResource -> new TaxonomyCategoryPage(
+					taxonomyCategoryResource.
+						getTaxonomyVocabularyTaxonomyCategoriesPage(
+							_taxonomyVocabulary.getId(), search,
+							_filterBiFunction.apply(
+								taxonomyCategoryResource, filterString),
+							Pagination.of(page, pageSize),
+							_sortsBiFunction.apply(
+								taxonomyCategoryResource, sortsString))));
+		}
+
+		private TaxonomyVocabulary _taxonomyVocabulary;
+
+	}
+
+	@GraphQLTypeExtension(TaxonomyCategory.class)
+	public class GetTaxonomyCategoryTaxonomyCategoriesPageTypeExtension {
+
+		public GetTaxonomyCategoryTaxonomyCategoriesPageTypeExtension(
+			TaxonomyCategory taxonomyCategory) {
+
+			_taxonomyCategory = taxonomyCategory;
+		}
+
+		@GraphQLField
+		public TaxonomyCategoryPage taxonomyCategories(
+				@GraphQLName("search") String search,
+				@GraphQLName("filter") String filterString,
+				@GraphQLName("pageSize") int pageSize,
+				@GraphQLName("page") int page,
+				@GraphQLName("sort") String sortsString)
+			throws Exception {
+
+			return _applyComponentServiceObjects(
+				_taxonomyCategoryResourceComponentServiceObjects,
+				Query.this::_populateResourceContext,
+				taxonomyCategoryResource -> new TaxonomyCategoryPage(
+					taxonomyCategoryResource.
+						getTaxonomyCategoryTaxonomyCategoriesPage(
+							_taxonomyCategory.getId(), search,
+							_filterBiFunction.apply(
+								taxonomyCategoryResource, filterString),
+							Pagination.of(page, pageSize),
+							_sortsBiFunction.apply(
+								taxonomyCategoryResource, sortsString))));
+		}
+
+		private TaxonomyCategory _taxonomyCategory;
+
+	}
+
+	@GraphQLName("KeywordPage")
+	public class KeywordPage {
+
+		public KeywordPage(Page keywordPage) {
+			items = keywordPage.getItems();
+			page = keywordPage.getPage();
+			pageSize = keywordPage.getPageSize();
+			totalCount = keywordPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<Keyword> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
+	}
+
+	@GraphQLName("TaxonomyCategoryPage")
+	public class TaxonomyCategoryPage {
+
+		public TaxonomyCategoryPage(Page taxonomyCategoryPage) {
+			items = taxonomyCategoryPage.getItems();
+			page = taxonomyCategoryPage.getPage();
+			pageSize = taxonomyCategoryPage.getPageSize();
+			totalCount = taxonomyCategoryPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<TaxonomyCategory> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
+	}
+
+	@GraphQLName("TaxonomyVocabularyPage")
+	public class TaxonomyVocabularyPage {
+
+		public TaxonomyVocabularyPage(Page taxonomyVocabularyPage) {
+			items = taxonomyVocabularyPage.getItems();
+			page = taxonomyVocabularyPage.getPage();
+			pageSize = taxonomyVocabularyPage.getPageSize();
+			totalCount = taxonomyVocabularyPage.getTotalCount();
+		}
+
+		@GraphQLField
+		protected java.util.Collection<TaxonomyVocabulary> items;
+
+		@GraphQLField
+		protected long page;
+
+		@GraphQLField
+		protected long pageSize;
+
+		@GraphQLField
+		protected long totalCount;
+
 	}
 
 	private <T, R, E1 extends Throwable, E2 extends Throwable> R
@@ -229,27 +405,40 @@ public class Query {
 	private void _populateResourceContext(KeywordResource keywordResource)
 		throws Exception {
 
-		keywordResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		keywordResource.setContextAcceptLanguage(_acceptLanguage);
+		keywordResource.setContextCompany(_company);
+		keywordResource.setContextHttpServletRequest(_httpServletRequest);
+		keywordResource.setContextHttpServletResponse(_httpServletResponse);
+		keywordResource.setContextUriInfo(_uriInfo);
+		keywordResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(
 			TaxonomyCategoryResource taxonomyCategoryResource)
 		throws Exception {
 
-		taxonomyCategoryResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		taxonomyCategoryResource.setContextAcceptLanguage(_acceptLanguage);
+		taxonomyCategoryResource.setContextCompany(_company);
+		taxonomyCategoryResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		taxonomyCategoryResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		taxonomyCategoryResource.setContextUriInfo(_uriInfo);
+		taxonomyCategoryResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(
 			TaxonomyVocabularyResource taxonomyVocabularyResource)
 		throws Exception {
 
-		taxonomyVocabularyResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		taxonomyVocabularyResource.setContextAcceptLanguage(_acceptLanguage);
+		taxonomyVocabularyResource.setContextCompany(_company);
+		taxonomyVocabularyResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		taxonomyVocabularyResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		taxonomyVocabularyResource.setContextUriInfo(_uriInfo);
+		taxonomyVocabularyResource.setContextUser(_user);
 	}
 
 	private static ComponentServiceObjects<KeywordResource>
@@ -258,5 +447,14 @@ public class Query {
 		_taxonomyCategoryResourceComponentServiceObjects;
 	private static ComponentServiceObjects<TaxonomyVocabularyResource>
 		_taxonomyVocabularyResourceComponentServiceObjects;
+
+	private AcceptLanguage _acceptLanguage;
+	private BiFunction<Object, String, Filter> _filterBiFunction;
+	private BiFunction<Object, String, Sort[]> _sortsBiFunction;
+	private Company _company;
+	private HttpServletRequest _httpServletRequest;
+	private HttpServletResponse _httpServletResponse;
+	private UriInfo _uriInfo;
+	private User _user;
 
 }

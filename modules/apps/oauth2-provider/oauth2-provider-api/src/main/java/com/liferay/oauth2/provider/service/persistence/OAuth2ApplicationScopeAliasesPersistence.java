@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface OAuth2ApplicationScopeAliasesPersistence
 	extends BasePersistence<OAuth2ApplicationScopeAliases> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link OAuth2ApplicationScopeAliasesUtil} to access the o auth2 application scope aliases persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -94,14 +94,14 @@ public interface OAuth2ApplicationScopeAliasesPersistence
 	 * @param start the lower bound of the range of o auth2 application scope aliaseses
 	 * @param end the upper bound of the range of o auth2 application scope aliaseses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching o auth2 application scope aliaseses
 	 */
 	public java.util.List<OAuth2ApplicationScopeAliases> findByC(
 		long companyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<OAuth2ApplicationScopeAliases> orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first o auth2 application scope aliases in the ordered set where companyId = &#63;.
@@ -239,7 +239,7 @@ public interface OAuth2ApplicationScopeAliasesPersistence
 	 * @param start the lower bound of the range of o auth2 application scope aliaseses
 	 * @param end the upper bound of the range of o auth2 application scope aliaseses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching o auth2 application scope aliaseses
 	 */
 	public java.util.List<OAuth2ApplicationScopeAliases>
@@ -247,7 +247,7 @@ public interface OAuth2ApplicationScopeAliasesPersistence
 			long oAuth2ApplicationId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<OAuth2ApplicationScopeAliases> orderByComparator,
-			boolean retrieveFromCache);
+			boolean useFinderCache);
 
 	/**
 	 * Returns the first o auth2 application scope aliases in the ordered set where oAuth2ApplicationId = &#63;.
@@ -440,14 +440,14 @@ public interface OAuth2ApplicationScopeAliasesPersistence
 	 * @param start the lower bound of the range of o auth2 application scope aliaseses
 	 * @param end the upper bound of the range of o auth2 application scope aliaseses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of o auth2 application scope aliaseses
 	 */
 	public java.util.List<OAuth2ApplicationScopeAliases> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<OAuth2ApplicationScopeAliases> orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the o auth2 application scope aliaseses from the database.

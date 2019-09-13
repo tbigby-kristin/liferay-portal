@@ -17,6 +17,8 @@ package com.liferay.portal.osgi.web.servlet.jsp.compiler.internal;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.osgi.web.servlet.JSPServletFactory;
 import com.liferay.portal.util.PropsValues;
@@ -72,6 +74,9 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 
 	private static final String _WORK_DIR = StringBundler.concat(
 		PropsValues.LIFERAY_HOME, File.separator, "work", File.separator);
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		JSPServletFactoryImpl.class);
 
 	private BundleTracker<Tracked> _bundleTracker;
 
@@ -171,6 +176,17 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 				sb.append(bundle.getVersion());
 
 				String scratchDir = sb.toString();
+
+				if (PropsValues.WORK_DIR_OVERRIDE_ENABLED &&
+					_log.isInfoEnabled()) {
+
+					_log.info(
+						"Deleting JSP class files from ".concat(scratchDir));
+				}
+				else if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Deleting JSP class files from ".concat(scratchDir));
+				}
 
 				for (String path : tracked._paths) {
 					File file = new File(scratchDir, path);

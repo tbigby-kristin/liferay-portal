@@ -304,6 +304,10 @@ public interface LiferaySelenium {
 
 	public void javaScriptClick(String locator);
 
+	public void javaScriptDragAndDropToObject(
+			String sourceLocator, String targetLocator)
+		throws Exception;
+
 	public void javaScriptMouseDown(String locator);
 
 	public void javaScriptMouseUp(String locator);

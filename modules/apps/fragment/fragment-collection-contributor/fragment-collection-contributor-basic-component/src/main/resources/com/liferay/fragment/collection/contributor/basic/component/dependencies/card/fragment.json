@@ -1,9 +1,6 @@
 {
-	"cssPath": "index.css",
 	"fragmentEntryKey": "card",
-	"htmlPath": "index.html",
-	"jsPath": "index.js",
-	"name": "Card",
+	"name": "card",
 	"thumbnail": "card.png",
 	"type": "component"
 }

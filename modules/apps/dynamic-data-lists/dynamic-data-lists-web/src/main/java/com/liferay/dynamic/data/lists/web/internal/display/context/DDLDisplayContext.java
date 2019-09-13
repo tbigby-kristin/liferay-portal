@@ -104,10 +104,8 @@ public class DDLDisplayContext {
 		_ddmTemplateLocalService = ddmTemplateLocalService;
 		_storageEngine = storageEngine;
 
-		HttpServletRequest httpServletRequest =
-			PortalUtil.getHttpServletRequest(_renderRequest);
-
-		_ddlRequestHelper = new DDLRequestHelper(httpServletRequest);
+		_ddlRequestHelper = new DDLRequestHelper(
+			PortalUtil.getHttpServletRequest(_renderRequest));
 
 		if (Validator.isNotNull(getPortletResource())) {
 			return;
@@ -826,9 +824,11 @@ public class DDLDisplayContext {
 
 		_hasAddRecordPermission = false;
 
-		if (_recordSet != null) {
+		DDLRecordSet recordSet = getRecordSet();
+
+		if (recordSet != null) {
 			_hasAddRecordPermission = DDLRecordSetPermission.contains(
-				getPermissionChecker(), _recordSet, DDLActionKeys.ADD_RECORD);
+				getPermissionChecker(), recordSet, DDLActionKeys.ADD_RECORD);
 		}
 
 		return _hasAddRecordPermission;

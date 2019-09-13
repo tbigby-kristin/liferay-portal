@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
@@ -15,13 +29,17 @@ const FragmentAutocompleteProcessor = function(...args) {
  * Creates an Ace Editor component to use for code editing.
  */
 class AceEditor extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
 	attached() {
 		this._editorDocument = null;
-		this._getAutocompleteSuggestion = this._getAutocompleteSuggestion.bind(this);
+		this._editorSession = null;
+
+		this._getAutocompleteSuggestion = this._getAutocompleteSuggestion.bind(
+			this
+		);
+
 		this._handleDocumentChanged = this._handleDocumentChanged.bind(this);
 
 		AUI().use(
@@ -30,33 +48,46 @@ class AceEditor extends Component {
 			'aui-ace-autocomplete-templateprocessor',
 
 			A => {
-				const editor = new A.AceEditor(
-					{
-						boundingBox: this.refs.wrapper,
-						highlightActiveLine: false,
-						mode: this.syntax,
-						tabSize: 2
-					}
-				);
+				this._editor = new A.AceEditor({
+					boundingBox: this.refs.wrapper,
+					highlightActiveLine: false,
+					mode: this.syntax,
+					tabSize: 2
+				});
 
-				this._overrideSetAnnotations(editor.getSession());
-				this._editorSession = editor.getSession();
-				this._editorDocument = editor.getSession().getDocument();
+				this._editor.set('readOnly', this.readOnly);
+
+				this._editorDocument = this._editor.getSession().getDocument();
+				this._editorSession = this._editor.getSession();
+
+				this._overrideSetAnnotations(this._editorSession);
 
 				this.refs.wrapper.style.height = '';
 				this.refs.wrapper.style.width = '';
 
 				this._editorDocument.on('change', this._handleDocumentChanged);
 
-				editor.getSession().on('changeAnnotation', this._handleDocumentChanged);
+				this._editorSession.on(
+					'changeAnnotation',
+					this._handleDocumentChanged
+				);
 
 				if (this.initialContent) {
 					this._editorDocument.setValue(this.initialContent);
 				}
 
-				this._initAutocomplete(A, editor);
+				this._initAutocomplete(A, this._editor);
 			}
 		);
+	}
+
+	/**
+	 * @inheritDoc
+	 */
+	disposed() {
+		if (this._editor) {
+			this._editor.destroy();
+		}
 	}
 
 	/**
@@ -87,21 +118,16 @@ class AceEditor extends Component {
 			}
 		);
 
-		const autocompleteProcessor = new FragmentAutocompleteProcessor(
-			{
-				directives: this.autocompleteTags.map(tag => tag.name)
-			}
-		);
+		const autocompleteProcessor = new FragmentAutocompleteProcessor({
+			directives: this.autocompleteTags.map(tag => tag.name)
+		});
 
-		editor.plug(
-			A.Plugin.AceAutoComplete,
-			{
-				processor: autocompleteProcessor,
-				render: true,
-				visible: false,
-				zIndex: 10000
-			}
-		);
+		editor.plug(A.Plugin.AceAutoComplete, {
+			processor: autocompleteProcessor,
+			render: true,
+			visible: false,
+			zIndex: 10000
+		});
 	}
 
 	/**
@@ -158,22 +184,16 @@ class AceEditor extends Component {
 	 * @private
 	 */
 	_handleDocumentChanged() {
-		const valid = this._editorSession.getAnnotations().reduce(
-			(acc, annotation) => {
-				return (!acc || (annotation.type === 'error')) ?
-					false :
-					acc;
-			},
-			true
-		);
+		const valid = this._editorSession
+			.getAnnotations()
+			.reduce((acc, annotation) => {
+				return !acc || annotation.type === 'error' ? false : acc;
+			}, true);
 
-		this.emit(
-			'contentChanged',
-			{
-				content: this._editorDocument.getValue(),
-				valid
-			}
-		);
+		this.emit('contentChanged', {
+			content: this._editorDocument.getValue(),
+			valid
+		});
 	}
 
 	/**
@@ -186,13 +206,10 @@ class AceEditor extends Component {
 	_overrideSetAnnotations(session) {
 		const setAnnotations = session.setAnnotations.bind(session);
 
-		session.setAnnotations = annotations => {
-			setAnnotations(
-				annotations.filter(annotation => annotation.type !== 'info')
-			);
+		session.setAnnotations = () => {
+			setAnnotations([]);
 		};
 	}
-
 }
 
 /**
@@ -204,7 +221,8 @@ class AceEditor extends Component {
 AceEditor.SYNTAX = {
 	css: 'css',
 	html: 'html',
-	javascript: 'javascript'
+	javascript: 'javascript',
+	json: 'json'
 };
 
 /**
@@ -214,6 +232,38 @@ AceEditor.SYNTAX = {
  * @type {!Object}
  */
 AceEditor.STATE = {
+	/**
+	 * Ace editor plugin instance
+	 * @default null
+	 * @instance
+	 * @memberof AceEditor
+	 * @type object
+	 */
+	_editor: Config.object()
+		.internal()
+		.value(null),
+
+	/**
+	 * Ace editor plugin document instance
+	 * @default null
+	 * @instance
+	 * @memberof AceEditor
+	 * @type object
+	 */
+	_editorDocument: Config.object()
+		.internal()
+		.value(null),
+
+	/**
+	 * Ace editor plugin session instance
+	 * @default null
+	 * @instance
+	 * @memberof AceEditor
+	 * @type object
+	 */
+	_editorSession: Config.object()
+		.internal()
+		.value(null),
 
 	/**
 	 * List of tags for custom autocompletion in the HTML editor.
@@ -224,12 +274,10 @@ AceEditor.STATE = {
 	 * @type Array
 	 */
 	autocompleteTags: Config.arrayOf(
-		Config.shapeOf(
-			{
-				attributes: Config.arrayOf(Config.string()),
-				name: Config.string()
-			}
-		)
+		Config.shapeOf({
+			attributes: Config.arrayOf(Config.string()),
+			name: Config.string()
+		})
 	),
 
 	/**
@@ -241,6 +289,16 @@ AceEditor.STATE = {
 	 * @type {string}
 	 */
 	initialContent: Config.string().value(''),
+
+	/**
+	 * Sets the editor in readOnly mode preventing any input from the user.
+	 *
+	 * @default undefined
+	 * @instance
+	 * @memberOf AceEditor
+	 * @type {boolean}
+	 */
+	readOnly: Config.bool().required(),
 
 	/**
 	 * Syntax used for the Ace Editor that is rendered on the interface.

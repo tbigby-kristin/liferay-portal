@@ -1,9 +1,6 @@
 {
-	"cssPath": "index.css",
 	"fragmentEntryKey": "header-dark",
-	"htmlPath": "index.html",
-	"jsPath": "index.js",
-	"name": "Header Dark",
+	"name": "header-dark",
 	"thumbnail": "header_dark.png",
 	"type": "section"
 }

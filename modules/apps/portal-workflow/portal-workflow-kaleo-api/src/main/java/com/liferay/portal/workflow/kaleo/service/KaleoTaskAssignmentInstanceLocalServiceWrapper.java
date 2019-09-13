@@ -16,8 +16,6 @@ package com.liferay.portal.workflow.kaleo.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link KaleoTaskAssignmentInstanceLocalService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see KaleoTaskAssignmentInstanceLocalService
  * @generated
  */
-@ProviderType
 public class KaleoTaskAssignmentInstanceLocalServiceWrapper
 	implements KaleoTaskAssignmentInstanceLocalService,
 			   ServiceWrapper<KaleoTaskAssignmentInstanceLocalService> {
@@ -312,6 +309,19 @@ public class KaleoTaskAssignmentInstanceLocalServiceWrapper
 		return _kaleoTaskAssignmentInstanceLocalService.
 			fetchFirstKaleoTaskAssignmentInstance(
 				kaleoTaskInstanceTokenId, orderByComparator);
+	}
+
+	@Override
+	public com.liferay.portal.workflow.kaleo.model.KaleoTaskAssignmentInstance
+		fetchFirstKaleoTaskAssignmentInstance(
+			long kaleoTaskInstanceTokenId, String assigneeClassName,
+			com.liferay.portal.kernel.util.OrderByComparator
+				<com.liferay.portal.workflow.kaleo.model.
+					KaleoTaskAssignmentInstance> orderByComparator) {
+
+		return _kaleoTaskAssignmentInstanceLocalService.
+			fetchFirstKaleoTaskAssignmentInstance(
+				kaleoTaskInstanceTokenId, assigneeClassName, orderByComparator);
 	}
 
 	@Override

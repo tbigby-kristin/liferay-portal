@@ -106,7 +106,7 @@ definition {
 				value1 = "${larFileName}");
 		}
 
-		LAR.exportSuccess();
+		LAR.exportWithAssertionOnSuccess();
 	}
 
 	macro _gotoExportImport {
@@ -119,7 +119,7 @@ definition {
 
 	macro _gotoExportSite {
 		if (isSet(siteScopeName)) {
-			ProductMenu.gotoSite(site = "${siteScopeName}");
+			Navigator.openSiteURL(siteName = "${siteScopeName}");
 		}
 
 		ProductMenu.gotoPortlet(
@@ -130,7 +130,9 @@ definition {
 
 	macro _gotoImportSite {
 		if (isSet(siteName)) {
-			ProductMenu.gotoSite(site = "${siteName}");
+			SitePages.openPagesAdmin(
+				baseURL = "${baseURL}",
+				siteURLKey = "${siteName}");
 		}
 
 		ProductMenu.gotoPortlet(
@@ -444,7 +446,7 @@ definition {
 				value1 = "${larFileName}");
 		}
 
-		LAR.exportSuccess();
+		LAR.exportWithAssertionOnSuccess();
 
 		if (isSet(larFileName)) {
 			AssertTextEquals.assertPartialText(
@@ -486,7 +488,15 @@ definition {
 		LAR._exportSite(larFileName = "${larFileName}");
 	}
 
-	macro exportSuccess {
+	macro exportUserGroups {
+		LAR._gotoExportImport();
+
+		LAR._export(
+			exportPermissions = "${exportPermissions}",
+			larFileName = "${larFileName}");
+	}
+
+	macro exportWithAssertionOnSuccess {
 		AssertClick(
 			locator1 = "SitePagesExport#EXPORT_BUTTON",
 			value1 = "Export");
@@ -494,14 +504,6 @@ definition {
 		AssertTextEquals(
 			locator1 = "SitePagesExport#CURRENT_AND_PREVIOUS_STATUS",
 			value1 = "Successful");
-	}
-
-	macro exportUserGroups {
-		LAR._gotoExportImport();
-
-		LAR._export(
-			exportPermissions = "${exportPermissions}",
-			larFileName = "${larFileName}");
 	}
 
 	macro filterCompletedProcesses {
@@ -547,7 +549,9 @@ definition {
 	}
 
 	macro importSiteCP {
-		LAR._gotoImportSite(siteName = "${siteName}");
+		LAR._gotoImportSite(
+			baseURL = "${baseURL}",
+			siteName = "${siteName}");
 
 		LAR._selectImportFileSite(
 			importCampaignValidationError = "${importCampaignValidationError}",
@@ -616,157 +620,6 @@ definition {
 		AssertTextEquals(
 			locator1 = "SitePagesExport#EXPORT_TEMPLATES_TABLE_DESCRIPTION",
 			value1 = "${exportTemplateDescription}");
-	}
-
-	macro setupContentTargeting {
-		if ("${stagingSetup}" == "true") {
-			ProductMenu.gotoSite(site = "Site Name");
-
-			Navigator.gotoStagedView();
-		}
-		else {
-			ProductMenu.gotoSite(site = "Site Name");
-		}
-
-		ProductMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Site Administration",
-			portlet = "Audience Targeting");
-
-		ContentTargetingUserSegment.addCP(
-			userSegmentDescription = "User Segment Description",
-			userSegmentName = "User Segment Name");
-
-		PortletEntry.save();
-
-		ProductMenu.gotoSite(site = "Site Name");
-
-		if ("${stagingSetup}" == "true") {
-			ProductMenu.gotoSite(site = "Site Name");
-
-			Navigator.gotoStagedView();
-		}
-		else {
-			ProductMenu.gotoSite(site = "Site Name");
-		}
-
-		ProductMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Site Administration",
-			portlet = "Audience Targeting");
-
-		ContentTargetingCampaign.addCP(
-			campaignDescription = "Campaign Description",
-			campaignEndDate = "1/1/2099",
-			campaignEndTime = "12:00 PM",
-			campaignInactive = "${campaignInactive}",
-			campaignName = "Campaign Name",
-			campaignPriorityField = "3",
-			campaignStartDate = "1/1/2015",
-			campaignStartTime = "12:00 AM",
-			userSegmentSelect = "${userSegmentSelect}");
-
-		ContentTargetingCampaign.saveCP();
-
-		if ("${stagingSetup}" == "true") {
-			ProductMenu.gotoSite(site = "Site Name");
-
-			Navigator.gotoStagedView();
-		}
-		else {
-			ProductMenu.gotoSite(site = "Site Name");
-		}
-
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Web Content");
-
-		WebContentNavigator.gotoAddCP();
-
-		WebContent.addWithCategoryCP(
-			categoryName = "User Segment Name",
-			userSegmentDetailTitle = "${userSegmentDetailTitle}",
-			vocabularyName = "User Segment",
-			webContentContent = "Web Content Content",
-			webContentTitle = "Web Content Title");
-
-		if ("${stagingSetup}" == "true") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-		}
-		else {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-		}
-
-		Portlet.addPG(
-			i = "${i}",
-			portletName = "User Segment Content Display");
-
-		Portlet.gotoPortletOptions(
-			portletName = "User Segment Content Display",
-			portletOption = "Configuration");
-
-		UserSegmentContentDisplayPortlet.configureDisplayContent(
-			belongs = "true",
-			contentTitle = "Web Content Title",
-			contentType = "Basic Web Content",
-			doesNotBelong = "${doesNotBelong}",
-			rowIndexNumber = "${rowIndexNumber}",
-			rowNumber = "1",
-			siteScope = "${siteScope}",
-			toAll = "true",
-			toAny = "${toAny}",
-			userSegmentName = "User Segment Name");
-
-		UserSegmentContentDisplayPortlet.savePG();
-
-		if ("${stagingSetup}" == "true") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-		}
-		else {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-		}
-
-		Portlet.addPG(
-			i = "${i}",
-			portletName = "Campaign Content Display");
-
-		Portlet.gotoPortletOptions(
-			portletName = "Campaign Content Display",
-			portletOption = "Configuration");
-
-		CampaignDisplayPortlet.configureCampaignRule(
-			campaignName = "Campaign Name",
-			contentTitle = "Web Content Title",
-			contentType = "Basic Web Content",
-			rowNumber = "1");
-
-		CampaignDisplayPortlet.savePG();
-
-		if ("${stagingSetup}" == "true") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-		}
-		else {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Site Name");
-		}
-
-		Portlet.addPG(
-			i = "${i}",
-			portletName = "Asset Publisher");
-
-		AssetPublisherPortlet.enableUserSegementFilter();
 	}
 
 	macro viewExportTemplateCP {

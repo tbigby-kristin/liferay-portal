@@ -29,11 +29,18 @@ import com.liferay.headless.admin.workflow.client.pagination.Pagination;
 import com.liferay.headless.admin.workflow.client.resource.v1_0.WorkflowTaskResource;
 import com.liferay.headless.admin.workflow.client.serdes.v1_0.WorkflowTaskSerDes;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -48,9 +55,8 @@ import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -93,7 +99,17 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 	public void setUp() throws Exception {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
-		testLocale = LocaleUtil.getDefault();
+
+		testCompany = CompanyLocalServiceUtil.getCompany(
+			testGroup.getCompanyId());
+
+		_workflowTaskResource.setContextCompany(testCompany);
+
+		WorkflowTaskResource.Builder builder = WorkflowTaskResource.builder();
+
+		workflowTaskResource = builder.locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	@After
@@ -178,6 +194,11 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 
 	@Test
 	public void testGetRoleWorkflowTasksPage() throws Exception {
+		Page<WorkflowTask> page = workflowTaskResource.getRoleWorkflowTasksPage(
+			testGetRoleWorkflowTasksPage_getRoleId(), Pagination.of(1, 2));
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long roleId = testGetRoleWorkflowTasksPage_getRoleId();
 		Long irrelevantRoleId =
 			testGetRoleWorkflowTasksPage_getIrrelevantRoleId();
@@ -187,9 +208,8 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 				testGetRoleWorkflowTasksPage_addWorkflowTask(
 					irrelevantRoleId, randomIrrelevantWorkflowTask());
 
-			Page<WorkflowTask> page =
-				WorkflowTaskResource.getRoleWorkflowTasksPage(
-					irrelevantRoleId, Pagination.of(1, 2));
+			page = workflowTaskResource.getRoleWorkflowTasksPage(
+				irrelevantRoleId, Pagination.of(1, 2));
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -207,7 +227,7 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 			testGetRoleWorkflowTasksPage_addWorkflowTask(
 				roleId, randomWorkflowTask());
 
-		Page<WorkflowTask> page = WorkflowTaskResource.getRoleWorkflowTasksPage(
+		page = workflowTaskResource.getRoleWorkflowTasksPage(
 			roleId, Pagination.of(1, 2));
 
 		Assert.assertEquals(2, page.getTotalCount());
@@ -235,7 +255,7 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 				roleId, randomWorkflowTask());
 
 		Page<WorkflowTask> page1 =
-			WorkflowTaskResource.getRoleWorkflowTasksPage(
+			workflowTaskResource.getRoleWorkflowTasksPage(
 				roleId, Pagination.of(1, 2));
 
 		List<WorkflowTask> workflowTasks1 =
@@ -245,7 +265,7 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 			workflowTasks1.toString(), 2, workflowTasks1.size());
 
 		Page<WorkflowTask> page2 =
-			WorkflowTaskResource.getRoleWorkflowTasksPage(
+			workflowTaskResource.getRoleWorkflowTasksPage(
 				roleId, Pagination.of(2, 2));
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -256,14 +276,13 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 		Assert.assertEquals(
 			workflowTasks2.toString(), 1, workflowTasks2.size());
 
+		Page<WorkflowTask> page3 =
+			workflowTaskResource.getRoleWorkflowTasksPage(
+				roleId, Pagination.of(1, 3));
+
 		assertEqualsIgnoringOrder(
 			Arrays.asList(workflowTask1, workflowTask2, workflowTask3),
-			new ArrayList<WorkflowTask>() {
-				{
-					addAll(workflowTasks1);
-					addAll(workflowTasks2);
-				}
-			});
+			(List<WorkflowTask>)page3.getItems());
 	}
 
 	protected WorkflowTask testGetRoleWorkflowTasksPage_addWorkflowTask(
@@ -287,19 +306,19 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 
 	@Test
 	public void testGetWorkflowTasksAssignedToMePage() throws Exception {
-		Assert.assertTrue(true);
+		Assert.assertTrue(false);
 	}
 
 	@Test
 	public void testGetWorkflowTasksAssignedToMyRolesPage() throws Exception {
-		Assert.assertTrue(true);
+		Assert.assertTrue(false);
 	}
 
 	@Test
 	public void testGetWorkflowTask() throws Exception {
 		WorkflowTask postWorkflowTask = testGetWorkflowTask_addWorkflowTask();
 
-		WorkflowTask getWorkflowTask = WorkflowTaskResource.getWorkflowTask(
+		WorkflowTask getWorkflowTask = workflowTaskResource.getWorkflowTask(
 			postWorkflowTask.getId());
 
 		assertEquals(postWorkflowTask, getWorkflowTask);
@@ -311,6 +330,33 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetWorkflowTask() throws Exception {
+		WorkflowTask workflowTask = testGraphQLWorkflowTask_addWorkflowTask();
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"workflowTask",
+				new HashMap<String, Object>() {
+					{
+						put("workflowTaskId", workflowTask.getId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				workflowTask, dataJSONObject.getJSONObject("workflowTask")));
 	}
 
 	@Test
@@ -392,6 +438,13 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 			"This method needs to be implemented");
 	}
 
+	protected WorkflowTask testGraphQLWorkflowTask_addWorkflowTask()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
 	protected void assertHttpResponseStatusCode(
 		int expectedHttpResponseStatusCode,
 		HttpInvoker.HttpResponse actualHttpResponse) {
@@ -440,6 +493,25 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 			Assert.assertTrue(
 				workflowTasks2 + " does not contain " + workflowTask1,
 				contains);
+		}
+	}
+
+	protected void assertEqualsJSONArray(
+		List<WorkflowTask> workflowTasks, JSONArray jsonArray) {
+
+		for (WorkflowTask workflowTask : workflowTasks) {
+			boolean contains = false;
+
+			for (Object object : jsonArray) {
+				if (equalsJSONObject(workflowTask, (JSONObject)object)) {
+					contains = true;
+
+					break;
+				}
+			}
+
+			Assert.assertTrue(
+				jsonArray + " does not contain " + workflowTask, contains);
 		}
 	}
 
@@ -532,7 +604,7 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 	protected void assertValid(Page<WorkflowTask> page) {
 		boolean valid = false;
 
-		Collection<WorkflowTask> workflowTasks = page.getItems();
+		java.util.Collection<WorkflowTask> workflowTasks = page.getItems();
 
 		int size = workflowTasks.size();
 
@@ -547,6 +619,22 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 	}
 
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected List<GraphQLField> getGraphQLFields() {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		}
+
+		return graphQLFields;
+	}
+
+	protected String[] getIgnoredEntityFieldNames() {
 		return new String[0];
 	}
 
@@ -676,7 +764,73 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 		return true;
 	}
 
-	protected Collection<EntityField> getEntityFields() throws Exception {
+	protected boolean equalsJSONObject(
+		WorkflowTask workflowTask, JSONObject jsonObject) {
+
+		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("completed", fieldName)) {
+				if (!Objects.deepEquals(
+						workflowTask.getCompleted(),
+						jsonObject.getBoolean("completed"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("definitionName", fieldName)) {
+				if (!Objects.deepEquals(
+						workflowTask.getDefinitionName(),
+						jsonObject.getString("definitionName"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("description", fieldName)) {
+				if (!Objects.deepEquals(
+						workflowTask.getDescription(),
+						jsonObject.getString("description"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", fieldName)) {
+				if (!Objects.deepEquals(
+						workflowTask.getId(), jsonObject.getLong("id"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("name", fieldName)) {
+				if (!Objects.deepEquals(
+						workflowTask.getName(), jsonObject.getString("name"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid field name " + fieldName);
+		}
+
+		return true;
+	}
+
+	protected java.util.Collection<EntityField> getEntityFields()
+		throws Exception {
+
 		if (!(_workflowTaskResource instanceof EntityModelResource)) {
 			throw new UnsupportedOperationException(
 				"Resource is not an instance of EntityModelResource");
@@ -697,12 +851,15 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 	protected List<EntityField> getEntityFields(EntityField.Type type)
 		throws Exception {
 
-		Collection<EntityField> entityFields = getEntityFields();
+		java.util.Collection<EntityField> entityFields = getEntityFields();
 
 		Stream<EntityField> stream = entityFields.stream();
 
 		return stream.filter(
-			entityField -> Objects.equals(entityField.getType(), type)
+			entityField ->
+				Objects.equals(entityField.getType(), type) &&
+				!ArrayUtil.contains(
+					getIgnoredEntityFieldNames(), entityField.getName())
 		).collect(
 			Collectors.toList()
 		);
@@ -866,6 +1023,23 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 			"Invalid entity field " + entityFieldName);
 	}
 
+	protected String invoke(String query) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(
+			JSONUtil.put(
+				"query", query
+			).toString(),
+			"application/json");
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		httpInvoker.path("http://localhost:8080/o/graphql");
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
+	}
+
 	protected WorkflowTask randomWorkflowTask() throws Exception {
 		return new WorkflowTask() {
 			{
@@ -891,10 +1065,68 @@ public abstract class BaseWorkflowTaskResourceTestCase {
 		return randomWorkflowTask();
 	}
 
+	protected WorkflowTaskResource workflowTaskResource;
 	protected Group irrelevantGroup;
+	protected Company testCompany;
 	protected Group testGroup;
-	protected Locale testLocale;
-	protected String testUserNameAndPassword = "test@liferay.com:test";
+
+	protected class GraphQLField {
+
+		public GraphQLField(String key, GraphQLField... graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = graphQLFields;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(_key);
+
+			if (!_parameterMap.isEmpty()) {
+				sb.append("(");
+
+				for (Map.Entry<String, Object> entry :
+						_parameterMap.entrySet()) {
+
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append(")");
+			}
+
+			if (_graphQLFields.length > 0) {
+				sb.append("{");
+
+				for (GraphQLField graphQLField : _graphQLFields) {
+					sb.append(graphQLField.toString());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append("}");
+			}
+
+			return sb.toString();
+		}
+
+		private final GraphQLField[] _graphQLFields;
+		private final String _key;
+		private final Map<String, Object> _parameterMap;
+
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseWorkflowTaskResourceTestCase.class);

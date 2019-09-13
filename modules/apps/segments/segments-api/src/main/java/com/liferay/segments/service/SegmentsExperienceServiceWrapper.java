@@ -16,8 +16,6 @@ package com.liferay.segments.service;
 
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides a wrapper for {@link SegmentsExperienceService}.
  *
@@ -25,7 +23,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SegmentsExperienceService
  * @generated
  */
-@ProviderType
 public class SegmentsExperienceServiceWrapper
 	implements SegmentsExperienceService,
 			   ServiceWrapper<SegmentsExperienceService> {
@@ -36,6 +33,11 @@ public class SegmentsExperienceServiceWrapper
 		_segmentsExperienceService = segmentsExperienceService;
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this interface directly. Always use {@link SegmentsExperienceServiceUtil} to access the segments experience remote service. Add custom service methods to <code>com.liferay.segments.service.impl.SegmentsExperienceServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 */
 	@Override
 	public com.liferay.segments.model.SegmentsExperience addSegmentsExperience(
 			long segmentsEntryId, long classNameId, long classPK,
@@ -55,6 +57,15 @@ public class SegmentsExperienceServiceWrapper
 
 		return _segmentsExperienceService.deleteSegmentsExperience(
 			segmentsExperienceId);
+	}
+
+	@Override
+	public com.liferay.segments.model.SegmentsExperience
+			fetchSegmentsExperience(long groupId, String segmentsExperienceKey)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _segmentsExperienceService.fetchSegmentsExperience(
+			groupId, segmentsExperienceKey);
 	}
 
 	/**
@@ -78,8 +89,9 @@ public class SegmentsExperienceServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.segments.model.SegmentsExperience>
-		getSegmentsExperiences(
-			long groupId, long classNameId, long classPK, boolean active) {
+			getSegmentsExperiences(
+				long groupId, long classNameId, long classPK, boolean active)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperienceService.getSegmentsExperiences(
 			groupId, classNameId, classPK, active);
@@ -87,12 +99,13 @@ public class SegmentsExperienceServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.segments.model.SegmentsExperience>
-		getSegmentsExperiences(
-			long groupId, long classNameId, long classPK, boolean active,
-			int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.segments.model.SegmentsExperience>
-					orderByComparator) {
+			getSegmentsExperiences(
+				long groupId, long classNameId, long classPK, boolean active,
+				int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.segments.model.SegmentsExperience>
+						orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperienceService.getSegmentsExperiences(
 			groupId, classNameId, classPK, active, start, end,
@@ -101,7 +114,8 @@ public class SegmentsExperienceServiceWrapper
 
 	@Override
 	public int getSegmentsExperiencesCount(
-		long groupId, long classNameId, long classPK, boolean active) {
+			long groupId, long classNameId, long classPK, boolean active)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _segmentsExperienceService.getSegmentsExperiencesCount(
 			groupId, classNameId, classPK, active);

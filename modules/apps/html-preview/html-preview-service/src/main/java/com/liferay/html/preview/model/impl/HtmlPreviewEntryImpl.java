@@ -19,15 +19,11 @@ import com.liferay.document.library.kernel.util.DLUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-
-import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * @author Pavel Savinov
  */
-@ProviderType
 public class HtmlPreviewEntryImpl extends HtmlPreviewEntryBaseImpl {
 
 	@Override
@@ -39,10 +35,8 @@ public class HtmlPreviewEntryImpl extends HtmlPreviewEntryBaseImpl {
 		}
 
 		try {
-			FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(
-				fileEntryId);
-
-			return DLUtil.getImagePreviewURL(fileEntry, themeDisplay);
+			return DLUtil.getImagePreviewURL(
+				DLAppLocalServiceUtil.getFileEntry(fileEntryId), themeDisplay);
 		}
 		catch (Exception e) {
 			_log.error("Unable to get HTML preview entry image URL", e);

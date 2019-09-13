@@ -17,6 +17,7 @@ package com.liferay.fragment.model;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.AttachedModel;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 
@@ -37,10 +38,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface FragmentEntryLinkModel
-	extends AttachedModel, BaseModel<FragmentEntryLink>, ShardedModel,
-			StagedGroupedModel {
+	extends AttachedModel, BaseModel<FragmentEntryLink>, MVCCModel,
+			ShardedModel, StagedGroupedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a fragment entry link model instance should use the {@link FragmentEntryLink} interface instead.
@@ -59,6 +60,22 @@ public interface FragmentEntryLinkModel
 	 * @param primaryKey the primary key of this fragment entry link
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this fragment entry link.
+	 *
+	 * @return the mvcc version of this fragment entry link
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this fragment entry link.
+	 *
+	 * @param mvccVersion the mvcc version of this fragment entry link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this fragment entry link.
@@ -319,6 +336,21 @@ public interface FragmentEntryLinkModel
 	 * @param js the js of this fragment entry link
 	 */
 	public void setJs(String js);
+
+	/**
+	 * Returns the configuration of this fragment entry link.
+	 *
+	 * @return the configuration of this fragment entry link
+	 */
+	@AutoEscape
+	public String getConfiguration();
+
+	/**
+	 * Sets the configuration of this fragment entry link.
+	 *
+	 * @param configuration the configuration of this fragment entry link
+	 */
+	public void setConfiguration(String configuration);
 
 	/**
 	 * Returns the editable values of this fragment entry link.

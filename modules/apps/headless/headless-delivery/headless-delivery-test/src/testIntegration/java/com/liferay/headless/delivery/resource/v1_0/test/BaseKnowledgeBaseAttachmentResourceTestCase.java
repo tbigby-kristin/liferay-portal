@@ -28,15 +28,24 @@ import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.resource.v1_0.KnowledgeBaseAttachmentResource;
 import com.liferay.headless.delivery.client.serdes.v1_0.KnowledgeBaseAttachmentSerDes;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.test.log.CaptureAppender;
+import com.liferay.portal.test.log.Log4JLoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
@@ -47,10 +56,10 @@ import java.lang.reflect.InvocationTargetException;
 
 import java.text.DateFormat;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -61,6 +70,7 @@ import javax.annotation.Generated;
 import javax.ws.rs.core.MultivaluedHashMap;
 
 import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.log4j.Level;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -92,7 +102,18 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 	public void setUp() throws Exception {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
-		testLocale = LocaleUtil.getDefault();
+
+		testCompany = CompanyLocalServiceUtil.getCompany(
+			testGroup.getCompanyId());
+
+		_knowledgeBaseAttachmentResource.setContextCompany(testCompany);
+
+		KnowledgeBaseAttachmentResource.Builder builder =
+			KnowledgeBaseAttachmentResource.builder();
+
+		knowledgeBaseAttachmentResource = builder.locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	@After
@@ -188,6 +209,13 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 	public void testGetKnowledgeBaseArticleKnowledgeBaseAttachmentsPage()
 		throws Exception {
 
+		Page<KnowledgeBaseAttachment> page =
+			knowledgeBaseAttachmentResource.
+				getKnowledgeBaseArticleKnowledgeBaseAttachmentsPage(
+					testGetKnowledgeBaseArticleKnowledgeBaseAttachmentsPage_getKnowledgeBaseArticleId());
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long knowledgeBaseArticleId =
 			testGetKnowledgeBaseArticleKnowledgeBaseAttachmentsPage_getKnowledgeBaseArticleId();
 		Long irrelevantKnowledgeBaseArticleId =
@@ -199,8 +227,8 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 					irrelevantKnowledgeBaseArticleId,
 					randomIrrelevantKnowledgeBaseAttachment());
 
-			Page<KnowledgeBaseAttachment> page =
-				KnowledgeBaseAttachmentResource.
+			page =
+				knowledgeBaseAttachmentResource.
 					getKnowledgeBaseArticleKnowledgeBaseAttachmentsPage(
 						irrelevantKnowledgeBaseArticleId);
 
@@ -220,8 +248,8 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 			testGetKnowledgeBaseArticleKnowledgeBaseAttachmentsPage_addKnowledgeBaseAttachment(
 				knowledgeBaseArticleId, randomKnowledgeBaseAttachment());
 
-		Page<KnowledgeBaseAttachment> page =
-			KnowledgeBaseAttachmentResource.
+		page =
+			knowledgeBaseAttachmentResource.
 				getKnowledgeBaseArticleKnowledgeBaseAttachmentsPage(
 					knowledgeBaseArticleId);
 
@@ -231,6 +259,12 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 			Arrays.asList(knowledgeBaseAttachment1, knowledgeBaseAttachment2),
 			(List<KnowledgeBaseAttachment>)page.getItems());
 		assertValid(page);
+
+		knowledgeBaseAttachmentResource.deleteKnowledgeBaseAttachment(
+			knowledgeBaseAttachment1.getId());
+
+		knowledgeBaseAttachmentResource.deleteKnowledgeBaseAttachment(
+			knowledgeBaseAttachment2.getId());
 	}
 
 	protected KnowledgeBaseAttachment
@@ -239,7 +273,7 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 				KnowledgeBaseAttachment knowledgeBaseAttachment)
 		throws Exception {
 
-		return KnowledgeBaseAttachmentResource.
+		return knowledgeBaseAttachmentResource.
 			postKnowledgeBaseArticleKnowledgeBaseAttachment(
 				knowledgeBaseArticleId, knowledgeBaseAttachment,
 				getMultipartFiles());
@@ -264,18 +298,32 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 	public void testPostKnowledgeBaseArticleKnowledgeBaseAttachment()
 		throws Exception {
 
-		Assert.assertTrue(true);
+		KnowledgeBaseAttachment randomKnowledgeBaseAttachment =
+			randomKnowledgeBaseAttachment();
+
+		Map<String, File> multipartFiles = getMultipartFiles();
+
+		KnowledgeBaseAttachment postKnowledgeBaseAttachment =
+			testPostKnowledgeBaseArticleKnowledgeBaseAttachment_addKnowledgeBaseAttachment(
+				randomKnowledgeBaseAttachment, multipartFiles);
+
+		assertEquals(
+			randomKnowledgeBaseAttachment, postKnowledgeBaseAttachment);
+		assertValid(postKnowledgeBaseAttachment);
+
+		assertValid(postKnowledgeBaseAttachment, multipartFiles);
 	}
 
 	protected KnowledgeBaseAttachment
 			testPostKnowledgeBaseArticleKnowledgeBaseAttachment_addKnowledgeBaseAttachment(
-				KnowledgeBaseAttachment knowledgeBaseAttachment)
+				KnowledgeBaseAttachment knowledgeBaseAttachment,
+				Map<String, File> multipartFiles)
 		throws Exception {
 
-		return KnowledgeBaseAttachmentResource.
+		return knowledgeBaseAttachmentResource.
 			postKnowledgeBaseArticleKnowledgeBaseAttachment(
 				testGetKnowledgeBaseArticleKnowledgeBaseAttachmentsPage_getKnowledgeBaseArticleId(),
-				knowledgeBaseAttachment, getMultipartFiles());
+				knowledgeBaseAttachment, multipartFiles);
 	}
 
 	@Test
@@ -285,19 +333,19 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 
 		assertHttpResponseStatusCode(
 			204,
-			KnowledgeBaseAttachmentResource.
+			knowledgeBaseAttachmentResource.
 				deleteKnowledgeBaseAttachmentHttpResponse(
 					knowledgeBaseAttachment.getId()));
 
 		assertHttpResponseStatusCode(
 			404,
-			KnowledgeBaseAttachmentResource.
+			knowledgeBaseAttachmentResource.
 				getKnowledgeBaseAttachmentHttpResponse(
 					knowledgeBaseAttachment.getId()));
 
 		assertHttpResponseStatusCode(
 			404,
-			KnowledgeBaseAttachmentResource.
+			knowledgeBaseAttachmentResource.
 				getKnowledgeBaseAttachmentHttpResponse(0L));
 	}
 
@@ -310,12 +358,64 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 	}
 
 	@Test
+	public void testGraphQLDeleteKnowledgeBaseAttachment() throws Exception {
+		KnowledgeBaseAttachment knowledgeBaseAttachment =
+			testGraphQLKnowledgeBaseAttachment_addKnowledgeBaseAttachment();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"mutation",
+			new GraphQLField(
+				"deleteKnowledgeBaseAttachment",
+				new HashMap<String, Object>() {
+					{
+						put(
+							"knowledgeBaseAttachmentId",
+							knowledgeBaseAttachment.getId());
+					}
+				}));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			dataJSONObject.getBoolean("deleteKnowledgeBaseAttachment"));
+
+		try (CaptureAppender captureAppender =
+				Log4JLoggerTestUtil.configureLog4JLogger(
+					"graphql.execution.SimpleDataFetcherExceptionHandler",
+					Level.WARN)) {
+
+			graphQLField = new GraphQLField(
+				"query",
+				new GraphQLField(
+					"knowledgeBaseAttachment",
+					new HashMap<String, Object>() {
+						{
+							put(
+								"knowledgeBaseAttachmentId",
+								knowledgeBaseAttachment.getId());
+						}
+					},
+					new GraphQLField("id")));
+
+			jsonObject = JSONFactoryUtil.createJSONObject(
+				invoke(graphQLField.toString()));
+
+			JSONArray errorsJSONArray = jsonObject.getJSONArray("errors");
+
+			Assert.assertTrue(errorsJSONArray.length() > 0);
+		}
+	}
+
+	@Test
 	public void testGetKnowledgeBaseAttachment() throws Exception {
 		KnowledgeBaseAttachment postKnowledgeBaseAttachment =
 			testGetKnowledgeBaseAttachment_addKnowledgeBaseAttachment();
 
 		KnowledgeBaseAttachment getKnowledgeBaseAttachment =
-			KnowledgeBaseAttachmentResource.getKnowledgeBaseAttachment(
+			knowledgeBaseAttachmentResource.getKnowledgeBaseAttachment(
 				postKnowledgeBaseAttachment.getId());
 
 		assertEquals(postKnowledgeBaseAttachment, getKnowledgeBaseAttachment);
@@ -324,6 +424,45 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 
 	protected KnowledgeBaseAttachment
 			testGetKnowledgeBaseAttachment_addKnowledgeBaseAttachment()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetKnowledgeBaseAttachment() throws Exception {
+		KnowledgeBaseAttachment knowledgeBaseAttachment =
+			testGraphQLKnowledgeBaseAttachment_addKnowledgeBaseAttachment();
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"knowledgeBaseAttachment",
+				new HashMap<String, Object>() {
+					{
+						put(
+							"knowledgeBaseAttachmentId",
+							knowledgeBaseAttachment.getId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				knowledgeBaseAttachment,
+				dataJSONObject.getJSONObject("knowledgeBaseAttachment")));
+	}
+
+	protected KnowledgeBaseAttachment
+			testGraphQLKnowledgeBaseAttachment_addKnowledgeBaseAttachment()
 		throws Exception {
 
 		throw new UnsupportedOperationException(
@@ -396,6 +535,31 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 		}
 	}
 
+	protected void assertEqualsJSONArray(
+		List<KnowledgeBaseAttachment> knowledgeBaseAttachments,
+		JSONArray jsonArray) {
+
+		for (KnowledgeBaseAttachment knowledgeBaseAttachment :
+				knowledgeBaseAttachments) {
+
+			boolean contains = false;
+
+			for (Object object : jsonArray) {
+				if (equalsJSONObject(
+						knowledgeBaseAttachment, (JSONObject)object)) {
+
+					contains = true;
+
+					break;
+				}
+			}
+
+			Assert.assertTrue(
+				jsonArray + " does not contain " + knowledgeBaseAttachment,
+				contains);
+		}
+	}
+
 	protected void assertValid(
 		KnowledgeBaseAttachment knowledgeBaseAttachment) {
 
@@ -456,10 +620,19 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 		Assert.assertTrue(valid);
 	}
 
+	protected void assertValid(
+			KnowledgeBaseAttachment knowledgeBaseAttachment,
+			Map<String, File> multipartFiles)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
 	protected void assertValid(Page<KnowledgeBaseAttachment> page) {
 		boolean valid = false;
 
-		Collection<KnowledgeBaseAttachment> knowledgeBaseAttachments =
+		java.util.Collection<KnowledgeBaseAttachment> knowledgeBaseAttachments =
 			page.getItems();
 
 		int size = knowledgeBaseAttachments.size();
@@ -475,6 +648,22 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 	}
 
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected List<GraphQLField> getGraphQLFields() {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		}
+
+		return graphQLFields;
+	}
+
+	protected String[] getIgnoredEntityFieldNames() {
 		return new String[0];
 	}
 
@@ -563,7 +752,87 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 		return true;
 	}
 
-	protected Collection<EntityField> getEntityFields() throws Exception {
+	protected boolean equalsJSONObject(
+		KnowledgeBaseAttachment knowledgeBaseAttachment,
+		JSONObject jsonObject) {
+
+		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("contentUrl", fieldName)) {
+				if (!Objects.deepEquals(
+						knowledgeBaseAttachment.getContentUrl(),
+						jsonObject.getString("contentUrl"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("encodingFormat", fieldName)) {
+				if (!Objects.deepEquals(
+						knowledgeBaseAttachment.getEncodingFormat(),
+						jsonObject.getString("encodingFormat"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("fileExtension", fieldName)) {
+				if (!Objects.deepEquals(
+						knowledgeBaseAttachment.getFileExtension(),
+						jsonObject.getString("fileExtension"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", fieldName)) {
+				if (!Objects.deepEquals(
+						knowledgeBaseAttachment.getId(),
+						jsonObject.getLong("id"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("sizeInBytes", fieldName)) {
+				if (!Objects.deepEquals(
+						knowledgeBaseAttachment.getSizeInBytes(),
+						jsonObject.getLong("sizeInBytes"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("title", fieldName)) {
+				if (!Objects.deepEquals(
+						knowledgeBaseAttachment.getTitle(),
+						jsonObject.getString("title"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid field name " + fieldName);
+		}
+
+		return true;
+	}
+
+	protected java.util.Collection<EntityField> getEntityFields()
+		throws Exception {
+
 		if (!(_knowledgeBaseAttachmentResource instanceof
 				EntityModelResource)) {
 
@@ -586,12 +855,15 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 	protected List<EntityField> getEntityFields(EntityField.Type type)
 		throws Exception {
 
-		Collection<EntityField> entityFields = getEntityFields();
+		java.util.Collection<EntityField> entityFields = getEntityFields();
 
 		Stream<EntityField> stream = entityFields.stream();
 
 		return stream.filter(
-			entityField -> Objects.equals(entityField.getType(), type)
+			entityField ->
+				Objects.equals(entityField.getType(), type) &&
+				!ArrayUtil.contains(
+					getIgnoredEntityFieldNames(), entityField.getName())
 		).collect(
 			Collectors.toList()
 		);
@@ -664,6 +936,23 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 			"This method needs to be implemented");
 	}
 
+	protected String invoke(String query) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(
+			JSONUtil.put(
+				"query", query
+			).toString(),
+			"application/json");
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		httpInvoker.path("http://localhost:8080/o/graphql");
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
+	}
+
 	protected KnowledgeBaseAttachment randomKnowledgeBaseAttachment()
 		throws Exception {
 
@@ -694,10 +983,68 @@ public abstract class BaseKnowledgeBaseAttachmentResourceTestCase {
 		return randomKnowledgeBaseAttachment();
 	}
 
+	protected KnowledgeBaseAttachmentResource knowledgeBaseAttachmentResource;
 	protected Group irrelevantGroup;
+	protected Company testCompany;
 	protected Group testGroup;
-	protected Locale testLocale;
-	protected String testUserNameAndPassword = "test@liferay.com:test";
+
+	protected class GraphQLField {
+
+		public GraphQLField(String key, GraphQLField... graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = graphQLFields;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(_key);
+
+			if (!_parameterMap.isEmpty()) {
+				sb.append("(");
+
+				for (Map.Entry<String, Object> entry :
+						_parameterMap.entrySet()) {
+
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append(")");
+			}
+
+			if (_graphQLFields.length > 0) {
+				sb.append("{");
+
+				for (GraphQLField graphQLField : _graphQLFields) {
+					sb.append(graphQLField.toString());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append("}");
+			}
+
+			return sb.toString();
+		}
+
+		private final GraphQLField[] _graphQLFields;
+		private final String _key;
+		private final Map<String, Object> _parameterMap;
+
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseKnowledgeBaseAttachmentResourceTestCase.class);

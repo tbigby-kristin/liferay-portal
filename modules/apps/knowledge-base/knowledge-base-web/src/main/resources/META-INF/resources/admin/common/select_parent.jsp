@@ -156,12 +156,14 @@ else {
 						</liferay-ui:search-container-column-text>
 
 						<liferay-ui:search-container-column-text
+							align="right"
 							href="<%= rowURL %>"
 							name="num-of-kb-folders"
 							value="<%= String.valueOf(kbFoldersCount) %>"
 						/>
 
 						<liferay-ui:search-container-column-text
+							align="right"
 							href="<%= rowURL %>"
 							name="num-of-kb-articles"
 							value="<%= String.valueOf(kbArticlesCount) %>"
@@ -180,7 +182,7 @@ else {
 							data.put("title", kbFolder.getName());
 							%>
 
-							<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= (kbFolder.getKbFolderId() == resourcePrimKey) || (kbFolder.getKbFolderId() == originalParentResourcePrimKey) || !ArrayUtil.contains(selectableClassNameIds, kbFolderClassNameId) %>" value="choose" />
+							<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= (kbFolder.getKbFolderId() == resourcePrimKey) || (kbFolder.getKbFolderId() == originalParentResourcePrimKey) || !ArrayUtil.contains(selectableClassNameIds, kbFolderClassNameId) %>" value="select" />
 						</liferay-ui:search-container-column-text>
 					</c:when>
 					<c:otherwise>
@@ -224,14 +226,16 @@ else {
 						</liferay-ui:search-container-column-text>
 
 						<liferay-ui:search-container-column-text
+							align="right"
 							href="<%= rowURL %>"
-							name="num-of-kb-folders"
+							name="folders"
 							value="-"
 						/>
 
 						<liferay-ui:search-container-column-text
+							align="right"
 							href="<%= rowURL %>"
-							name="num-of-kb-articles"
+							name="articles"
 							value="<%= String.valueOf(kbArticlesCount) %>"
 						/>
 
@@ -248,7 +252,7 @@ else {
 							data.put("title", kbArticle.getTitle());
 							%>
 
-							<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= (kbArticle.getResourcePrimKey() == resourcePrimKey) || (kbArticle.getResourcePrimKey() == originalParentResourcePrimKey) || !ArrayUtil.contains(selectableClassNameIds, kbArticleClassNameId) %>" value="choose" />
+							<aui:button cssClass="selector-button" data="<%= data %>" disabled="<%= (kbArticle.getResourcePrimKey() == resourcePrimKey) || (kbArticle.getResourcePrimKey() == originalParentResourcePrimKey) || !ArrayUtil.contains(selectableClassNameIds, kbArticleClassNameId) %>" value="select" />
 						</liferay-ui:search-container-column-text>
 					</c:otherwise>
 				</c:choose>

@@ -16,8 +16,6 @@ package com.liferay.portal.kernel.service;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the local service utility for ClusterGroup. This utility wraps
  * <code>com.liferay.portal.service.impl.ClusterGroupLocalServiceImpl</code> and
@@ -28,12 +26,13 @@ import org.osgi.annotation.versioning.ProviderType;
  *
  * @author Brian Wing Shun Chan
  * @see ClusterGroupLocalService
+ * @deprecated
  * @generated
  */
-@ProviderType
+@Deprecated
 public class ClusterGroupLocalServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.ClusterGroupLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.

@@ -28,12 +28,14 @@ import org.osgi.annotation.versioning.ProviderType;
  *
  * @author Brian Wing Shun Chan
  * @see ClusterGroupUtil
+ * @deprecated
  * @generated
  */
+@Deprecated
 @ProviderType
 public interface ClusterGroupPersistence extends BasePersistence<ClusterGroup> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link ClusterGroupUtil} to access the cluster group persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -138,14 +140,14 @@ public interface ClusterGroupPersistence extends BasePersistence<ClusterGroup> {
 	 * @param start the lower bound of the range of cluster groups
 	 * @param end the upper bound of the range of cluster groups (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of cluster groups
 	 */
 	public java.util.List<ClusterGroup> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<ClusterGroup>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the cluster groups from the database.

@@ -34,7 +34,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface PowwowServerPersistence extends BasePersistence<PowwowServer> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link PowwowServerUtil} to access the powwow server persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -97,14 +97,14 @@ public interface PowwowServerPersistence extends BasePersistence<PowwowServer> {
 	 * @param start the lower bound of the range of powwow servers
 	 * @param end the upper bound of the range of powwow servers (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching powwow servers
 	 */
 	public java.util.List<PowwowServer> findByPT_A(
 		String providerType, boolean active, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<PowwowServer>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Returns the first powwow server in the ordered set where providerType = &#63; and active = &#63;.
@@ -294,14 +294,14 @@ public interface PowwowServerPersistence extends BasePersistence<PowwowServer> {
 	 * @param start the lower bound of the range of powwow servers
 	 * @param end the upper bound of the range of powwow servers (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of powwow servers
 	 */
 	public java.util.List<PowwowServer> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator<PowwowServer>
 			orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the powwow servers from the database.

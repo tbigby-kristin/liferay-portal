@@ -22,14 +22,18 @@ import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyCategoryResourc
 import com.liferay.headless.admin.taxonomy.resource.v1_0.TaxonomyVocabularyResource;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeFunction;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
-
-import graphql.annotations.annotationTypes.GraphQLField;
-import graphql.annotations.annotationTypes.GraphQLInvokeDetached;
-import graphql.annotations.annotationTypes.GraphQLName;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 
 import javax.annotation.Generated;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.service.component.ComponentServiceObjects;
 
@@ -64,18 +68,20 @@ public class Mutation {
 			taxonomyVocabularyResourceComponentServiceObjects;
 	}
 
-	@GraphQLInvokeDetached
-	public void deleteKeyword(@GraphQLName("keywordId") Long keywordId)
+	@GraphQLField
+	public boolean deleteKeyword(@GraphQLName("keywordId") Long keywordId)
 		throws Exception {
 
 		_applyVoidComponentServiceObjects(
 			_keywordResourceComponentServiceObjects,
 			this::_populateResourceContext,
 			keywordResource -> keywordResource.deleteKeyword(keywordId));
+
+		return true;
 	}
 
-	@GraphQLInvokeDetached
-	public Keyword putKeyword(
+	@GraphQLField
+	public Keyword updateKeyword(
 			@GraphQLName("keywordId") Long keywordId,
 			@GraphQLName("keyword") Keyword keyword)
 		throws Exception {
@@ -87,8 +93,7 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public Keyword postSiteKeyword(
+	public Keyword createSiteKeyword(
 			@GraphQLName("siteId") Long siteId,
 			@GraphQLName("keyword") Keyword keyword)
 		throws Exception {
@@ -101,8 +106,7 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public TaxonomyCategory postTaxonomyCategoryTaxonomyCategory(
+	public TaxonomyCategory createTaxonomyCategoryTaxonomyCategory(
 			@GraphQLName("parentTaxonomyCategoryId") Long
 				parentTaxonomyCategoryId,
 			@GraphQLName("taxonomyCategory") TaxonomyCategory taxonomyCategory)
@@ -116,8 +120,8 @@ public class Mutation {
 					parentTaxonomyCategoryId, taxonomyCategory));
 	}
 
-	@GraphQLInvokeDetached
-	public void deleteTaxonomyCategory(
+	@GraphQLField
+	public boolean deleteTaxonomyCategory(
 			@GraphQLName("taxonomyCategoryId") Long taxonomyCategoryId)
 		throws Exception {
 
@@ -127,9 +131,11 @@ public class Mutation {
 			taxonomyCategoryResource ->
 				taxonomyCategoryResource.deleteTaxonomyCategory(
 					taxonomyCategoryId));
+
+		return true;
 	}
 
-	@GraphQLInvokeDetached
+	@GraphQLField
 	public TaxonomyCategory patchTaxonomyCategory(
 			@GraphQLName("taxonomyCategoryId") Long taxonomyCategoryId,
 			@GraphQLName("taxonomyCategory") TaxonomyCategory taxonomyCategory)
@@ -143,8 +149,8 @@ public class Mutation {
 					taxonomyCategoryId, taxonomyCategory));
 	}
 
-	@GraphQLInvokeDetached
-	public TaxonomyCategory putTaxonomyCategory(
+	@GraphQLField
+	public TaxonomyCategory updateTaxonomyCategory(
 			@GraphQLName("taxonomyCategoryId") Long taxonomyCategoryId,
 			@GraphQLName("taxonomyCategory") TaxonomyCategory taxonomyCategory)
 		throws Exception {
@@ -158,8 +164,7 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public TaxonomyCategory postTaxonomyVocabularyTaxonomyCategory(
+	public TaxonomyCategory createTaxonomyVocabularyTaxonomyCategory(
 			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
 			@GraphQLName("taxonomyCategory") TaxonomyCategory taxonomyCategory)
 		throws Exception {
@@ -173,8 +178,7 @@ public class Mutation {
 	}
 
 	@GraphQLField
-	@GraphQLInvokeDetached
-	public TaxonomyVocabulary postSiteTaxonomyVocabulary(
+	public TaxonomyVocabulary createSiteTaxonomyVocabulary(
 			@GraphQLName("siteId") Long siteId,
 			@GraphQLName("taxonomyVocabulary") TaxonomyVocabulary
 				taxonomyVocabulary)
@@ -188,8 +192,8 @@ public class Mutation {
 					siteId, taxonomyVocabulary));
 	}
 
-	@GraphQLInvokeDetached
-	public void deleteTaxonomyVocabulary(
+	@GraphQLField
+	public boolean deleteTaxonomyVocabulary(
 			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId)
 		throws Exception {
 
@@ -199,9 +203,11 @@ public class Mutation {
 			taxonomyVocabularyResource ->
 				taxonomyVocabularyResource.deleteTaxonomyVocabulary(
 					taxonomyVocabularyId));
+
+		return true;
 	}
 
-	@GraphQLInvokeDetached
+	@GraphQLField
 	public TaxonomyVocabulary patchTaxonomyVocabulary(
 			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
 			@GraphQLName("taxonomyVocabulary") TaxonomyVocabulary
@@ -216,8 +222,8 @@ public class Mutation {
 					taxonomyVocabularyId, taxonomyVocabulary));
 	}
 
-	@GraphQLInvokeDetached
-	public TaxonomyVocabulary putTaxonomyVocabulary(
+	@GraphQLField
+	public TaxonomyVocabulary updateTaxonomyVocabulary(
 			@GraphQLName("taxonomyVocabularyId") Long taxonomyVocabularyId,
 			@GraphQLName("taxonomyVocabulary") TaxonomyVocabulary
 				taxonomyVocabulary)
@@ -272,27 +278,40 @@ public class Mutation {
 	private void _populateResourceContext(KeywordResource keywordResource)
 		throws Exception {
 
-		keywordResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		keywordResource.setContextAcceptLanguage(_acceptLanguage);
+		keywordResource.setContextCompany(_company);
+		keywordResource.setContextHttpServletRequest(_httpServletRequest);
+		keywordResource.setContextHttpServletResponse(_httpServletResponse);
+		keywordResource.setContextUriInfo(_uriInfo);
+		keywordResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(
 			TaxonomyCategoryResource taxonomyCategoryResource)
 		throws Exception {
 
-		taxonomyCategoryResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		taxonomyCategoryResource.setContextAcceptLanguage(_acceptLanguage);
+		taxonomyCategoryResource.setContextCompany(_company);
+		taxonomyCategoryResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		taxonomyCategoryResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		taxonomyCategoryResource.setContextUriInfo(_uriInfo);
+		taxonomyCategoryResource.setContextUser(_user);
 	}
 
 	private void _populateResourceContext(
 			TaxonomyVocabularyResource taxonomyVocabularyResource)
 		throws Exception {
 
-		taxonomyVocabularyResource.setContextCompany(
-			CompanyLocalServiceUtil.getCompany(
-				CompanyThreadLocal.getCompanyId()));
+		taxonomyVocabularyResource.setContextAcceptLanguage(_acceptLanguage);
+		taxonomyVocabularyResource.setContextCompany(_company);
+		taxonomyVocabularyResource.setContextHttpServletRequest(
+			_httpServletRequest);
+		taxonomyVocabularyResource.setContextHttpServletResponse(
+			_httpServletResponse);
+		taxonomyVocabularyResource.setContextUriInfo(_uriInfo);
+		taxonomyVocabularyResource.setContextUser(_user);
 	}
 
 	private static ComponentServiceObjects<KeywordResource>
@@ -301,5 +320,12 @@ public class Mutation {
 		_taxonomyCategoryResourceComponentServiceObjects;
 	private static ComponentServiceObjects<TaxonomyVocabularyResource>
 		_taxonomyVocabularyResourceComponentServiceObjects;
+
+	private AcceptLanguage _acceptLanguage;
+	private Company _company;
+	private HttpServletRequest _httpServletRequest;
+	private HttpServletResponse _httpServletResponse;
+	private UriInfo _uriInfo;
+	private User _user;
 
 }

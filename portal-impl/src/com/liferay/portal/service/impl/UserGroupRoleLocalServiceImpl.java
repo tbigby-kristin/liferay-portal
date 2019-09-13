@@ -250,10 +250,8 @@ public class UserGroupRoleLocalServiceImpl
 			return true;
 		}
 
-		if (inherit) {
-			if (roleFinder.countByU_G_R(userId, groupId, roleId) > 0) {
-				return true;
-			}
+		if (inherit && (roleFinder.countByU_G_R(userId, groupId, roleId) > 0)) {
+			return true;
 		}
 
 		return false;
@@ -273,9 +271,7 @@ public class UserGroupRoleLocalServiceImpl
 
 		User user = userPersistence.findByPrimaryKey(userId);
 
-		long companyId = user.getCompanyId();
-
-		Role role = rolePersistence.fetchByC_N(companyId, roleName);
+		Role role = rolePersistence.fetchByC_N(user.getCompanyId(), roleName);
 
 		if (role == null) {
 			return false;

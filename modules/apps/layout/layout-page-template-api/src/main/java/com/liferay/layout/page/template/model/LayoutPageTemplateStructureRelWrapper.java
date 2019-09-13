@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link LayoutPageTemplateStructureRel}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutPageTemplateStructureRel
  * @generated
  */
-@ProviderType
 public class LayoutPageTemplateStructureRelWrapper
 	extends BaseModelWrapper<LayoutPageTemplateStructureRel>
 	implements LayoutPageTemplateStructureRel,
@@ -49,6 +46,7 @@ public class LayoutPageTemplateStructureRelWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put(
 			"layoutPageTemplateStructureRelId",
@@ -70,6 +68,12 @@ public class LayoutPageTemplateStructureRelWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -212,6 +216,16 @@ public class LayoutPageTemplateStructureRelWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this layout page template structure rel.
+	 *
+	 * @return the mvcc version of this layout page template structure rel
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this layout page template structure rel.
 	 *
 	 * @return the primary key of this layout page template structure rel
@@ -271,6 +285,11 @@ public class LayoutPageTemplateStructureRelWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a layout page template structure rel model instance should use the <code>LayoutPageTemplateStructureRel</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -349,6 +368,16 @@ public class LayoutPageTemplateStructureRelWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this layout page template structure rel.
+	 *
+	 * @param mvccVersion the mvcc version of this layout page template structure rel
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

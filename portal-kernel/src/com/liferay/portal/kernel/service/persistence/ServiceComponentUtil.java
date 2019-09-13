@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the service component service. This utility wraps <code>com.liferay.portal.service.persistence.impl.ServiceComponentPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see ServiceComponentPersistence
  * @generated
  */
-@ProviderType
 public class ServiceComponentUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -186,16 +183,16 @@ public class ServiceComponentUtil {
 	 * @param start the lower bound of the range of service components
 	 * @param end the upper bound of the range of service components (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching service components
 	 */
 	public static List<ServiceComponent> findByBuildNamespace(
 		String buildNamespace, int start, int end,
 		OrderByComparator<ServiceComponent> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByBuildNamespace(
-			buildNamespace, start, end, orderByComparator, retrieveFromCache);
+			buildNamespace, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -336,14 +333,14 @@ public class ServiceComponentUtil {
 	 *
 	 * @param buildNamespace the build namespace
 	 * @param buildNumber the build number
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching service component, or <code>null</code> if a matching service component could not be found
 	 */
 	public static ServiceComponent fetchByBNS_BNU(
-		String buildNamespace, long buildNumber, boolean retrieveFromCache) {
+		String buildNamespace, long buildNumber, boolean useFinderCache) {
 
 		return getPersistence().fetchByBNS_BNU(
-			buildNamespace, buildNumber, retrieveFromCache);
+			buildNamespace, buildNumber, useFinderCache);
 	}
 
 	/**
@@ -497,16 +494,16 @@ public class ServiceComponentUtil {
 	 * @param start the lower bound of the range of service components
 	 * @param end the upper bound of the range of service components (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of service components
 	 */
 	public static List<ServiceComponent> findAll(
 		int start, int end,
 		OrderByComparator<ServiceComponent> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

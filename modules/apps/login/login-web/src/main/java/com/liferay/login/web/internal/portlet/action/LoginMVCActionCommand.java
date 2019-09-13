@@ -198,11 +198,10 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 			boolean rememberMe = ParamUtil.getBoolean(
 				actionRequest, "rememberMe");
 
-			String portletId = _portal.getPortletId(actionRequest);
-
 			PortletPreferences portletPreferences =
 				PortletPreferencesFactoryUtil.getStrictPortletSetup(
-					themeDisplay.getLayout(), portletId);
+					themeDisplay.getLayout(),
+					_portal.getPortletId(actionRequest));
 
 			String authType = portletPreferences.getValue("authType", null);
 
@@ -213,15 +212,35 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 
 		String redirect = ParamUtil.getString(actionRequest, "redirect");
 
+		String mainPath = themeDisplay.getPathMain();
+
+		if (PropsValues.PORTAL_JAAS_ENABLE) {
+			if (Validator.isNotNull(redirect)) {
+				redirect = mainPath.concat(
+					"/portal/protected?redirect="
+				).concat(
+					URLCodec.encodeURL(redirect)
+				);
+			}
+			else {
+				redirect = mainPath.concat("/portal/protected");
+			}
+
+			HttpServletResponse httpServletResponse =
+				_portal.getHttpServletResponse(actionResponse);
+
+			httpServletResponse.sendRedirect(redirect);
+
+			return;
+		}
+
 		if (Validator.isNotNull(redirect)) {
 			if (!themeDisplay.isSignedIn()) {
 				LiferayPortletResponse liferayPortletResponse =
 					_portal.getLiferayPortletResponse(actionResponse);
 
-				String portletId = _portal.getPortletId(actionRequest);
-
 				PortletURL actionURL = liferayPortletResponse.createActionURL(
-					portletId);
+					_portal.getPortletId(actionRequest));
 
 				actionURL.setParameter(
 					ActionRequest.ACTION_NAME, "/login/login");
@@ -244,36 +263,18 @@ public class LoginMVCActionCommand extends BaseMVCActionCommand {
 			}
 		}
 
-		String mainPath = themeDisplay.getPathMain();
-
-		if (PropsValues.PORTAL_JAAS_ENABLE) {
-			if (Validator.isNotNull(redirect)) {
-				redirect = mainPath.concat(
-					"/portal/protected?redirect="
-				).concat(
-					URLCodec.encodeURL(redirect)
-				);
-			}
-			else {
-				redirect = mainPath.concat("/portal/protected");
-			}
-
+		if (Validator.isNotNull(redirect)) {
 			actionResponse.sendRedirect(redirect);
 		}
 		else {
-			if (Validator.isNotNull(redirect)) {
-				actionResponse.sendRedirect(redirect);
-			}
-			else {
-				boolean doActionAfterLogin = ParamUtil.getBoolean(
-					actionRequest, "doActionAfterLogin");
+			boolean doActionAfterLogin = ParamUtil.getBoolean(
+				actionRequest, "doActionAfterLogin");
 
-				if (doActionAfterLogin) {
-					return;
-				}
-
-				actionResponse.sendRedirect(mainPath);
+			if (doActionAfterLogin) {
+				return;
 			}
+
+			actionResponse.sendRedirect(mainPath);
 		}
 	}
 

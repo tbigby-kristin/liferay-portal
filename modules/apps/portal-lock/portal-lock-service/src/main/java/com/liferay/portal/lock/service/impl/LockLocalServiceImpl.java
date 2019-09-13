@@ -14,13 +14,15 @@
 
 package com.liferay.portal.lock.service.impl;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.jdbc.aop.MasterDataSource;
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.lock.LockListener;
-import com.liferay.portal.kernel.lock.LockListenerRegistryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.TransactionConfig;
@@ -39,10 +41,20 @@ import java.util.concurrent.Callable;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
 
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
+@Component(
+	property = "model.class.name=com.liferay.portal.lock.model.Lock",
+	service = AopService.class
+)
 public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 
 	@Override
@@ -63,12 +75,10 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 
 		Lock lock = lockPersistence.fetchByC_K(className, key);
 
-		if (lock != null) {
-			if (lock.isExpired()) {
-				expireLock(lock);
+		if ((lock != null) && lock.isExpired()) {
+			expireLock(lock);
 
-				lock = null;
-			}
+			lock = null;
 		}
 
 		return lock;
@@ -341,8 +351,7 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 
 		Lock lock = locks.get(0);
 
-		LockListener lockListener = LockListenerRegistryUtil.getLockListener(
-			lock.getClassName());
+		LockListener lockListener = _getLockListener(lock.getClassName());
 
 		String key = lock.getKey();
 
@@ -435,9 +444,15 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 		}
 	}
 
+	@Deactivate
+	protected void deactivate() {
+		if (_serviceTrackerMap != null) {
+			_serviceTrackerMap.close();
+		}
+	}
+
 	protected void expireLock(Lock lock) {
-		LockListener lockListener = LockListenerRegistryUtil.getLockListener(
-			lock.getClassName());
+		LockListener lockListener = _getLockListener(lock.getClassName());
 
 		String key = lock.getKey();
 
@@ -457,6 +472,26 @@ public class LockLocalServiceImpl extends LockLocalServiceBaseImpl {
 		}
 	}
 
+	private LockListener _getLockListener(String className) {
+		if (_serviceTrackerMap == null) {
+			Bundle bundle = FrameworkUtil.getBundle(LockLocalServiceImpl.class);
+
+			BundleContext bundleContext = bundle.getBundleContext();
+
+			_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+				bundleContext, LockListener.class, null,
+				(serviceReference, emitter) -> {
+					LockListener lockListener = bundleContext.getService(
+						serviceReference);
+
+					emitter.emit(lockListener.getClassName());
+				});
+		}
+
+		return _serviceTrackerMap.getService(className);
+	}
+
+	private ServiceTrackerMap<String, LockListener> _serviceTrackerMap;
 	private final TransactionConfig _transactionConfig =
 		TransactionConfig.Factory.create(
 			Propagation.REQUIRES_NEW, new Class<?>[] {Exception.class});

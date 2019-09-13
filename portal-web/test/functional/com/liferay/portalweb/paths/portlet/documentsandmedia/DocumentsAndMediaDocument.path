@@ -18,7 +18,33 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--CUSTOM_FIELD-->
+<tr>
+	<td>CUSTOM_FIELD_NAME</td>
+	<td>//div[contains(@class,'ddm-field-group')]//span[contains(.,'${customFieldName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CUSTOM_FIELD_VALUE</td>
+	<td>//div[contains(@class,'ddm-field-group')]//span[contains(.,'${customFieldValue}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
 <!--DOCUMENT_INFO-->
+<tr>
+	<td>DOCUMENT_INFO_COLLABORATOR_TOOLTIP</td>
+	<td>//div[contains(@class,'lfr-portal-tooltip') and contains(@data-title,'${key_collaborator}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DOCUMENT_INFO_LOCATION</td>
+	<td>//dd[contains(@class,'sidebar-dd')]//a[contains(.,'${key_dmFolderName}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>DOCUMENT_INFO_TITLE</td>
 	<td>//div[contains(@class,'tbar-section')]/h2[contains(@title,'${key_dmDocumentTitle}')] | //h3[contains(@class,'header-title')]/span[contains(.,'${key_dmDocumentTitle}')]</td>
@@ -51,7 +77,7 @@
 </tr>
 <tr>
 	<td>DOCUMENT_INFO_DESCRIPTION</td>
-	<td>//dd[contains(@class,'sidebar-dd') and contains (.,'Description')]</td>
+	<td>//dd[contains(@class,'sidebar-dd') and contains (.,'Description')] | //dt[contains(@class,'sidebar-dt') and contains (.,'Description')]/following-sibling::dd[contains(.,'${key_dmDocumentDescription}')]</td>
 	<td></td>
 </tr>
 <tr>

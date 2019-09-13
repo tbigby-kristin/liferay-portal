@@ -67,15 +67,22 @@ public class RenderFragmentEntryMVCActionCommand extends BaseMVCActionCommand {
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 		if (fragmentEntryLink != null) {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
-
 			DefaultFragmentRendererContext defaultFragmentRendererContext =
 				new DefaultFragmentRendererContext(fragmentEntryLink);
 
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
+
 			defaultFragmentRendererContext.setLocale(themeDisplay.getLocale());
+
 			defaultFragmentRendererContext.setMode(
 				FragmentEntryLinkConstants.EDIT);
+
+			long segmentsExperienceId = ParamUtil.getLong(
+				actionRequest, "segmentsExperienceId");
+
+			defaultFragmentRendererContext.setSegmentsExperienceIds(
+				new long[] {segmentsExperienceId});
 
 			HttpServletRequest httpServletRequest =
 				_portal.getHttpServletRequest(actionRequest);
@@ -84,10 +91,16 @@ public class RenderFragmentEntryMVCActionCommand extends BaseMVCActionCommand {
 				defaultFragmentRendererContext, httpServletRequest,
 				_portal.getHttpServletResponse(actionResponse));
 
-			jsonObject.put("content", content);
+			jsonObject.put(
+				"content", content
+			).put(
+				"editableValues",
+				JSONFactoryUtil.createJSONObject(
+					fragmentEntryLink.getEditableValues())
+			);
 
 			if (SessionErrors.contains(
-					httpServletRequest, "fragmentEntryInvalidContent")) {
+					httpServletRequest, "fragmentEntryContentInvalid")) {
 
 				jsonObject.put("error", true);
 

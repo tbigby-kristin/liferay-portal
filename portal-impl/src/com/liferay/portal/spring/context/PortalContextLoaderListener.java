@@ -25,35 +25,25 @@ import com.liferay.portal.dao.orm.hibernate.FieldInterceptionHelperUtil;
 import com.liferay.portal.deploy.hot.CustomJspBagRegistryUtil;
 import com.liferay.portal.deploy.hot.ServiceWrapperRegistry;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
-import com.liferay.portal.kernel.cache.CacheRegistryUtil;
-import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
-import com.liferay.portal.kernel.cache.PortalCacheManagerNames;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCacheManager;
-import com.liferay.portal.kernel.dao.db.DBManagerUtil;
-import com.liferay.portal.kernel.deploy.DeployManagerUtil;
 import com.liferay.portal.kernel.deploy.hot.HotDeployUtil;
 import com.liferay.portal.kernel.exception.LoggedExceptionInInitializerError;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.sender.SingleDestinationMessageSenderFactory;
-import com.liferay.portal.kernel.portlet.PortletBagPool;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelper;
 import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.PortletSessionListenerManager;
 import com.liferay.portal.kernel.servlet.SerializableSessionAttributeListener;
 import com.liferay.portal.kernel.servlet.ServletContextClassLoaderPool;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
-import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.ClearThreadLocalUtil;
 import com.liferay.portal.kernel.util.ClearTimerThreadUtil;
-import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.JavaConstants;
-import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
-import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -64,8 +54,6 @@ import com.liferay.portal.spring.configurator.ConfigurableApplicationContextConf
 import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.util.PortalClassPathUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebAppPool;
-import com.liferay.portlet.PortletContextBagPool;
 import com.liferay.registry.dependency.ServiceDependencyListener;
 import com.liferay.registry.dependency.ServiceDependencyManager;
 
@@ -92,6 +80,7 @@ import org.springframework.beans.CachedIntrospectionResults;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
@@ -120,20 +109,6 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		}
 
 		try {
-			ClearThreadLocalUtil.clearThreadLocal();
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-
-		try {
-			ClearTimerThreadUtil.clearTimerThread();
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-
-		try {
 			DirectServletRegistryUtil.clearServlets();
 		}
 		catch (Exception e) {
@@ -154,9 +129,9 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 			_log.error(e, e);
 		}
 
-		closeDataSource("counterDataSourceImpl");
+		closeDataSource("counterDataSource");
 
-		closeDataSource("liferayDataSourceImpl");
+		closeDataSource("liferayDataSource");
 
 		super.contextDestroyed(servletContextEvent);
 
@@ -181,6 +156,20 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 		ClassLoaderPool.unregister(_portalServletContextName);
 		ServletContextClassLoaderPool.unregister(_portalServletContextName);
+
+		try {
+			ClearThreadLocalUtil.clearThreadLocal();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		try {
+			ClearTimerThreadUtil.clearTimerThread();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
 	}
 
 	@Override
@@ -191,13 +180,6 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		catch (ClassNotFoundException cnfe) {
 			throw new RuntimeException(cnfe);
 		}
-
-		DBManagerUtil.reset();
-		DeployManagerUtil.reset();
-		InstancePool.reset();
-		MethodKey.resetCache();
-		PortalBeanLocatorUtil.reset();
-		PortletBagPool.reset();
 
 		FieldInterceptionHelperUtil.initialize();
 
@@ -225,12 +207,6 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		_portalServletContextName = servletContext.getServletContextName();
 
 		if (_portalServletContextName == null) {
-			_portalServletContextName = StringPool.BLANK;
-		}
-
-		if (ServerDetector.isJetty() &&
-			_portalServletContextName.equals(StringPool.SLASH)) {
-
 			_portalServletContextName = StringPool.BLANK;
 		}
 
@@ -328,21 +304,6 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 		InitUtil.registerSpringInitialized();
 
-		if (PropsValues.CACHE_CLEAR_ON_CONTEXT_INITIALIZATION) {
-			CacheRegistryUtil.clear();
-			PortletContextBagPool.clear();
-			WebAppPool.clear();
-
-			TemplateResourceLoaderUtil.clearCache();
-
-			ServletContextPool.clear();
-
-			PortalCacheHelperUtil.clearPortalCaches(
-				PortalCacheManagerNames.MULTI_VM);
-			PortalCacheHelperUtil.clearPortalCaches(
-				PortalCacheManagerNames.SINGLE_VM);
-		}
-
 		ServletContextPool.put(_portalServletContextName, servletContext);
 
 		ApplicationContext applicationContext =
@@ -361,10 +322,8 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 			classLoader = classLoader.getParent();
 		}
 
-		AutowireCapableBeanFactory autowireCapableBeanFactory =
-			applicationContext.getAutowireCapableBeanFactory();
-
-		clearFilteredPropertyDescriptorsCache(autowireCapableBeanFactory);
+		clearFilteredPropertyDescriptorsCache(
+			applicationContext.getAutowireCapableBeanFactory());
 
 		DynamicProxyCreator dynamicProxyCreator =
 			DynamicProxyCreator.getDynamicProxyCreator();
@@ -402,6 +361,13 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 
 	protected void closeDataSource(String name) {
 		DataSource dataSource = (DataSource)PortalBeanLocatorUtil.locate(name);
+
+		if (dataSource instanceof DelegatingDataSource) {
+			DelegatingDataSource delegatingDataSource =
+				(DelegatingDataSource)dataSource;
+
+			dataSource = delegatingDataSource.getTargetDataSource();
+		}
 
 		if (dataSource instanceof Closeable) {
 			try {

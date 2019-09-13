@@ -1,19 +1,16 @@
-@import "./variables";
+@import './variables';
 
 .fragments-editor-sidebar-section {
 	background-color: $sidebarContentBackgroundColor;
 	flex-grow: 2;
 	max-height: 100%;
 	overflow: scroll;
-	padding: 0 1rem 1rem;
 
 	&__card {
-		box-shadow: none;
+		box-shadow: 0 0 0 1px $sidebarCardImageBorderColor;
 		margin-bottom: $sidebarCardMarginBottom;
-		padding: $sidebarCardPadding;
 
 		&-image {
-			border: 1px solid $sidebarCardImageBorderColor;
 			border-radius: 0;
 			max-height: $sidebarCardImageMaxHeight;
 			overflow: hidden;
@@ -34,7 +31,7 @@
 		}
 
 		.card-body {
-			padding: 8px 0 0;
+			padding: $sidebarCardPadding;
 
 			.btn {
 				z-index: $sidebarCardPlusButtonZIndex;
@@ -84,8 +81,14 @@
 				transition: none;
 			}
 
+			.lexicon-icon-angle-down,
+			.lexicon-icon-angle-right {
+				height: 10px;
+				width: 10px;
+			}
+
 			&-name--padded {
-				padding-left: 3em;
+				padding-left: 36px;
 			}
 
 			&-remove-btn {
@@ -137,7 +140,21 @@
 	&__title {
 		font-size: 18px;
 		font-weight: bold;
-		margin: 32px 0;
+		margin: 32px 0 24px 0;
+		padding: 0 1rem;
+
+		&.comments-sidebar-title > .btn {
+			box-sizing: border-box;
+			height: 32px;
+			left: 8px;
+			padding: 0;
+			position: absolute;
+			width: 32px;
+		}
+
+		&.comments-sidebar-title > span {
+			margin-left: 32px;
+		}
 	}
 
 	&__widgets-panel {
@@ -179,7 +196,8 @@
 	.sidebar-fragments-section .search-bar {
 		flex-wrap: nowrap;
 
-		.input-group-input, .input-group-inset {
+		.input-group-input,
+		.input-group-inset {
 			width: 100%;
 		}
 

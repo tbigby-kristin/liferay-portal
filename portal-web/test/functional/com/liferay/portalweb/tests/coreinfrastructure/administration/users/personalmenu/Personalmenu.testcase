@@ -73,4 +73,53 @@ definition {
 		AssertElementPresent.assertElementPresent(locator1 = "UserBar#USER_AVATAR_IN_NAVIGATION_USER_PERSONAL_BAR_PORTLET");
 	}
 
+	@priority = "4"
+	test EnableStaging {
+		property test.name.skip.portal.instance = "Personalmenu#EnableStaging";
+
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ProductMenu.gotoPortlet(
+			category = "Publishing",
+			panel = "Site Administration",
+			portlet = "Staging");
+
+		Staging.activateStagingCP(siteName = "${siteName}");
+
+		Navigator.gotoStagedSitePage(
+			defaultSite = "true",
+			pageName = "Home",
+			siteName = "${siteName}");
+
+		ProductMenuHelper.closeProductMenu();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Workflow Tasks");
+
+		Portlet.viewTitle(portletName = "My Workflow Tasks");
+
+		ProductMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Organizations");
+
+		AssertTextEquals(
+			locator1 = "Portlet#HEADER",
+			value1 = "My Organizations");
+
+		AssertElementPresent.assertElementPresent(locator1 = "UsersAndOrganizations#MY_ORGANIZATION_PORTLET");
+	}
+
+	@priority = "4"
+	test NavigateToMySites {
+		var siteName = TestCase.getSiteName(siteName = "${siteName}");
+
+		ProductMenu.gotoSiteViaLink();
+
+		UserBar.gotoDropdownItem(dropdownItem = "My Sites");
+
+		Site.viewSelectSiteViaPersonalMenuMySites(siteName = "${siteName}");
+	}
+
 }

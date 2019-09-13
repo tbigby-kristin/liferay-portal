@@ -16,8 +16,6 @@ package com.liferay.portal.kernel.service;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the local service utility for Layout. This utility wraps
  * <code>com.liferay.portal.service.impl.LayoutLocalServiceImpl</code> and
@@ -30,10 +28,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutLocalService
  * @generated
  */
-@ProviderType
 public class LayoutLocalServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.portal.service.impl.LayoutLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -370,48 +367,15 @@ public class LayoutLocalServiceUtil {
 	}
 
 	/**
-	 * Anonymize user information of the specific layout
+	 * Creates a new layout with the primary key. Does not add the layout to the database.
 	 *
-	 * @param layout the layout that need to anonymized
-	 * @param userId the primary key of the owner user
-	 * @param anonymousUser the anonymized user information
-	 */
-	public static void anonymizeLayout(
-			com.liferay.portal.kernel.model.Layout layout, long userId,
-			com.liferay.portal.kernel.model.User anonymousUser)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		getService().anonymizeLayout(layout, userId, anonymousUser);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout checkout(
-			com.liferay.portal.kernel.model.Layout publishedLayout, int version)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().checkout(publishedLayout, version);
-	}
-
-	/**
-	 * Creates a new layout. Does not add the layout to the database.
-	 *
+	 * @param plid the primary key for the new layout
 	 * @return the new layout
 	 */
-	public static com.liferay.portal.kernel.model.Layout create() {
-		return getService().create();
-	}
+	public static com.liferay.portal.kernel.model.Layout createLayout(
+		long plid) {
 
-	public static com.liferay.portal.kernel.model.Layout delete(
-			com.liferay.portal.kernel.model.Layout publishedLayout)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().delete(publishedLayout);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout deleteDraft(
-			com.liferay.portal.kernel.model.Layout draftLayout)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().deleteDraft(draftLayout);
+		return getService().createLayout(plid);
 	}
 
 	/**
@@ -521,13 +485,6 @@ public class LayoutLocalServiceUtil {
 		return getService().deletePersistedModel(persistedModel);
 	}
 
-	public static com.liferay.portal.kernel.model.LayoutVersion deleteVersion(
-			com.liferay.portal.kernel.model.LayoutVersion layoutVersion)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().deleteVersion(layoutVersion);
-	}
-
 	public static com.liferay.portal.kernel.dao.orm.DynamicQuery
 		dynamicQuery() {
 
@@ -619,18 +576,6 @@ public class LayoutLocalServiceUtil {
 		return getService().fetchDefaultLayout(groupId, privateLayout);
 	}
 
-	public static com.liferay.portal.kernel.model.Layout fetchDraft(
-		com.liferay.portal.kernel.model.Layout layout) {
-
-		return getService().fetchDraft(layout);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout fetchDraft(
-		long primaryKey) {
-
-		return getService().fetchDraft(primaryKey);
-	}
-
 	public static com.liferay.portal.kernel.model.Layout fetchFirstLayout(
 		long groupId, boolean privateLayout, long parentLayoutId) {
 
@@ -644,12 +589,6 @@ public class LayoutLocalServiceUtil {
 
 		return getService().fetchFirstLayout(
 			groupId, privateLayout, parentLayoutId, hidden);
-	}
-
-	public static com.liferay.portal.kernel.model.LayoutVersion
-		fetchLatestVersion(com.liferay.portal.kernel.model.Layout layout) {
-
-		return getService().fetchLatestVersion(layout);
 	}
 
 	public static com.liferay.portal.kernel.model.Layout fetchLayout(
@@ -698,8 +637,7 @@ public class LayoutLocalServiceUtil {
 	 * @param uuid the layout's UUID
 	 * @param groupId the primary key of the group
 	 * @param privateLayout whether the layout is private to the group
-	 * @return the matching layout, or <code>null</code> if a matching layout
-	 could not be found
+	 * @return the matching layout, or <code>null</code> if a matching layout could not be found
 	 */
 	public static com.liferay.portal.kernel.model.Layout
 		fetchLayoutByUuidAndGroupId(
@@ -707,24 +645,6 @@ public class LayoutLocalServiceUtil {
 
 		return getService().fetchLayoutByUuidAndGroupId(
 			uuid, groupId, privateLayout);
-	}
-
-	public static com.liferay.portal.kernel.model.LayoutVersion
-		fetchLayoutVersion(long layoutVersionId) {
-
-		return getService().fetchLayoutVersion(layoutVersionId);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout fetchPublished(
-		com.liferay.portal.kernel.model.Layout layout) {
-
-		return getService().fetchPublished(layout);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout fetchPublished(
-		long primaryKey) {
-
-		return getService().fetchPublished(primaryKey);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
@@ -771,20 +691,6 @@ public class LayoutLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getDefaultPlid(groupId, privateLayout, portletId);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout getDraft(
-			com.liferay.portal.kernel.model.Layout layout)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().getDraft(layout);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout getDraft(
-			long primaryKey)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().getDraft(primaryKey);
 	}
 
 	public static com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery
@@ -1198,10 +1104,8 @@ public class LayoutLocalServiceUtil {
 	 * @param companyId the primary key of the company
 	 * @param start the lower bound of the range of layouts
 	 * @param end the upper bound of the range of layouts (not inclusive)
-	 * @param orderByComparator the comparator to order the results by
-	 (optionally <code>null</code>)
-	 * @return the range of matching layouts, or an empty list if no matches
-	 were found
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the range of matching layouts, or an empty list if no matches were found
 	 */
 	public static java.util.List<com.liferay.portal.kernel.model.Layout>
 		getLayoutsByUuidAndCompanyId(
@@ -1372,19 +1276,6 @@ public class LayoutLocalServiceUtil {
 		return getService().getScopeGroupLayouts(parentGroupId, privateLayout);
 	}
 
-	public static com.liferay.portal.kernel.model.LayoutVersion getVersion(
-			com.liferay.portal.kernel.model.Layout layout, int version)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().getVersion(layout, version);
-	}
-
-	public static java.util.List<com.liferay.portal.kernel.model.LayoutVersion>
-		getVersions(com.liferay.portal.kernel.model.Layout layout) {
-
-		return getService().getVersions(layout);
-	}
-
 	/**
 	 * Returns <code>true</code> if there is a matching layout with the UUID,
 	 * group, and privacy.
@@ -1472,22 +1363,6 @@ public class LayoutLocalServiceUtil {
 			layoutSetPrototypeUuid, companyId, layoutUuid);
 	}
 
-	public static com.liferay.portal.kernel.model.Layout publishDraft(
-			com.liferay.portal.kernel.model.Layout draftLayout)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().publishDraft(draftLayout);
-	}
-
-	public static void registerListener(
-		com.liferay.portal.kernel.service.version.VersionServiceListener
-			<com.liferay.portal.kernel.model.Layout,
-			 com.liferay.portal.kernel.model.LayoutVersion>
-				versionServiceListener) {
-
-		getService().registerListener(versionServiceListener);
-	}
-
 	/**
 	 * Sets the layouts for the group, replacing and prioritizing all layouts of
 	 * the parent layout.
@@ -1508,15 +1383,6 @@ public class LayoutLocalServiceUtil {
 			groupId, privateLayout, parentLayoutId, layoutIds, serviceContext);
 	}
 
-	public static void unregisterListener(
-		com.liferay.portal.kernel.service.version.VersionServiceListener
-			<com.liferay.portal.kernel.model.Layout,
-			 com.liferay.portal.kernel.model.LayoutVersion>
-				versionServiceListener) {
-
-		getService().unregisterListener(versionServiceListener);
-	}
-
 	public static void updateAsset(
 			long userId, com.liferay.portal.kernel.model.Layout layout,
 			long[] assetCategoryIds, String[] assetTagNames)
@@ -1524,13 +1390,6 @@ public class LayoutLocalServiceUtil {
 
 		getService().updateAsset(
 			userId, layout, assetCategoryIds, assetTagNames);
-	}
-
-	public static com.liferay.portal.kernel.model.Layout updateDraft(
-			com.liferay.portal.kernel.model.Layout draftLayout)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().updateDraft(draftLayout);
 	}
 
 	/**
@@ -1563,13 +1422,11 @@ public class LayoutLocalServiceUtil {
 	 *
 	 * @param layout the layout
 	 * @return the layout that was updated
-	 * @throws PortalException
 	 */
 	public static com.liferay.portal.kernel.model.Layout updateLayout(
-			com.liferay.portal.kernel.model.Layout draftLayout)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		com.liferay.portal.kernel.model.Layout layout) {
 
-		return getService().updateLayout(draftLayout);
+		return getService().updateLayout(layout);
 	}
 
 	/**
@@ -1635,7 +1492,7 @@ public class LayoutLocalServiceUtil {
 	 To see how the URL is normalized when accessed, see {@link
 	 com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil#normalize(
 	 String)}.
-	 * @param iconImage whether the icon image will be updated
+	 * @param hasIconImage whether the icon image will be updated
 	 * @param iconBytes the byte array of the layout's new icon image
 	 * @param serviceContext the service context to be applied. Can set the
 	 modification date and expando bridge attributes for the layout.
@@ -1659,13 +1516,14 @@ public class LayoutLocalServiceUtil {
 			java.util.Map<java.util.Locale, String> robotsMap, String type,
 			boolean hidden,
 			java.util.Map<java.util.Locale, String> friendlyURLMap,
-			boolean iconImage, byte[] iconBytes, ServiceContext serviceContext)
+			boolean hasIconImage, byte[] iconBytes,
+			ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateLayout(
 			groupId, privateLayout, layoutId, parentLayoutId, nameMap, titleMap,
 			descriptionMap, keywordsMap, robotsMap, type, hidden,
-			friendlyURLMap, iconImage, iconBytes, serviceContext);
+			friendlyURLMap, hasIconImage, iconBytes, serviceContext);
 	}
 
 	/**
@@ -1904,6 +1762,13 @@ public class LayoutLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updatePriority(plid, priority);
+	}
+
+	public static com.liferay.portal.kernel.model.Layout updateType(
+			long plid, String type)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateType(plid, type);
 	}
 
 	public static LayoutLocalService getService() {

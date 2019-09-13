@@ -65,7 +65,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface DDLRecordSetLocalService
 	extends BaseLocalService, PersistedModelLocalService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DDLRecordSetLocalServiceUtil} to access the ddl record set local service. Add custom service methods to <code>com.liferay.dynamic.data.lists.service.impl.DDLRecordSetLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -104,6 +104,7 @@ public interface DDLRecordSetLocalService
 	 * @return the record set
 	 * @throws PortalException if a portal exception occurred
 	 */
+	@Indexable(type = IndexableType.REINDEX)
 	public DDLRecordSet addRecordSet(
 			long userId, long groupId, long ddmStructureId, String recordSetKey,
 			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
@@ -177,6 +178,9 @@ public interface DDLRecordSetLocalService
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	public DDLRecordSet deleteDDLRecordSet(long recordSetId)
+		throws PortalException;
+
+	public void deleteDDMStructureRecordSets(long ddmStructureId)
 		throws PortalException;
 
 	/**
@@ -404,6 +408,9 @@ public interface DDLRecordSetLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getDDLRecordSetsCount();
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<DDLRecordSet> getDDMStructureRecordSets(long ddmStructureId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
@@ -693,6 +700,7 @@ public interface DDLRecordSetLocalService
 	 * @return the record set
 	 * @throws PortalException if a portal exception occurred
 	 */
+	@Indexable(type = IndexableType.REINDEX)
 	public DDLRecordSet updateRecordSet(
 			long recordSetId, long ddmStructureId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap, int minDisplayRows,

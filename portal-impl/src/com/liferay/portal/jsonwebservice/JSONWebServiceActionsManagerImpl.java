@@ -387,9 +387,7 @@ public class JSONWebServiceActionsManagerImpl
 
 	@Override
 	public int unregisterServletContext(ServletContext servletContext) {
-		String contextPath = servletContext.getContextPath();
-
-		return unregisterJSONWebServiceActions(contextPath);
+		return unregisterJSONWebServiceActions(servletContext.getContextPath());
 	}
 
 	private boolean _addJSONWebServiceActionConfig(
@@ -482,14 +480,13 @@ public class JSONWebServiceActionsManagerImpl
 			_getJSONWebServiceActionConfig(
 				contextName, path, method, parameterNames);
 
-		if (jsonWebServiceActionConfig == null) {
-			if (jsonWebServiceActionParameters.includeDefaultParameters()) {
-				parameterNames =
-					jsonWebServiceActionParameters.getParameterNames();
+		if ((jsonWebServiceActionConfig == null) &&
+			jsonWebServiceActionParameters.includeDefaultParameters()) {
 
-				jsonWebServiceActionConfig = _getJSONWebServiceActionConfig(
-					contextName, path, method, parameterNames);
-			}
+			parameterNames = jsonWebServiceActionParameters.getParameterNames();
+
+			jsonWebServiceActionConfig = _getJSONWebServiceActionConfig(
+				contextName, path, method, parameterNames);
 		}
 
 		if (jsonWebServiceActionConfig == null) {
@@ -594,13 +591,12 @@ public class JSONWebServiceActionsManagerImpl
 			int count = _countMatchedParameters(
 				parameterNames, jsonWebServiceActionConfigMethodParameters);
 
-			if (count > max) {
-				if ((hint != -1) || (count >= methodParametersCount)) {
-					max = count;
+			if ((count > max) &&
+				((hint != -1) || (count >= methodParametersCount))) {
 
-					matchedJSONWebServiceActionConfig =
-						jsonWebServiceActionConfig;
-				}
+				max = count;
+
+				matchedJSONWebServiceActionConfig = jsonWebServiceActionConfig;
 			}
 		}
 

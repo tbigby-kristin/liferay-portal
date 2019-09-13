@@ -14,7 +14,7 @@
 
 package com.liferay.data.engine.web.internal.portlet;
 
-import com.liferay.data.engine.web.constants.DataEnginePortletKeys;
+import com.liferay.data.engine.web.internal.constants.DataEnginePortletKeys;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 
 import javax.portlet.Portlet;
@@ -35,8 +35,7 @@ import org.osgi.service.component.annotations.Component;
 		"javax.portlet.init-param.view-template=/view.jsp",
 		"javax.portlet.name=" + DataEnginePortletKeys.DATA_RECORD_COLLECTION,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=administrator,guest,power-user,user",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=administrator,guest,power-user,user"
 	},
 	service = Portlet.class
 )

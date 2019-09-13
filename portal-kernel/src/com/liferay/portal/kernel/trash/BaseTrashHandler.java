@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.SystemEventLocalServiceUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -291,22 +292,19 @@ public abstract class BaseTrashHandler implements TrashHandler {
 			String trashActionId)
 		throws PortalException {
 
+		if (trashActionId.equals(TrashActionKeys.MOVE)) {
+			return false;
+		}
+
 		String actionId = trashActionId;
 
-		if (trashActionId.equals(ActionKeys.DELETE)) {
+		if (trashActionId.equals(TrashActionKeys.OVERWRITE) ||
+			trashActionId.equals(TrashActionKeys.RESTORE)) {
+
 			actionId = ActionKeys.DELETE;
-		}
-		else if (trashActionId.equals(TrashActionKeys.OVERWRITE)) {
-			actionId = ActionKeys.DELETE;
-		}
-		else if (trashActionId.equals(TrashActionKeys.MOVE)) {
-			return false;
 		}
 		else if (trashActionId.equals(TrashActionKeys.RENAME)) {
 			actionId = ActionKeys.UPDATE;
-		}
-		else if (trashActionId.equals(TrashActionKeys.RESTORE)) {
-			actionId = ActionKeys.DELETE;
 		}
 
 		return hasPermission(permissionChecker, classPK, actionId);
@@ -317,13 +315,35 @@ public abstract class BaseTrashHandler implements TrashHandler {
 		return false;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #isDeletable(long)}
+	 */
+	@Deprecated
 	@Override
 	public boolean isDeletable() {
 		return true;
 	}
 
 	@Override
+	public boolean isDeletable(long classPK) throws PortalException {
+		return hasTrashPermission(
+			PermissionThreadLocal.getPermissionChecker(), 0, classPK,
+			ActionKeys.DELETE);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #isMovable(long)}
+	 */
+	@Deprecated
+	@Override
 	public boolean isMovable() {
+		return false;
+	}
+
+	@Override
+	public boolean isMovable(long classPK) throws PortalException {
 		return false;
 	}
 

@@ -233,7 +233,7 @@ kbGroupServiceConfiguration = ParameterMapUtil.setParameterMap(KBGroupServiceCon
 
 <aui:script>
 	function <portlet:namespace />save() {
-		var form = document.querySelector('#<portlet:namespace />fm');
+		var form = document.getElementById('<portlet:namespace />fm');
 
 		if (form) {
 			var emailKBArticleAddedEditor = window.<portlet:namespace />emailKBArticleAdded.getHTML();
@@ -242,11 +242,11 @@ kbGroupServiceConfiguration = ParameterMapUtil.setParameterMap(KBGroupServiceCon
 			var emailKBArticleSuggestionResolvedEditor = window.<portlet:namespace />emailKBArticleSuggestionResolved.getHTML();
 			var emailKBArticleUpdatedEditor = window.<portlet:namespace />emailKBArticleUpdated.getHTML();
 
-			form.querySelector('#<portlet:namespace />emailKBArticleAddedBody').value = emailKBArticleAddedEditor;
-			form.querySelector('#<portlet:namespace />emailKBArticleUpdatedBody').value = emailKBArticleUpdatedEditor;
-			form.querySelector('#<portlet:namespace />emailKBArticleSuggestionReceivedBody').value = emailKBArticleSuggestionReceivedEditor;
-			form.querySelector('#<portlet:namespace />emailKBArticleSuggestionInProgressBody').value = emailKBArticleSuggestionInProgressEditor;
-			form.querySelector('#<portlet:namespace />emailKBArticleSuggestionResolvedBody').value = emailKBArticleSuggestionResolvedEditor;
+			document.getElementById('<portlet:namespace />emailKBArticleAddedBody').value = emailKBArticleAddedEditor;
+			document.getElementById('<portlet:namespace />emailKBArticleUpdatedBody').value = emailKBArticleUpdatedEditor;
+			document.getElementById('<portlet:namespace />emailKBArticleSuggestionReceivedBody').value = emailKBArticleSuggestionReceivedEditor;
+			document.getElementById('<portlet:namespace />emailKBArticleSuggestionInProgressBody').value = emailKBArticleSuggestionInProgressEditor;
+			document.getElementById('<portlet:namespace />emailKBArticleSuggestionResolvedBody').value = emailKBArticleSuggestionResolvedEditor;
 
 			submitForm(form);
 		}

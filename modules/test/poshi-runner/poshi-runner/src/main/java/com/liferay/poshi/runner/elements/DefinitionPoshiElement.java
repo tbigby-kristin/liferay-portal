@@ -83,10 +83,8 @@ public class DefinitionPoshiElement extends PoshiElement {
 	public void parsePoshiScript(String poshiScript)
 		throws PoshiScriptParserException {
 
-		String blockName = getBlockName(poshiScript);
-
 		Matcher poshiScriptAnnotationMatcher =
-			poshiScriptAnnotationPattern.matcher(blockName);
+			poshiScriptAnnotationPattern.matcher(getBlockName(poshiScript));
 
 		while (poshiScriptAnnotationMatcher.find()) {
 			String annotation = poshiScriptAnnotationMatcher.group();

@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.trash.TrashHelper;
@@ -101,18 +100,16 @@ public class WikiNodesManagementToolbarDisplayContext {
 	public List<String> getAvailableActions(WikiNode wikiNode)
 		throws PortalException {
 
-		List<String> availableActionDropdownItems = new ArrayList<>();
-
-		PermissionChecker permissionChecker =
-			_themeDisplay.getPermissionChecker();
+		List<String> availableActions = new ArrayList<>();
 
 		if (WikiNodePermission.contains(
-				permissionChecker, wikiNode, ActionKeys.DELETE)) {
+				_themeDisplay.getPermissionChecker(), wikiNode,
+				ActionKeys.DELETE)) {
 
-			availableActionDropdownItems.add("deleteNodes");
+			availableActions.add("deleteNodes");
 		}
 
-		return availableActionDropdownItems;
+		return availableActions;
 	}
 
 	public CreationMenu getCreationMenu() {

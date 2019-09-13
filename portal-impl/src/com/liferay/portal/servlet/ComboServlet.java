@@ -192,6 +192,16 @@ public class ComboServlet extends HttpServlet {
 			}
 		}
 
+		boolean cacheEnabled = true;
+
+		if (PropsValues.WORK_DIR_OVERRIDE_ENABLED) {
+			cacheEnabled = false;
+
+			httpServletResponse.setHeader(
+				HttpHeaders.CACHE_CONTROL,
+				HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
+		}
+
 		String minifierType = ParamUtil.getString(
 			httpServletRequest, "minifierType");
 
@@ -263,7 +273,7 @@ public class ComboServlet extends HttpServlet {
 				bytesArray[i] = bytes;
 			}
 
-			if ((modulePathsString != null) &&
+			if (cacheEnabled && (modulePathsString != null) &&
 				!PropsValues.COMBO_CHECK_TIMESTAMP) {
 
 				_bytesArrayPortalCache.put(modulePathsString, bytesArray);
@@ -320,12 +330,14 @@ public class ComboServlet extends HttpServlet {
 				System.currentTimeMillis() - fileContentBag._lastModified;
 
 			if ((requestDispatcher != null) &&
-				(elapsedTime <= PropsValues.COMBO_CHECK_TIMESTAMP_INTERVAL) &&
-				(RequestDispatcherUtil.getLastModifiedTime(
-					requestDispatcher, httpServletRequest,
-					httpServletResponse) == fileContentBag._lastModified)) {
+				(elapsedTime <= PropsValues.COMBO_CHECK_TIMESTAMP_INTERVAL)) {
 
-				return fileContentBag._fileContent;
+				long lastModified = RequestDispatcherUtil.getLastModifiedTime(
+					requestDispatcher, httpServletRequest, httpServletResponse);
+
+				if (lastModified == fileContentBag._lastModified) {
+					return fileContentBag._fileContent;
+				}
 			}
 
 			_fileContentBagPortalCache.remove(fileContentKey);
@@ -375,6 +387,8 @@ public class ComboServlet extends HttpServlet {
 					if (slashIndex != -1) {
 						baseURL = resourcePath.substring(0, slashIndex + 1);
 					}
+
+					baseURL = PortalUtil.getPathProxy() + baseURL;
 
 					stringFileContent = AggregateUtil.updateRelativeURLs(
 						stringFileContent, baseURL);

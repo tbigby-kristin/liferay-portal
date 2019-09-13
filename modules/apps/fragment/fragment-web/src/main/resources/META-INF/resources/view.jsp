@@ -18,6 +18,9 @@
 
 <%
 List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request.getAttribute(FragmentWebKeys.FRAGMENT_COLLECTIONS);
+Map<String, List<FragmentCollection>> inheritedFragmentCollections = (Map<String, List<FragmentCollection>>)request.getAttribute(FragmentWebKeys.INHERITED_FRAGMENT_COLLECTIONS);
+
+List<FragmentCollectionContributor> fragmentCollectionContributors = fragmentDisplayContext.getFragmentCollectionContributors(locale);
 %>
 
 <div class="container-fluid container-fluid-max-xl container-view">
@@ -32,8 +35,8 @@ List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request
 						</portlet:renderURL>
 
 						<c:choose>
-							<c:when test="<%= ListUtil.isNotEmpty(fragmentCollections) %>">
-								<div class="autofit-row autofit-row-center">
+							<c:when test="<%= ListUtil.isNotEmpty(fragmentCollections) || ListUtil.isNotEmpty(fragmentCollectionContributors) || MapUtil.isNotEmpty(inheritedFragmentCollections) %>">
+								<div class="autofit-row autofit-row-center mb-4">
 									<div class="autofit-col autofit-col-expand">
 										<strong class="text-uppercase">
 											<liferay-ui:message key="collections" />
@@ -62,9 +65,98 @@ List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request
 									</div>
 								</div>
 
-								<ul class="nav nav-stacked">
+								<ul class="mb-2 nav nav-stacked">
 
 									<%
+									if (ListUtil.isNotEmpty(fragmentCollectionContributors)) {
+									%>
+
+										<span class="truncate-text">
+											<liferay-ui:message key="default" />
+										</span>
+
+									<%
+									}
+
+									for (FragmentCollectionContributor fragmentCollectionContributor : fragmentCollectionContributors) {
+									%>
+
+										<li class="nav-item">
+
+											<%
+											PortletURL fragmentCollectionURL = renderResponse.createRenderURL();
+
+											fragmentCollectionURL.setParameter("mvcRenderCommandName", "/fragment/view");
+											fragmentCollectionURL.setParameter("fragmentCollectionKey", String.valueOf(fragmentCollectionContributor.getFragmentCollectionKey()));
+											%>
+
+											<a class="nav-link truncate-text <%= Objects.equals(fragmentCollectionContributor.getFragmentCollectionKey(), fragmentDisplayContext.getFragmentCollectionKey()) ? "active" : StringPool.BLANK %>" href="<%= fragmentCollectionURL.toString() %>">
+												<%= HtmlUtil.escape(fragmentCollectionContributor.getName(locale)) %>
+
+												<liferay-ui:icon
+													icon="lock"
+													iconCssClass="text-muted"
+													markupView="lexicon"
+												/>
+											</a>
+										</li>
+
+									<%
+									}
+									%>
+
+								</ul>
+
+								<ul class="mb-2 nav nav-stacked">
+
+									<%
+									for (Map.Entry<String, List<FragmentCollection>> entry : inheritedFragmentCollections.entrySet()) {
+									%>
+
+										<span class="truncate-text"><%= entry.getKey() %></span>
+
+										<%
+										for (FragmentCollection fragmentCollection : entry.getValue()) {
+										%>
+
+											<li class="nav-item">
+
+												<%
+												PortletURL fragmentCollectionURL = renderResponse.createRenderURL();
+
+												fragmentCollectionURL.setParameter("mvcRenderCommandName", "/fragment/view");
+												fragmentCollectionURL.setParameter("fragmentCollectionId", String.valueOf(fragmentCollection.getFragmentCollectionId()));
+												%>
+
+												<a class="nav-link truncate-text <%= (fragmentCollection.getFragmentCollectionId() == fragmentDisplayContext.getFragmentCollectionId()) ? "active" : StringPool.BLANK %>" href="<%= fragmentCollectionURL.toString() %>">
+													<%= HtmlUtil.escape(fragmentCollection.getName()) %>
+
+													<liferay-ui:icon
+														icon="lock"
+														iconCssClass="text-muted"
+														markupView="lexicon"
+													/>
+												</a>
+											</li>
+
+									<%
+										}
+									}
+									%>
+
+								</ul>
+
+								<ul class="mb-2 nav nav-stacked">
+
+									<%
+									if (ListUtil.isNotEmpty(fragmentCollections)) {
+									%>
+
+										<span class="truncate-text"><%= fragmentDisplayContext.getGroupName(scopeGroupId) %></span>
+
+									<%
+									}
+
 									for (FragmentCollection fragmentCollection : fragmentCollections) {
 									%>
 
@@ -79,6 +171,14 @@ List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request
 
 											<a class="nav-link truncate-text <%= (fragmentCollection.getFragmentCollectionId() == fragmentDisplayContext.getFragmentCollectionId()) ? "active" : StringPool.BLANK %>" href="<%= fragmentCollectionURL.toString() %>">
 												<%= HtmlUtil.escape(fragmentCollection.getName()) %>
+
+												<c:if test="<%= fragmentCollection.getGroupId() != scopeGroupId %>">
+													<liferay-ui:icon
+														icon="lock"
+														iconCssClass="text-muted"
+														markupView="lexicon"
+													/>
+												</c:if>
 											</a>
 										</li>
 
@@ -108,22 +208,19 @@ List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request
 		</div>
 
 		<div class="col-lg-9">
-
-			<%
-			FragmentCollection fragmentCollection = fragmentDisplayContext.getFragmentCollection();
-			%>
-
-			<c:if test="<%= fragmentCollection != null %>">
+			<c:if test="<%= (fragmentDisplayContext.getFragmentCollection() != null) || (fragmentDisplayContext.getFragmentCollectionContributor() != null) %>">
 				<div class="sheet">
 					<h2 class="sheet-title">
 						<div class="autofit-row autofit-row-center">
 							<div class="autofit-col">
-								<%= HtmlUtil.escape(fragmentCollection.getName()) %>
+								<%= fragmentDisplayContext.getFragmentCollectionName() %>
 							</div>
 
-							<div class="autofit-col autofit-col-end inline-item-after">
-								<liferay-util:include page="/fragment_collection_action.jsp" servletContext="<%= application %>" />
-							</div>
+							<c:if test="<%= fragmentDisplayContext.showFragmentCollectionActions() %>">
+								<div class="autofit-col autofit-col-end inline-item-after">
+									<liferay-util:include page="/fragment_collection_action.jsp" servletContext="<%= application %>" />
+								</div>
+							</c:if>
 						</div>
 					</h2>
 
@@ -133,11 +230,18 @@ List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request
 						/>
 
 						<c:choose>
-							<c:when test="<%= fragmentDisplayContext.isViewResources() %>">
-								<liferay-util:include page="/view_resources.jsp" servletContext="<%= application %>" />
+							<c:when test="<%= fragmentDisplayContext.isSelectedFragmentCollectionContributor() %>">
+								<liferay-util:include page="/view_contributed_fragment_entries.jsp" servletContext="<%= application %>" />
 							</c:when>
 							<c:otherwise>
-								<liferay-util:include page="/view_fragment_entries.jsp" servletContext="<%= application %>" />
+								<c:choose>
+									<c:when test="<%= fragmentDisplayContext.isViewResources() %>">
+										<liferay-util:include page="/view_resources.jsp" servletContext="<%= application %>" />
+									</c:when>
+									<c:otherwise>
+										<liferay-util:include page="/view_fragment_entries.jsp" servletContext="<%= application %>" />
+									</c:otherwise>
+								</c:choose>
 							</c:otherwise>
 						</c:choose>
 					</div>
@@ -150,134 +254,7 @@ List<FragmentCollection> fragmentCollections = (List<FragmentCollection>)request
 <aui:form cssClass="hide" name="fragmentCollectionsFm">
 </aui:form>
 
-<aui:script require="metal-dom/src/dom as dom">
-	AUI().use(
-		'liferay-item-selector-dialog',
-		function(A) {
-			var deleteCollections = function() {
-				var fragmentCollectionsFm = document.<portlet:namespace />fragmentCollectionsFm;
-
-				var itemSelectorDialog = new A.LiferayItemSelectorDialog(
-					{
-						eventName: '<portlet:namespace />selectCollections',
-						on: {
-							selectedItemChange: function(event) {
-								var selectedItems = event.newVal;
-
-								if (selectedItems) {
-									if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-the-selected-entries" />')) {
-										Array.prototype.forEach.call(
-											selectedItems,
-											function(item) {
-												dom.append(fragmentCollectionsFm, item);
-											}
-										);
-
-										submitForm(
-											fragmentCollectionsFm,
-											'<liferay-portlet:actionURL copyCurrentRenderParameters="<%= false %>" name="/fragment/delete_fragment_collection"></liferay-portlet:actionURL>'
-										);
-									}
-								}
-							}
-						},
-						'strings.add': '<liferay-ui:message key="delete" />',
-						title: '<liferay-ui:message key="delete-collection" />',
-						url: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="mvcRenderCommandName" value="/fragment/view_fragment_collections" /></portlet:renderURL>'
-					}
-				);
-
-				itemSelectorDialog.open();
-			};
-
-			var exportCollections = function() {
-				var fragmentCollectionsFm = document.<portlet:namespace />fragmentCollectionsFm;
-
-				var itemSelectorDialog = new A.LiferayItemSelectorDialog(
-					{
-						eventName: '<portlet:namespace />selectCollections',
-						on: {
-							selectedItemChange: function(event) {
-								var selectedItems = event.newVal;
-
-								if (selectedItems) {
-									Array.prototype.forEach.call(
-										selectedItems,
-										function(item) {
-											dom.append(fragmentCollectionsFm, item);
-										}
-									);
-
-									submitForm(
-										fragmentCollectionsFm,
-										'<liferay-portlet:resourceURL copyCurrentRenderParameters="<%= false %>" id="/fragment/export_fragment_collections" />'
-									);
-								}
-							}
-						},
-						'strings.add': '<liferay-ui:message key="export" />',
-						title: '<liferay-ui:message key="export-collection" />',
-						url: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="mvcRenderCommandName" value="/fragment/view_fragment_collections" /></portlet:renderURL>'
-					}
-				);
-
-				itemSelectorDialog.open();
-			};
-
-			var openImportView = function() {
-				Liferay.Util.openWindow(
-					{
-						dialog: {
-							after: {
-								destroy: function(event) {
-									window.location.reload();
-								}
-							},
-							destroyOnHide: true
-						},
-						dialogIframe: {
-							bodyCssClass: 'dialog-with-footer'
-						},
-						id: '<portlet:namespace />openImportView',
-						title: '<liferay-ui:message key="import" />',
-						uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="mvcRenderCommandName" value="/fragment/view_import" /></portlet:renderURL>'
-					}
-				);
-			};
-
-			var ACTIONS = {
-				deleteCollections: deleteCollections,
-				exportCollections: exportCollections,
-				openImportView: openImportView
-			};
-
-			var handleComponentReady = function(component) {
-				component.on(
-					['click', 'itemClicked'],
-					function(event, facade) {
-						var itemData;
-
-						if (event.data && event.data.item) {
-							itemData = event.data.item.data;
-						}
-						else if (!event.data && facade && facade.target) {
-							itemData = facade.target.data;
-						}
-
-						if (itemData && itemData.action && ACTIONS[itemData.action]) {
-							ACTIONS[itemData.action]();
-						}
-					}
-				);
-			};
-
-			Liferay.componentReady('<portlet:namespace />actionsComponent').then(
-				handleComponentReady
-			);
-
-			Liferay.componentReady('<portlet:namespace />emptyResultMessageComponent').then(
-				handleComponentReady
-			);
-		}
-	);
-</aui:script>
+<liferay-frontend:component
+	context="<%= fragmentDisplayContext.getFragmentCollectionsViewContext() %>"
+	module="js/FragmentCollectionsView.es"
+/>

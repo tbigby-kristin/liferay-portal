@@ -182,22 +182,18 @@ renderResponse.setTitle((sapEntry == null) ? LanguageUtil.get(request, "new-serv
 				getActionMethodNamesURL.setParameter('contextName', contextName);
 				getActionMethodNamesURL.setParameter('serviceClassName', serviceClassName);
 
-				A.io.request(
-					getActionMethodNamesURL.toString(),
-					{
-						dataType: 'JSON',
-						method: 'GET',
-						on: {
-							success: function(event, id, xhr) {
-								actionMethodNames = this.get('responseData');
-
-								methodObj.actionMethodNames = actionMethodNames;
-
-								callback(actionMethodNames);
+				Liferay.Util.fetch(getActionMethodNamesURL.toString())
+					.then(
+						function(response) {
+								return response.json();
 							}
+						)
+					.then(
+						function(data) {
+									methodObj.actionMethodNames = data;
+									callback(actionMethodNames);
 						}
-					}
-				);
+					);
 			}
 			else {
 				callback(actionMethodNames);

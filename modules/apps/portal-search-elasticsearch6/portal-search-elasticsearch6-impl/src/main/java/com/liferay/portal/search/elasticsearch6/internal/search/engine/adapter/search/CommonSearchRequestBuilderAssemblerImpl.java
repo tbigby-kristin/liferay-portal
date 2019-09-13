@@ -32,9 +32,12 @@ import com.liferay.portal.search.query.BooleanQuery;
 import com.liferay.portal.search.query.Query;
 import com.liferay.portal.search.stats.StatsRequest;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -78,78 +81,97 @@ public class CommonSearchRequestBuilderAssemblerImpl
 		setTypes(searchRequestBuilder, baseSearchRequest);
 	}
 
-	protected QueryBuilder combine(
-		QueryBuilder queryBuilder, List<ComplexQueryPart> complexQueryParts) {
+	protected BooleanQuery buildComplexQuery(
+		List<ComplexQueryPart> complexQueryParts) {
 
-		if (complexQueryParts.isEmpty()) {
+		return (BooleanQuery)_complexQueryBuilderFactory.builder(
+		).addParts(
+			complexQueryParts
+		).build();
+	}
+
+	protected QueryBuilder combine(
+		BoolQueryBuilder boolQueryBuilder, QueryBuilder queryBuilder,
+		BiConsumer<BoolQueryBuilder, QueryBuilder> biConsumer) {
+
+		if (boolQueryBuilder == null) {
 			return queryBuilder;
 		}
 
-		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-
 		if (queryBuilder != null) {
-			boolQueryBuilder.should(queryBuilder);
+			biConsumer.accept(boolQueryBuilder, queryBuilder);
 		}
-
-		BooleanQuery booleanQuery =
-			(BooleanQuery)_complexQueryBuilderFactory.builder(
-			).addParts(
-				complexQueryParts
-			).build();
-
-		copy(booleanQuery.getFilterQueryClauses(), boolQueryBuilder::filter);
-		copy(booleanQuery.getMustNotQueryClauses(), boolQueryBuilder::mustNot);
-		copy(booleanQuery.getMustQueryClauses(), boolQueryBuilder::must);
-		copy(booleanQuery.getShouldQueryClauses(), boolQueryBuilder::should);
 
 		return boolQueryBuilder;
 	}
 
 	protected QueryBuilder combine(
-		QueryBuilder queryBuilder, QueryBuilder legacyQueryBuilder) {
+		QueryBuilder queryBuilder1, QueryBuilder queryBuilder2) {
 
-		if (queryBuilder == null) {
-			return legacyQueryBuilder;
+		if (queryBuilder1 == null) {
+			return queryBuilder2;
 		}
 
-		if (legacyQueryBuilder == null) {
-			return queryBuilder;
+		if (queryBuilder2 == null) {
+			return queryBuilder1;
 		}
 
 		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
 		return boolQueryBuilder.must(
-			queryBuilder
+			queryBuilder1
 		).must(
-			legacyQueryBuilder
+			queryBuilder2
 		);
 	}
 
 	protected void copy(List<Query> clauses, Consumer<QueryBuilder> consumer) {
-		clauses.stream(
-		).map(
-			this::translateQuery
-		).forEach(
-			consumer
-		);
+		for (Query query : clauses) {
+			consumer.accept(translateQuery(query));
+		}
 	}
 
 	protected QueryBuilder getQueryBuilder(
 		BaseSearchRequest baseSearchRequest) {
 
-		QueryBuilder queryBuilder = translateQuery(
-			baseSearchRequest.getQuery());
-
-		QueryBuilder legacyQueryBuilder = translateQuery(
-			baseSearchRequest.getQuery71());
-
-		QueryBuilder combinedQueryBuilder = combine(
-			queryBuilder, legacyQueryBuilder);
+		QueryBuilder queryBuilder1 = combine(
+			translateQuery(baseSearchRequest.getQuery()),
+			translateQuery(baseSearchRequest.getQuery71()));
 
 		List<ComplexQueryPart> complexQueryParts =
 			baseSearchRequest.getComplexQueryParts();
 
-		return combine(combinedQueryBuilder, complexQueryParts);
+		if (complexQueryParts.isEmpty()) {
+			QueryBuilder queryBuilder2 = combine(
+				translate(Collections.emptyList()), queryBuilder1,
+				BoolQueryBuilder::must);
+
+			return combine(
+				translate(Collections.emptyList()), queryBuilder2,
+				BoolQueryBuilder::should);
+		}
+
+		List<ComplexQueryPart> additiveComplexQueryParts = new ArrayList<>();
+
+		List<ComplexQueryPart> noneAdditiveComplexQueryParts =
+			new ArrayList<>();
+
+		for (ComplexQueryPart complexQueryPart : complexQueryParts) {
+			if (complexQueryPart.isAdditive()) {
+				additiveComplexQueryParts.add(complexQueryPart);
+			}
+			else {
+				noneAdditiveComplexQueryParts.add(complexQueryPart);
+			}
+		}
+
+		QueryBuilder queryBuilder2 = combine(
+			translate(noneAdditiveComplexQueryParts), queryBuilder1,
+			BoolQueryBuilder::must);
+
+		return combine(
+			translate(additiveComplexQueryParts), queryBuilder2,
+			BoolQueryBuilder::should);
 	}
 
 	protected void setAggregations(
@@ -385,6 +407,31 @@ public class CommonSearchRequestBuilderAssemblerImpl
 		if (baseSearchRequest.getTypes() != null) {
 			searchRequestBuilder.setTypes(baseSearchRequest.getTypes());
 		}
+	}
+
+	protected void transfer(
+		BooleanQuery booleanQuery, BoolQueryBuilder boolQueryBuilder) {
+
+		copy(booleanQuery.getFilterQueryClauses(), boolQueryBuilder::filter);
+		copy(booleanQuery.getMustNotQueryClauses(), boolQueryBuilder::mustNot);
+		copy(booleanQuery.getMustQueryClauses(), boolQueryBuilder::must);
+		copy(booleanQuery.getShouldQueryClauses(), boolQueryBuilder::should);
+	}
+
+	protected BoolQueryBuilder translate(
+		List<ComplexQueryPart> complexQueryParts) {
+
+		if (ListUtil.isEmpty(complexQueryParts)) {
+			return null;
+		}
+
+		BooleanQuery booleanQuery = buildComplexQuery(complexQueryParts);
+
+		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+		transfer(booleanQuery, boolQueryBuilder);
+
+		return boolQueryBuilder;
 	}
 
 	protected QueryBuilder translateQuery(

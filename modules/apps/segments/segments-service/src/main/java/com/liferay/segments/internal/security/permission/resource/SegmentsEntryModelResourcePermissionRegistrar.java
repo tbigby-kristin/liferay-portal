@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.util.HashMapDictionary;
 import com.liferay.segments.constants.SegmentsConstants;
+import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.constants.SegmentsPortletKeys;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.SegmentsEntryLocalService;
@@ -56,7 +57,8 @@ public class SegmentsEntryModelResourcePermissionRegistrar {
 				_segmentsEntryLocalService::getSegmentsEntry,
 				_portletResourcePermission,
 				(modelResourcePermission, consumer) -> consumer.accept(
-					new StagedModelPermissionLogic(_stagingPermission))),
+					new StagedModelResourcePermissionLogic(
+						_stagingPermission))),
 			properties);
 	}
 
@@ -78,7 +80,7 @@ public class SegmentsEntryModelResourcePermissionRegistrar {
 	@Reference
 	private StagingPermission _stagingPermission;
 
-	private static class StagedModelPermissionLogic
+	private static class StagedModelResourcePermissionLogic
 		implements ModelResourcePermissionLogic<SegmentsEntry> {
 
 		@Override
@@ -87,9 +89,8 @@ public class SegmentsEntryModelResourcePermissionRegistrar {
 				SegmentsEntry segmentsEntry, String actionId)
 			throws PortalException {
 
-			if ((actionId.equals(ActionKeys.DELETE) ||
-				 actionId.equals(ActionKeys.UPDATE)) &&
-				!SegmentsConstants.SOURCE_DEFAULT.equals(
+			if (actionId.equals(ActionKeys.UPDATE) &&
+				!SegmentsEntryConstants.SOURCE_DEFAULT.equals(
 					segmentsEntry.getSource())) {
 
 				return false;
@@ -102,7 +103,7 @@ public class SegmentsEntryModelResourcePermissionRegistrar {
 				SegmentsPortletKeys.SEGMENTS, actionId);
 		}
 
-		private StagedModelPermissionLogic(
+		private StagedModelResourcePermissionLogic(
 			StagingPermission stagingPermission) {
 
 			_stagingPermission = stagingPermission;

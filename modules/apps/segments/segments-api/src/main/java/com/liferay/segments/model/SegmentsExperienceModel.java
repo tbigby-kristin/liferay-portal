@@ -44,7 +44,7 @@ public interface SegmentsExperienceModel
 	extends AttachedModel, BaseModel<SegmentsExperience>, LocalizedModel,
 			ShardedModel, StagedGroupedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a segments experience model instance should use the {@link SegmentsExperience} interface instead.
@@ -221,6 +221,21 @@ public interface SegmentsExperienceModel
 	 * @param segmentsEntryId the segments entry ID of this segments experience
 	 */
 	public void setSegmentsEntryId(long segmentsEntryId);
+
+	/**
+	 * Returns the segments experience key of this segments experience.
+	 *
+	 * @return the segments experience key of this segments experience
+	 */
+	@AutoEscape
+	public String getSegmentsExperienceKey();
+
+	/**
+	 * Sets the segments experience key of this segments experience.
+	 *
+	 * @param segmentsExperienceKey the segments experience key of this segments experience
+	 */
+	public void setSegmentsExperienceKey(String segmentsExperienceKey);
 
 	/**
 	 * Returns the fully qualified class name of this segments experience.

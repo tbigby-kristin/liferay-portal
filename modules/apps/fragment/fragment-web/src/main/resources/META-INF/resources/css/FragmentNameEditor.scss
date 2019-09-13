@@ -1,6 +1,6 @@
-@import "mixins";
+@import 'atlas-variables';
 
-@include sm {
+@include media-breakpoint-up(sm) {
 	.fragment-name-editor__dialog {
 		left: 50%;
 		margin: 0;

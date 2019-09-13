@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI().use(
 	'aui-base',
 	'aui-io-plugin-deprecated',
@@ -42,23 +56,20 @@ AUI().use(
 				var instance = this;
 
 				if (!instance._popup) {
-					instance._popup = Liferay.Util.Window.getWindow(
-						{
-							dialog: {
-								centered: true,
-								constrain2view: true,
-								cssClass: 'microblogs-portlet',
-								modal: true,
-								resizable: false,
-								width: 475
-							}
+					instance._popup = Liferay.Util.Window.getWindow({
+						dialog: {
+							centered: true,
+							constrain2view: true,
+							cssClass: 'microblogs-portlet',
+							modal: true,
+							resizable: false,
+							width: 475
 						}
-					).plug(
-						A.Plugin.IO,
-						{
+					})
+						.plug(A.Plugin.IO, {
 							autoLoad: false
-						}
-					).render();
+						})
+						.render();
 				}
 
 				return instance._popup;
@@ -67,21 +78,14 @@ AUI().use(
 			updateMicroblogs: function(form, url, updateContainer) {
 				var instance = this;
 
-				A.io.request(
-					form.getAttribute('action'),
-					{
-						form: {
-							id: form.getDOM()
-						},
-						on: {
-							success: function() {
-								instance.updateMicroblogsList(url, updateContainer);
+				Liferay.Util.fetch(form.getAttribute('action'), {
+					body: new FormData(form.getDOM()),
+					method: 'POST'
+				}).then(function() {
+					instance.updateMicroblogsList(url, updateContainer);
 
-								Liferay.fire('microblogPosted');
-							}
-						}
-					}
-				);
+					Liferay.fire('microblogPosted');
+				});
 			},
 
 			updateMicroblogsList: function(url, updateContainer) {
@@ -90,12 +94,9 @@ AUI().use(
 				instance._micrblogsEntries = updateContainer;
 
 				if (!instance._micrblogsEntries.io) {
-					instance._micrblogsEntries.plug(
-						A.Plugin.IO,
-						{
-							autoLoad: false
-						}
-					);
+					instance._micrblogsEntries.plug(A.Plugin.IO, {
+						autoLoad: false
+					});
 				}
 
 				if (!url) {
@@ -110,27 +111,31 @@ AUI().use(
 			updateViewCount: function(microblogsEntryId) {
 				var instance = this;
 
-				var portletURL = new Liferay.PortletURL.createURL(instance._baseActionURL);
+				var portletURL = new Liferay.PortletURL.createURL(
+					instance._baseActionURL
+				);
 
-				portletURL.setParameter('javax.portlet.action', 'updateMicroblogsEntryViewCount');
+				portletURL.setParameter(
+					'javax.portlet.action',
+					'updateMicroblogsEntryViewCount'
+				);
 				portletURL.setParameter('microblogsEntryId', microblogsEntryId);
 				portletURL.setWindowState('normal');
 
-				A.io.request(portletURL.toString());
+				Liferay.Util.fetch(portletURL.toString(), {
+					method: 'POST'
+				});
 			}
 		};
 
-		Liferay.on(
-			'sessionExpired',
-			function(event) {
-				var reload = function() {
-					window.location.reload();
-				};
+		Liferay.on('sessionExpired', function(event) {
+			var reload = function() {
+				window.location.reload();
+			};
 
-				Liferay.Microblogs.displayPopup = reload;
-				Liferay.Microblogs.updateMicroblogs = reload;
-				Liferay.Microblogs.updateMicroblogsList = reload;
-			}
-		);
+			Liferay.Microblogs.displayPopup = reload;
+			Liferay.Microblogs.updateMicroblogs = reload;
+			Liferay.Microblogs.updateMicroblogsList = reload;
+		});
 	}
 );

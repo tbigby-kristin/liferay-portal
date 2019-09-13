@@ -1,10 +1,24 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import 'frontend-js-web/liferay/compat/modal/Modal.es';
 import Component from 'metal-component';
 import Soy, {Config} from 'metal-soy';
-import 'frontend-js-web/liferay/compat/modal/Modal.es';
+
 import templates from './modal.soy';
 
 class SegmentsExperienceSelectorModal extends Component {
-
 	/**
 	 * @inheritdoc
 	 * @memberof SegmentsExperienceSelectorModal
@@ -14,11 +28,9 @@ class SegmentsExperienceSelectorModal extends Component {
 	 */
 	prepareStateForRender(state) {
 		if (!state.visible) {
-			this.setState(
-				{
-					_requiredNameError: false
-				}
-			);
+			this.setState({
+				_requiredNameError: false
+			});
 		}
 	}
 
@@ -32,7 +44,8 @@ class SegmentsExperienceSelectorModal extends Component {
 	_handleFormSubmit(event) {
 		event.preventDefault();
 		const nameInput = this.refs.experienceModal.refs.experienceName;
-		const segmentIdInput = this.refs.experienceModal.refs.experienceSegmentId;
+		const segmentIdInput = this.refs.experienceModal.refs
+			.experienceSegmentId;
 		const validName = nameInput.value && nameInput.value.replace(/ /g, '');
 		if (
 			this.experienceForm &&
@@ -43,15 +56,27 @@ class SegmentsExperienceSelectorModal extends Component {
 				nameInput.value,
 				segmentIdInput.value
 			);
-		}
-		else if (!validName) {
-			this.setState(
-				{
-					_requiredNameError: true
-				}
-			);
+		} else if (!validName) {
+			this.setState({
+				_requiredNameError: true
+			});
 
 			nameInput.focus();
+		}
+	}
+
+	/**
+	 * @param {MouseEvent} event
+	 * @memberof SegmentsExperienceSelectorModal
+	 */
+	_handleNewSegmentClick(event) {
+		event.preventDefault();
+
+		const nameInput = this.refs.experienceModal.refs.experienceName;
+
+		if (nameInput) {
+			const name = nameInput.value;
+			this.onNewSegmentClick(this.type, name);
 		}
 	}
 }
@@ -63,7 +88,6 @@ class SegmentsExperienceSelectorModal extends Component {
  * @type {!object}
  */
 SegmentsExperienceSelectorModal.STATE = {
-
 	/**
 	 * Controls the visibility of the required name error
 	 * @default false
@@ -71,7 +95,28 @@ SegmentsExperienceSelectorModal.STATE = {
 	 * @review
 	 * @type {boolean}
 	 */
-	_requiredNameError: Config.bool().internal().value(false)
+	_requiredNameError: Config.bool()
+		.internal()
+		.value(false),
+
+	/**
+	 * Function to execute when clicking New Segment button
+	 *
+	 * @memberOf SegmentsExperienceSelectorModal
+	 * @review
+	 * @type {function}
+	 */
+	onNewSegmentClick: Config.func().required(),
+
+	/**
+	 * The type of experience modal, so it can inform when
+	 * executing prop functions
+	 *
+	 * @memberOf SegmentsExperienceSelectorModal
+	 * @review
+	 * @type {'edition'|'creation'}
+	 */
+	type: Config.string().required()
 };
 
 Soy.register(SegmentsExperienceSelectorModal, templates);

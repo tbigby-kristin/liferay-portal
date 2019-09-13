@@ -20,7 +20,4 @@ Import-Package:\
 	\
 	!org.jsoup.*,\
 	\
-	graphql.annotations.annotationTypes;version="5.4",\
-	\
 	*
--includeresource: @graphql-java-annotations-[0-9]*.jar!/!graphql/annotations/annotationTypes/*

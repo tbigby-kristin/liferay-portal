@@ -25,12 +25,12 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.PasswordPolicy;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.UserGroupGroupRole;
 import com.liferay.portal.kernel.model.UserGroupRole;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
@@ -291,9 +291,7 @@ public class UserDisplayContext {
 	}
 
 	private boolean _isOrganizationRole(UserGroupRole userGroupRole) {
-		long roleId = userGroupRole.getRoleId();
-
-		Role role = RoleLocalServiceUtil.fetchRole(roleId);
+		Role role = RoleLocalServiceUtil.fetchRole(userGroupRole.getRoleId());
 
 		if ((role != null) &&
 			(role.getType() == RoleConstants.TYPE_ORGANIZATION)) {

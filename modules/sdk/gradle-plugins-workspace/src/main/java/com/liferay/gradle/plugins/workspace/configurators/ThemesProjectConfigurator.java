@@ -39,6 +39,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -87,14 +88,27 @@ public class ThemesProjectConfigurator extends BaseProjectConfigurator {
 
 			_configureLiferay(project, workspaceExtension);
 
-			Task assembleTask = GradleUtil.getTask(
+			final Task assembleTask = GradleUtil.getTask(
 				project, BasePlugin.ASSEMBLE_TASK_NAME);
 
 			_configureRootTaskDistBundle(assembleTask);
 
-			addTaskDockerDeploy(
-				project, _copyWarClosure(project, assembleTask),
-				workspaceExtension);
+			Callable<ConfigurableFileCollection> warSourcePath =
+				new Callable<ConfigurableFileCollection>() {
+
+					@Override
+					public ConfigurableFileCollection call() throws Exception {
+						Project project = assembleTask.getProject();
+
+						ConfigurableFileCollection configurableFileCollection =
+							project.files(_getWarFile(project));
+
+						return configurableFileCollection.builtBy(assembleTask);
+					}
+
+				};
+
+			addTaskDockerDeploy(project, warSourcePath, workspaceExtension);
 		}
 	}
 
@@ -161,6 +175,7 @@ public class ThemesProjectConfigurator extends BaseProjectConfigurator {
 		liferayExtension.setAppServerParentDir(workspaceExtension.getHomeDir());
 	}
 
+	@SuppressWarnings({"serial", "unused"})
 	private void _configureRootTaskDistBundle(final Task assembleTask) {
 		Project project = assembleTask.getProject();
 
@@ -170,7 +185,24 @@ public class ThemesProjectConfigurator extends BaseProjectConfigurator {
 
 		copy.dependsOn(assembleTask);
 
-		copy.into("osgi/war", _copyWarClosure(project, assembleTask));
+		copy.into(
+			"osgi/war",
+			new Closure<Void>(project) {
+
+				public void doCall(final CopySpec copySpec) {
+					Project project = assembleTask.getProject();
+
+					File warFile = _getWarFile(project);
+
+					ConfigurableFileCollection configurableFileCollection =
+						project.files(warFile);
+
+					configurableFileCollection.builtBy(assembleTask);
+
+					copySpec.from(warFile);
+				}
+
+			});
 	}
 
 	private void _configureTaskBuildTheme(Project project) {
@@ -208,26 +240,6 @@ public class ThemesProjectConfigurator extends BaseProjectConfigurator {
 			project, WarPluginConvention.class);
 
 		warPluginConvention.setWebAppDirName("src");
-	}
-
-	@SuppressWarnings({"rawtypes", "serial", "unused"})
-	private Closure _copyWarClosure(Project project, final Task assembleTask) {
-		return new Closure<Void>(project) {
-
-			public void doCall(CopySpec copySpec) {
-				Project project = assembleTask.getProject();
-
-				File warFile = _getWarFile(project);
-
-				ConfigurableFileCollection configurableFileCollection =
-					project.files(warFile);
-
-				configurableFileCollection.builtBy(assembleTask);
-
-				copySpec.from(warFile);
-			}
-
-		};
 	}
 
 	private File _getWarFile(Project project) {

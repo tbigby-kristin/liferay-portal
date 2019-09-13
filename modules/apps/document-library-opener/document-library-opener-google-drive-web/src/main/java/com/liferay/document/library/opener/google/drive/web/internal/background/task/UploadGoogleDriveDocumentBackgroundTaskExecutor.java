@@ -23,8 +23,9 @@ import com.google.api.services.drive.Drive;
 
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.document.library.opener.google.drive.constants.DLOpenerGoogleDriveMimeTypes;
-import com.liferay.document.library.opener.google.drive.web.internal.OAuth2Manager;
+import com.liferay.document.library.opener.google.drive.web.internal.constants.DLOpenerGoogleDriveConstants;
 import com.liferay.document.library.opener.google.drive.web.internal.constants.GoogleDriveBackgroundTaskConstants;
+import com.liferay.document.library.opener.google.drive.web.internal.oauth.OAuth2Manager;
 import com.liferay.document.library.opener.service.DLOpenerFileEntryReferenceLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -61,7 +62,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author Sergio González
  */
 @Component(
-	immediate = true,
 	property = "background.task.executor.class.name=com.liferay.document.library.opener.google.drive.web.internal.background.task.UploadGoogleDriveDocumentBackgroundTaskExecutor",
 	service = BackgroundTaskExecutor.class
 )
@@ -134,10 +134,10 @@ public class UploadGoogleDriveDocumentBackgroundTaskExecutor
 				GoogleDriveBackgroundTaskConstants.FILE_ENTRY_ID));
 
 		try {
-			FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
-
 			_dlOpenerFileEntryReferenceLocalService.
-				deleteDLOpenerFileEntryReference(fileEntry);
+				deleteDLOpenerFileEntryReference(
+					DLOpenerGoogleDriveConstants.GOOGLE_DRIVE_REFERENCE_TYPE,
+					_dlAppLocalService.getFileEntry(fileEntryId));
 		}
 		catch (PortalException pe) {
 			_log.error(pe, pe);
@@ -210,7 +210,10 @@ public class UploadGoogleDriveDocumentBackgroundTaskExecutor
 			driveFilesCreate.execute();
 
 		_dlOpenerFileEntryReferenceLocalService.
-			updateDLOpenerFileEntryReference(uploadedFile.getId(), fileEntry);
+			updateDLOpenerFileEntryReference(
+				uploadedFile.getId(),
+				DLOpenerGoogleDriveConstants.GOOGLE_DRIVE_REFERENCE_TYPE,
+				fileEntry);
 	}
 
 	private Credential _getCredential(long companyId, long userId)

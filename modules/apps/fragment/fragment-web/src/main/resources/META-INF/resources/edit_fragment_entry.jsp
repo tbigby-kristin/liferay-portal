@@ -17,22 +17,11 @@
 <%@ include file="/init.jsp" %>
 
 <%
-FragmentEntry fragmentEntry = fragmentDisplayContext.getFragmentEntry();
-
-portletDisplay.setShowBackIcon(true);
-portletDisplay.setURLBack(fragmentDisplayContext.getRedirect());
-
-String title = fragmentDisplayContext.getFragmentEntryTitle();
-
-if (WorkflowConstants.STATUS_DRAFT == fragmentEntry.getStatus()) {
-	title = fragmentDisplayContext.getFragmentEntryTitle() + " (" + LanguageUtil.get(request, WorkflowConstants.getStatusLabel(fragmentEntry.getStatus())) + ")";
-}
-
-renderResponse.setTitle(title);
+EditFragmentEntryDisplayContext editFragmentEntryDisplayContext = new EditFragmentEntryDisplayContext(renderResponse, request);
 %>
 
 <soy:component-renderer
-	context="<%= fragmentDisplayContext.getFragmentEditorDisplayContext() %>"
+	context="<%= editFragmentEntryDisplayContext.getFragmentEditorDisplayContext() %>"
 	module="js/FragmentEditor.es"
 	templateNamespace="com.liferay.fragment.web.FragmentEditor.render"
 />

@@ -29,35 +29,29 @@ if (!themeDisplay.isSignedIn() && layout.isPublicLayout()) {
 	String completeURL = PortalUtil.getCurrentCompleteURL(request);
 
 	String canonicalURL = PortalUtil.getCanonicalURL(completeURL, themeDisplay, layout, false, false);
-%>
 
-	<link data-senna-track="temporary" href="<%= HtmlUtil.escapeAttribute(canonicalURL) %>" rel="canonical" />
+	Map<Locale, String> alternateURLs = Collections.emptyMap();
 
-	<%
 	Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
 	if (availableLocales.size() > 1) {
-		Map<Locale, String> alternateURLs = PortalUtil.getAlternateURLs(canonicalURL, themeDisplay, layout);
-
-		Locale defaultLocale = LocaleUtil.getDefault();
-
-		for (Map.Entry<Locale, String> entry : alternateURLs.entrySet()) {
-			Locale availableLocale = entry.getKey();
-			String alternateURL = entry.getValue();
-	%>
-
-			<c:if test="<%= availableLocale.equals(defaultLocale) %>">
-				<link data-senna-track="temporary" href="<%= HtmlUtil.escapeAttribute(canonicalURL) %>" hreflang="x-default" rel="alternate" />
-			</c:if>
-
-			<link data-senna-track="temporary" href="<%= HtmlUtil.escapeAttribute(alternateURL) %>" hreflang="<%= LocaleUtil.toW3cLanguageId(availableLocale) %>" rel="alternate" />
-
-	<%
-		}
+		alternateURLs = PortalUtil.getAlternateURLs(canonicalURL, themeDisplay, layout);
 	}
-	%>
+
+	for (LayoutSEOLink layoutSEOLink : LayoutSEOLinkManagerUtil.getLocalizedLayoutSEOLinks(layout, PortalUtil.getLocale(request), canonicalURL, alternateURLs)) {
+%>
+
+		<c:choose>
+			<c:when test="<%= Validator.isNotNull(layoutSEOLink.getHrefLang()) %>">
+				<link data-senna-track="temporary" href="<%= layoutSEOLink.getHref() %>" hreflang="<%= layoutSEOLink.getHrefLang() %>" rel="<%= layoutSEOLink.getRelationship() %>" />
+			</c:when>
+			<c:otherwise>
+				<link data-senna-track="temporary" href="<%= layoutSEOLink.getHref() %>" rel="<%= layoutSEOLink.getRelationship() %>" />
+			</c:otherwise>
+		</c:choose>
 
 <%
+	}
 }
 %>
 

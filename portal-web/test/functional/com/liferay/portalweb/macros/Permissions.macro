@@ -329,7 +329,7 @@ definition {
 
 		Site.addBlankCP(siteName = "${siteName}");
 
-		ProductMenu.gotoSite(site = "Site Name");
+		SitePages.openPagesAdmin(siteURLKey = "${siteName}");
 
 		ProductMenu.gotoPortlet(
 			category = "People",
@@ -507,12 +507,14 @@ definition {
 			roleKey = "${roleKey}",
 			roleTitle = "${roleTitle}");
 
-		ProductMenu.gotoSite(site = "${siteName}");
+		SitePages.openPagesAdmin(siteURLKey = "${siteName}");
 
 		ProductMenu.gotoPortlet(
 			category = "People",
 			panel = "Site Administration",
 			portlet = "Memberships");
+
+		Pause(locator1 = "5000");
 
 		Site.assignSiteRoleCP(
 			resourceName = "${userFirstName} ${userLastName}",
@@ -569,7 +571,7 @@ definition {
 			userMiddleName = "${userMiddleName}",
 			userScreenName = "${userScreenName}");
 
-		ProductMenu.gotoSite(site = "${siteName}");
+		SitePages.openPagesAdmin(siteURLKey = "${siteName}");
 
 		ProductMenu.gotoPortlet(
 			category = "People",

@@ -14,22 +14,17 @@
 
 package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 
-import com.liferay.dynamic.data.mapping.constants.DDMConstants;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunction;
 
 import java.math.BigDecimal;
 
-import org.osgi.service.component.annotations.Component;
-
 /**
  * @author Leonardo Barros
  */
-@Component(
-	factory = DDMConstants.EXPRESSION_FUNCTION_FACTORY_NAME,
-	service = DDMExpressionFunction.Function1.class
-)
 public class IsDecimalFunction
 	implements DDMExpressionFunction.Function1<Object, Boolean> {
+
+	public static final String NAME = "isDecimal";
 
 	@Override
 	public Boolean apply(Object value) {
@@ -45,7 +40,7 @@ public class IsDecimalFunction
 
 	@Override
 	public String getName() {
-		return "isDecimal";
+		return NAME;
 	}
 
 }

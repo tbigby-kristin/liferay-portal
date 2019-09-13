@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link JournalArticle}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see JournalArticle
  * @generated
  */
-@ProviderType
 public class JournalArticleWrapper
 	extends BaseModelWrapper<JournalArticle>
 	implements JournalArticle, ModelWrapper<JournalArticle> {
@@ -46,6 +43,7 @@ public class JournalArticleWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("id", getId());
 		attributes.put("resourcePrimKey", getResourcePrimKey());
@@ -85,6 +83,12 @@ public class JournalArticleWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -659,6 +663,16 @@ public class JournalArticleWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this journal article.
+	 *
+	 * @return the mvcc version of this journal article
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this journal article.
 	 *
 	 * @return the primary key of this journal article
@@ -1095,6 +1109,11 @@ public class JournalArticleWrapper
 		return model.isTemplateDriven();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a journal article model instance should use the <code>JournalArticle</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -1309,6 +1328,16 @@ public class JournalArticleWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this journal article.
+	 *
+	 * @param mvccVersion the mvcc version of this journal article
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

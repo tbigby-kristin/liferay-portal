@@ -60,12 +60,17 @@
 </tr>
 <tr>
 	<td>CHANGE_LIST_DESCRIPTION</td>
-	<td>//input[contains(@name,'description')]</td>
+	<td>//textarea[contains(@name,'description')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CHANGE_LIST_TABLE_ENTRY_NAME</td>
 	<td>//tr[contains(@data-qa-id,'row')]//td[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CHANGE_LIST_NAME_WC_HISTORY</td>
+	<td>//td[contains(@class,'change-list-title')]//a[contains(.,'${key_changeListName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -86,6 +91,11 @@
 <tr>
 	<td>HISTORY_CHANGE_LIST_STATUS</td>
 	<td>//h4[contains(.,'${key_changeListName}')]//following-sibling::span[contains(@class,'label-success')]//span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INDICATOR</td>
+	<td>//li[contains(@class,'nav-item')]//span/*[name()='svg'][contains(@class,'change-list')]</td>
 	<td></td>
 </tr>
 <tr>

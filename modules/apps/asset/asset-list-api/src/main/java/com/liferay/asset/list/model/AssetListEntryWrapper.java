@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link AssetListEntry}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetListEntry
  * @generated
  */
-@ProviderType
 public class AssetListEntryWrapper
 	extends BaseModelWrapper<AssetListEntry>
 	implements AssetListEntry, ModelWrapper<AssetListEntry> {
@@ -137,6 +134,12 @@ public class AssetListEntryWrapper
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long segmentsEntryId) {
@@ -144,6 +147,12 @@ public class AssetListEntryWrapper
 		return model.getAssetEntries(segmentsEntryId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long, int, int)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long segmentsEntryId, int start, int end) {
@@ -151,6 +160,12 @@ public class AssetListEntryWrapper
 		return model.getAssetEntries(segmentsEntryId, start, end);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long[])}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long[] segmentsEntryIds) {
@@ -158,6 +173,12 @@ public class AssetListEntryWrapper
 		return model.getAssetEntries(segmentsEntryIds);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntries(AssetListEntry,
+	 long[], int, int)}
+	 */
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.asset.kernel.model.AssetEntry>
 		getAssetEntries(long[] segmentsEntryIds, int start, int end) {
@@ -165,16 +186,34 @@ public class AssetListEntryWrapper
 		return model.getAssetEntries(segmentsEntryIds, start, end);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntriesCount(
+	 AssetListEntry, long)}
+	 */
+	@Deprecated
 	@Override
 	public int getAssetEntriesCount(long segmentsEntryId) {
 		return model.getAssetEntriesCount(segmentsEntryId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntriesCount(
+	 AssetListEntry, long[])}
+	 */
+	@Deprecated
 	@Override
 	public int getAssetEntriesCount(long[] segmentsEntryIds) {
 		return model.getAssetEntriesCount(segmentsEntryIds);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntryQuery(
+	 AssetListEntry, long)}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.asset.kernel.service.persistence.AssetEntryQuery
 		getAssetEntryQuery(long segmentsEntryId) {
@@ -182,6 +221,12 @@ public class AssetListEntryWrapper
 		return model.getAssetEntryQuery(segmentsEntryId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 AssetListAssetEntryProvider#getAssetEntryQuery(
+	 AssetListEntry, long[])}
+	 */
+	@Deprecated
 	@Override
 	public com.liferay.asset.kernel.service.persistence.AssetEntryQuery
 		getAssetEntryQuery(long[] segmentsEntryIds) {
@@ -339,6 +384,11 @@ public class AssetListEntryWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a asset list entry model instance should use the <code>AssetListEntry</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();

@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the image service. This utility wraps <code>com.liferay.portal.service.persistence.impl.ImagePersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see ImagePersistence
  * @generated
  */
-@ProviderType
 public class ImageUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -177,15 +174,15 @@ public class ImageUtil {
 	 * @param start the lower bound of the range of images
 	 * @param end the upper bound of the range of images (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching images
 	 */
 	public static List<Image> findByLtSize(
 		int size, int start, int end,
-		OrderByComparator<Image> orderByComparator, boolean retrieveFromCache) {
+		OrderByComparator<Image> orderByComparator, boolean useFinderCache) {
 
 		return getPersistence().findByLtSize(
-			size, start, end, orderByComparator, retrieveFromCache);
+			size, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -400,15 +397,15 @@ public class ImageUtil {
 	 * @param start the lower bound of the range of images
 	 * @param end the upper bound of the range of images (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of images
 	 */
 	public static List<Image> findAll(
 		int start, int end, OrderByComparator<Image> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

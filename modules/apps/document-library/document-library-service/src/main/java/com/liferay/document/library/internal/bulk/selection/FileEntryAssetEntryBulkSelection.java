@@ -19,6 +19,7 @@ import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.bulk.selection.BulkSelection;
 import com.liferay.bulk.selection.BulkSelectionFactory;
 import com.liferay.document.library.kernel.model.DLFileEntryConstants;
+import com.liferay.document.library.util.DLAssetHelper;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -36,10 +37,12 @@ public class FileEntryAssetEntryBulkSelection
 
 	public FileEntryAssetEntryBulkSelection(
 		BulkSelection<FileEntry> fileEntryBulkSelection,
-		AssetEntryLocalService assetEntryLocalService) {
+		AssetEntryLocalService assetEntryLocalService,
+		DLAssetHelper dlAssetHelper) {
 
 		_fileEntryBulkSelection = fileEntryBulkSelection;
 		_assetEntryLocalService = assetEntryLocalService;
+		_dlAssetHelper = dlAssetHelper;
 	}
 
 	@Override
@@ -82,7 +85,8 @@ public class FileEntryAssetEntryBulkSelection
 		try {
 			return _assetEntryLocalService.getEntry(
 				DLFileEntryConstants.getClassName(),
-				fileEntry.getFileEntryId());
+				_dlAssetHelper.getAssetClassPK(
+					fileEntry, fileEntry.getLatestFileVersion()));
 		}
 		catch (PortalException pe) {
 			return ReflectionUtil.throwException(pe);
@@ -90,6 +94,7 @@ public class FileEntryAssetEntryBulkSelection
 	}
 
 	private final AssetEntryLocalService _assetEntryLocalService;
+	private final DLAssetHelper _dlAssetHelper;
 	private final BulkSelection<FileEntry> _fileEntryBulkSelection;
 
 }

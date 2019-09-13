@@ -14,7 +14,6 @@
 
 package com.liferay.fragment.service;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -31,10 +30,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see FragmentEntryLinkLocalService
  * @generated
  */
-@ProviderType
 public class FragmentEntryLinkLocalServiceUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Add custom service methods to <code>com.liferay.fragment.service.impl.FragmentEntryLinkLocalServiceImpl</code> and rerun ServiceBuilder to regenerate this class.
@@ -56,7 +54,7 @@ public class FragmentEntryLinkLocalServiceUtil {
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 #addFragmentEntryLink(long, long, long, long, long, long,
-	 String, String, String, String, String, int, String,
+	 String, String, String, String, String, String, int, String,
 	 ServiceContext)}
 	 */
 	@Deprecated
@@ -76,7 +74,7 @@ public class FragmentEntryLinkLocalServiceUtil {
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 #addFragmentEntryLink(long, long, long, long, long, long,
-	 String, String, String, String, String, int, String,
+	 String, String, String, String, String, String, int, String,
 	 ServiceContext)}
 	 */
 	@Deprecated
@@ -98,7 +96,7 @@ public class FragmentEntryLinkLocalServiceUtil {
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 #addFragmentEntryLink(long, long, long, long, long, long,
-	 String, String, String, String, String, int, String,
+	 String, String, String, String, String, String, int, String,
 	 ServiceContext)}
 	 */
 	@Deprecated
@@ -117,6 +115,13 @@ public class FragmentEntryLinkLocalServiceUtil {
 			rendererKey, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #addFragmentEntryLink(long, long, long, long, long, long,
+	 String, String, String, String, String, String, int, String,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	public static com.liferay.fragment.model.FragmentEntryLink
 			addFragmentEntryLink(
 				long userId, long groupId, long originalFragmentEntryLinkId,
@@ -132,10 +137,26 @@ public class FragmentEntryLinkLocalServiceUtil {
 			position, rendererKey, serviceContext);
 	}
 
+	public static com.liferay.fragment.model.FragmentEntryLink
+			addFragmentEntryLink(
+				long userId, long groupId, long originalFragmentEntryLinkId,
+				long fragmentEntryId, long classNameId, long classPK,
+				String css, String html, String js, String configuration,
+				String editableValues, String namespace, int position,
+				String rendererKey,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().addFragmentEntryLink(
+			userId, groupId, originalFragmentEntryLinkId, fragmentEntryId,
+			classNameId, classPK, css, html, js, configuration, editableValues,
+			namespace, position, rendererKey, serviceContext);
+	}
+
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
 	 #addFragmentEntryLink(long, long, long, long, long, long,
-	 String, String, String, String, String, int, String,
+	 String, String, String, String, String, String, int, String,
 	 ServiceContext)}
 	 */
 	@Deprecated
@@ -436,6 +457,19 @@ public class FragmentEntryLinkLocalServiceUtil {
 			orderByComparator);
 	}
 
+	public static java.util.List<com.liferay.fragment.model.FragmentEntryLink>
+		getFragmentEntryLinks(String rendererKey) {
+
+		return getService().getFragmentEntryLinks(rendererKey);
+	}
+
+	public static java.util.List<com.liferay.fragment.model.FragmentEntryLink>
+		getFragmentEntryLinksByFragmentEntryId(long fragmentEntryId) {
+
+		return getService().getFragmentEntryLinksByFragmentEntryId(
+			fragmentEntryId);
+	}
+
 	/**
 	 * Returns all the fragment entry links matching the UUID and company.
 	 *
@@ -502,6 +536,13 @@ public class FragmentEntryLinkLocalServiceUtil {
 			groupId, fragmentEntryId, classNameId, layoutPageTemplateType);
 	}
 
+	public static int getFragmentEntryLinksCountByFragmentEntryId(
+		long fragmentEntryId) {
+
+		return getService().getFragmentEntryLinksCountByFragmentEntryId(
+			fragmentEntryId);
+	}
+
 	public static
 		com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
 			getIndexableActionableDynamicQuery() {
@@ -552,6 +593,13 @@ public class FragmentEntryLinkLocalServiceUtil {
 			fragmentEntryLinkId, position);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #updateFragmentEntryLink(long, long, long, long, long, long,
+	 String, String, String, String, String, String, int,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	public static com.liferay.fragment.model.FragmentEntryLink
 			updateFragmentEntryLink(
 				long userId, long fragmentEntryLinkId,
@@ -567,6 +615,13 @@ public class FragmentEntryLinkLocalServiceUtil {
 			editableValues, position, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 #updateFragmentEntryLink(long, long, long, long, long, long,
+	 String, String, String, String, String, String, int,
+	 ServiceContext)}
+	 */
+	@Deprecated
 	public static com.liferay.fragment.model.FragmentEntryLink
 			updateFragmentEntryLink(
 				long userId, long fragmentEntryLinkId,
@@ -585,11 +640,37 @@ public class FragmentEntryLinkLocalServiceUtil {
 
 	public static com.liferay.fragment.model.FragmentEntryLink
 			updateFragmentEntryLink(
+				long userId, long fragmentEntryLinkId,
+				long originalFragmentEntryLinkId, long fragmentEntryId,
+				long classNameId, long classPK, String css, String html,
+				String js, String configuration, String editableValues,
+				String namespace, int position,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateFragmentEntryLink(
+			userId, fragmentEntryLinkId, originalFragmentEntryLinkId,
+			fragmentEntryId, classNameId, classPK, css, html, js, configuration,
+			editableValues, namespace, position, serviceContext);
+	}
+
+	public static com.liferay.fragment.model.FragmentEntryLink
+			updateFragmentEntryLink(
 				long fragmentEntryLinkId, String editableValues)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().updateFragmentEntryLink(
 			fragmentEntryLinkId, editableValues);
+	}
+
+	public static com.liferay.fragment.model.FragmentEntryLink
+			updateFragmentEntryLink(
+				long fragmentEntryLinkId, String editableValues,
+				boolean updateClassedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().updateFragmentEntryLink(
+			fragmentEntryLinkId, editableValues, updateClassedModel);
 	}
 
 	public static void updateFragmentEntryLinks(
@@ -601,6 +682,14 @@ public class FragmentEntryLinkLocalServiceUtil {
 		getService().updateFragmentEntryLinks(
 			userId, groupId, classNameId, classPK, fragmentEntryIds,
 			editableValues, serviceContext);
+	}
+
+	public static void updateFragmentEntryLinks(
+			java.util.Map<Long, String> fragmentEntryLinksEditableValuesMap)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		getService().updateFragmentEntryLinks(
+			fragmentEntryLinksEditableValuesMap);
 	}
 
 	public static void updateLatestChanges(long fragmentEntryLinkId)

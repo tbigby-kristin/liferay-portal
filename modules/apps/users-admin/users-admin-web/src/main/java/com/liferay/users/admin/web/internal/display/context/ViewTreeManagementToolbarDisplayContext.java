@@ -87,73 +87,76 @@ public class ViewTreeManagementToolbarDisplayContext {
 	}
 
 	public List<DropdownItem> getActionDropdownItems() {
-		return new DropdownItemList() {
-			{
-				add(
-					dropdownItem -> {
-						dropdownItem.putData("action", Constants.DELETE);
-						dropdownItem.setHref(
-							StringBundler.concat(
-								"javascript:", _renderResponse.getNamespace(),
-								"delete();"));
-						dropdownItem.setIcon("times-circle");
-						dropdownItem.setLabel(
-							LanguageUtil.get(
-								_httpServletRequest, Constants.DELETE));
-						dropdownItem.setQuickAction(true);
-					});
+		return DropdownItemList.of(
+			() -> {
+				DropdownItem dropdownItem = new DropdownItem();
 
-				if (!Objects.equals(getNavigation(), "active")) {
-					add(
-						dropdownItem -> {
-							dropdownItem.putData("action", Constants.RESTORE);
-							dropdownItem.setHref(
-								StringBundler.concat(
-									"javascript:",
-									_renderResponse.getNamespace(),
-									"deleteUsers('", Constants.RESTORE, "');"));
-							dropdownItem.setIcon("undo");
-							dropdownItem.setLabel(
-								LanguageUtil.get(
-									_httpServletRequest, Constants.RESTORE));
-							dropdownItem.setQuickAction(true);
-						});
+				dropdownItem.putData("action", Constants.DELETE);
+				dropdownItem.setHref(
+					StringBundler.concat(
+						"javascript:", _renderResponse.getNamespace(),
+						"delete();"));
+				dropdownItem.setIcon("times-circle");
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, Constants.DELETE));
+				dropdownItem.setQuickAction(true);
+
+				return dropdownItem;
+			},
+			() -> {
+				if (Objects.equals(getNavigation(), "active")) {
+					return null;
 				}
 
-				if (!Objects.equals(getNavigation(), "inactive")) {
-					add(
-						dropdownItem -> {
-							dropdownItem.putData(
-								"action", Constants.DEACTIVATE);
-							dropdownItem.setHref(
-								StringBundler.concat(
-									"javascript:",
-									_renderResponse.getNamespace(),
-									"deleteUsers('", Constants.DEACTIVATE,
-									"');"));
-							dropdownItem.setIcon("hidden");
-							dropdownItem.setLabel(
-								LanguageUtil.get(
-									_httpServletRequest, Constants.DEACTIVATE));
-							dropdownItem.setQuickAction(true);
-						});
+				DropdownItem dropdownItem = new DropdownItem();
+
+				dropdownItem.putData("action", Constants.RESTORE);
+				dropdownItem.setHref(
+					StringBundler.concat(
+						"javascript:", _renderResponse.getNamespace(),
+						"deleteUsers('", Constants.RESTORE, "');"));
+				dropdownItem.setIcon("undo");
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, Constants.RESTORE));
+				dropdownItem.setQuickAction(true);
+
+				return dropdownItem;
+			},
+			() -> {
+				if (Objects.equals(getNavigation(), "inactive")) {
+					return null;
 				}
 
-				add(
-					dropdownItem -> {
-						dropdownItem.putData("action", Constants.REMOVE);
-						dropdownItem.setHref(
-							StringBundler.concat(
-								"javascript:", _renderResponse.getNamespace(),
-								"removeOrganizationsAndUsers();"));
-						dropdownItem.setIcon("remove-role");
-						dropdownItem.setLabel(
-							LanguageUtil.get(
-								_httpServletRequest, Constants.REMOVE));
-						dropdownItem.setQuickAction(true);
-					});
-			}
-		};
+				DropdownItem dropdownItem = new DropdownItem();
+
+				dropdownItem.putData("action", Constants.DEACTIVATE);
+				dropdownItem.setHref(
+					StringBundler.concat(
+						"javascript:", _renderResponse.getNamespace(),
+						"deleteUsers('", Constants.DEACTIVATE, "');"));
+				dropdownItem.setIcon("hidden");
+				dropdownItem.setLabel(
+					LanguageUtil.get(
+						_httpServletRequest, Constants.DEACTIVATE));
+				dropdownItem.setQuickAction(true);
+
+				return dropdownItem;
+			},
+			() -> {
+				DropdownItem dropdownItem = new DropdownItem();
+
+				dropdownItem.putData("action", Constants.REMOVE);
+				dropdownItem.setHref(
+					StringBundler.concat(
+						"javascript:", _renderResponse.getNamespace(),
+						"removeOrganizationsAndUsers();"));
+				dropdownItem.setIcon("minus-circle");
+				dropdownItem.setLabel(
+					LanguageUtil.get(_httpServletRequest, Constants.REMOVE));
+				dropdownItem.setQuickAction(true);
+
+				return dropdownItem;
+			});
 	}
 
 	public List<String> getAvailableActions(Organization organization) {
@@ -161,19 +164,19 @@ public class ViewTreeManagementToolbarDisplayContext {
 	}
 
 	public List<String> getAvailableActions(User user) {
-		List<String> availableActionDropdownItems = new ArrayList<>();
+		List<String> availableActions = new ArrayList<>();
 
 		if (user.isActive()) {
-			availableActionDropdownItems.add(Constants.DEACTIVATE);
+			availableActions.add(Constants.DEACTIVATE);
 		}
 		else {
-			availableActionDropdownItems.add(Constants.DELETE);
-			availableActionDropdownItems.add(Constants.RESTORE);
+			availableActions.add(Constants.DELETE);
+			availableActions.add(Constants.RESTORE);
 		}
 
-		availableActionDropdownItems.add(Constants.REMOVE);
+		availableActions.add(Constants.REMOVE);
 
-		return availableActionDropdownItems;
+		return availableActions;
 	}
 
 	public String getClearResultsURL() {

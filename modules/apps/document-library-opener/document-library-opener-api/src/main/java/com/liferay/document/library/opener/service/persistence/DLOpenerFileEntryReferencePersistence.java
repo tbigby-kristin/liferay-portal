@@ -35,7 +35,7 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface DLOpenerFileEntryReferencePersistence
 	extends BasePersistence<DLOpenerFileEntryReference> {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link DLOpenerFileEntryReferenceUtil} to access the dl opener file entry reference persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this interface.
@@ -63,11 +63,11 @@ public interface DLOpenerFileEntryReferencePersistence
 	 * Returns the dl opener file entry reference where fileEntryId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param fileEntryId the file entry ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching dl opener file entry reference, or <code>null</code> if a matching dl opener file entry reference could not be found
 	 */
 	public DLOpenerFileEntryReference fetchByFileEntryId(
-		long fileEntryId, boolean retrieveFromCache);
+		long fileEntryId, boolean useFinderCache);
 
 	/**
 	 * Removes the dl opener file entry reference where fileEntryId = &#63; from the database.
@@ -85,6 +85,59 @@ public interface DLOpenerFileEntryReferencePersistence
 	 * @return the number of matching dl opener file entry references
 	 */
 	public int countByFileEntryId(long fileEntryId);
+
+	/**
+	 * Returns the dl opener file entry reference where referenceType = &#63; and fileEntryId = &#63; or throws a <code>NoSuchFileEntryReferenceException</code> if it could not be found.
+	 *
+	 * @param referenceType the reference type
+	 * @param fileEntryId the file entry ID
+	 * @return the matching dl opener file entry reference
+	 * @throws NoSuchFileEntryReferenceException if a matching dl opener file entry reference could not be found
+	 */
+	public DLOpenerFileEntryReference findByR_F(
+			String referenceType, long fileEntryId)
+		throws NoSuchFileEntryReferenceException;
+
+	/**
+	 * Returns the dl opener file entry reference where referenceType = &#63; and fileEntryId = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 *
+	 * @param referenceType the reference type
+	 * @param fileEntryId the file entry ID
+	 * @return the matching dl opener file entry reference, or <code>null</code> if a matching dl opener file entry reference could not be found
+	 */
+	public DLOpenerFileEntryReference fetchByR_F(
+		String referenceType, long fileEntryId);
+
+	/**
+	 * Returns the dl opener file entry reference where referenceType = &#63; and fileEntryId = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 *
+	 * @param referenceType the reference type
+	 * @param fileEntryId the file entry ID
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the matching dl opener file entry reference, or <code>null</code> if a matching dl opener file entry reference could not be found
+	 */
+	public DLOpenerFileEntryReference fetchByR_F(
+		String referenceType, long fileEntryId, boolean useFinderCache);
+
+	/**
+	 * Removes the dl opener file entry reference where referenceType = &#63; and fileEntryId = &#63; from the database.
+	 *
+	 * @param referenceType the reference type
+	 * @param fileEntryId the file entry ID
+	 * @return the dl opener file entry reference that was removed
+	 */
+	public DLOpenerFileEntryReference removeByR_F(
+			String referenceType, long fileEntryId)
+		throws NoSuchFileEntryReferenceException;
+
+	/**
+	 * Returns the number of dl opener file entry references where referenceType = &#63; and fileEntryId = &#63;.
+	 *
+	 * @param referenceType the reference type
+	 * @param fileEntryId the file entry ID
+	 * @return the number of matching dl opener file entry references
+	 */
+	public int countByR_F(String referenceType, long fileEntryId);
 
 	/**
 	 * Caches the dl opener file entry reference in the entity cache if it is enabled.
@@ -191,14 +244,14 @@ public interface DLOpenerFileEntryReferencePersistence
 	 * @param start the lower bound of the range of dl opener file entry references
 	 * @param end the upper bound of the range of dl opener file entry references (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of dl opener file entry references
 	 */
 	public java.util.List<DLOpenerFileEntryReference> findAll(
 		int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator
 			<DLOpenerFileEntryReference> orderByComparator,
-		boolean retrieveFromCache);
+		boolean useFinderCache);
 
 	/**
 	 * Removes all the dl opener file entry references from the database.

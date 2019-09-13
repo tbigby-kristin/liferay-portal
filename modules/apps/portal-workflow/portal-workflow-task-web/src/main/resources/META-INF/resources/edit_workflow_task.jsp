@@ -29,6 +29,8 @@ if (Validator.isNull(backURL)) {
 	backURL = renderURL.toString();
 }
 
+String languageId = LanguageUtil.getLanguageId(request);
+
 WorkflowTask workflowTask = workflowTaskDisplayContext.getWorkflowTask();
 
 long classPK = workflowTaskDisplayContext.getWorkflowContextEntryClassPK(workflowTask);
@@ -37,13 +39,23 @@ WorkflowHandler<?> workflowHandler = workflowTaskDisplayContext.getWorkflowHandl
 
 AssetRenderer<?> assetRenderer = workflowHandler.getAssetRenderer(classPK);
 
-AssetRendererFactory<?> assetRendererFactory = assetRenderer.getAssetRendererFactory();
+AssetRendererFactory<?> assetRendererFactory = null;
 
-AssetEntry assetEntry = assetRendererFactory.getAssetEntry(workflowHandler.getClassName(), assetRenderer.getClassPK());
+AssetEntry assetEntry = null;
 
-String languageId = ParamUtil.getString(request, "languageId", assetRenderer.getDefaultLanguageId());
+if (assetRenderer != null) {
+	assetRendererFactory = assetRenderer.getAssetRendererFactory();
 
-String[] availableLanguageIds = assetRenderer.getAvailableLanguageIds();
+	if (assetRendererFactory != null) {
+		assetEntry = assetRendererFactory.getAssetEntry(workflowHandler.getClassName(), assetRenderer.getClassPK());
+	}
+
+	String[] availableLanguageIds = assetRenderer.getAvailableLanguageIds();
+
+	if (ArrayUtil.isNotEmpty(availableLanguageIds) && !ArrayUtil.contains(availableLanguageIds, languageId)) {
+		languageId = assetRenderer.getDefaultLanguageId();
+	}
+}
 
 String headerTitle = workflowTaskDisplayContext.getHeaderTitle(workflowTask);
 
@@ -64,7 +76,9 @@ renderResponse.setTitle(headerTitle);
 				request.removeAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 				%>
 
-				<liferay-util:include page="/workflow_task_action.jsp" servletContext="<%= application %>" />
+				<liferay-util:include page="/workflow_task_action.jsp" servletContext="<%= application %>">
+					<liferay-util:param name="mvcPath" value="/edit_workflow_task.jsp" />
+				</liferay-util:include>
 
 				<aui:col width="<%= 50 %>">
 					<aui:field-wrapper label="assigned-to">
@@ -144,7 +158,7 @@ renderResponse.setTitle(headerTitle);
 							<liferay-ui:language
 								formAction="<%= currentURL %>"
 								languageId="<%= languageId %>"
-								languageIds="<%= availableLanguageIds %>"
+								languageIds="<%= assetRenderer.getAvailableLanguageIds() %>"
 							/>
 						</div>
 
@@ -161,7 +175,10 @@ renderResponse.setTitle(headerTitle);
 											<portlet:param name="assetEntryClassPK" value="<%= String.valueOf(assetEntry.getClassPK()) %>" />
 										</c:if>
 
-										<portlet:param name="type" value="<%= assetRendererFactory.getType() %>" />
+										<c:if test="<%= assetRendererFactory != null %>">
+											<portlet:param name="type" value="<%= assetRendererFactory.getType() %>" />
+										</c:if>
+
 										<portlet:param name="showEditURL" value="<%= String.valueOf(workflowTaskDisplayContext.isShowEditURL(workflowTask)) %>" />
 										<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
 									</portlet:renderURL>
@@ -174,7 +191,8 @@ renderResponse.setTitle(headerTitle);
 
 									<c:if test="<%= workflowTaskDisplayContext.hasViewDiffsPortletURL(workflowTask) %>">
 										<liferay-ui:icon
-											iconCssClass="icon-copy"
+											icon="paste"
+											markupView="lexicon"
 											message="diffs"
 											url="<%= workflowTaskDisplayContext.getTaglibViewDiffsURL(workflowTask) %>"
 										/>
@@ -219,7 +237,7 @@ renderResponse.setTitle(headerTitle);
 								icon="<%= workflowHandler.getIconCssClass() %>"
 								label="<%= true %>"
 								markupView="lexicon"
-								message="<%= workflowTaskDisplayContext.getTaskContentTitle(workflowTask) %>"
+								message="<%= workflowTaskDisplayContext.getAssetTitle(workflowTask) %>"
 							/>
 						</h3>
 
@@ -229,21 +247,23 @@ renderResponse.setTitle(headerTitle);
 						/>
 					</liferay-ui:panel>
 
-					<liferay-ui:panel
-						extended="<%= true %>"
-						markupView="lexicon"
-						title="comments"
-					>
-						<liferay-comment:discussion
-							assetEntryVisible="<%= false %>"
-							className="<%= assetRenderer.getClassName() %>"
-							classPK="<%= (assetEntry == null) ? assetRenderer.getClassPK() : assetEntry.getClassPK() %>"
-							formName='<%= "fm" + ((assetEntry == null) ? assetRenderer.getClassPK() : assetEntry.getClassPK()) %>'
-							ratingsEnabled="<%= false %>"
-							redirect="<%= currentURL %>"
-							userId="<%= user.getUserId() %>"
-						/>
-					</liferay-ui:panel>
+					<c:if test="<%= assetEntry != null %>">
+						<liferay-ui:panel
+							extended="<%= true %>"
+							markupView="lexicon"
+							title="comments"
+						>
+							<liferay-comment:discussion
+								assetEntryVisible="<%= false %>"
+								className="<%= assetRenderer.getClassName() %>"
+								classPK="<%= assetEntry.getClassPK() %>"
+								formName='<%= "fm" + assetEntry.getClassPK() %>'
+								ratingsEnabled="<%= false %>"
+								redirect="<%= currentURL %>"
+								userId="<%= user.getUserId() %>"
+							/>
+						</liferay-ui:panel>
+					</c:if>
 				</c:if>
 
 				<liferay-ui:panel

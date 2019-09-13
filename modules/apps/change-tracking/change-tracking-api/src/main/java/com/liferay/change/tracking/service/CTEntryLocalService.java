@@ -14,7 +14,6 @@
 
 package com.liferay.change.tracking.service;
 
-import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -24,6 +23,7 @@ import com.liferay.portal.kernel.dao.orm.QueryDefinition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.service.BaseLocalService;
@@ -58,20 +58,11 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface CTEntryLocalService
 	extends BaseLocalService, PersistedModelLocalService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link CTEntryLocalServiceUtil} to access the ct entry local service. Add custom service methods to <code>com.liferay.change.tracking.service.impl.CTEntryLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public void addCTCollectionCTEntries(
-		long ctCollectionId, List<CTEntry> ctEntries);
-
-	public void addCTCollectionCTEntries(
-		long ctCollectionId, long[] ctEntryIds);
-
-	public void addCTCollectionCTEntry(long ctCollectionId, CTEntry ctEntry);
-
-	public void addCTCollectionCTEntry(long ctCollectionId, long ctEntryId);
 
 	/**
 	 * Adds the ct entry to the database. Also notifies the appropriate model listeners.
@@ -82,28 +73,16 @@ public interface CTEntryLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public CTEntry addCTEntry(CTEntry ctEntry);
 
-	@Indexable(type = IndexableType.REINDEX)
+	public CTEntry addCTEntry(
+			long ctCollectionId, long modelClassNameId, CTModel<?> ctModel,
+			long userId, int changeType)
+		throws PortalException;
+
 	public CTEntry addCTEntry(
 			long userId, long modelClassNameId, long modelClassPK,
 			long modelResourcePrimKey, int changeType, long ctCollectionId,
 			ServiceContext serviceContext)
 		throws PortalException;
-
-	public void addCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, List<CTEntry> ctEntries);
-
-	public void addCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, long[] ctEntryIds);
-
-	public void addCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, CTEntry ctEntry);
-
-	public void addCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, long ctEntryId);
-
-	public void clearCTCollectionCTEntries(long ctCollectionId);
-
-	public void clearCTEntryAggregateCTEntries(long ctEntryAggregateId);
 
 	/**
 	 * Creates a new ct entry with the primary key. Does not add the ct entry to the database.
@@ -113,16 +92,6 @@ public interface CTEntryLocalService
 	 */
 	@Transactional(enabled = false)
 	public CTEntry createCTEntry(long ctEntryId);
-
-	public void deleteCTCollectionCTEntries(
-		long ctCollectionId, List<CTEntry> ctEntries);
-
-	public void deleteCTCollectionCTEntries(
-		long ctCollectionId, long[] ctEntryIds);
-
-	public void deleteCTCollectionCTEntry(long ctCollectionId, CTEntry ctEntry);
-
-	public void deleteCTCollectionCTEntry(long ctCollectionId, long ctEntryId);
 
 	/**
 	 * Deletes the ct entry from the database. Also notifies the appropriate model listeners.
@@ -142,18 +111,6 @@ public interface CTEntryLocalService
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	public CTEntry deleteCTEntry(long ctEntryId) throws PortalException;
-
-	public void deleteCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, List<CTEntry> ctEntries);
-
-	public void deleteCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, long[] ctEntryIds);
-
-	public void deleteCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, CTEntry ctEntry);
-
-	public void deleteCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, long ctEntryId);
 
 	/**
 	 * @throws PortalException
@@ -229,9 +186,6 @@ public interface CTEntryLocalService
 		DynamicQuery dynamicQuery, Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> fetchCTEntries(long modelClassNameId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CTEntry> fetchCTEntries(
 		long ctCollectionId, long modelResourcePrimKey,
 		QueryDefinition<CTEntry> queryDefinition);
@@ -241,18 +195,12 @@ public interface CTEntryLocalService
 		long ctCollectionId, QueryDefinition<CTEntry> queryDefinition);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> fetchCTEntries(String modelClassName);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CTEntry> fetchCTEntriesByModelClassNameId(
 		long ctCollectionId, long modelClassNameId,
 		QueryDefinition<CTEntry> queryDefinition);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public CTEntry fetchCTEntry(long ctEntryId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public CTEntry fetchCTEntry(long modelClassNameId, long modelClassPK);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public CTEntry fetchCTEntry(
@@ -273,23 +221,6 @@ public interface CTEntryLocalService
 		long ctCollectionId, int status, int start, int end,
 		OrderByComparator<CTEntry> orderByComparator);
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> getCTCollectionCTEntries(
-		long ctCollectionId, int start, int end,
-		OrderByComparator<CTEntry> orderByComparator);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getCTCollectionCTEntriesCount(long ctCollectionId);
-
-	/**
-	 * Returns the ctCollectionIds of the ct collections associated with the ct entry.
-	 *
-	 * @param ctEntryId the ctEntryId of the ct entry
-	 * @return long[] the ctCollectionIds of ct collections associated with the ct entry
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long[] getCTCollectionPrimaryKeys(long ctEntryId);
-
 	/**
 	 * Returns a range of all the ct entries.
 	 *
@@ -303,6 +234,10 @@ public interface CTEntryLocalService
 	 */
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CTEntry> getCTEntries(int start, int end);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<CTEntry> getCTEntries(
+		long ctCollectionId, long modelClassNameId);
 
 	/**
 	 * Returns the number of ct entries.
@@ -327,30 +262,6 @@ public interface CTEntryLocalService
 	public CTEntry getCTEntry(long ctEntryId) throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> getCTEntryAggregateCTEntries(long ctEntryAggregateId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> getCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, int start, int end);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> getCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, int start, int end,
-		OrderByComparator<CTEntry> orderByComparator);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getCTEntryAggregateCTEntriesCount(long ctEntryAggregateId);
-
-	/**
-	 * Returns the ctEntryAggregateIds of the ct entry aggregates associated with the ct entry.
-	 *
-	 * @param ctEntryId the ctEntryId of the ct entry
-	 * @return long[] the ctEntryAggregateIds of ct entry aggregates associated with the ct entry
-	 */
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long[] getCTEntryAggregatePrimaryKeys(long ctEntryId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
 	/**
@@ -365,50 +276,9 @@ public interface CTEntryLocalService
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
 		throws PortalException;
 
-	@Indexable(type = IndexableType.REINDEX)
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> getRelatedOwnerCTEntries(long ctEntryId);
+	public boolean hasCTEntries(long ctCollectionId, long modelClassNameId);
 
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> getRelatedOwnerCTEntries(
-		long ctEntryId, int start, int end,
-		OrderByComparator<CTEntry> orderByComparator);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getRelatedOwnerCTEntriesCount(long ctEntryId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public boolean hasCTCollectionCTEntries(long ctCollectionId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public boolean hasCTCollectionCTEntry(long ctCollectionId, long ctEntryId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public boolean hasCTEntryAggregateCTEntries(long ctEntryAggregateId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public boolean hasCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, long ctEntryId);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<CTEntry> search(
-		CTCollection ctCollection, long[] groupIds, long[] userIds,
-		long[] classNameIds, int[] changeTypes, Boolean collision,
-		QueryDefinition<CTEntry> queryDefinition);
-
-	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public long searchCount(
-		CTCollection ctCollection, long[] groupIds, long[] userIds,
-		long[] classNameIds, int[] changeTypes, Boolean collision,
-		QueryDefinition<CTEntry> queryDefinition);
-
-	public void setCTCollectionCTEntries(
-		long ctCollectionId, long[] ctEntryIds);
-
-	public void setCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, long[] ctEntryIds);
-
-	@Indexable(type = IndexableType.REINDEX)
 	public CTEntry updateCollision(long ctEntryId, boolean collision);
 
 	/**
@@ -420,7 +290,6 @@ public interface CTEntryLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	public CTEntry updateCTEntry(CTEntry ctEntry);
 
-	@Indexable(type = IndexableType.REINDEX)
 	public CTEntry updateStatus(long ctEntryId, int status);
 
 }

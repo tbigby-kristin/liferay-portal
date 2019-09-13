@@ -374,14 +374,13 @@ public class FriendlyURLServlet extends HttpServlet {
 					String redirect = PortalUtil.getLocalizedFriendlyURL(
 						httpServletRequest, layout, locale, originalLocale);
 
-					Boolean forcePermanentRedirect = Boolean.TRUE;
+					boolean forcePermanentRedirect = true;
 
 					if (Validator.isNull(i18nLanguageId)) {
-						forcePermanentRedirect = Boolean.FALSE;
+						forcePermanentRedirect = false;
 					}
 
-					return new Redirect(
-						redirect, Boolean.TRUE, forcePermanentRedirect);
+					return new Redirect(redirect, true, forcePermanentRedirect);
 				}
 			}
 		}
@@ -542,17 +541,17 @@ public class FriendlyURLServlet extends HttpServlet {
 		}
 
 		public boolean isValidForward() {
-			String path = getPath();
-
-			if (!path.startsWith(Portal.PATH_MAIN)) {
-				return false;
-			}
-
 			if (isForce()) {
 				return false;
 			}
 
-			return true;
+			String path = getPath();
+
+			if (path.equals(Portal.PATH_MAIN) || path.startsWith("/c/")) {
+				return true;
+			}
+
+			return false;
 		}
 
 		private final boolean _force;
@@ -568,7 +567,7 @@ public class FriendlyURLServlet extends HttpServlet {
 
 		Long realUserId = (Long)session.getAttribute(WebKeys.USER_ID);
 
-		if (userId == realUserId) {
+		if ((realUserId == null) || (userId == realUserId)) {
 			return false;
 		}
 

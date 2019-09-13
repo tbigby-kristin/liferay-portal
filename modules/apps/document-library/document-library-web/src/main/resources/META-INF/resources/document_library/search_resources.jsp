@@ -150,9 +150,9 @@ entriesChecker.setRememberCheckBoxStateURLRegex("^(?!.*" + liferayPortletRespons
 						/>
 					</c:when>
 					<c:otherwise>
-						<div style="float: left; margin: 100px 10px 0;">
-							<i class="icon-ban-circle"></i>
-						</div>
+						<liferay-ui:search-container-column-icon
+							icon="minus-circle"
+						/>
 					</c:otherwise>
 				</c:choose>
 			</liferay-ui:search-container-row>

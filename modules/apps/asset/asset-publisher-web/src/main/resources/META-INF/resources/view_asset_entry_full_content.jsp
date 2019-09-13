@@ -70,8 +70,6 @@ String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletReques
 %>
 
 <div class="asset-full-content clearfix mb-5 <%= assetPublisherDisplayContext.isDefaultAssetPublisher() ? "default-asset-publisher" : StringPool.BLANK %> <%= assetPublisherDisplayContext.isShowAssetTitle() ? "show-asset-title" : "no-title" %> <%= (previewAssetEntryId == assetEntry.getEntryId()) ? "p-1 preview-asset-entry" : StringPool.BLANK %>">
-	<span class="asset-anchor lfr-asset-anchor" id="<%= assetEntry.getEntryId() %>"></span>
-
 	<div class="mb-2">
 		<c:if test="<%= assetPublisherDisplayContext.isShowAssetTitle() %>">
 			<h4 class="component-title">
@@ -108,27 +106,16 @@ String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletReques
 		</c:if>
 	</div>
 
+	<span class="asset-anchor lfr-asset-anchor" id="<%= assetEntry.getEntryId() %>"></span>
+
 	<c:if test="<%= assetPublisherDisplayContext.isShowAuthor() || (assetPublisherDisplayContext.isShowCreateDate() && (assetEntry.getCreateDate() != null)) || (assetPublisherDisplayContext.isShowPublishDate() && (assetEntry.getPublishDate() != null)) || (assetPublisherDisplayContext.isShowExpirationDate() && (assetEntry.getExpirationDate() != null)) || (assetPublisherDisplayContext.isShowModifiedDate() && (assetEntry.getModifiedDate() != null)) || assetPublisherDisplayContext.isShowViewCount() %>">
-
-		<%
-		User assetRendererUser = UserLocalServiceUtil.getUser(assetRenderer.getUserId());
-		%>
-
 		<div class="autofit-row mb-4 metadata-author">
 			<c:if test="<%= assetPublisherDisplayContext.isShowAuthor() %>">
 				<div class="asset-avatar autofit-col inline-item-before mr-3 pt-1">
-					<span class="user-avatar-image">
-						<div class="sticker sticker-circle sticker-lg sticker-light user-icon user-icon-default <%= LexiconUtil.getUserColorCssClass(assetRendererUser) %> ">
-							<c:choose>
-								<c:when test="<%= assetRendererUser.getPortraitId() <= 0 %>">
-									<aui:icon image="user" markupView="lexicon" />
-								</c:when>
-								<c:otherwise>
-									<img class="sticker-img" src="<%= HtmlUtil.escape(UserConstants.getPortraitURL(themeDisplay.getPathImage(), assetRendererUser.isMale(), assetRendererUser.getPortraitId(), assetRendererUser.getUserUuid())) %>" />
-								</c:otherwise>
-							</c:choose>
-						</div>
-					</span>
+					<liferay-ui:user-portrait
+						size="lg"
+						userId="<%= assetRenderer.getUserId() %>"
+					/>
 				</div>
 			</c:if>
 
@@ -136,7 +123,7 @@ String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletReques
 				<div class="autofit-row">
 					<div class="autofit-col autofit-col-expand">
 						<div class="text-truncate-inline">
-							<span class="text-truncate user-info"><strong><%= HtmlUtil.escape(assetRendererUser.getFullName()) %></strong></span>
+							<span class="text-truncate user-info"><strong><%= HtmlUtil.escape(AssetRendererUtil.getAssetRendererUserFullName(assetRenderer, request)) %></strong></span>
 						</div>
 
 						<%
@@ -371,14 +358,20 @@ String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletReques
 			<c:if test="<%= showLocalization %>">
 
 				<%
+				String languageId = LanguageUtil.getLanguageId(request);
+
 				String[] availableLanguageIds = assetRenderer.getAvailableLanguageIds();
+
+				if (ArrayUtil.isNotEmpty(availableLanguageIds) && !ArrayUtil.contains(availableLanguageIds, languageId)) {
+					languageId = assetRenderer.getDefaultLanguageId();
+				}
 				%>
 
 				<c:if test="<%= availableLanguageIds.length > 1 %>">
 					<div class="autofit-col locale-actions mr-3">
 						<liferay-ui:language
 							formAction="<%= currentURL %>"
-							languageId="<%= LanguageUtil.getLanguageId(request) %>"
+							languageId="<%= languageId %>"
 							languageIds="<%= availableLanguageIds %>"
 						/>
 					</div>

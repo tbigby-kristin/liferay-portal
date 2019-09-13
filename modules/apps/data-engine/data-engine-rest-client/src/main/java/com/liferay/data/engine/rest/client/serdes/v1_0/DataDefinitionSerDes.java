@@ -22,11 +22,11 @@ import com.liferay.data.engine.rest.client.json.BaseJSONParser;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import javax.annotation.Generated;
@@ -64,6 +64,32 @@ public class DataDefinitionSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
 
+		if (dataDefinition.getAvailableLanguageIds() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"availableLanguageIds\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < dataDefinition.getAvailableLanguageIds().length;
+				 i++) {
+
+				sb.append("\"");
+
+				sb.append(_escape(dataDefinition.getAvailableLanguageIds()[i]));
+
+				sb.append("\"");
+
+				if ((i + 1) < dataDefinition.getAvailableLanguageIds().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (dataDefinition.getDataDefinitionFields() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -86,6 +112,20 @@ public class DataDefinitionSerDes {
 			}
 
 			sb.append("]");
+		}
+
+		if (dataDefinition.getDataDefinitionKey() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dataDefinitionKey\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(dataDefinition.getDataDefinitionKey()));
+
+			sb.append("\"");
 		}
 
 		if (dataDefinition.getDataDefinitionRules() != null) {
@@ -139,6 +179,20 @@ public class DataDefinitionSerDes {
 			sb.append(
 				liferayToJSONDateFormat.format(
 					dataDefinition.getDateModified()));
+
+			sb.append("\"");
+		}
+
+		if (dataDefinition.getDefaultLanguageId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"defaultLanguageId\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(dataDefinition.getDefaultLanguageId()));
 
 			sb.append("\"");
 		}
@@ -224,10 +278,19 @@ public class DataDefinitionSerDes {
 			return null;
 		}
 
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> map = new TreeMap<>();
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		if (dataDefinition.getAvailableLanguageIds() == null) {
+			map.put("availableLanguageIds", null);
+		}
+		else {
+			map.put(
+				"availableLanguageIds",
+				String.valueOf(dataDefinition.getAvailableLanguageIds()));
+		}
 
 		if (dataDefinition.getDataDefinitionFields() == null) {
 			map.put("dataDefinitionFields", null);
@@ -236,6 +299,15 @@ public class DataDefinitionSerDes {
 			map.put(
 				"dataDefinitionFields",
 				String.valueOf(dataDefinition.getDataDefinitionFields()));
+		}
+
+		if (dataDefinition.getDataDefinitionKey() == null) {
+			map.put("dataDefinitionKey", null);
+		}
+		else {
+			map.put(
+				"dataDefinitionKey",
+				String.valueOf(dataDefinition.getDataDefinitionKey()));
 		}
 
 		if (dataDefinition.getDataDefinitionRules() == null) {
@@ -254,6 +326,15 @@ public class DataDefinitionSerDes {
 		map.put(
 			"dateModified",
 			liferayToJSONDateFormat.format(dataDefinition.getDateModified()));
+
+		if (dataDefinition.getDefaultLanguageId() == null) {
+			map.put("defaultLanguageId", null);
+		}
+		else {
+			map.put(
+				"defaultLanguageId",
+				String.valueOf(dataDefinition.getDefaultLanguageId()));
+		}
 
 		if (dataDefinition.getDescription() == null) {
 			map.put("description", null);
@@ -302,44 +383,7 @@ public class DataDefinitionSerDes {
 		return map;
 	}
 
-	private static String _escape(Object object) {
-		String string = String.valueOf(object);
-
-		string = string.replace("\\", "\\\\");
-
-		return string.replace("\"", "\\\"");
-	}
-
-	private static String _toJSON(Map<String, ?> map) {
-		StringBuilder sb = new StringBuilder("{");
-
-		@SuppressWarnings("unchecked")
-		Set set = map.entrySet();
-
-		@SuppressWarnings("unchecked")
-		Iterator<Map.Entry<String, ?>> iterator = set.iterator();
-
-		while (iterator.hasNext()) {
-			Map.Entry<String, ?> entry = iterator.next();
-
-			sb.append("\"");
-			sb.append(entry.getKey());
-			sb.append("\":");
-			sb.append("\"");
-			sb.append(entry.getValue());
-			sb.append("\"");
-
-			if (iterator.hasNext()) {
-				sb.append(",");
-			}
-		}
-
-		sb.append("}");
-
-		return sb.toString();
-	}
-
-	private static class DataDefinitionJSONParser
+	public static class DataDefinitionJSONParser
 		extends BaseJSONParser<DataDefinition> {
 
 		@Override
@@ -357,7 +401,15 @@ public class DataDefinitionSerDes {
 			DataDefinition dataDefinition, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "dataDefinitionFields")) {
+			if (Objects.equals(jsonParserFieldName, "availableLanguageIds")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinition.setAvailableLanguageIds(
+						toStrings((Object[])jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "dataDefinitionFields")) {
+
 				if (jsonParserFieldValue != null) {
 					dataDefinition.setDataDefinitionFields(
 						Stream.of(
@@ -368,6 +420,12 @@ public class DataDefinitionSerDes {
 						).toArray(
 							size -> new DataDefinitionField[size]
 						));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "dataDefinitionKey")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinition.setDataDefinitionKey(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(
@@ -395,6 +453,12 @@ public class DataDefinitionSerDes {
 				if (jsonParserFieldValue != null) {
 					dataDefinition.setDateModified(
 						toDate((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "defaultLanguageId")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinition.setDefaultLanguageId(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
@@ -440,6 +504,70 @@ public class DataDefinitionSerDes {
 			}
 		}
 
+	}
+
+	private static String _escape(Object object) {
+		String string = String.valueOf(object);
+
+		string = string.replace("\\", "\\\\");
+
+		return string.replace("\"", "\\\"");
+	}
+
+	private static String _toJSON(Map<String, ?> map) {
+		StringBuilder sb = new StringBuilder("{");
+
+		@SuppressWarnings("unchecked")
+		Set set = map.entrySet();
+
+		@SuppressWarnings("unchecked")
+		Iterator<Map.Entry<String, ?>> iterator = set.iterator();
+
+		while (iterator.hasNext()) {
+			Map.Entry<String, ?> entry = iterator.next();
+
+			sb.append("\"");
+			sb.append(entry.getKey());
+			sb.append("\":");
+
+			Object value = entry.getValue();
+
+			Class<?> valueClass = value.getClass();
+
+			if (value instanceof Map) {
+				sb.append(_toJSON((Map)value));
+			}
+			else if (valueClass.isArray()) {
+				Object[] values = (Object[])value;
+
+				sb.append("[");
+
+				for (int i = 0; i < values.length; i++) {
+					sb.append("\"");
+					sb.append(_escape(values[i]));
+					sb.append("\"");
+
+					if ((i + 1) < values.length) {
+						sb.append(", ");
+					}
+				}
+
+				sb.append("]");
+			}
+			else {
+				sb.append("\"");
+				sb.append(_escape(entry.getValue()));
+				sb.append("\"");
+			}
+
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+
+		sb.append("}");
+
+		return sb.toString();
 	}
 
 }

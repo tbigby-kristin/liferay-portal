@@ -58,8 +58,7 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.init-param.view-template=/custom/filter/view.jsp",
 		"javax.portlet.name=" + CustomFilterPortletKeys.CUSTOM_FILTER,
 		"javax.portlet.resource-bundle=content.Language",
-		"javax.portlet.security-role-ref=guest,power-user,user",
-		"javax.portlet.supports.mime-type=text/html"
+		"javax.portlet.security-role-ref=guest,power-user,user"
 	},
 	service = Portlet.class
 )
@@ -73,13 +72,23 @@ public class CustomFilterPortlet extends MVCPortlet {
 		PortletSharedSearchResponse portletSharedSearchResponse =
 			portletSharedSearchRequest.search(renderRequest);
 
+		CustomFilterPortletPreferences customFilterPortletPreferences =
+			new CustomFilterPortletPreferencesImpl(
+				portletSharedSearchResponse.getPortletPreferences(
+					renderRequest));
+
 		CustomFilterDisplayContext customFilterDisplayContext =
-			buildDisplayContext(portletSharedSearchResponse, renderRequest);
+			buildDisplayContext(
+				customFilterPortletPreferences, portletSharedSearchResponse,
+				renderRequest);
 
 		renderRequest.setAttribute(
 			WebKeys.PORTLET_DISPLAY_CONTEXT, customFilterDisplayContext);
 
-		if (customFilterDisplayContext.isRenderNothing()) {
+		if (customFilterPortletPreferences.isDisabled() ||
+			customFilterPortletPreferences.isImmutable() ||
+			customFilterPortletPreferences.isInvisible()) {
+
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
 		}
@@ -88,13 +97,9 @@ public class CustomFilterPortlet extends MVCPortlet {
 	}
 
 	protected CustomFilterDisplayContext buildDisplayContext(
+		CustomFilterPortletPreferences customFilterPortletPreferences,
 		PortletSharedSearchResponse portletSharedSearchResponse,
 		RenderRequest renderRequest) {
-
-		CustomFilterPortletPreferences customFilterPortletPreferences =
-			new CustomFilterPortletPreferencesImpl(
-				portletSharedSearchResponse.getPortletPreferences(
-					renderRequest));
 
 		String parameterName = CustomFilterPortletUtil.getParameterName(
 			customFilterPortletPreferences);
@@ -102,12 +107,12 @@ public class CustomFilterPortlet extends MVCPortlet {
 		return CustomFilterDisplayBuilder.builder(
 		).customHeadingOptional(
 			customFilterPortletPreferences.getCustomHeadingOptional()
+		).disabled(
+			customFilterPortletPreferences.isDisabled()
 		).filterFieldOptional(
 			customFilterPortletPreferences.getFilterFieldOptional()
 		).http(
 			http
-		).invisible(
-			customFilterPortletPreferences.isInvisible()
 		).immutable(
 			customFilterPortletPreferences.isImmutable()
 		).filterValueOptional(

@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.util.tracker.ServiceTracker;
@@ -41,10 +40,9 @@ import org.osgi.util.tracker.ServiceTracker;
  * @see AssetTagStatsPersistence
  * @generated
  */
-@ProviderType
 public class AssetTagStatsUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -185,16 +183,16 @@ public class AssetTagStatsUtil {
 	 * @param start the lower bound of the range of asset tag statses
 	 * @param end the upper bound of the range of asset tag statses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset tag statses
 	 */
 	public static List<AssetTagStats> findByTagId(
 		long tagId, int start, int end,
 		OrderByComparator<AssetTagStats> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByTagId(
-			tagId, start, end, orderByComparator, retrieveFromCache);
+			tagId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -350,16 +348,16 @@ public class AssetTagStatsUtil {
 	 * @param start the lower bound of the range of asset tag statses
 	 * @param end the upper bound of the range of asset tag statses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset tag statses
 	 */
 	public static List<AssetTagStats> findByClassNameId(
 		long classNameId, int start, int end,
 		OrderByComparator<AssetTagStats> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByClassNameId(
-			classNameId, start, end, orderByComparator, retrieveFromCache);
+			classNameId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -491,14 +489,13 @@ public class AssetTagStatsUtil {
 	 *
 	 * @param tagId the tag ID
 	 * @param classNameId the class name ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset tag stats, or <code>null</code> if a matching asset tag stats could not be found
 	 */
 	public static AssetTagStats fetchByT_C(
-		long tagId, long classNameId, boolean retrieveFromCache) {
+		long tagId, long classNameId, boolean useFinderCache) {
 
-		return getPersistence().fetchByT_C(
-			tagId, classNameId, retrieveFromCache);
+		return getPersistence().fetchByT_C(tagId, classNameId, useFinderCache);
 	}
 
 	/**
@@ -646,15 +643,15 @@ public class AssetTagStatsUtil {
 	 * @param start the lower bound of the range of asset tag statses
 	 * @param end the upper bound of the range of asset tag statses (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of asset tag statses
 	 */
 	public static List<AssetTagStats> findAll(
 		int start, int end, OrderByComparator<AssetTagStats> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

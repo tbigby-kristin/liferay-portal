@@ -6,11 +6,14 @@
 {template .render}
 	{@param content: html}
 	{@param type: string}
+	{@param? _activable: bool}
 	{@param? _handleEditableClick: any}
 	{@param? _handleEditableFocus: any}
 	{@param? _highlighted: any}
 	{@param? _mapped: bool}
+	{@param? _mappedItemHovered: bool}
 	{@param? _mappedFieldLabel: string}
+	{@param? _selected: any}
 	{@param? _translated: bool}
 	{@param? activeItemId: string}
 	{@param? activeItemType: string}
@@ -33,6 +36,10 @@
 
 		{if $hoveredItemId == $itemId and $hoveredItemType == $itemTypes.editable}
 			{sp}fragments-editor__editable--hovered
+		{/if}
+
+		{if $_mappedItemHovered}
+			{sp}fragments-editor__editable--mapped-item-hovered
 		{/if}
 
 		{if $_highlighted}
@@ -66,20 +73,27 @@
 				{/if}
 			{/if}
 		{/if}
+
+		{if $_selected}
+			{sp}fragments-editor__editable--selected
+		{/if}
 	{/let}
 
 	{let $editableAttributes kind="attributes"}
 		class="{$editableClasses}"
 		data-editable-id="{$editableId}"
 		data-fragment-entry-link-id="{$fragmentEntryLinkId}"
-		data-fragments-editor-item-id="{$itemId}"
-		data-fragments-editor-item-type="fragments-editor-editable-field"
 		data-onfocus="{$_handleEditableFocus}"
 		id="{$itemId}"
 		ref="editable"
 		tabindex="0"
 		title="{$_mappedFieldLabel ?: ''}"
 		type="{$type}"
+
+		{if $_activable}
+			data-fragments-editor-item-id="{$itemId}"
+			data-fragments-editor-item-type="fragments-editor-editable-field"
+		{/if}
 
 		{if (not $_mapped) and ($activeItemId == $itemId) and ($activeItemType == $itemTypes.editable)}
 			data-onclick="{$_handleEditableClick}"

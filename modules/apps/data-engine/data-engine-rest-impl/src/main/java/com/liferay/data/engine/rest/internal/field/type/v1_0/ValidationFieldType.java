@@ -14,10 +14,10 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
 import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -40,7 +40,7 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"data.engine.field.type.icon=icon-font",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/Validation/Validation.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Validation/Validation.es",
 		"data.engine.field.type.system=true"
 	},
 	service = FieldType.class
@@ -64,7 +64,7 @@ public class ValidationFieldType extends BaseFieldType {
 	private Map<String, String> _getValue(
 		SPIDataDefinitionField spiDataDefinitionField) {
 
-		Map<String, String> value = new HashMap();
+		Map<String, String> value = new HashMap<>();
 
 		try {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(

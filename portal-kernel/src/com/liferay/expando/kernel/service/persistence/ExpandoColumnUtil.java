@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the expando column service. This utility wraps <code>com.liferay.portlet.expando.service.persistence.impl.ExpandoColumnPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see ExpandoColumnPersistence
  * @generated
  */
-@ProviderType
 public class ExpandoColumnUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -183,16 +180,16 @@ public class ExpandoColumnUtil {
 	 * @param start the lower bound of the range of expando columns
 	 * @param end the upper bound of the range of expando columns (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching expando columns
 	 */
 	public static List<ExpandoColumn> findByTableId(
 		long tableId, int start, int end,
 		OrderByComparator<ExpandoColumn> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByTableId(
-			tableId, start, end, orderByComparator, retrieveFromCache);
+			tableId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -434,16 +431,16 @@ public class ExpandoColumnUtil {
 	 * @param start the lower bound of the range of expando columns
 	 * @param end the upper bound of the range of expando columns (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching expando columns
 	 */
 	public static List<ExpandoColumn> findByT_N(
 		long tableId, String[] names, int start, int end,
 		OrderByComparator<ExpandoColumn> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByT_N(
-			tableId, names, start, end, orderByComparator, retrieveFromCache);
+			tableId, names, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -476,13 +473,13 @@ public class ExpandoColumnUtil {
 	 *
 	 * @param tableId the table ID
 	 * @param name the name
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching expando column, or <code>null</code> if a matching expando column could not be found
 	 */
 	public static ExpandoColumn fetchByT_N(
-		long tableId, String name, boolean retrieveFromCache) {
+		long tableId, String name, boolean useFinderCache) {
 
-		return getPersistence().fetchByT_N(tableId, name, retrieveFromCache);
+		return getPersistence().fetchByT_N(tableId, name, useFinderCache);
 	}
 
 	/**
@@ -663,15 +660,15 @@ public class ExpandoColumnUtil {
 	 * @param start the lower bound of the range of expando columns
 	 * @param end the upper bound of the range of expando columns (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of expando columns
 	 */
 	public static List<ExpandoColumn> findAll(
 		int start, int end, OrderByComparator<ExpandoColumn> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

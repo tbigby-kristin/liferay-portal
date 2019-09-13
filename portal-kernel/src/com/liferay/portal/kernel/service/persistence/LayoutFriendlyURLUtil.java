@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the layout friendly url service. This utility wraps <code>com.liferay.portal.service.persistence.impl.LayoutFriendlyURLPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutFriendlyURLPersistence
  * @generated
  */
-@ProviderType
 public class LayoutFriendlyURLUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -184,16 +181,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid(
-			uuid, start, end, orderByComparator, retrieveFromCache);
+			uuid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -323,13 +320,13 @@ public class LayoutFriendlyURLUtil {
 	 *
 	 * @param uuid the uuid
 	 * @param groupId the group ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching layout friendly url, or <code>null</code> if a matching layout friendly url could not be found
 	 */
 	public static LayoutFriendlyURL fetchByUUID_G(
-		String uuid, long groupId, boolean retrieveFromCache) {
+		String uuid, long groupId, boolean useFinderCache) {
 
-		return getPersistence().fetchByUUID_G(uuid, groupId, retrieveFromCache);
+		return getPersistence().fetchByUUID_G(uuid, groupId, useFinderCache);
 	}
 
 	/**
@@ -423,16 +420,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByUuid_C(
-			uuid, companyId, start, end, orderByComparator, retrieveFromCache);
+			uuid, companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -606,16 +603,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByGroupId(
-			groupId, start, end, orderByComparator, retrieveFromCache);
+			groupId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -777,16 +774,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByCompanyId(
 		long companyId, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByCompanyId(
-			companyId, start, end, orderByComparator, retrieveFromCache);
+			companyId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -952,16 +949,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByPlid(
 		long plid, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByPlid(
-			plid, start, end, orderByComparator, retrieveFromCache);
+			plid, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1126,17 +1123,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByP_F(
 		long plid, String friendlyURL, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByP_F(
-			plid, friendlyURL, start, end, orderByComparator,
-			retrieveFromCache);
+			plid, friendlyURL, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1320,17 +1316,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByP_L(
 		long[] plids, String languageId, int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByP_L(
-			plids, languageId, start, end, orderByComparator,
-			retrieveFromCache);
+			plids, languageId, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1364,13 +1359,13 @@ public class LayoutFriendlyURLUtil {
 	 *
 	 * @param plid the plid
 	 * @param languageId the language ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching layout friendly url, or <code>null</code> if a matching layout friendly url could not be found
 	 */
 	public static LayoutFriendlyURL fetchByP_L(
-		long plid, String languageId, boolean retrieveFromCache) {
+		long plid, String languageId, boolean useFinderCache) {
 
-		return getPersistence().fetchByP_L(plid, languageId, retrieveFromCache);
+		return getPersistence().fetchByP_L(plid, languageId, useFinderCache);
 	}
 
 	/**
@@ -1482,17 +1477,17 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findByG_P_F(
 		long groupId, boolean privateLayout, String friendlyURL, int start,
 		int end, OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByG_P_F(
 			groupId, privateLayout, friendlyURL, start, end, orderByComparator,
-			retrieveFromCache);
+			useFinderCache);
 	}
 
 	/**
@@ -1664,15 +1659,15 @@ public class LayoutFriendlyURLUtil {
 	 * @param privateLayout the private layout
 	 * @param friendlyURL the friendly url
 	 * @param languageId the language ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching layout friendly url, or <code>null</code> if a matching layout friendly url could not be found
 	 */
 	public static LayoutFriendlyURL fetchByG_P_F_L(
 		long groupId, boolean privateLayout, String friendlyURL,
-		String languageId, boolean retrieveFromCache) {
+		String languageId, boolean useFinderCache) {
 
 		return getPersistence().fetchByG_P_F_L(
-			groupId, privateLayout, friendlyURL, languageId, retrieveFromCache);
+			groupId, privateLayout, friendlyURL, languageId, useFinderCache);
 	}
 
 	/**
@@ -1838,16 +1833,16 @@ public class LayoutFriendlyURLUtil {
 	 * @param start the lower bound of the range of layout friendly urls
 	 * @param end the upper bound of the range of layout friendly urls (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of layout friendly urls
 	 */
 	public static List<LayoutFriendlyURL> findAll(
 		int start, int end,
 		OrderByComparator<LayoutFriendlyURL> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

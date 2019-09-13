@@ -14,7 +14,6 @@
 
 package com.liferay.dynamic.data.mapping.form.evaluator.internal.function;
 
-import com.liferay.dynamic.data.mapping.constants.DDMConstants;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunction;
 
 import java.math.BigDecimal;
@@ -22,17 +21,13 @@ import java.math.BigDecimal;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.osgi.service.component.annotations.Component;
-
 /**
  * @author Leonardo Barros
  */
-@Component(
-	factory = DDMConstants.EXPRESSION_FUNCTION_FACTORY_NAME,
-	service = DDMExpressionFunction.Function1.class
-)
 public class SumFunction
 	implements DDMExpressionFunction.Function1<BigDecimal[], BigDecimal> {
+
+	public static final String NAME = "sum";
 
 	@Override
 	public BigDecimal apply(BigDecimal[] values) {
@@ -45,7 +40,7 @@ public class SumFunction
 
 	@Override
 	public String getName() {
-		return "sum";
+		return NAME;
 	}
 
 }

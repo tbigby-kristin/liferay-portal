@@ -75,7 +75,7 @@ public interface JournalArticleLocalService
 	extends BaseLocalService, PersistedModelLocalService,
 			PersistedResourcedModelLocalService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. Always use {@link JournalArticleLocalServiceUtil} to access the journal article local service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalArticleLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
@@ -349,6 +349,15 @@ public interface JournalArticleLocalService
 			ServiceContext serviceContext)
 		throws PortalException;
 
+	public JournalArticle addArticleDefaultValues(
+			long userId, long groupId, long classNameId, long classPK,
+			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
+			String content, String ddmStructureKey, String ddmTemplateKey,
+			String layoutUuid, boolean indexable, boolean smallImage,
+			String smallImageURL, File smallImageFile,
+			ServiceContext serviceContext)
+		throws PortalException;
+
 	/**
 	 * Adds the resources to the web content article.
 	 *
@@ -578,6 +587,10 @@ public interface JournalArticleLocalService
 	 */
 	public void deleteArticle(
 			long groupId, String articleId, ServiceContext serviceContext)
+		throws PortalException;
+
+	public void deleteArticleDefaultValues(
+			long groupId, String articleId, String ddmStructureKey)
 		throws PortalException;
 
 	/**
@@ -3581,6 +3594,15 @@ public interface JournalArticleLocalService
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	public JournalArticle updateArticle(long id, String urlTitle)
+		throws PortalException;
+
+	public JournalArticle updateArticleDefaultValues(
+			long userId, long groupId, String articleId,
+			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
+			String content, String ddmStructureKey, String ddmTemplateKey,
+			String layoutUuid, boolean indexable, boolean smallImage,
+			String smallImageURL, File smallImageFile,
+			ServiceContext serviceContext)
 		throws PortalException;
 
 	/**

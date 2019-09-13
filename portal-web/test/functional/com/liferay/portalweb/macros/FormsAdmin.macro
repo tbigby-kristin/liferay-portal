@@ -106,10 +106,11 @@ definition {
 		FormsAdmin.viewCannotEditFormEntries();
 
 		var key_fieldName = "${fieldName}";
+		var key_fieldValue = "${fieldValue}";
 
-		FormFields.viewCheckboxLabel(
-			fieldLabel = "${fieldLabel}",
-			fieldName = "${fieldName}");
+		FormFields.viewCheckboxEntry(
+			fieldName = "${fieldName}",
+			fieldValue = "${fieldValue}");
 
 		AssertElementPresent(locator1 = "FormFields#CHECKBOX");
 	}
@@ -136,7 +137,7 @@ definition {
 
 		var key_formDescription = "${formDescription}";
 
-		if(IsVisible(locator1 = "FormsAdmin#FORMS_TABLE_DESCRIPTION")){
+		if (IsVisible(locator1 = "FormsAdmin#FORMS_TABLE_DESCRIPTION")) {
 			AssertTextEquals(
 				locator1 = "FormsAdmin#FORMS_TABLE_DESCRIPTION",
 				value1 = "${formDescription}");

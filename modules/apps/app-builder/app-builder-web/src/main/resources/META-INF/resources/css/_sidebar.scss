@@ -1,0 +1,50 @@
+.app-builder-sidebar {
+	background: white;
+	border-top-width: 0;
+	display: flex;
+	flex-flow: column;
+	height: 100%;
+	position: fixed;
+	right: 0;
+
+	&.main {
+		transform: translateX(0%);
+		transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+		width: $sidebarMainWidth;
+
+		&.closed {
+			opacity: 0;
+			transform: translateX($sidebarMainWidth - $sidebarMiniWidth);
+		}
+	}
+
+	&.mini {
+		padding: 16px;
+		transform: translateX(0%);
+		transition: transform 0.3s ease-in-out;
+		width: $sidebarMiniWidth;
+
+		&.closed {
+			transform: translateX($sidebarMiniWidth);
+		}
+	}
+
+	.component-tbar {
+		height: auto;
+		margin-left: -1rem;
+		margin-right: -1rem;
+	}
+
+	.sidebar-body {
+		height: calc(100vh - 168px);
+	}
+}
+
+.app-builder-sidebar-content {
+	padding-right: $sidebarMainWidth;
+	transition: padding-right 0.3s ease-in-out;
+
+	&.closed {
+		padding-right: $sidebarMiniWidth;
+	}
+}

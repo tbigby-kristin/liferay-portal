@@ -20,8 +20,11 @@ import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalService;
 import com.liferay.layout.page.template.service.base.LayoutPageTemplateStructureLocalServiceBaseImpl;
 import com.liferay.layout.page.template.util.LayoutPageTemplateStructureHelperUtil;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Layout;
@@ -33,15 +36,21 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.spring.extender.service.ServiceReference;
-import com.liferay.segments.constants.SegmentsConstants;
+import com.liferay.segments.constants.SegmentsExperienceConstants;
 
 import java.util.Date;
 import java.util.List;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Jürgen Kappler
  */
+@Component(
+	property = "model.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateStructure",
+	service = AopService.class
+)
 public class LayoutPageTemplateStructureLocalServiceImpl
 	extends LayoutPageTemplateStructureLocalServiceBaseImpl {
 
@@ -89,10 +98,10 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		// Layout page template structure rel
 
 		if (!ExportImportThreadLocal.isImportInProcess()) {
-			layoutPageTemplateStructureRelLocalService.
+			_layoutPageTemplateStructureRelLocalService.
 				addLayoutPageTemplateStructureRel(
 					userId, groupId, layoutPageTemplateStructureId,
-					SegmentsConstants.SEGMENTS_EXPERIENCE_ID_DEFAULT, data,
+					SegmentsExperienceConstants.ID_DEFAULT, data,
 					serviceContext);
 		}
 
@@ -112,7 +121,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		// Layout page template structure rels
 
 		List<LayoutPageTemplateStructureRel> layoutPageTemplateStructureRels =
-			layoutPageTemplateStructureRelLocalService.
+			_layoutPageTemplateStructureRelLocalService.
 				getLayoutPageTemplateStructureRels(
 					layoutPageTemplateStructure.
 						getLayoutPageTemplateStructureId());
@@ -120,7 +129,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		for (LayoutPageTemplateStructureRel layoutPageTemplateStructureRel :
 				layoutPageTemplateStructureRels) {
 
-			layoutPageTemplateStructureRelLocalService.
+			_layoutPageTemplateStructureRelLocalService.
 				deleteLayoutPageTemplateStructureRel(
 					layoutPageTemplateStructureRel);
 		}
@@ -215,14 +224,14 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		// Layout page template structure rel
 
 		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
-			layoutPageTemplateStructureRelLocalService.
+			_layoutPageTemplateStructureRelLocalService.
 				fetchLayoutPageTemplateStructureRel(
 					layoutPageTemplateStructure.
 						getLayoutPageTemplateStructureId(),
 					segmentsExperienceId);
 
 		if (layoutPageTemplateStructureRel == null) {
-			layoutPageTemplateStructureRelLocalService.
+			_layoutPageTemplateStructureRelLocalService.
 				addLayoutPageTemplateStructureRel(
 					PrincipalThreadLocal.getUserId(), groupId,
 					layoutPageTemplateStructure.
@@ -231,7 +240,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 					ServiceContextThreadLocal.getServiceContext());
 		}
 		else {
-			layoutPageTemplateStructureRelLocalService.
+			_layoutPageTemplateStructureRelLocalService.
 				updateLayoutPageTemplateStructureRel(
 					layoutPageTemplateStructure.
 						getLayoutPageTemplateStructureId(),
@@ -251,7 +260,7 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 		return layoutPageTemplateStructureLocalService.
 			updateLayoutPageTemplateStructure(
 				groupId, classNameId, classPK,
-				SegmentsConstants.SEGMENTS_EXPERIENCE_ID_DEFAULT, data);
+				SegmentsExperienceConstants.ID_DEFAULT, data);
 	}
 
 	private void _updateClassedModel(long classNameId, long classPK)
@@ -268,23 +277,31 @@ public class LayoutPageTemplateStructureLocalServiceImpl
 					LayoutPageTemplateEntry.class)) {
 
 			LayoutPageTemplateEntry layoutPageTemplateEntry =
-				layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
+				_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
 					classPK);
 
 			layoutPageTemplateEntry.setModifiedDate(new Date());
 
-			layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
+			_layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
 				layoutPageTemplateEntry);
 		}
 	}
 
-	@ServiceReference(type = FragmentEntryLinkLocalService.class)
+	@Reference
 	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
 
-	@ServiceReference(type = LayoutLocalService.class)
+	@Reference
 	private LayoutLocalService _layoutLocalService;
 
-	@ServiceReference(type = Portal.class)
+	@Reference
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
+
+	@Reference
+	private LayoutPageTemplateStructureRelLocalService
+		_layoutPageTemplateStructureRelLocalService;
+
+	@Reference
 	private Portal _portal;
 
 }

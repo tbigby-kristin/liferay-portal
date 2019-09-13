@@ -26,6 +26,7 @@ import com.liferay.portal.search.searcher.SearchRequest;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.searcher.SearchResponseBuilder;
 import com.liferay.portal.search.searcher.Searcher;
+import com.liferay.portal.search.spi.searcher.SearchRequestContributor;
 
 import java.util.List;
 import java.util.function.Function;
@@ -121,9 +122,8 @@ public class SearcherImpl implements Searcher {
 		FacetedSearcher facetedSearcher =
 			facetedSearcherManager.createFacetedSearcher();
 
-		SearchContext searchContext = searchRequestImpl.getSearchContext();
-
-		Hits hits = search(facetedSearcher, searchContext);
+		Hits hits = search(
+			facetedSearcher, searchRequestImpl.getSearchContext());
 
 		if (isCount(searchRequestImpl)) {
 			searchResponseBuilder.count(hits.getLength());
@@ -192,12 +192,13 @@ public class SearcherImpl implements Searcher {
 	protected Stream<Function<SearchRequest, SearchRequest>> getContributors(
 		SearchRequest searchRequest) {
 
-		return searchRequestContributorsHolder.stream(
-			searchRequest.getIncludeContributors(),
-			searchRequest.getExcludeContributors()
-		).map(
-			searchRequestContributor -> searchRequestContributor::contribute
-		);
+		Stream<SearchRequestContributor> stream =
+			searchRequestContributorsHolder.stream(
+				searchRequest.getIncludeContributors(),
+				searchRequest.getExcludeContributors());
+
+		return stream.map(
+			searchRequestContributor -> searchRequestContributor::contribute);
 	}
 
 	protected Class<?> getSingleIndexerClass(

@@ -63,7 +63,7 @@ public class ChangeListsConfigurationDisplayContext {
 				))
 		).put(
 			"navigationItems",
-			JSONUtil.put(
+			JSONUtil.putAll(
 				JSONUtil.put(
 					"active", true
 				).put(
@@ -71,8 +71,7 @@ public class ChangeListsConfigurationDisplayContext {
 				).put(
 					"label",
 					LanguageUtil.get(_httpServletRequest, "global-settings")
-				)
-			).put(
+				),
 				JSONUtil.put(
 					"active", false
 				).put(
@@ -80,8 +79,7 @@ public class ChangeListsConfigurationDisplayContext {
 				).put(
 					"label",
 					LanguageUtil.get(_httpServletRequest, "user-settings")
-				)
-			)
+				))
 		).put(
 			"portalURL", _themeDisplay.getPortalURL()
 		).put(
@@ -92,7 +90,7 @@ public class ChangeListsConfigurationDisplayContext {
 		).put(
 			"urlChangeTrackingConfiguration",
 			_themeDisplay.getPortalURL() +
-				"/o/change-tracking/configurations/" +
+				"/o/change-tracking-legacy/configurations/" +
 					_themeDisplay.getCompanyId()
 		).put(
 			"urlChangeTrackingUserConfiguration",
@@ -120,7 +118,7 @@ public class ChangeListsConfigurationDisplayContext {
 		StringBundler sb = new StringBundler(5);
 
 		sb.append(themeDisplay.getPortalURL());
-		sb.append("/o/change-tracking/configurations/");
+		sb.append("/o/change-tracking-legacy/configurations/");
 		sb.append(themeDisplay.getCompanyId());
 		sb.append("/user/");
 		sb.append(themeDisplay.getUserId());

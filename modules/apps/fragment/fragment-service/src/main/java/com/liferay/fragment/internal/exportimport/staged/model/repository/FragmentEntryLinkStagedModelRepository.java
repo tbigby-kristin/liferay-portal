@@ -63,7 +63,8 @@ public class FragmentEntryLinkStagedModelRepository
 			fragmentEntryLink.getFragmentEntryId(),
 			fragmentEntryLink.getClassNameId(), fragmentEntryLink.getClassPK(),
 			fragmentEntryLink.getCss(), fragmentEntryLink.getHtml(),
-			fragmentEntryLink.getJs(), fragmentEntryLink.getEditableValues(),
+			fragmentEntryLink.getJs(), fragmentEntryLink.getConfiguration(),
+			fragmentEntryLink.getEditableValues(),
 			fragmentEntryLink.getNamespace(), fragmentEntryLink.getPosition(),
 			fragmentEntryLink.getRendererKey(), serviceContext);
 	}
@@ -158,7 +159,8 @@ public class FragmentEntryLinkStagedModelRepository
 			fragmentEntryLink.getFragmentEntryId(),
 			fragmentEntryLink.getClassNameId(), fragmentEntryLink.getClassPK(),
 			fragmentEntryLink.getCss(), fragmentEntryLink.getHtml(),
-			fragmentEntryLink.getJs(), fragmentEntryLink.getEditableValues(),
+			fragmentEntryLink.getJs(), fragmentEntryLink.getConfiguration(),
+			fragmentEntryLink.getEditableValues(),
 			fragmentEntryLink.getNamespace(), fragmentEntryLink.getPosition(),
 			serviceContext);
 	}

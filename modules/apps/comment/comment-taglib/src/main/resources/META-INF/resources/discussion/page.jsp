@@ -131,7 +131,6 @@ StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHe
 												<liferay-ui:input-editor
 													configKey="commentEditor"
 													contents=""
-													cssClass="form-control"
 													editorName='<%= PropsUtil.get("editor.wysiwyg.portal-web.docroot.html.taglib.ui.discussion.jsp") %>'
 													name='<%= randomNamespace + "postReplyBody0" %>'
 													onChangeMethod='<%= randomNamespace + "0ReplyOnChange" %>'
@@ -153,13 +152,20 @@ StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHe
 									<c:choose>
 										<c:when test="<%= stagingGroupHelper.isLocalStagingGroup(siteGroup) || stagingGroupHelper.isRemoteStagingGroup(siteGroup) %>">
 											<div class="alert alert-info">
-												<liferay-ui:message key="comments-are-read-only-in-staging" />
+												<span class="alert-indicator">
+													<svg class="lexicon-icon lexicon-icon-info-circle" focusable="false" role="presentation">
+														<use xlink:href="<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg#info-circle" />
+													</svg>
+												</span>
+
+												<strong class="lead">INFO:</strong><liferay-ui:message key="comments-are-unavailable-in-staged-sites" />
 											</div>
 										</c:when>
 										<c:otherwise>
 											<liferay-ui:icon
-												iconCssClass="icon-reply"
+												icon="reply"
 												label="<%= true %>"
+												markupView="lexicon"
 												message="please-sign-in-to-comment"
 												url="<%= themeDisplay.getURLSignIn() %>"
 											/>
@@ -365,11 +371,10 @@ StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHe
 
 					formData.append('doAsUserId', themeDisplay.getDoAsUserIdEncoded());
 
-					fetch(
+					Liferay.Util.fetch(
 						form.action,
 						{
 							body: formData,
-							credentials: 'include',
 							method: 'POST'
 						}
 					).then(
@@ -473,11 +478,10 @@ StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHe
 						editorURL = HttpUtil.addParameter(editorURL, "namespace", namespace);
 						%>
 
-						fetch(
+						Liferay.Util.fetch(
 							'<%= editorURL %>',
 							{
 								body: Util.objectToFormData(Util.ns('<%= namespace %>', options)),
-								credentials: 'include',
 								method: 'POST'
 							}
 						).then(
@@ -657,11 +661,10 @@ StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHe
 						paginationURL = HttpUtil.addParameter(paginationURL, "skipEditorLoading", "true");
 						%>
 
-						fetch(
+						Liferay.Util.fetch(
 							'<%= paginationURL %>',
 							{
 								body: Util.objectToFormData(data),
-								credentials: 'include',
 								method: 'POST'
 							}
 						).then(
@@ -795,6 +798,7 @@ StagingGroupHelper stagingGroupHelper = StagingGroupHelperUtil.getStagingGroupHe
 			discussionContainer.delegate(
 				'click',
 				function(event) {
+					event.preventDefault();
 					event.stopPropagation();
 
 					if (handle) {

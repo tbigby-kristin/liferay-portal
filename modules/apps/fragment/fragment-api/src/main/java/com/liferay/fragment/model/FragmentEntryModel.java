@@ -16,6 +16,7 @@ package com.liferay.fragment.model;
 
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 import com.liferay.portal.kernel.model.ShardedModel;
 import com.liferay.portal.kernel.model.StagedGroupedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
@@ -37,10 +38,10 @@ import org.osgi.annotation.versioning.ProviderType;
  */
 @ProviderType
 public interface FragmentEntryModel
-	extends BaseModel<FragmentEntry>, ShardedModel, StagedGroupedModel,
-			WorkflowedModel {
+	extends BaseModel<FragmentEntry>, MVCCModel, ShardedModel,
+			StagedGroupedModel, WorkflowedModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this interface directly. All methods that expect a fragment entry model instance should use the {@link FragmentEntry} interface instead.
@@ -59,6 +60,22 @@ public interface FragmentEntryModel
 	 * @param primaryKey the primary key of this fragment entry
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this fragment entry.
+	 *
+	 * @return the mvcc version of this fragment entry
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this fragment entry.
+	 *
+	 * @param mvccVersion the mvcc version of this fragment entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this fragment entry.
@@ -292,6 +309,21 @@ public interface FragmentEntryModel
 	 * @param js the js of this fragment entry
 	 */
 	public void setJs(String js);
+
+	/**
+	 * Returns the configuration of this fragment entry.
+	 *
+	 * @return the configuration of this fragment entry
+	 */
+	@AutoEscape
+	public String getConfiguration();
+
+	/**
+	 * Sets the configuration of this fragment entry.
+	 *
+	 * @param configuration the configuration of this fragment entry
+	 */
+	public void setConfiguration(String configuration);
 
 	/**
 	 * Returns the preview file entry ID of this fragment entry.

@@ -337,9 +337,9 @@ public class PortletTracker
 
 			portletBagFactory.create(portletModel, portlet, true);
 
-			List<Company> companies = _companyLocalService.getCompanies();
-
-			deployPortlet(serviceReference, portletModel, companies);
+			deployPortlet(
+				serviceReference, portletModel,
+				_companyLocalService.getCompanies());
 
 			portletModel.setReady(true);
 
@@ -400,8 +400,6 @@ public class PortletTracker
 			}
 			catch (IllegalArgumentException iae) {
 				_log.error("Application type " + applicationTypeValue);
-
-				continue;
 			}
 		}
 
@@ -1286,12 +1284,7 @@ public class PortletTracker
 	}
 
 	protected void readResourceActions(
-		Configuration configuration, String servletContextName,
-		ClassLoader classLoader) {
-
-		if (configuration == null) {
-			return;
-		}
+		Configuration configuration, ClassLoader classLoader) {
 
 		Properties properties = configuration.getProperties();
 
@@ -1447,16 +1440,13 @@ public class PortletTracker
 		}
 
 		protected synchronized void doConfiguration(ClassLoader classLoader) {
-			try {
-				_configuration = ConfigurationFactoryUtil.getConfiguration(
-					classLoader, "portlet");
-			}
-			catch (Exception e) {
-			}
+			if (classLoader.getResource("portlet.properties") != null) {
+				Configuration configuration =
+					ConfigurationFactoryUtil.getConfiguration(
+						classLoader, "portlet");
 
-			readResourceActions(
-				_configuration, _bundlePortletApp.getServletContextName(),
-				classLoader);
+				readResourceActions(configuration, classLoader);
+			}
 		}
 
 		protected synchronized BundlePortletApp getBundlePortletApp() {
@@ -1469,7 +1459,6 @@ public class PortletTracker
 
 		private final Bundle _bundle;
 		private BundlePortletApp _bundlePortletApp;
-		private Configuration _configuration;
 		private final List<ServiceReference<Portlet>> _serviceReferences =
 			new ArrayList<>();
 

@@ -78,12 +78,12 @@ public abstract class BaseSourceCheck implements SourceCheck {
 	}
 
 	@Override
-	public boolean isModulesCheck() {
+	public boolean isLiferaySourceCheck() {
 		return false;
 	}
 
 	@Override
-	public boolean isPortalCheck() {
+	public boolean isModuleSourceCheck() {
 		return false;
 	}
 
@@ -312,21 +312,8 @@ public abstract class BaseSourceCheck implements SourceCheck {
 			baseDirName, excludes, includes, _sourceFormatterExcludes, true);
 	}
 
-	protected String getGitContent(String fileName, String branchName)
-		throws IOException {
-
-		URL url = _getPortalGitURL(fileName, branchName);
-
-		if (url == null) {
-			return null;
-		}
-
-		try {
-			return StringUtil.read(url.openStream());
-		}
-		catch (IOException ioe) {
-			return null;
-		}
+	protected String getGitContent(String fileName, String branchName) {
+		return SourceFormatterUtil.getGitContent(fileName, branchName);
 	}
 
 	protected int getLeadingTabCount(String line) {
@@ -381,6 +368,18 @@ public abstract class BaseSourceCheck implements SourceCheck {
 
 	protected int getMaxLineLength() {
 		return _maxLineLength;
+	}
+
+	protected String getModulesPropertiesContent(String absolutePath)
+		throws IOException {
+
+		if (!isPortalSource()) {
+			return getPortalContent(
+				_MODULES_PROPERTIES_FILE_NAME, absolutePath);
+		}
+
+		return getContent(
+			_MODULES_PROPERTIES_FILE_NAME, ToolsUtil.PORTAL_MAX_DIR_LEVEL);
 	}
 
 	protected List<String> getPluginsInsideModulesDirectoryNames() {
@@ -492,7 +491,8 @@ public abstract class BaseSourceCheck implements SourceCheck {
 		String portalBranchName = getAttributeValue(
 			SourceFormatterUtil.GIT_LIFERAY_PORTAL_BRANCH, absolutePath);
 
-		URL url = _getPortalGitURL(fileName, portalBranchName);
+		URL url = SourceFormatterUtil.getPortalGitURL(
+			fileName, portalBranchName);
 
 		if (url != null) {
 			return url.openStream();
@@ -697,21 +697,8 @@ public abstract class BaseSourceCheck implements SourceCheck {
 	protected static final String RUN_OUTSIDE_PORTAL_EXCLUDES =
 		"run.outside.portal.excludes";
 
-	private URL _getPortalGitURL(String fileName, String portalBranchName) {
-		if (Validator.isNull(portalBranchName)) {
-			return null;
-		}
-
-		try {
-			return new URL(
-				StringBundler.concat(
-					SourceFormatterUtil.GIT_LIFERAY_PORTAL_URL,
-					portalBranchName, StringPool.SLASH, fileName));
-		}
-		catch (Exception e) {
-			return null;
-		}
-	}
+	private static final String _MODULES_PROPERTIES_FILE_NAME =
+		"modules/modules.properties";
 
 	private JSONObject _attributesJSONObject = new JSONObjectImpl();
 	private final Map<String, String> _attributeValueMap =

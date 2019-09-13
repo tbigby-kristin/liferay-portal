@@ -19,6 +19,7 @@ import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.scope.spi.prefix.handler.PrefixHandler;
 import com.liferay.oauth2.provider.scope.spi.prefix.handler.PrefixHandlerFactory;
+import com.liferay.oauth2.provider.scope.spi.scope.finder.ScopeFinder;
 import com.liferay.oauth2.provider.scope.spi.scope.mapper.ScopeMapper;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.petra.string.StringPool;
@@ -376,6 +377,22 @@ public abstract class BaseTestPreparatorBundleActivator
 		ServiceRegistration<PrefixHandlerFactory> serviceRegistration =
 			bundleContext.registerService(
 				PrefixHandlerFactory.class, a -> prefixHandler, properties);
+
+		autoCloseables.add(serviceRegistration::unregister);
+
+		return serviceRegistration;
+	}
+
+	protected ServiceRegistration<ScopeFinder> registerScopeFinder(
+		ScopeFinder scopeFinder, Dictionary<String, Object> properties) {
+
+		if ((properties == null) || properties.isEmpty()) {
+			properties = new HashMapDictionary<>();
+		}
+
+		ServiceRegistration<ScopeFinder> serviceRegistration =
+			bundleContext.registerService(
+				ScopeFinder.class, scopeFinder, properties);
 
 		autoCloseables.add(serviceRegistration::unregister);
 

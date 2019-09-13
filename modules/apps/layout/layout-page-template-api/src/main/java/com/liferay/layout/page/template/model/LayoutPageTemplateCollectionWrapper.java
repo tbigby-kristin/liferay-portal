@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link LayoutPageTemplateCollection}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see LayoutPageTemplateCollection
  * @generated
  */
-@ProviderType
 public class LayoutPageTemplateCollectionWrapper
 	extends BaseModelWrapper<LayoutPageTemplateCollection>
 	implements LayoutPageTemplateCollection,
@@ -49,6 +46,7 @@ public class LayoutPageTemplateCollectionWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put(
 			"layoutPageTemplateCollectionId",
@@ -68,6 +66,12 @@ public class LayoutPageTemplateCollectionWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -207,6 +211,16 @@ public class LayoutPageTemplateCollectionWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this layout page template collection.
+	 *
+	 * @return the mvcc version of this layout page template collection
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this layout page template collection.
 	 *
 	 * @return the name of this layout page template collection
@@ -266,6 +280,11 @@ public class LayoutPageTemplateCollectionWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a layout page template collection model instance should use the <code>LayoutPageTemplateCollection</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -341,6 +360,16 @@ public class LayoutPageTemplateCollectionWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this layout page template collection.
+	 *
+	 * @param mvccVersion the mvcc version of this layout page template collection
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

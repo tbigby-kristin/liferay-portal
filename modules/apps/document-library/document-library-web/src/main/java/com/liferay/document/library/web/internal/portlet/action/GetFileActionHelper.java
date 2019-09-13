@@ -158,11 +158,9 @@ public class GetFileActionHelper {
 						(ThemeDisplay)httpServletRequest.getAttribute(
 							WebKeys.THEME_DISPLAY);
 
-					PermissionChecker permissionChecker =
-						themeDisplay.getPermissionChecker();
-
 					DLFileEntryPermission.check(
-						permissionChecker, dlFileEntry, ActionKeys.VIEW);
+						themeDisplay.getPermissionChecker(), dlFileEntry,
+						ActionKeys.VIEW);
 
 					fileEntry = new LiferayFileEntry(dlFileEntry);
 				}
@@ -265,9 +263,8 @@ public class GetFileActionHelper {
 
 		String redirect = PortalUtil.getPathMain() + "/portal/login";
 
-		String currentURL = PortalUtil.getCurrentURL(httpServletRequest);
-
-		redirect = HttpUtil.addParameter(redirect, "redirect", currentURL);
+		redirect = HttpUtil.addParameter(
+			redirect, "redirect", PortalUtil.getCurrentURL(httpServletRequest));
 
 		httpServletResponse.sendRedirect(redirect);
 	}

@@ -14,6 +14,7 @@
 
 package com.liferay.frontend.theme.fjord.site.initializer.internal;
 
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.constants.FragmentPortletKeys;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
@@ -62,6 +63,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -260,10 +262,12 @@ public class FjordSiteInitializer implements SiteInitializer {
 				_fragmentEntryLocalService.addFragmentEntry(
 					serviceContext.getUserId(),
 					serviceContext.getScopeGroupId(), fragmentCollectionId,
+					null,
 					StringUtil.upperCaseFirstLetter(
 						FileUtil.stripExtension(shortFileName)),
 					StringUtil.read(cssURL.openStream()),
 					StringUtil.read(url.openStream()), StringPool.BLANK,
+					StringPool.BLANK, 0, FragmentConstants.TYPE_SECTION,
 					WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 			long fragmentEntryPreviewFileEntryId = _getPreviewFileEntryId(
@@ -303,7 +307,7 @@ public class FjordSiteInitializer implements SiteInitializer {
 		nameMap.put(LocaleUtil.getSiteDefault(), name);
 
 		Layout layout = _layoutLocalService.addLayout(
-			serviceContext.getUserId(), serviceContext.getScopeGroupId(), true,
+			serviceContext.getUserId(), serviceContext.getScopeGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
 			_portal.getClassNameId(LayoutPageTemplateEntry.class),
 			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(), nameMap,
@@ -337,7 +341,7 @@ public class FjordSiteInitializer implements SiteInitializer {
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
 				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
 				layoutPageTemplateCollectionId, name,
-				LayoutPageTemplateEntryTypeConstants.TYPE_BASIC, 0,
+				LayoutPageTemplateEntryTypeConstants.TYPE_BASIC,
 				WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 		long previewFileEntryId = _getPreviewFileEntryId(
@@ -359,6 +363,10 @@ public class FjordSiteInitializer implements SiteInitializer {
 		if (draftLayout != null) {
 			_layoutCopyHelper.copyLayout(draftLayout, layout);
 		}
+
+		_layoutLocalService.updateLayout(
+			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+			new Date());
 	}
 
 	private ServiceContext _createServiceContext(long groupId)
@@ -376,8 +384,8 @@ public class FjordSiteInitializer implements SiteInitializer {
 		serviceContext.setLanguageId(LanguageUtil.getLanguageId(locale));
 
 		serviceContext.setScopeGroupId(groupId);
-		serviceContext.setUserId(user.getUserId());
 		serviceContext.setTimeZone(user.getTimeZone());
+		serviceContext.setUserId(user.getUserId());
 
 		return serviceContext;
 	}
@@ -467,8 +475,8 @@ public class FjordSiteInitializer implements SiteInitializer {
 		}
 
 		_layoutSetLocalService.updateLookAndFeel(
-			serviceContext.getScopeGroupId(), false, _THEME_ID,
-			StringPool.BLANK, StringPool.BLANK);
+			serviceContext.getScopeGroupId(), _THEME_ID, StringPool.BLANK,
+			StringPool.BLANK);
 	}
 
 	private static final String _PATH =

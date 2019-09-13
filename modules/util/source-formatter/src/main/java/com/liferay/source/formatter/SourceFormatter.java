@@ -42,6 +42,7 @@ import com.puppycrawl.tools.checkstyle.api.CheckstyleException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringReader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,7 +96,7 @@ public class SourceFormatter {
 				ExcludeSyntax.REGEX,
 				"^((?!/frontend-js-node-shims/src/).)*/node_modules/.*"),
 			new ExcludeSyntaxPattern(
-				ExcludeSyntax.REGEX, ".*/\\w+\\..*\\.properties")
+				ExcludeSyntax.REGEX, ".*/([^/.]+\\.){2,}properties")
 		};
 
 	public static void main(String[] args) throws Exception {
@@ -551,12 +552,20 @@ public class SourceFormatter {
 		}
 	}
 
+	private boolean _containsDir(String dirName) {
+		File directory = SourceFormatterUtil.getFile(
+			_sourceFormatterArgs.getBaseDirName(), dirName,
+			ToolsUtil.PORTAL_MAX_DIR_LEVEL);
+
+		if (directory != null) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private void _excludeWorkingDirCheckoutPrivateApps(File portalDir)
 		throws IOException {
-
-		if (!_isPortalSource()) {
-			return;
-		}
 
 		File file = new File(portalDir, "working.dir.properties");
 
@@ -659,6 +668,21 @@ public class SourceFormatter {
 		return pluginsInsideModulesDirectoryNames;
 	}
 
+	private String _getPortalBranchName() {
+		for (Map.Entry<String, Properties> entry : _propertiesMap.entrySet()) {
+			Properties properties = entry.getValue();
+
+			if (properties.containsKey(
+					SourceFormatterUtil.GIT_LIFERAY_PORTAL_BRANCH)) {
+
+				return properties.getProperty(
+					SourceFormatterUtil.GIT_LIFERAY_PORTAL_BRANCH);
+			}
+		}
+
+		return null;
+	}
+
 	private String _getProjectPathPrefix() throws IOException {
 		if (!_subrepository) {
 			return null;
@@ -700,7 +724,7 @@ public class SourceFormatter {
 		_sourceFormatterExcludes = new SourceFormatterExcludes(
 			SetUtil.fromArray(DEFAULT_EXCLUDE_SYNTAX_PATTERNS));
 
-		_portalSource = _isPortalSource();
+		_portalSource = _containsDir("portal-impl");
 
 		if (_portalSource) {
 			File portalDir = SourceFormatterUtil.getPortalDir(
@@ -741,12 +765,24 @@ public class SourceFormatter {
 			_readProperties(new File(modulePropertiesFileName));
 		}
 
+		if (!_portalSource && _containsDir("modules/private/apps")) {
+
+			// Grab and read properties from portal branch
+
+			String propertiesContent = SourceFormatterUtil.getGitContent(
+				_PROPERTIES_FILE_NAME, _getPortalBranchName());
+
+			_readProperties(
+				propertiesContent,
+				SourceUtil.getAbsolutePath(
+					_sourceFormatterArgs.getBaseDirName()));
+		}
+
 		_addDependentFileNames();
 
 		_pluginsInsideModulesDirectoryNames =
 			_getPluginsInsideModulesDirectoryNames();
 
-		_portalSource = _isPortalSource();
 		_subrepository = _isSubrepository();
 
 		_projectPathPrefix = _getProjectPathPrefix();
@@ -768,20 +804,8 @@ public class SourceFormatter {
 		}
 	}
 
-	private boolean _isPortalSource() {
-		File portalImplDir = SourceFormatterUtil.getFile(
-			_sourceFormatterArgs.getBaseDirName(), "portal-impl",
-			ToolsUtil.PORTAL_MAX_DIR_LEVEL);
-
-		if (portalImplDir != null) {
-			return true;
-		}
-
-		return false;
-	}
-
 	private boolean _isSubrepository() throws IOException {
-		if (_isPortalSource()) {
+		if (_portalSource) {
 			return false;
 		}
 
@@ -838,6 +862,12 @@ public class SourceFormatter {
 
 		propertiesFileLocation = propertiesFileLocation.substring(0, pos);
 
+		_readProperties(properties, propertiesFileLocation);
+	}
+
+	private void _readProperties(
+		Properties properties, String propertiesFileLocation) {
+
 		String value = properties.getProperty("source.formatter.excludes");
 
 		if (value == null) {
@@ -858,6 +888,20 @@ public class SourceFormatter {
 		properties.remove("source.formatter.excludes");
 
 		_propertiesMap.put(propertiesFileLocation, properties);
+	}
+
+	private void _readProperties(String content, String propertiesFileLocation)
+		throws IOException {
+
+		Properties properties = new Properties();
+
+		properties.load(new StringReader(content));
+
+		if (properties.isEmpty()) {
+			return;
+		}
+
+		_readProperties(properties, propertiesFileLocation);
 	}
 
 	private void _runSourceProcessor(SourceProcessor sourceProcessor)

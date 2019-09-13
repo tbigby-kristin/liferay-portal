@@ -14,40 +14,66 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
-import com.liferay.portal.kernel.util.MapUtil;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Marcela Cunha
  */
 public class DataFieldOption {
 
-	public DataFieldOption(Map<String, Object> labels, String value) {
-		_labels = labels;
+	public DataFieldOption() {
+	}
+
+	public DataFieldOption(String label, String value) {
+		_label = label;
 		_value = value;
 	}
 
-	public DataFieldOption(String label, String languageId, String value) {
-		_labels.put(languageId, label);
-		_value = value;
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DataFieldOption)) {
+			return false;
+		}
+
+		DataFieldOption dataFieldOption = (DataFieldOption)obj;
+
+		if (Objects.equals(_value, dataFieldOption._value)) {
+			return true;
+		}
+
+		return false;
 	}
 
-	public String getLabel(String languageId) {
-		return MapUtil.getString(_labels, languageId);
-	}
-
-	public Map<String, Object> getLabels() {
-		return Collections.unmodifiableMap(_labels);
+	public String getLabel() {
+		return _label;
 	}
 
 	public String getValue() {
 		return _value;
 	}
 
-	private Map<String, Object> _labels = new HashMap<>();
-	private final String _value;
+	@Override
+	public int hashCode() {
+		if (_value != null) {
+			return _value.hashCode();
+		}
+
+		return 0;
+	}
+
+	public void setLabel(String label) {
+		_label = label;
+	}
+
+	public void setValue(String value) {
+		_value = value;
+	}
+
+	private String _label;
+	private String _value;
 
 }

@@ -19,7 +19,7 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -224,10 +224,13 @@ public class ResourcePermissionLocalServiceConcurrentTest {
 				FutureTask<ResourcePermission> futureTask = new FutureTask<>(
 					callable);
 
+				String className =
+					ResourcePermissionLocalServiceConcurrentTest.class.
+						getName();
+
 				Thread thread = new Thread(
 					futureTask,
-					ResourcePermissionLocalServiceConcurrentTest.class.
-						getName() + "-concurrent-addResourcePermission-" + i);
+					className + "-concurrent-addResourcePermission-" + i);
 
 				thread.start();
 

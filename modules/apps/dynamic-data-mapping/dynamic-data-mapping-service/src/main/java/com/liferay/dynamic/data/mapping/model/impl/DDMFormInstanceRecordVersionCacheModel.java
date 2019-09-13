@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.model.DDMFormInstanceRecordVersion;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -26,17 +27,15 @@ import java.io.ObjectOutput;
 
 import java.util.Date;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The cache model class for representing DDMFormInstanceRecordVersion in entity cache.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DDMFormInstanceRecordVersionCacheModel
-	implements CacheModel<DDMFormInstanceRecordVersion>, Externalizable {
+	implements CacheModel<DDMFormInstanceRecordVersion>, Externalizable,
+			   MVCCModel {
 
 	@Override
 	public boolean equals(Object obj) {
@@ -52,9 +51,11 @@ public class DDMFormInstanceRecordVersionCacheModel
 			ddmFormInstanceRecordVersionCacheModel =
 				(DDMFormInstanceRecordVersionCacheModel)obj;
 
-		if (formInstanceRecordVersionId ==
+		if ((formInstanceRecordVersionId ==
 				ddmFormInstanceRecordVersionCacheModel.
-					formInstanceRecordVersionId) {
+					formInstanceRecordVersionId) &&
+			(mvccVersion ==
+				ddmFormInstanceRecordVersionCacheModel.mvccVersion)) {
 
 			return true;
 		}
@@ -64,14 +65,28 @@ public class DDMFormInstanceRecordVersionCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, formInstanceRecordVersionId);
+		int hashCode = HashUtil.hash(0, formInstanceRecordVersionId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(33);
 
-		sb.append("{formInstanceRecordVersionId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", formInstanceRecordVersionId=");
 		sb.append(formInstanceRecordVersionId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -91,6 +106,8 @@ public class DDMFormInstanceRecordVersionCacheModel
 		sb.append(formInstanceRecordId);
 		sb.append(", version=");
 		sb.append(version);
+		sb.append(", storageId=");
+		sb.append(storageId);
 		sb.append(", status=");
 		sb.append(status);
 		sb.append(", statusByUserId=");
@@ -99,8 +116,6 @@ public class DDMFormInstanceRecordVersionCacheModel
 		sb.append(statusByUserName);
 		sb.append(", statusDate=");
 		sb.append(statusDate);
-		sb.append(", storageId=");
-		sb.append(storageId);
 		sb.append("}");
 
 		return sb.toString();
@@ -111,6 +126,7 @@ public class DDMFormInstanceRecordVersionCacheModel
 		DDMFormInstanceRecordVersionImpl ddmFormInstanceRecordVersionImpl =
 			new DDMFormInstanceRecordVersionImpl();
 
+		ddmFormInstanceRecordVersionImpl.setMvccVersion(mvccVersion);
 		ddmFormInstanceRecordVersionImpl.setFormInstanceRecordVersionId(
 			formInstanceRecordVersionId);
 		ddmFormInstanceRecordVersionImpl.setGroupId(groupId);
@@ -152,6 +168,7 @@ public class DDMFormInstanceRecordVersionCacheModel
 			ddmFormInstanceRecordVersionImpl.setVersion(version);
 		}
 
+		ddmFormInstanceRecordVersionImpl.setStorageId(storageId);
 		ddmFormInstanceRecordVersionImpl.setStatus(status);
 		ddmFormInstanceRecordVersionImpl.setStatusByUserId(statusByUserId);
 
@@ -171,8 +188,6 @@ public class DDMFormInstanceRecordVersionCacheModel
 				new Date(statusDate));
 		}
 
-		ddmFormInstanceRecordVersionImpl.setStorageId(storageId);
-
 		ddmFormInstanceRecordVersionImpl.resetOriginalValues();
 
 		return ddmFormInstanceRecordVersionImpl;
@@ -180,6 +195,8 @@ public class DDMFormInstanceRecordVersionCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		formInstanceRecordVersionId = objectInput.readLong();
 
 		groupId = objectInput.readLong();
@@ -196,17 +213,19 @@ public class DDMFormInstanceRecordVersionCacheModel
 		formInstanceRecordId = objectInput.readLong();
 		version = objectInput.readUTF();
 
+		storageId = objectInput.readLong();
+
 		status = objectInput.readInt();
 
 		statusByUserId = objectInput.readLong();
 		statusByUserName = objectInput.readUTF();
 		statusDate = objectInput.readLong();
-
-		storageId = objectInput.readLong();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(formInstanceRecordVersionId);
 
 		objectOutput.writeLong(groupId);
@@ -242,6 +261,8 @@ public class DDMFormInstanceRecordVersionCacheModel
 			objectOutput.writeUTF(version);
 		}
 
+		objectOutput.writeLong(storageId);
+
 		objectOutput.writeInt(status);
 
 		objectOutput.writeLong(statusByUserId);
@@ -254,10 +275,9 @@ public class DDMFormInstanceRecordVersionCacheModel
 		}
 
 		objectOutput.writeLong(statusDate);
-
-		objectOutput.writeLong(storageId);
 	}
 
+	public long mvccVersion;
 	public long formInstanceRecordVersionId;
 	public long groupId;
 	public long companyId;
@@ -268,10 +288,10 @@ public class DDMFormInstanceRecordVersionCacheModel
 	public String formInstanceVersion;
 	public long formInstanceRecordId;
 	public String version;
+	public long storageId;
 	public int status;
 	public long statusByUserId;
 	public String statusByUserName;
 	public long statusDate;
-	public long storageId;
 
 }

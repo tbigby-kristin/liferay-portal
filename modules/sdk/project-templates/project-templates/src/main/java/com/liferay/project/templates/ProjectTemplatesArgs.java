@@ -48,8 +48,20 @@ public class ProjectTemplatesArgs {
 		return _contributorType;
 	}
 
+	public String getDependencyInjector() {
+		return _dependencyInjector;
+	}
+
 	public File getDestinationDir() {
 		return _destinationDir;
+	}
+
+	public String getFramework() {
+		return _framework;
+	}
+
+	public String getFrameworkDependencies() {
+		return _frameworkDependencies;
 	}
 
 	public String getGroupId() {
@@ -84,6 +96,10 @@ public class ProjectTemplatesArgs {
 		return _packageName;
 	}
 
+	public ProjectTemplatesArgsExt getProjectTemplatesArgsExt() {
+		return _projectTemplatesArgsExt;
+	}
+
 	public String getService() {
 		return _service;
 	}
@@ -94,6 +110,10 @@ public class ProjectTemplatesArgs {
 
 	public String getTemplateVersion() {
 		return _templateVersion;
+	}
+
+	public String getViewType() {
+		return _viewType;
 	}
 
 	public boolean isDependencyManagementEnabled() {
@@ -128,6 +148,10 @@ public class ProjectTemplatesArgs {
 		_contributorType = contributorType;
 	}
 
+	public void setDependencyInjector(String dependencyInjector) {
+		_dependencyInjector = dependencyInjector;
+	}
+
 	public void setDependencyManagementEnabled(
 		boolean dependencyManagementEnabled) {
 
@@ -140,6 +164,14 @@ public class ProjectTemplatesArgs {
 
 	public void setForce(boolean force) {
 		_force = force;
+	}
+
+	public void setFramework(String framework) {
+		_framework = framework;
+	}
+
+	public void setFrameworkDependencies(String frameworkDependencies) {
+		_frameworkDependencies = frameworkDependencies;
 	}
 
 	public void setGradle(boolean gradle) {
@@ -182,6 +214,12 @@ public class ProjectTemplatesArgs {
 		_packageName = packageName;
 	}
 
+	public void setProjectTemplatesArgsExt(
+		ProjectTemplatesArgsExt projectTemplatesArgsExt) {
+
+		_projectTemplatesArgsExt = projectTemplatesArgsExt;
+	}
+
 	public void setService(String service) {
 		_service = service;
 	}
@@ -192,6 +230,10 @@ public class ProjectTemplatesArgs {
 
 	public void setTemplateVersion(String templateVersion) {
 		_templateVersion = templateVersion;
+	}
+
+	public void setViewType(String viewType) {
+		_viewType = viewType;
 	}
 
 	protected boolean isHelp() {
@@ -224,6 +266,12 @@ public class ProjectTemplatesArgs {
 	private String _contributorType;
 
 	@Parameter(
+		description = "For Service Builder projects, specify the preferred dependency injection method (ds | spring). Default is DS",
+		names = "--dependency-injector"
+	)
+	private String _dependencyInjector = "ds";
+
+	@Parameter(
 		description = "If workspace support target platform, no version number is required for the module.",
 		names = "--dependency-management-enabled"
 	)
@@ -240,6 +288,18 @@ public class ProjectTemplatesArgs {
 		names = "--force"
 	)
 	private boolean _force;
+
+	@Parameter(
+		description = "The name of the framework to use in the generated project.",
+		names = "--framework"
+	)
+	private String _framework;
+
+	@Parameter(
+		description = "The way that the framework dependencies will be configured.",
+		names = "--framework-dependencies"
+	)
+	private String _frameworkDependencies = "embedded";
 
 	@Parameter(
 		arity = 1,
@@ -274,7 +334,7 @@ public class ProjectTemplatesArgs {
 
 	@Parameter(
 		description = "The version of Liferay to target when creating the project.",
-		names = "--liferayVersion"
+		names = "--liferay-version"
 	)
 	private String _liferayVersion = "7.2";
 
@@ -314,6 +374,8 @@ public class ProjectTemplatesArgs {
 	)
 	private String _packageName;
 
+	private ProjectTemplatesArgsExt _projectTemplatesArgsExt;
+
 	@Parameter(
 		description = "If a new DS component is generated, provide the name of the service to be implemented.",
 		names = "--service"
@@ -328,5 +390,11 @@ public class ProjectTemplatesArgs {
 
 	@Parameter(hidden = true, names = "--template-version")
 	private String _templateVersion;
+
+	@Parameter(
+		description = "Choose the view technology that will be used in the generated project.",
+		names = "--view-type"
+	)
+	private String _viewType;
 
 }

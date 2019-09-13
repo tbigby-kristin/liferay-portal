@@ -139,10 +139,9 @@ public class JobFactory {
 			PortalAcceptancePullRequestJob portalAcceptancePullRequestJob =
 				new PortalAcceptancePullRequestJob(jobName, testSuiteName);
 
-			GitWorkingDirectory gitWorkingDirectory =
-				portalAcceptancePullRequestJob.getGitWorkingDirectory();
+			if (_isCentralMergePullRequest(
+					portalAcceptancePullRequestJob.getGitWorkingDirectory())) {
 
-			if (_isCentralMergePullRequest(gitWorkingDirectory)) {
 				portalAcceptancePullRequestJob = new CentralMergePullRequestJob(
 					jobName);
 			}
@@ -153,7 +152,9 @@ public class JobFactory {
 		}
 
 		if (jobName.startsWith("test-portal-acceptance-upstream(")) {
-			_jobs.put(jobName, new PortalAcceptanceUpstreamJob(jobName));
+			_jobs.put(
+				jobName,
+				new PortalAcceptanceUpstreamJob(jobName, testSuiteName));
 
 			return _jobs.get(jobName);
 		}

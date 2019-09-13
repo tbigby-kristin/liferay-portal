@@ -18,7 +18,6 @@ import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerSerializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerSerializeResponse;
-import com.liferay.dynamic.data.mapping.io.DDMFormValuesSerializerTracker;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -61,7 +60,7 @@ import com.liferay.journal.util.JournalConverter;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.events.EventsProcessorUtil;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Sort;
@@ -75,16 +74,19 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.servlet.DummyHttpServletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
@@ -96,23 +98,21 @@ import com.liferay.ratings.kernel.service.RatingsEntryLocalService;
 
 import java.io.Serializable;
 
+import java.net.URI;
+
 import java.time.LocalDateTime;
 
 import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ForbiddenException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.UriBuilder;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -186,9 +186,6 @@ public class StructuredContentResourceImpl
 				contentStructureId);
 
 			entityFields = _entityFieldsProvider.provide(ddmStructure);
-		}
-		else {
-			entityFields = Collections.emptyList();
 		}
 
 		return new StructuredContentEntityModel(
@@ -300,8 +297,13 @@ public class StructuredContentResourceImpl
 		JournalArticle journalArticle = _journalArticleService.getLatestArticle(
 			structuredContentId);
 
+		EventsProcessorUtil.process(
+			PropsKeys.SERVLET_SERVICE_EVENTS_PRE,
+			PropsValues.SERVLET_SERVICE_EVENTS_PRE, contextHttpServletRequest,
+			new DummyHttpServletResponse());
+
 		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
+			(ThemeDisplay)contextHttpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
 		themeDisplay.setScopeGroupId(journalArticle.getGroupId());
@@ -316,6 +318,16 @@ public class StructuredContentResourceImpl
 				contextAcceptLanguage.getPreferredLanguageId(), themeDisplay);
 
 		String content = journalArticleDisplay.getContent();
+
+		UriBuilder uriBuilder = contextUriInfo.getBaseUriBuilder();
+
+		URI uri = uriBuilder.replacePath(
+			"/"
+		).build();
+
+		content = content.replaceAll(
+			" srcset=\"/o/", " srcset=\"" + uri + "o/");
+		content = content.replaceAll(" src=\"/", " src=\"" + uri);
 
 		return content.replaceAll("[\\t\\n]", "");
 	}
@@ -656,7 +668,7 @@ public class StructuredContentResourceImpl
 			JournalArticle.class.getName(), _ratingsEntryLocalService,
 			ratingsEntry -> RatingUtil.toRating(
 				_portal, ratingsEntry, _userLocalService),
-			_user);
+			contextUser);
 	}
 
 	private StructuredContent _getStructuredContent(
@@ -665,7 +677,7 @@ public class StructuredContentResourceImpl
 
 		ContentLanguageUtil.addContentLanguageHeader(
 			journalArticle.getAvailableLanguageIds(),
-			journalArticle.getDefaultLanguageId(), _httpServletResponse,
+			journalArticle.getDefaultLanguageId(), contextHttpServletResponse,
 			contextAcceptLanguage.getPreferredLocale());
 
 		return _toStructuredContent(journalArticle);
@@ -798,16 +810,13 @@ public class StructuredContentResourceImpl
 	}
 
 	private String _toString(DDMFormValues ddmFormValues) {
-		DDMFormValuesSerializer ddmFormValuesSerializer =
-			_ddmFormValuesSerializerTracker.getDDMFormValuesSerializer("json");
-
 		DDMFormValuesSerializerSerializeRequest.Builder builder =
 			DDMFormValuesSerializerSerializeRequest.Builder.newBuilder(
 				ddmFormValues);
 
 		DDMFormValuesSerializerSerializeResponse
 			ddmFormValuesSerializerSerializeResponse =
-				ddmFormValuesSerializer.serialize(builder.build());
+				_jsonDDMFormValuesSerializer.serialize(builder.build());
 
 		return ddmFormValuesSerializerSerializeResponse.getContent();
 	}
@@ -860,9 +869,6 @@ public class StructuredContentResourceImpl
 	private DDM _ddm;
 
 	@Reference
-	private DDMFormValuesSerializerTracker _ddmFormValuesSerializerTracker;
-
-	@Reference
 	private DDMFormValuesValidator _ddmFormValuesValidator;
 
 	@Reference
@@ -882,12 +888,6 @@ public class StructuredContentResourceImpl
 
 	@Reference
 	private ExpandoTableLocalService _expandoTableLocalService;
-
-	@Context
-	private HttpServletRequest _httpServletRequest;
-
-	@Context
-	private HttpServletResponse _httpServletResponse;
 
 	@Reference
 	private JournalArticleLocalService _journalArticleLocalService;
@@ -910,6 +910,9 @@ public class StructuredContentResourceImpl
 	@Reference
 	private JournalFolderService _journalFolderService;
 
+	@Reference(target = "(ddm.form.values.serializer.type=json)")
+	private DDMFormValuesSerializer _jsonDDMFormValuesSerializer;
+
 	@Reference
 	private LayoutLocalService _layoutLocalService;
 
@@ -921,9 +924,6 @@ public class StructuredContentResourceImpl
 
 	@Reference
 	private StructuredContentDTOConverter _structuredContentDTOConverter;
-
-	@Context
-	private User _user;
 
 	@Reference
 	private UserLocalService _userLocalService;

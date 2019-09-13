@@ -17,12 +17,7 @@ package com.liferay.change.tracking.service.base;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTEntryLocalService;
 import com.liferay.change.tracking.service.persistence.CTCollectionPersistence;
-import com.liferay.change.tracking.service.persistence.CTEntryAggregateFinder;
-import com.liferay.change.tracking.service.persistence.CTEntryAggregatePersistence;
-import com.liferay.change.tracking.service.persistence.CTEntryFinder;
 import com.liferay.change.tracking.service.persistence.CTEntryPersistence;
-import com.liferay.change.tracking.service.persistence.CTProcessFinder;
-import com.liferay.change.tracking.service.persistence.CTProcessPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
@@ -52,7 +47,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -66,12 +60,11 @@ import org.osgi.service.component.annotations.Reference;
  * @see com.liferay.change.tracking.service.impl.CTEntryLocalServiceImpl
  * @generated
  */
-@ProviderType
 public abstract class CTEntryLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
 	implements CTEntryLocalService, AopService, IdentifiableOSGiService {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Use <code>CTEntryLocalService</code> via injection or a <code>org.osgi.util.tracker.ServiceTracker</code> or use <code>com.liferay.change.tracking.service.CTEntryLocalServiceUtil</code>.
@@ -328,307 +321,6 @@ public abstract class CTEntryLocalServiceBaseImpl
 		return ctEntryPersistence.update(ctEntry);
 	}
 
-	/**
-	 */
-	@Override
-	public void addCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, long ctEntryId) {
-
-		ctEntryAggregatePersistence.addCTEntry(ctEntryAggregateId, ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, CTEntry ctEntry) {
-
-		ctEntryAggregatePersistence.addCTEntry(ctEntryAggregateId, ctEntry);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, long[] ctEntryIds) {
-
-		ctEntryAggregatePersistence.addCTEntries(
-			ctEntryAggregateId, ctEntryIds);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, List<CTEntry> ctEntries) {
-
-		ctEntryAggregatePersistence.addCTEntries(ctEntryAggregateId, ctEntries);
-	}
-
-	/**
-	 */
-	@Override
-	public void clearCTEntryAggregateCTEntries(long ctEntryAggregateId) {
-		ctEntryAggregatePersistence.clearCTEntries(ctEntryAggregateId);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, long ctEntryId) {
-
-		ctEntryAggregatePersistence.removeCTEntry(
-			ctEntryAggregateId, ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, CTEntry ctEntry) {
-
-		ctEntryAggregatePersistence.removeCTEntry(ctEntryAggregateId, ctEntry);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, long[] ctEntryIds) {
-
-		ctEntryAggregatePersistence.removeCTEntries(
-			ctEntryAggregateId, ctEntryIds);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, List<CTEntry> ctEntries) {
-
-		ctEntryAggregatePersistence.removeCTEntries(
-			ctEntryAggregateId, ctEntries);
-	}
-
-	/**
-	 * Returns the ctEntryAggregateIds of the ct entry aggregates associated with the ct entry.
-	 *
-	 * @param ctEntryId the ctEntryId of the ct entry
-	 * @return long[] the ctEntryAggregateIds of ct entry aggregates associated with the ct entry
-	 */
-	@Override
-	public long[] getCTEntryAggregatePrimaryKeys(long ctEntryId) {
-		return ctEntryPersistence.getCTEntryAggregatePrimaryKeys(ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public List<CTEntry> getCTEntryAggregateCTEntries(long ctEntryAggregateId) {
-		return ctEntryPersistence.getCTEntryAggregateCTEntries(
-			ctEntryAggregateId);
-	}
-
-	/**
-	 */
-	@Override
-	public List<CTEntry> getCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, int start, int end) {
-
-		return ctEntryPersistence.getCTEntryAggregateCTEntries(
-			ctEntryAggregateId, start, end);
-	}
-
-	/**
-	 */
-	@Override
-	public List<CTEntry> getCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, int start, int end,
-		OrderByComparator<CTEntry> orderByComparator) {
-
-		return ctEntryPersistence.getCTEntryAggregateCTEntries(
-			ctEntryAggregateId, start, end, orderByComparator);
-	}
-
-	/**
-	 */
-	@Override
-	public int getCTEntryAggregateCTEntriesCount(long ctEntryAggregateId) {
-		return ctEntryAggregatePersistence.getCTEntriesSize(ctEntryAggregateId);
-	}
-
-	/**
-	 */
-	@Override
-	public boolean hasCTEntryAggregateCTEntry(
-		long ctEntryAggregateId, long ctEntryId) {
-
-		return ctEntryAggregatePersistence.containsCTEntry(
-			ctEntryAggregateId, ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public boolean hasCTEntryAggregateCTEntries(long ctEntryAggregateId) {
-		return ctEntryAggregatePersistence.containsCTEntries(
-			ctEntryAggregateId);
-	}
-
-	/**
-	 */
-	@Override
-	public void setCTEntryAggregateCTEntries(
-		long ctEntryAggregateId, long[] ctEntryIds) {
-
-		ctEntryAggregatePersistence.setCTEntries(
-			ctEntryAggregateId, ctEntryIds);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTCollectionCTEntry(long ctCollectionId, long ctEntryId) {
-		ctCollectionPersistence.addCTEntry(ctCollectionId, ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTCollectionCTEntry(long ctCollectionId, CTEntry ctEntry) {
-		ctCollectionPersistence.addCTEntry(ctCollectionId, ctEntry);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTCollectionCTEntries(
-		long ctCollectionId, long[] ctEntryIds) {
-
-		ctCollectionPersistence.addCTEntries(ctCollectionId, ctEntryIds);
-	}
-
-	/**
-	 */
-	@Override
-	public void addCTCollectionCTEntries(
-		long ctCollectionId, List<CTEntry> ctEntries) {
-
-		ctCollectionPersistence.addCTEntries(ctCollectionId, ctEntries);
-	}
-
-	/**
-	 */
-	@Override
-	public void clearCTCollectionCTEntries(long ctCollectionId) {
-		ctCollectionPersistence.clearCTEntries(ctCollectionId);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTCollectionCTEntry(long ctCollectionId, long ctEntryId) {
-		ctCollectionPersistence.removeCTEntry(ctCollectionId, ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTCollectionCTEntry(
-		long ctCollectionId, CTEntry ctEntry) {
-
-		ctCollectionPersistence.removeCTEntry(ctCollectionId, ctEntry);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTCollectionCTEntries(
-		long ctCollectionId, long[] ctEntryIds) {
-
-		ctCollectionPersistence.removeCTEntries(ctCollectionId, ctEntryIds);
-	}
-
-	/**
-	 */
-	@Override
-	public void deleteCTCollectionCTEntries(
-		long ctCollectionId, List<CTEntry> ctEntries) {
-
-		ctCollectionPersistence.removeCTEntries(ctCollectionId, ctEntries);
-	}
-
-	/**
-	 * Returns the ctCollectionIds of the ct collections associated with the ct entry.
-	 *
-	 * @param ctEntryId the ctEntryId of the ct entry
-	 * @return long[] the ctCollectionIds of ct collections associated with the ct entry
-	 */
-	@Override
-	public long[] getCTCollectionPrimaryKeys(long ctEntryId) {
-		return ctEntryPersistence.getCTCollectionPrimaryKeys(ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public List<CTEntry> getCTCollectionCTEntries(long ctCollectionId) {
-		return ctEntryPersistence.getCTCollectionCTEntries(ctCollectionId);
-	}
-
-	/**
-	 */
-	@Override
-	public List<CTEntry> getCTCollectionCTEntries(
-		long ctCollectionId, int start, int end) {
-
-		return ctEntryPersistence.getCTCollectionCTEntries(
-			ctCollectionId, start, end);
-	}
-
-	/**
-	 */
-	@Override
-	public List<CTEntry> getCTCollectionCTEntries(
-		long ctCollectionId, int start, int end,
-		OrderByComparator<CTEntry> orderByComparator) {
-
-		return ctEntryPersistence.getCTCollectionCTEntries(
-			ctCollectionId, start, end, orderByComparator);
-	}
-
-	/**
-	 */
-	@Override
-	public int getCTCollectionCTEntriesCount(long ctCollectionId) {
-		return ctCollectionPersistence.getCTEntriesSize(ctCollectionId);
-	}
-
-	/**
-	 */
-	@Override
-	public boolean hasCTCollectionCTEntry(long ctCollectionId, long ctEntryId) {
-		return ctCollectionPersistence.containsCTEntry(
-			ctCollectionId, ctEntryId);
-	}
-
-	/**
-	 */
-	@Override
-	public boolean hasCTCollectionCTEntries(long ctCollectionId) {
-		return ctCollectionPersistence.containsCTEntries(ctCollectionId);
-	}
-
-	/**
-	 */
-	@Override
-	public void setCTCollectionCTEntries(
-		long ctCollectionId, long[] ctEntryIds) {
-
-		ctCollectionPersistence.setCTEntries(ctCollectionId, ctEntryIds);
-	}
-
 	@Override
 	public Class<?>[] getAopInterfaces() {
 		return new Class<?>[] {
@@ -684,43 +376,16 @@ public abstract class CTEntryLocalServiceBaseImpl
 		}
 	}
 
-	@Reference
-	protected CTCollectionPersistence ctCollectionPersistence;
-
 	protected CTEntryLocalService ctEntryLocalService;
 
 	@Reference
 	protected CTEntryPersistence ctEntryPersistence;
 
 	@Reference
-	protected CTEntryFinder ctEntryFinder;
-
-	@Reference
-	protected CTEntryAggregatePersistence ctEntryAggregatePersistence;
-
-	@Reference
-	protected CTEntryAggregateFinder ctEntryAggregateFinder;
-
-	@Reference
-	protected CTProcessPersistence ctProcessPersistence;
-
-	@Reference
-	protected CTProcessFinder ctProcessFinder;
+	protected CTCollectionPersistence ctCollectionPersistence;
 
 	@Reference
 	protected com.liferay.counter.kernel.service.CounterLocalService
 		counterLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ClassNameLocalService
-		classNameLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.ResourceLocalService
-		resourceLocalService;
-
-	@Reference
-	protected com.liferay.portal.kernel.service.UserLocalService
-		userLocalService;
 
 }

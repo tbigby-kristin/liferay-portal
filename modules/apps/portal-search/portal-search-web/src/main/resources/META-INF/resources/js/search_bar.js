@@ -1,8 +1,20 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-search-bar',
 	function(A) {
-		var FacetUtil = Liferay.Search.FacetUtil;
-
 		var SearchBar = function(form) {
 			var instance = this;
 
@@ -10,131 +22,112 @@ AUI.add(
 
 			instance.form.on('submit', A.bind(instance._onSubmit, instance));
 
-			var emptySearchInput = instance.form.one('.search-bar-empty-search-input');
+			var emptySearchInput = instance.form.one(
+				'.search-bar-empty-search-input'
+			);
 
 			if (emptySearchInput.val() === 'true') {
 				instance.emptySearchEnabled = true;
-			}
-			else {
+			} else {
 				instance.emptySearchEnabled = false;
 			}
 
-			instance.keywordsInput = instance.form.one('.search-bar-keywords-input');
+			instance.keywordsInput = instance.form.one(
+				'.search-bar-keywords-input'
+			);
 
-			instance.resetStartPage = instance.form.one('.search-bar-reset-start-page');
+			instance.resetStartPage = instance.form.one(
+				'.search-bar-reset-start-page'
+			);
 
-			instance.scopeSelect = instance.form.one('.search-bar-scope-select');
+			instance.scopeSelect = instance.form.one(
+				'.search-bar-scope-select'
+			);
 
 			var searchButton = instance.form.one('.search-bar-search-button');
 
 			searchButton.on('click', A.bind(instance._onClick, instance));
 		};
 
-		A.mix(
-			SearchBar.prototype,
-			{
-				getKeywords: function() {
-					var instance = this;
+		A.mix(SearchBar.prototype, {
+			_onClick() {
+				var instance = this;
 
-					var keywords = instance.keywordsInput.val();
+				instance.search();
+			},
 
-					return keywords.replace(/^\s+|\s+$/, '');
-				},
+			_onSubmit(event) {
+				var instance = this;
 
-				isSubmitEnabled: function() {
-					var instance = this;
+				event.stopPropagation();
 
-					return (instance.getKeywords() !== '') || instance.emptySearchEnabled;
-				},
+				instance.search();
+			},
 
-				search: function() {
-					var instance = this;
+			getKeywords() {
+				var instance = this;
 
-					if (instance.isSubmitEnabled()) {
-						var searchURL = instance.form.get('action');
+				var keywords = instance.keywordsInput.val();
 
-						var queryString = instance.updateQueryString(document.location.search);
+				return keywords.replace(/^\s+|\s+$/, '');
+			},
 
-						document.location.href = searchURL + queryString;
-					}
-				},
+			isSubmitEnabled() {
+				var instance = this;
 
-				updateQueryString: function(queryString) {
-					var instance = this;
+				return (
+					instance.getKeywords() !== '' || instance.emptySearchEnabled
+				);
+			},
 
-					var hasQuestionMark = false;
+			search() {
+				var instance = this;
 
-					if (queryString[0] === '?') {
-						hasQuestionMark = true;
-					}
+				if (instance.isSubmitEnabled()) {
+					var searchURL = instance.form.get('action');
 
-					queryString = FacetUtil.updateQueryString(
-						instance.keywordsInput.get('name'),
-						[instance.getKeywords()],
-						queryString
+					var queryString = instance.updateQueryString(
+						document.location.search
 					);
 
-					if (instance.scopeSelect) {
-						queryString = FacetUtil.updateQueryString(
-							instance.scopeSelect.get('name'),
-							[instance.scopeSelect.val()],
-							queryString
-						);
-					}
-
-					if (hasQuestionMark) {
-						var parts = queryString.split('?');
-
-						queryString = parts[1];
-
-						hasQuestionMark = false;
-					}
-
-					var parameterArray = queryString.split('&');
-
-					parameterArray = FacetUtil.removeURLParameters(
-						'start',
-						parameterArray
-					);
-
-					if (instance.resetStartPage) {
-						var resetStartPageName = instance.resetStartPage.get('name');
-
-						parameterArray = FacetUtil.removeURLParameters(
-							resetStartPageName,
-							parameterArray
-						);
-					}
-
-					queryString = parameterArray.join('&');
-
-					if (!hasQuestionMark) {
-						queryString = '?' + queryString;
-					}
-
-					return queryString;
-				},
-
-				_onClick: function(event) {
-					var instance = this;
-
-					instance.search();
-				},
-
-				_onSubmit: function(event) {
-					var instance = this;
-
-					event.stopPropagation();
-
-					instance.search();
+					document.location.href = searchURL + queryString;
 				}
+			},
+
+			updateQueryString(queryString) {
+				var instance = this;
+
+				var searchParams = new URLSearchParams(queryString);
+
+				searchParams.set(
+					instance.keywordsInput.get('name'),
+					instance.getKeywords()
+				);
+				searchParams.delete('p_p_id');
+				searchParams.delete('p_p_state');
+
+				if (instance.scopeSelect) {
+					searchParams.set(
+						instance.scopeSelect.get('name'),
+						instance.scopeSelect.val()
+					);
+				}
+
+				searchParams.delete('start');
+
+				if (instance.resetStartPage) {
+					var resetStartPageName = instance.resetStartPage.get(
+						'name'
+					);
+
+					searchParams.delete(resetStartPageName);
+				}
+
+				return '?' + searchParams.toString();
 			}
-		);
+		});
 
 		Liferay.namespace('Search').SearchBar = SearchBar;
 	},
-	'',
-	{
-		requires: ['liferay-search-facet-util']
-	}
+	''
 );

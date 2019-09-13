@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-autocomplete-input',
 	function(A) {
@@ -18,8 +32,7 @@ AUI.add(
 			resultHighlighter: STR_PHRASE_MATCH
 		};
 
-		var AutoCompleteInputBase = function() {
-		};
+		var AutoCompleteInputBase = function() {};
 
 		AutoCompleteInputBase.ATTRS = {
 			caretAtTerm: {
@@ -38,14 +51,13 @@ AUI.add(
 			},
 
 			regExp: {
-				validator: function(newVal) {
+				validator(newVal) {
 					return Lang.isRegExp(newVal) || Lang.isString(newVal);
 				},
 				value: '(?:\\strigger|^trigger)(\\w[\\s\\w]*)'
 			},
 
-			source: {
-			},
+			source: {},
 
 			tplReplace: {
 				validator: Lang.isString
@@ -62,45 +74,17 @@ AUI.add(
 		};
 
 		AutoCompleteInputBase.prototype = {
-			initializer: function() {
-				var instance = this;
-
-				instance.get('boundingBox').addClass('lfr-autocomplete-input-list');
-
-				instance.set('resultFormatter', A.bind('_acResultFormatter', instance));
-
-				instance._bindUIACIBase();
-
-				var autocompleteAttrs = A.Object.keys(A.AutoComplete.ATTRS).filter(
-					function(item) {
-						return item !== 'value';
-					}
-				);
-
-				instance._triggerConfigDefaults = A.merge(TRIGGER_CONFIG_DEFAULTS);
-
-				A.mix(instance._triggerConfigDefaults, instance.getAttrs(), false, autocompleteAttrs);
-			},
-
-			destructor: function() {
-				var instance = this;
-
-				(new A.EventHandle(instance._eventHandles)).detach();
-			},
-
-			_acResultFormatter: function(query, results) {
+			_acResultFormatter(query, results) {
 				var instance = this;
 
 				var tplResults = instance.get('tplResults');
 
-				return results.map(
-					function(result) {
-						return Lang.sub(tplResults, result.raw);
-					}
-				);
+				return results.map(function(result) {
+					return Lang.sub(tplResults, result.raw);
+				});
 			},
 
-			_adjustACPosition: function() {
+			_adjustACPosition() {
 				var instance = this;
 
 				var xy = instance._getACPositionBase();
@@ -115,8 +99,7 @@ AUI.add(
 				if (Array.isArray(offset)) {
 					offsetX = offset[0];
 					offsetY = offset[1];
-				}
-				else if (Lang.isNumber(offset)) {
+				} else if (Lang.isNumber(offset)) {
 					offsetY = offset;
 				}
 
@@ -128,7 +111,7 @@ AUI.add(
 				instance.get('boundingBox').setXY(xy);
 			},
 
-			_afterACVisibleChange: function(event) {
+			_afterACVisibleChange(event) {
 				var instance = this;
 
 				if (event.newVal) {
@@ -138,15 +121,19 @@ AUI.add(
 				instance._uiSetVisible(event.newVal);
 			},
 
-			_bindUIACIBase: function() {
+			_bindUIACIBase() {
 				var instance = this;
 
 				instance.on('query', instance._onACQuery, instance);
 
-				instance.after('visibleChange', instance._afterACVisibleChange, instance);
+				instance.after(
+					'visibleChange',
+					instance._afterACVisibleChange,
+					instance
+				);
 			},
 
-			_defSelectFn: function(event) {
+			_defSelectFn(event) {
 				var instance = this;
 
 				var text = event.result.text;
@@ -161,41 +148,39 @@ AUI.add(
 
 				instance._updateValue(text);
 
-				instance._ariaSay(
-					'item_selected',
-					{
-						item: event.result.text
-					}
-				);
+				instance._ariaSay('item_selected', {
+					item: event.result.text
+				});
 
 				instance.hide();
 			},
 
-			_getRegExp: function() {
+			_getRegExp() {
 				var instance = this;
 
 				var regExp = instance.get('regExp');
 
 				if (Lang.isString(regExp)) {
-					var triggersExpr = '[' + instance._getTriggers().join('|') + ']';
+					var triggersExpr =
+						'[' + instance._getTriggers().join('|') + ']';
 
-					regExp = new RegExp(regExp.replace(REGEX_TRIGGER, triggersExpr));
+					regExp = new RegExp(
+						regExp.replace(REGEX_TRIGGER, triggersExpr)
+					);
 				}
 
 				return regExp;
 			},
 
-			_getTriggers: function() {
+			_getTriggers() {
 				var instance = this;
 
 				if (!instance._triggers) {
 					var triggers = [];
 
-					instance.get(STR_TRIGGER).forEach(
-						function(item, index, collection) {
-							triggers.push(Lang.isString(item) ? item : item.term);
-						}
-					);
+					instance.get(STR_TRIGGER).forEach(function(item) {
+						triggers.push(Lang.isString(item) ? item : item.term);
+					});
 
 					instance._triggers = triggers;
 				}
@@ -203,7 +188,7 @@ AUI.add(
 				return instance._triggers;
 			},
 
-			_keyDown: function() {
+			_keyDown() {
 				var instance = this;
 
 				if (instance.get(STR_VISIBLE)) {
@@ -211,7 +196,7 @@ AUI.add(
 				}
 			},
 
-			_onACQuery: function(event) {
+			_onACQuery(event) {
 				var instance = this;
 
 				var input = instance._getQuery(event.query);
@@ -220,8 +205,7 @@ AUI.add(
 					instance._setTriggerConfig(input[0]);
 
 					event.query = input.substring(1);
-				}
-				else {
+				} else {
 					event.preventDefault();
 
 					if (instance.get(STR_VISIBLE)) {
@@ -230,7 +214,7 @@ AUI.add(
 				}
 			},
 
-			_processKeyUp: function(query) {
+			_processKeyUp(query) {
 				var instance = this;
 
 				if (query) {
@@ -239,21 +223,24 @@ AUI.add(
 					query = query.substring(1);
 
 					instance.sendRequest(query);
-				}
-				else if (instance.get(STR_VISIBLE)) {
+				} else if (instance.get(STR_VISIBLE)) {
 					instance.hide();
 				}
 			},
 
-			_setTriggerConfig: function(trigger) {
+			_setTriggerConfig(trigger) {
 				var instance = this;
 
 				if (trigger !== instance._trigger) {
 					var triggers = instance._getTriggers();
 
-					var triggerConfig = instance.get(STR_TRIGGER)[triggers.indexOf(trigger)];
+					var triggerConfig = instance.get(STR_TRIGGER)[
+						triggers.indexOf(trigger)
+					];
 
-					instance.setAttrs(A.merge(instance._triggerConfigDefaults, triggerConfig));
+					instance.setAttrs(
+						A.merge(instance._triggerConfigDefaults, triggerConfig)
+					);
 
 					instance._trigger = trigger;
 				}
@@ -261,8 +248,46 @@ AUI.add(
 
 			_syncUIPosAlign: Lang.emptyFn,
 
-			_validateOffset: function(value) {
+			_validateOffset(value) {
 				return Array.isArray(value) || Lang.isNumber(value);
+			},
+
+			destructor() {
+				var instance = this;
+
+				new A.EventHandle(instance._eventHandles).detach();
+			},
+
+			initializer() {
+				var instance = this;
+
+				instance
+					.get('boundingBox')
+					.addClass('lfr-autocomplete-input-list');
+
+				instance.set(
+					'resultFormatter',
+					A.bind('_acResultFormatter', instance)
+				);
+
+				instance._bindUIACIBase();
+
+				var autocompleteAttrs = A.Object.keys(
+					A.AutoComplete.ATTRS
+				).filter(function(item) {
+					return item !== 'value';
+				});
+
+				instance._triggerConfigDefaults = A.merge(
+					TRIGGER_CONFIG_DEFAULTS
+				);
+
+				A.mix(
+					instance._triggerConfigDefaults,
+					instance.getAttrs(),
+					false,
+					autocompleteAttrs
+				);
 			}
 		};
 
@@ -270,6 +295,11 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-base', 'autocomplete', 'autocomplete-filters', 'autocomplete-highlighters']
+		requires: [
+			'aui-base',
+			'autocomplete',
+			'autocomplete-filters',
+			'autocomplete-highlighters'
+		]
 	}
 );

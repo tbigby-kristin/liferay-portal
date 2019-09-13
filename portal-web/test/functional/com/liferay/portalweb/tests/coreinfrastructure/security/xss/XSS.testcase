@@ -3,6 +3,7 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
+	property test.assert.warning.exceptions = "true";
 	property testray.main.component.name = "XSS";
 
 	setUp {
@@ -42,6 +43,10 @@ definition {
 
 		var maliciousURL4 = '''
 				${portalURL}/group/guest/home?p_p_id=82&p_p_lifecycle=1&p_p_state=normal&p_p_mode=view&p_p_col_id=column-1&p_p_col_pos=1&p_p_col_count=2&_82_struts_action=%2Flanguage%2Fview&languageId=</script><script>alert(document.domain)</script>
+			''';
+
+		var maliciousURL5 = '''
+				${portalURL}/web/guest/home?p_p_id=113&p_p_lifecycle=0&p_p_state=maximized&p_p_mode=view&_113_tabs1=background-styles
 			''';
 
 		Navigator.openSpecificURL(url = "${maliciousURL1}");
@@ -91,6 +96,12 @@ definition {
 			value1 = "The requested resource could not be found.");
 
 		AssertElementPresent(locator1 = "Home#URL_ERROR_MESSAGE");
+
+		Navigator.openSpecificURL(url = "${maliciousURL5}");
+
+		AssertTextEquals(
+			locator1 = "Message#INFO",
+			value1 = "This portlet could not be found. Please redeploy it or remove it from the page.");
 	}
 
 	@priority = "3"

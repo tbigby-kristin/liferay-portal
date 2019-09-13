@@ -1,0 +1,131 @@
+{namespace com.liferay.layout.content.page.editor.web.ItemSelectorField}
+
+/**
+ * Field ItemSelector variation
+ */
+{template .render}
+	{@param configurationValues: ?}
+	{@param field: [
+		name: string,
+		label: string,
+		type: string,
+		typeOptions: ?
+	]}
+
+	{@param? availableAssets: list<[
+		href: string,
+		typeName: string
+	]>}
+
+	{@param? availableTemplates: list<[
+		key: string,
+		label: string
+	]>}
+	{@param? enableSelectTemplate: bool}
+	{@param? selectedClassName: string}
+	{@param? spritemap: string}
+	{@param? store: ?}
+	{@param? _handleItemSelectClick: any}
+	{@param? _handleSelectTemplateValueChanged: any}
+	{@param? _handleItemTypeClick: any}
+
+	<div>
+		{if $selectedClassName}
+			{call .classNameAssetSelector}
+				{param configurationValues: $configurationValues /}
+				{param field: $field /}
+				{param handleItemSelectClick: $_handleItemSelectClick /}
+				{param selectedAssetEntryTitle: $configurationValues[$field.name]?.title /}
+				{param spritemap: $spritemap /}
+			{/call}
+		{else}
+			<div class="form-group">
+				{call com.liferay.layout.content.page.editor.web.AssetSelector.render}
+					{param assetBrowserLinks: $availableAssets /}
+					{param fieldId: $field.name /}
+					{param fieldName: $field.label /}
+					{param handleAssetBrowserLinkClick: $_handleItemTypeClick /}
+					{param handleAssetEntryLinkClick: $_handleItemSelectClick /}
+					{param selectedAssetEntryTitle: $configurationValues[$field.name]?.title /}
+					{param store: $store /}
+				{/call}
+			</div>
+		{/if}
+
+		{if $enableSelectTemplate and isNonnull($availableTemplates) and length($availableTemplates) > 1}
+			{call .templateSelector}
+				{param availableTemplates: $availableTemplates /}
+				{param selectedTemplate: $configurationValues[$field.name]?.template /}
+				{param handleSelectTemplateValueChanged: $_handleSelectTemplateValueChanged /}
+			{/call}
+		{/if}
+	</div>
+{/template}
+
+{template .classNameAssetSelector}
+	{@param configurationValues: ?}
+	{@param field: [
+		name: string,
+		label: string,
+		type: string,
+		typeOptions: ?
+	]}
+	{@param? handleItemSelectClick: any}
+	{@param? spritemap: string}
+
+	<div class="form-group">
+		<label for="{$field.name}-select">
+			{$field.label}
+		</label>
+
+		<div class="d-flex">
+			<input
+				class="form-control form-control-sm mr-2"
+				id="{$field.name}-select"
+				readonly
+				type="text"
+				value="{$configurationValues[$field.name]?.title ?: ''}"
+			/>
+
+			<div class="btn-group">
+				<button
+					class="btn btn-monospaced btn-secondary btn-sm"
+					data-onclick="{$handleItemSelectClick}"
+					type="button"
+				>
+					<svg class="lexicon-icon">
+						<use xlink:href="{$spritemap ?: ''}#plus"></use>
+					</svg>
+				</button>
+			</div>
+		</div>
+	</div>
+{/template}
+
+{template .templateSelector}
+	{@param availableTemplates: ?}
+	{@param? selectedTemplate: string}
+	{@param? handleSelectTemplateValueChanged: any}
+
+	<div class="form-group">
+		<label for="template">{msg desc=""}display-style{/msg}</label>
+
+		<select
+			class="form-control form-control-sm"
+			data-onchange="{$handleSelectTemplateValueChanged}"
+			id="template"
+		>
+			{foreach $option in $availableTemplates}
+				{let $optionAttributes kind="attributes"}
+					value="{$option.key}"
+
+					{if $selectedTemplate and $selectedTemplate == $option.key}
+						selected
+					{/if}
+				{/let}
+
+				<option {$optionAttributes}>{$option.label}</option>
+			{/foreach}
+		</select>
+	</div>
+{/template}

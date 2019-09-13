@@ -30,6 +30,28 @@ import javax.annotation.Generated;
 @Generated("")
 public class DataDefinition {
 
+	public String[] getAvailableLanguageIds() {
+		return availableLanguageIds;
+	}
+
+	public void setAvailableLanguageIds(String[] availableLanguageIds) {
+		this.availableLanguageIds = availableLanguageIds;
+	}
+
+	public void setAvailableLanguageIds(
+		UnsafeSupplier<String[], Exception>
+			availableLanguageIdsUnsafeSupplier) {
+
+		try {
+			availableLanguageIds = availableLanguageIdsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String[] availableLanguageIds;
+
 	public DataDefinitionField[] getDataDefinitionFields() {
 		return dataDefinitionFields;
 	}
@@ -53,6 +75,27 @@ public class DataDefinition {
 	}
 
 	protected DataDefinitionField[] dataDefinitionFields;
+
+	public String getDataDefinitionKey() {
+		return dataDefinitionKey;
+	}
+
+	public void setDataDefinitionKey(String dataDefinitionKey) {
+		this.dataDefinitionKey = dataDefinitionKey;
+	}
+
+	public void setDataDefinitionKey(
+		UnsafeSupplier<String, Exception> dataDefinitionKeyUnsafeSupplier) {
+
+		try {
+			dataDefinitionKey = dataDefinitionKeyUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String dataDefinitionKey;
 
 	public DataDefinitionRule[] getDataDefinitionRules() {
 		return dataDefinitionRules;
@@ -119,6 +162,27 @@ public class DataDefinition {
 	}
 
 	protected Date dateModified;
+
+	public String getDefaultLanguageId() {
+		return defaultLanguageId;
+	}
+
+	public void setDefaultLanguageId(String defaultLanguageId) {
+		this.defaultLanguageId = defaultLanguageId;
+	}
+
+	public void setDefaultLanguageId(
+		UnsafeSupplier<String, Exception> defaultLanguageIdUnsafeSupplier) {
+
+		try {
+			defaultLanguageId = defaultLanguageIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String defaultLanguageId;
 
 	public Map<String, Object> getDescription() {
 		return description;

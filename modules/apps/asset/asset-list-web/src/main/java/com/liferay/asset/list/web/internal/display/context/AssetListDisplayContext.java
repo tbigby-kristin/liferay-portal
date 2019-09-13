@@ -16,9 +16,11 @@ package com.liferay.asset.list.web.internal.display.context;
 
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.asset.list.asset.entry.provider.AssetListAssetEntryProvider;
 import com.liferay.asset.list.constants.AssetListActionKeys;
 import com.liferay.asset.list.constants.AssetListEntryTypeConstants;
 import com.liferay.asset.list.constants.AssetListPortletKeys;
+import com.liferay.asset.list.constants.AssetListWebKeys;
 import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalServiceUtil;
 import com.liferay.asset.list.service.AssetListEntryServiceUtil;
@@ -39,7 +41,7 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.segments.constants.SegmentsConstants;
+import com.liferay.segments.constants.SegmentsEntryConstants;
 
 import java.util.List;
 
@@ -63,6 +65,9 @@ public class AssetListDisplayContext {
 
 		_httpServletRequest = PortalUtil.getHttpServletRequest(renderRequest);
 
+		_assetListAssetEntryProvider =
+			(AssetListAssetEntryProvider)_httpServletRequest.getAttribute(
+				AssetListWebKeys.ASSET_LIST_ASSET_ENTRY_PROVIDER);
 		_portalPreferences = PortletPreferencesFactoryUtil.getPortalPreferences(
 			_httpServletRequest);
 		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
@@ -95,15 +100,14 @@ public class AssetListDisplayContext {
 			_renderRequest, _renderResponse.createRenderURL(), null,
 			"there-are-no-asset-entries");
 
-		AssetListEntry assetListEntry = getAssetListEntry();
-
-		List<AssetEntry> assetEntries = assetListEntry.getAssetEntries(
-			getSegmentsEntryId());
+		List<AssetEntry> assetEntries =
+			_assetListAssetEntryProvider.getAssetEntries(
+				getAssetListEntry(), getSegmentsEntryId());
 
 		searchContainer.setResults(assetEntries);
 
-		int totalCount = assetListEntry.getAssetEntriesCount(
-			getSegmentsEntryId());
+		int totalCount = _assetListAssetEntryProvider.getAssetEntriesCount(
+			getAssetListEntry(), getSegmentsEntryId());
 
 		searchContainer.setTotal(totalCount);
 
@@ -341,7 +345,7 @@ public class AssetListDisplayContext {
 
 		_segmentsEntryId = ParamUtil.getLong(
 			_httpServletRequest, "segmentsEntryId",
-			SegmentsConstants.SEGMENTS_ENTRY_ID_DEFAULT);
+			SegmentsEntryConstants.ID_DEFAULT);
 
 		return _segmentsEntryId;
 	}
@@ -411,6 +415,7 @@ public class AssetListDisplayContext {
 		return false;
 	}
 
+	private final AssetListAssetEntryProvider _assetListAssetEntryProvider;
 	private SearchContainer _assetListContentSearchContainer;
 	private Integer _assetListEntriesCount;
 	private SearchContainer _assetListEntriesSearchContainer;

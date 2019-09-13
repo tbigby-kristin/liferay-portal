@@ -19,6 +19,7 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.cache.MultiVMPool;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -29,9 +30,11 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
+import com.liferay.portal.kernel.search.Indexable;
+import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
-import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.search.IndexerRegistry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
@@ -41,7 +44,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.subscription.service.SubscriptionLocalService;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.exception.RestoreEntryException;
@@ -57,6 +59,7 @@ import com.liferay.wiki.internal.util.WikiCacheThreadLocal;
 import com.liferay.wiki.model.WikiNode;
 import com.liferay.wiki.model.WikiPage;
 import com.liferay.wiki.model.WikiPageDisplay;
+import com.liferay.wiki.service.WikiPageLocalService;
 import com.liferay.wiki.service.base.WikiNodeLocalServiceBaseImpl;
 
 import java.io.InputStream;
@@ -65,8 +68,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * Provides the local service for accessing, adding, deleting, importing,
@@ -76,17 +81,32 @@ import org.osgi.framework.FrameworkUtil;
  * @author Charles May
  * @author Raymond Augé
  */
+@Component(
+	property = "model.class.name=com.liferay.wiki.model.WikiNode",
+	service = AopService.class
+)
 public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
+
+	@Activate
+	public void activate(BundleContext bundleContext) {
+		_wikiImporterServiceTrackerMap =
+			ServiceTrackerMapFactory.openSingleValueMap(
+				bundleContext, WikiImporter.class, "importer");
+
+		_portalCache = _multiVMPool.getPortalCache(
+			WikiPageDisplay.class.getName());
+	}
 
 	@Override
 	public WikiNode addDefaultNode(long userId, ServiceContext serviceContext)
 		throws PortalException {
 
 		return addNode(
-			userId, wikiGroupServiceConfiguration.initialNodeName(),
+			userId, _wikiGroupServiceConfiguration.initialNodeName(),
 			StringPool.BLANK, serviceContext);
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public WikiNode addNode(
 			long userId, String name, String description,
@@ -214,20 +234,6 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	}
 
 	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-
-		Bundle bundle = FrameworkUtil.getBundle(WikiNodeLocalServiceImpl.class);
-
-		_wikiImporterServiceTrackerMap =
-			ServiceTrackerMapFactory.openSingleValueMap(
-				bundle.getBundleContext(), WikiImporter.class, "importer");
-
-		_portalCache = multiVMPool.getPortalCache(
-			WikiPageDisplay.class.getName());
-	}
-
-	@Override
 	public void deleteNode(long nodeId) throws PortalException {
 		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
 
@@ -248,7 +254,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		try {
 			WikiCacheThreadLocal.setClearCache(false);
 
-			wikiPageLocalService.deletePages(node.getNodeId());
+			_wikiPageLocalService.deletePages(node.getNodeId());
 		}
 		finally {
 			WikiCacheThreadLocal.setClearCache(clearCache);
@@ -271,28 +277,28 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		long folderId = node.getAttachmentsFolderId();
 
 		if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-			PortletFileRepositoryUtil.deletePortletFolder(folderId);
+			_portletFileRepository.deletePortletFolder(folderId);
 		}
 
 		// Subscriptions
 
-		subscriptionLocalService.deleteSubscriptions(
+		_subscriptionLocalService.deleteSubscriptions(
 			node.getCompanyId(), WikiNode.class.getName(), node.getNodeId());
 
+		// Indexer
+
+		Indexer<WikiNode> indexer = _indexerRegistry.nullSafeGetIndexer(
+			WikiNode.class);
+
+		indexer.delete(node);
+
 		if (node.isInTrash()) {
-			node.setName(trashHelper.getOriginalTitle(node.getName()));
+			node.setName(_trashHelper.getOriginalTitle(node.getName()));
 
 			// Trash
 
-			trashEntryLocalService.deleteEntry(
+			_trashEntryLocalService.deleteEntry(
 				WikiNode.class.getName(), node.getNodeId());
-
-			// Indexer
-
-			Indexer<WikiNode> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
-				WikiNode.class);
-
-			indexer.delete(node);
 		}
 	}
 
@@ -304,7 +310,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			wikiNodeLocalService.deleteNode(node);
 		}
 
-		PortletFileRepositoryUtil.deletePortletRepository(
+		_portletFileRepository.deletePortletRepository(
 			groupId, WikiConstants.SERVICE_NAME);
 	}
 
@@ -468,12 +474,12 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		typeSettingsProperties.put("title", node.getName());
 
-		TrashEntry trashEntry = trashEntryLocalService.addTrashEntry(
+		TrashEntry trashEntry = _trashEntryLocalService.addTrashEntry(
 			userId, node.getGroupId(), WikiNode.class.getName(),
 			node.getNodeId(), node.getUuid(), null, oldStatus, null,
 			typeSettingsProperties);
 
-		node.setName(trashHelper.getTrashTitle(trashEntry.getEntryId()));
+		node.setName(_trashHelper.getTrashTitle(trashEntry.getEntryId()));
 
 		wikiNodePersistence.update(node);
 
@@ -495,11 +501,11 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 				RestoreEntryException.INVALID_STATUS);
 		}
 
-		node.setName(trashHelper.getOriginalTitle(node.getName()));
+		node.setName(_trashHelper.getOriginalTitle(node.getName()));
 
 		wikiNodePersistence.update(node);
 
-		TrashEntry trashEntry = trashEntryLocalService.getEntry(
+		TrashEntry trashEntry = _trashEntryLocalService.getEntry(
 			WikiNode.class.getName(), node.getNodeId());
 
 		updateStatus(
@@ -511,14 +517,14 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(trashEntry);
+		_trashEntryLocalService.deleteEntry(trashEntry);
 	}
 
 	@Override
 	public void subscribeNode(long userId, long nodeId) throws PortalException {
 		WikiNode node = getNode(nodeId);
 
-		subscriptionLocalService.addSubscription(
+		_subscriptionLocalService.addSubscription(
 			userId, node.getGroupId(), WikiNode.class.getName(), nodeId);
 	}
 
@@ -526,7 +532,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 	public void unsubscribeNode(long userId, long nodeId)
 		throws PortalException {
 
-		subscriptionLocalService.deleteSubscription(
+		_subscriptionLocalService.deleteSubscription(
 			userId, WikiNode.class.getName(), nodeId);
 	}
 
@@ -567,7 +573,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
 		// Indexer
 
-		Indexer<WikiNode> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+		Indexer<WikiNode> indexer = _indexerRegistry.nullSafeGetIndexer(
 			WikiNode.class);
 
 		indexer.reindex(node);
@@ -606,7 +612,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 			List<WikiPage> pages = wikiPagePersistence.findByN_H(nodeId, true);
 
 			for (WikiPage page : pages) {
-				wikiPageLocalService.moveDependentToTrash(page, trashEntryId);
+				_wikiPageLocalService.moveDependentToTrash(page, trashEntryId);
 			}
 		}
 		finally {
@@ -626,7 +632,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 				continue;
 			}
 
-			wikiPageLocalService.restorePageFromTrash(userId, page);
+			_wikiPageLocalService.restorePageFromTrash(userId, page);
 		}
 	}
 
@@ -656,26 +662,36 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		validate(0, groupId, name);
 	}
 
-	@ServiceReference(type = MultiVMPool.class)
-	protected MultiVMPool multiVMPool;
-
-	@ServiceReference(type = SubscriptionLocalService.class)
-	protected SubscriptionLocalService subscriptionLocalService;
-
-	@ServiceReference(type = TrashEntryLocalService.class)
-	protected TrashEntryLocalService trashEntryLocalService;
-
-	@ServiceReference(type = TrashHelper.class)
-	protected TrashHelper trashHelper;
-
-	@ServiceReference(type = WikiGroupServiceConfiguration.class)
-	protected WikiGroupServiceConfiguration wikiGroupServiceConfiguration;
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		WikiNodeLocalServiceImpl.class);
 
+	@Reference
+	private IndexerRegistry _indexerRegistry;
+
+	@Reference
+	private MultiVMPool _multiVMPool;
+
 	private PortalCache<?, ?> _portalCache;
+
+	@Reference
+	private PortletFileRepository _portletFileRepository;
+
+	@Reference
+	private SubscriptionLocalService _subscriptionLocalService;
+
+	@Reference
+	private TrashEntryLocalService _trashEntryLocalService;
+
+	@Reference
+	private TrashHelper _trashHelper;
+
+	@Reference
+	private WikiGroupServiceConfiguration _wikiGroupServiceConfiguration;
+
 	private ServiceTrackerMap<String, WikiImporter>
 		_wikiImporterServiceTrackerMap;
+
+	@Reference
+	private WikiPageLocalService _wikiPageLocalService;
 
 }

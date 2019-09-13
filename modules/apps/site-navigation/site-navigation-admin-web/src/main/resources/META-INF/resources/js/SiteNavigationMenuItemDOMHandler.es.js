@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {
 	addClasses,
 	closest,
@@ -27,8 +41,8 @@ const MENU_ITEM_SELECTED_CLASSNAME = `${MENU_ITEM_CLASSNAME}--selected`;
  * @return {Array<HTMLElement>}
  */
 const getChildren = function(menuItem) {
-	return Array.prototype
-		.slice.call(menuItem.children)
+	return Array.prototype.slice
+		.call(menuItem.children)
 		.filter(child => hasClass(child, MENU_ITEM_CLASSNAME));
 };
 
@@ -96,9 +110,7 @@ const getSiblings = function(menuItem) {
 	let siblings = [];
 
 	if (parentElement) {
-		siblings = getChildren(
-			parentElement
-		);
+		siblings = getChildren(parentElement);
 	}
 
 	return siblings;
@@ -143,8 +155,7 @@ const isSelected = function(menuItem) {
 const setDragging = function(menuItem, dragging = false) {
 	if (dragging) {
 		addClasses(menuItem, MENU_ITEM_DRAGGING_CLASSNAME);
-	}
-	else {
+	} else {
 		removeClasses(menuItem, MENU_ITEM_DRAGGING_CLASSNAME);
 	}
 };

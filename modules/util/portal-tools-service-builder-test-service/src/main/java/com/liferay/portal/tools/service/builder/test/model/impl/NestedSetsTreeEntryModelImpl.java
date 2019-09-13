@@ -14,8 +14,6 @@
 
 package com.liferay.portal.tools.service.builder.test.model.impl;
 
-import aQute.bnd.annotation.ProviderType;
-
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
@@ -54,12 +52,11 @@ import java.util.function.Function;
  * @see NestedSetsTreeEntryImpl
  * @generated
  */
-@ProviderType
 public class NestedSetsTreeEntryModelImpl
 	extends BaseModelImpl<NestedSetsTreeEntry>
 	implements NestedSetsTreeEntryModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a nested sets tree entry model instance should use the <code>NestedSetsTreeEntry</code> interface instead.
@@ -472,7 +469,12 @@ public class NestedSetsTreeEntryModelImpl
 	@Override
 	public NestedSetsTreeEntry toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, NestedSetsTreeEntry>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -647,8 +649,12 @@ public class NestedSetsTreeEntryModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, NestedSetsTreeEntry>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, NestedSetsTreeEntry>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _nestedSetsTreeEntryId;
 	private long _groupId;

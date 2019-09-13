@@ -17,9 +17,12 @@ package com.liferay.wiki.web.internal.item.selector.view.display.context;
 import com.liferay.item.selector.ItemSelectorReturnTypeResolver;
 import com.liferay.item.selector.ItemSelectorReturnTypeResolverHandler;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.wiki.configuration.WikiFileUploadConfiguration;
 import com.liferay.wiki.constants.WikiPortletKeys;
 import com.liferay.wiki.item.selector.criterion.WikiAttachmentItemSelectorCriterion;
 import com.liferay.wiki.model.WikiPage;
@@ -67,8 +70,18 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 				_wikiAttachmentItemSelectorView, FileEntry.class);
 	}
 
-	public String[] getMimeTypes() {
-		return _wikiAttachmentItemSelectorCriterion.getMimeTypes();
+	public String[] getMimeTypes() throws ConfigurationException {
+		String[] mimeTypes =
+			_wikiAttachmentItemSelectorCriterion.getMimeTypes();
+
+		if (mimeTypes != null) {
+			return mimeTypes;
+		}
+
+		WikiFileUploadConfiguration wikiFileUploadConfiguration =
+			_getWikiFileUploadsConfiguration();
+
+		return wikiFileUploadConfiguration.attachmentMimeTypes();
 	}
 
 	public PortletURL getPortletURL(
@@ -114,6 +127,13 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 		return _wikiAttachmentItemSelectorCriterion;
 	}
 
+	public long getWikiAttachmentMaxSize() throws ConfigurationException {
+		WikiFileUploadConfiguration wikiFileUploadConfiguration =
+			_getWikiFileUploadsConfiguration();
+
+		return wikiFileUploadConfiguration.attachmentMaxSize();
+	}
+
 	public WikiPage getWikiPage() throws PortalException {
 		return WikiPageLocalServiceUtil.getPage(
 			_wikiAttachmentItemSelectorCriterion.getWikiPageResourceId());
@@ -121,6 +141,18 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 
 	public boolean isSearch() {
 		return _search;
+	}
+
+	private WikiFileUploadConfiguration _getWikiFileUploadsConfiguration()
+		throws ConfigurationException {
+
+		if (_wikiFileUploadConfiguration == null) {
+			_wikiFileUploadConfiguration =
+				ConfigurationProviderUtil.getSystemConfiguration(
+					WikiFileUploadConfiguration.class);
+		}
+
+		return _wikiFileUploadConfiguration;
 	}
 
 	private final String _itemSelectedEventName;
@@ -132,5 +164,6 @@ public class WikiAttachmentItemSelectorViewDisplayContext {
 		_wikiAttachmentItemSelectorCriterion;
 	private final WikiAttachmentItemSelectorView
 		_wikiAttachmentItemSelectorView;
+	private WikiFileUploadConfiguration _wikiFileUploadConfiguration;
 
 }

@@ -1463,6 +1463,11 @@ public class TransactionalPortalCacheTest {
 			return _rollbackOnly;
 		}
 
+		@Override
+		public void suppressLifecycleListenerThrowable(
+			Throwable lifecycleThrowable) {
+		}
+
 		private TestTrasactionStatus(
 			boolean newTransaction, boolean rollbackOnly, boolean completed) {
 

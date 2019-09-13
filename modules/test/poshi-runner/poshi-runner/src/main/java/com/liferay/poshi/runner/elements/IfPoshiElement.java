@@ -64,11 +64,9 @@ public class IfPoshiElement extends PoshiElement {
 			String trimmedPoshiScriptSnippet = poshiScriptSnippet.trim();
 
 			if (trimmedPoshiScriptSnippet.startsWith(getPoshiScriptKeyword())) {
-				String blockName = getBlockName(poshiScriptSnippet);
-
 				add(
 					PoshiNodeFactory.newPoshiNode(
-						this, getCondition(blockName)));
+						this, getCondition(getBlockName(poshiScriptSnippet))));
 
 				add(new ThenPoshiElement(this, poshiScriptSnippet));
 

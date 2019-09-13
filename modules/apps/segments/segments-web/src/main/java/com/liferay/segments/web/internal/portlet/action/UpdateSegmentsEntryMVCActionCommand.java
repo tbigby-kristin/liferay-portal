@@ -23,16 +23,17 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.segments.constants.SegmentsConstants;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.constants.SegmentsPortletKeys;
 import com.liferay.segments.criteria.Criteria;
 import com.liferay.segments.criteria.CriteriaSerializer;
-import com.liferay.segments.criteria.contributor.SegmentsCriteriaContributor;
 import com.liferay.segments.criteria.contributor.SegmentsCriteriaContributorRegistry;
 import com.liferay.segments.exception.NoSuchEntryException;
 import com.liferay.segments.exception.SegmentsEntryCriteriaException;
@@ -41,7 +42,6 @@ import com.liferay.segments.exception.SegmentsEntryNameException;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.SegmentsEntryService;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -91,12 +91,10 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 		try {
 			SegmentsEntry segmentsEntry = null;
 
-			List<SegmentsCriteriaContributor> segmentsCriteriaContributors =
-				_segmentsCriteriaContributorRegistry.
-					getSegmentsCriteriaContributors(type);
-
 			Criteria criteria = ActionUtil.getCriteria(
-				actionRequest, segmentsCriteriaContributors);
+				actionRequest,
+				_segmentsCriteriaContributorRegistry.
+					getSegmentsCriteriaContributors(type));
 
 			boolean dynamic = ParamUtil.getBoolean(
 				actionRequest, "dynamic", true);
@@ -107,7 +105,8 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 				segmentsEntry = _segmentsEntryService.addSegmentsEntry(
 					segmentsEntryKey, nameMap, descriptionMap, active,
 					CriteriaSerializer.serialize(criteria),
-					SegmentsConstants.SOURCE_DEFAULT, type, serviceContext);
+					SegmentsEntryConstants.SOURCE_DEFAULT, type,
+					serviceContext);
 			}
 			else {
 				segmentsEntry = _segmentsEntryService.updateSegmentsEntry(
@@ -117,6 +116,12 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
+
+			if (Validator.isNotNull(redirect)) {
+				redirect = _http.setParameter(
+					redirect, "segmentsEntryId",
+					segmentsEntry.getSegmentsEntryId());
+			}
 
 			boolean saveAndContinue = ParamUtil.get(
 				actionRequest, "saveAndContinue", false);
@@ -183,6 +188,9 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 			throw new SegmentsEntryCriteriaException();
 		}
 	}
+
+	@Reference
+	private Http _http;
 
 	@Reference
 	private Portal _portal;

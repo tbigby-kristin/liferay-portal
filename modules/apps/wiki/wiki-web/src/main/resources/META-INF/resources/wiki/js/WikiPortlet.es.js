@@ -1,6 +1,20 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import core from 'metal';
 import {EventHandler} from 'metal-events';
-import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
+import {PortletBase, fetch} from 'frontend-js-web';
 
 /**
  * WikiPortlet
@@ -9,7 +23,6 @@ import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
  * @extends {Component}
  */
 class WikiPortlet extends PortletBase {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -21,63 +34,56 @@ class WikiPortlet extends PortletBase {
 	 * @inheritDoc
 	 */
 	attached() {
-		let formatSelect = this.one('#format');
+		const formatSelect = this.one('#format');
 
 		if (formatSelect) {
-			this.currentFormatLabel = formatSelect.options[formatSelect.selectedIndex].text.trim();
+			this.currentFormatLabel = formatSelect.options[
+				formatSelect.selectedIndex
+			].text.trim();
 			this.currentFormatIndex = formatSelect.selectedIndex;
 
 			this.eventHandler_.add(
-				formatSelect.addEventListener(
-					'change',
-					(e) => {
-						this.changeWikiFormat_(e);
-					}
-				)
+				formatSelect.addEventListener('change', e => {
+					this.changeWikiFormat_(e);
+				})
 			);
 		}
 
-		let publishButton = this.one('#publishButton');
+		const publishButton = this.one('#publishButton');
 
 		if (publishButton) {
 			this.eventHandler_.add(
-				publishButton.addEventListener(
-					'click',
-					(e) => {
-						this.publishPage_(e);
-					}
-				)
+				publishButton.addEventListener('click', e => {
+					this.publishPage_(e);
+				})
 			);
 		}
 
-		let saveButton = this.one('#saveButton');
+		const saveButton = this.one('#saveButton');
 
 		if (saveButton) {
 			this.eventHandler_.add(
-				saveButton.addEventListener(
-					'click',
-					(e) => {
-						this.saveDraft_(e);
-					}
-				)
+				saveButton.addEventListener('click', e => {
+					this.saveDraft_(e);
+				})
 			);
 		}
 
-		let searchContainerId = this.ns('pageAttachments');
+		const searchContainerId = this.ns('pageAttachments');
 
-		Liferay.componentReady(searchContainerId).then(
-			(searchContainer) => {
-				this.eventHandler_.add(
-					searchContainer.get('contentBox').delegate(
+		Liferay.componentReady(searchContainerId).then(searchContainer => {
+			this.eventHandler_.add(
+				searchContainer
+					.get('contentBox')
+					.delegate(
 						'click',
 						this.removeAttachment_.bind(this),
 						'.delete-attachment'
 					)
-				);
+			);
 
-				this.searchContainer_ = searchContainer;
-			}
-		);
+			this.searchContainer_ = searchContainer;
+		});
 	}
 
 	/**
@@ -88,11 +94,13 @@ class WikiPortlet extends PortletBase {
 	 * @param {Event} event The select event that triggered the change action
 	 */
 	changeWikiFormat_(event) {
-		let formatSelect = event.currentTarget;
+		const formatSelect = event.currentTarget;
 
-		let newFormat = formatSelect.options[formatSelect.selectedIndex].text.trim();
+		const newFormat = formatSelect.options[
+			formatSelect.selectedIndex
+		].text.trim();
 
-		let confirmMessage = Liferay.Util.sub(
+		const confirmMessage = Liferay.Util.sub(
 			this.strings.confirmLoseFormatting,
 			this.currentFormatLabel,
 			newFormat
@@ -101,8 +109,7 @@ class WikiPortlet extends PortletBase {
 		if (confirm(confirmMessage)) {
 			this.one('form').setAttribute('action', this.renderUrl);
 			this.save_();
-		}
-		else {
+		} else {
 			formatSelect.selectedIndex = this.currentFormatIndex;
 		}
 	}
@@ -132,23 +139,19 @@ class WikiPortlet extends PortletBase {
 	 * @param {Event} event The click event that triggered the remove action
 	 */
 	removeAttachment_(event) {
-		let link = event.currentTarget;
+		const link = event.currentTarget;
 
-		let deleteURL = link.getAttribute('data-url');
+		const deleteURL = link.getAttribute('data-url');
 
-		fetch(
-			deleteURL,
-			{
-				credentials: 'include'
-			}
-		).then(
-			() => {
-				let searchContainer = this.searchContainer_;
+		fetch(deleteURL).then(() => {
+			const searchContainer = this.searchContainer_;
 
-				searchContainer.deleteRow(link.ancestor('tr'), link.getAttribute('data-rowid'));
-				searchContainer.updateDataStore();
-			}
-		);
+			searchContainer.deleteRow(
+				link.ancestor('tr'),
+				link.getAttribute('data-rowid')
+			);
+			searchContainer.updateDataStore();
+		});
 	}
 
 	/**
@@ -161,18 +164,15 @@ class WikiPortlet extends PortletBase {
 	 * user does not confirm she wants to lose them. True in other case.
 	 */
 	removeTempImages_() {
-		let tempImages = this.all('img[data-random-id]');
+		const tempImages = this.all('img[data-random-id]');
 		let discardTempImages = true;
 
 		if (tempImages.length > 0) {
 			if (confirm(this.strings.confirmDiscardImages)) {
-				tempImages.forEach(
-					node => {
-						node.parentElement.remove();
-					}
-				);
-			}
-			else {
+				tempImages.forEach(node => {
+					node.parentElement.remove();
+				});
+			} else {
 				discardTempImages = false;
 			}
 		}
@@ -189,13 +189,13 @@ class WikiPortlet extends PortletBase {
 		if (this.removeTempImages_()) {
 			this.one('#' + this.constants.CMD).value = this.currentAction;
 
-			let titleEditor = window[this.ns('titleEditor')];
+			const titleEditor = window[this.ns('titleEditor')];
 
 			if (titleEditor) {
 				this.one('#title').value = titleEditor.getText();
 			}
 
-			let contentEditor = window[this.ns('contentEditor')];
+			const contentEditor = window[this.ns('contentEditor')];
 
 			if (contentEditor) {
 				this.one('#content').value = contentEditor.getHTML();
@@ -223,7 +223,6 @@ class WikiPortlet extends PortletBase {
  * @type {!Object}
  */
 WikiPortlet.STATE = {
-
 	/**
 	 * Portlet's constants
 	 * @instance
@@ -264,8 +263,12 @@ WikiPortlet.STATE = {
 	strings: {
 		validator: core.isObject,
 		value: {
-			confirmDiscardImages: Liferay.Language.get('uploads-are-in-progress-confirmation'),
-			confirmLoseFormatting: Liferay.Language.get('you-may-lose-formatting-when-switching-from-x-to-x')
+			confirmDiscardImages: Liferay.Language.get(
+				'uploads-are-in-progress-confirmation'
+			),
+			confirmLoseFormatting: Liferay.Language.get(
+				'you-may-lose-formatting-when-switching-from-x-to-x'
+			)
 		}
 	}
 };

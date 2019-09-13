@@ -32,7 +32,7 @@
 						</div>
 
 						<#if has_navigation>
-							<button aria-controls="navigation" aria-expanded="false" class="navbar-toggler" data-target="#navigationCollapse" data-toggle="collapse" type="button">
+							<button aria-controls="navigation" aria-expanded="false" class="btn-monospaced ml-auto navbar-toggler" data-target="#navigationCollapse" data-toggle="collapse" type="button">
 								<span class="navbar-toggler-icon"></span>
 							</button>
 
@@ -43,7 +43,7 @@
 			</#if>
 
 			<main id="content" role="main">
-				<h1 class="hide-accessible">${the_title}</h1>
+				<h2 class="hide-accessible" role="heading" aria-level="1">${the_title}</h2>
 
 				<#if selectable>
 					<@liferay_util["include"] page=content_include />

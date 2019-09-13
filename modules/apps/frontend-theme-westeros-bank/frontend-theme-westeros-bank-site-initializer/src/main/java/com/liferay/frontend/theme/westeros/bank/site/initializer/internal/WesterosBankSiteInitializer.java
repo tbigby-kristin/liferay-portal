@@ -17,6 +17,7 @@ package com.liferay.frontend.theme.westeros.bank.site.initializer.internal;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.dynamic.data.mapping.util.DefaultDDMStructureHelper;
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.constants.FragmentPortletKeys;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
@@ -51,7 +52,7 @@ import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
@@ -82,6 +83,7 @@ import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -175,14 +177,17 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 
 			TransactionCommitCallbackUtil.registerCallback(
 				() -> {
-					_copyLayout(personalLayout);
+					Layout draftLayout = _layoutLocalService.fetchLayout(
+						_portal.getClassNameId(Layout.class),
+						personalLayout.getPlid());
 
 					_configureFragmentEntryLink(
 						serviceContext.getCompanyId(),
-						serviceContext.getScopeGroupId(),
-						personalLayout.getPlid(),
+						serviceContext.getScopeGroupId(), draftLayout.getPlid(),
 						carouselFragmentEntry.getFragmentEntryId(),
 						carouselJournalArticle.getArticleId());
+
+					_copyLayout(personalLayout);
 
 					return null;
 				});
@@ -336,7 +341,7 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 
 			String fileName = FileUtil.getShortFileName(url.getPath());
 
-			PortletFileRepositoryUtil.addPortletFileEntry(
+			_portletFileRepository.addPortletFileEntry(
 				serviceContext.getScopeGroupId(), serviceContext.getUserId(),
 				FragmentCollection.class.getName(), fragmentCollectionId,
 				FragmentPortletKeys.FRAGMENT, folderId, bytes, fileName,
@@ -390,9 +395,10 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 				_fragmentEntryLocalService.addFragmentEntry(
 					serviceContext.getUserId(),
 					serviceContext.getScopeGroupId(),
-					fragmentCollection.getFragmentCollectionId(),
+					fragmentCollection.getFragmentCollectionId(), null,
 					fragmentEntryName, StringUtil.read(cssURL.openStream()),
 					StringUtil.read(url.openStream()), StringPool.BLANK,
+					StringPool.BLANK, 0, FragmentConstants.TYPE_SECTION,
 					WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 			long fragmentEntryPreviewFileEntryId = _getPreviewFileEntryId(
@@ -427,14 +433,12 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 			ServiceContext serviceContext)
 		throws Exception {
 
-		long layoutPageTemplateCollectionId =
-			layoutPageTemplateCollection.getLayoutPageTemplateCollectionId();
-
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
 				serviceContext.getUserId(), serviceContext.getScopeGroupId(),
-				layoutPageTemplateCollectionId, name,
-				LayoutPageTemplateEntryTypeConstants.TYPE_BASIC, 0,
+				layoutPageTemplateCollection.
+					getLayoutPageTemplateCollectionId(),
+				name, LayoutPageTemplateEntryTypeConstants.TYPE_BASIC,
 				WorkflowConstants.STATUS_APPROVED, serviceContext);
 
 		long previewFileEntryId = _getPreviewFileEntryId(
@@ -490,6 +494,10 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 				new long[] {fragmentEntry.getFragmentEntryId()},
 				StringPool.BLANK, serviceContext);
 
+			_layoutLocalService.updateLayout(
+				layout.getGroupId(), layout.isPrivateLayout(),
+				layout.getLayoutId(), new Date());
+
 			layouts.add(layout);
 		}
 
@@ -506,7 +514,7 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 		nameMap.put(LocaleUtil.getSiteDefault(), name);
 
 		return _layoutLocalService.addLayout(
-			serviceContext.getUserId(), serviceContext.getScopeGroupId(), true,
+			serviceContext.getUserId(), serviceContext.getScopeGroupId(), false,
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
 			_portal.getClassNameId(LayoutPageTemplateEntry.class),
 			layoutPageTemplateEntryId, nameMap, new HashMap<>(),
@@ -566,6 +574,10 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 		if (draftLayout != null) {
 			_layoutCopyHelper.copyLayout(draftLayout, layout);
 		}
+
+		_layoutLocalService.updateLayout(
+			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+			new Date());
 	}
 
 	private ServiceContext _createServiceContext(long groupId)
@@ -587,8 +599,8 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 		serviceContext.setLanguageId(LanguageUtil.getLanguageId(locale));
 
 		serviceContext.setScopeGroupId(groupId);
-		serviceContext.setUserId(user.getUserId());
 		serviceContext.setTimeZone(user.getTimeZone());
+		serviceContext.setUserId(user.getUserId());
 
 		return serviceContext;
 	}
@@ -623,12 +635,11 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 			return 0;
 		}
 
-		Repository repository =
-			PortletFileRepositoryUtil.fetchPortletRepository(
-				serviceContext.getScopeGroupId(), portletId);
+		Repository repository = _portletFileRepository.fetchPortletRepository(
+			serviceContext.getScopeGroupId(), portletId);
 
 		if (repository == null) {
-			repository = PortletFileRepositoryUtil.addPortletRepository(
+			repository = _portletFileRepository.addPortletRepository(
 				serviceContext.getScopeGroupId(), portletId, serviceContext);
 		}
 
@@ -641,7 +652,7 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 			bytes = FileUtil.getBytes(is);
 		}
 
-		FileEntry fileEntry = PortletFileRepositoryUtil.addPortletFileEntry(
+		FileEntry fileEntry = _portletFileRepository.addPortletFileEntry(
 			serviceContext.getScopeGroupId(), serviceContext.getUserId(),
 			className, classPK, portletId, repository.getDlFolderId(), bytes,
 			imageFileName, MimeTypesUtil.getContentType(imageFileName), false);
@@ -677,8 +688,8 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 		}
 
 		_layoutSetLocalService.updateLookAndFeel(
-			serviceContext.getScopeGroupId(), false, _THEME_ID,
-			StringPool.BLANK, StringPool.BLANK);
+			serviceContext.getScopeGroupId(), _THEME_ID, StringPool.BLANK,
+			StringPool.BLANK);
 	}
 
 	private static final String[] _LAYOUT_NAMES_CHILDREN_ASSURANCE = {
@@ -770,6 +781,9 @@ public class WesterosBankSiteInitializer implements SiteInitializer {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private PortletFileRepository _portletFileRepository;
 
 	@Reference
 	private PortletLocalService _portletLocalService;

@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link DDMStorageLink}.
@@ -31,7 +29,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see DDMStorageLink
  * @generated
  */
-@ProviderType
 public class DDMStorageLinkWrapper
 	extends BaseModelWrapper<DDMStorageLink>
 	implements DDMStorageLink, ModelWrapper<DDMStorageLink> {
@@ -44,6 +41,7 @@ public class DDMStorageLinkWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("storageLinkId", getStorageLinkId());
 		attributes.put("companyId", getCompanyId());
@@ -57,6 +55,12 @@ public class DDMStorageLinkWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -141,6 +145,16 @@ public class DDMStorageLinkWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this ddm storage link.
+	 *
+	 * @return the mvcc version of this ddm storage link
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the primary key of this ddm storage link.
 	 *
 	 * @return the primary key of this ddm storage link
@@ -204,6 +218,11 @@ public class DDMStorageLinkWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a ddm storage link model instance should use the <code>DDMStorageLink</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -242,6 +261,16 @@ public class DDMStorageLinkWrapper
 	@Override
 	public void setCompanyId(long companyId) {
 		model.setCompanyId(companyId);
+	}
+
+	/**
+	 * Sets the mvcc version of this ddm storage link.
+	 *
+	 * @param mvccVersion the mvcc version of this ddm storage link
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

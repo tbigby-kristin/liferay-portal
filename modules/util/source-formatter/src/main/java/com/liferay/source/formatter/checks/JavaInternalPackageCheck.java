@@ -15,7 +15,9 @@
 package com.liferay.source.formatter.checks;
 
 import com.liferay.source.formatter.BNDSettings;
-import com.liferay.source.formatter.checks.util.JavaSourceUtil;
+import com.liferay.source.formatter.checks.util.BNDSourceUtil;
+import com.liferay.source.formatter.parser.JavaClass;
+import com.liferay.source.formatter.parser.JavaTerm;
 
 import java.io.IOException;
 
@@ -24,38 +26,54 @@ import java.util.List;
 /**
  * @author Hugo Huijser
  */
-public class JavaInternalPackageCheck extends BaseFileCheck {
+public class JavaInternalPackageCheck extends BaseJavaTermCheck {
 
 	@Override
-	public boolean isPortalCheck() {
+	public boolean isLiferaySourceCheck() {
 		return true;
 	}
 
 	@Override
 	protected String doProcess(
-			String fileName, String absolutePath, String content)
+			String fileName, String absolutePath, JavaTerm javaTerm,
+			String fileContent)
 		throws IOException {
 
-		if (!absolutePath.contains("/modules/apps/") ||
-			!absolutePath.contains("-web/src/") ||
+		JavaClass javaClass = (JavaClass)javaTerm;
+
+		if (javaClass.hasAnnotation("Deprecated")) {
+			return javaClass.getContent();
+		}
+
+		String packageName = javaClass.getPackageName();
+
+		if (packageName == null) {
+			return javaClass.getContent();
+		}
+
+		if (packageName.contains(".impl.") || packageName.endsWith(".impl")) {
+			_checkImplPackageName(fileName, packageName);
+
+			return javaClass.getContent();
+		}
+
+		if (!absolutePath.contains("-web/src/") ||
 			absolutePath.contains("/test/") ||
 			absolutePath.contains("/testIntegration/")) {
 
-			return content;
+			return javaTerm.getContent();
 		}
-
-		String packageName = JavaSourceUtil.getPackageName(content);
 
 		if (packageName.contains(".internal.") ||
 			packageName.endsWith(".internal")) {
 
-			return content;
+			return javaClass.getContent();
 		}
 
 		BNDSettings bndSettings = getBNDSettings(fileName);
 
 		if (bndSettings == null) {
-			return content;
+			return javaClass.getContent();
 		}
 
 		List<String> exportPackageNames = bndSettings.getExportPackageNames();
@@ -67,7 +85,34 @@ public class JavaInternalPackageCheck extends BaseFileCheck {
 					"package");
 		}
 
-		return content;
+		return javaClass.getContent();
+	}
+
+	@Override
+	protected String[] getCheckableJavaTermNames() {
+		return new String[] {JAVA_CLASS};
+	}
+
+	private void _checkImplPackageName(String fileName, String packageName)
+		throws IOException {
+
+		BNDSettings bndSettings = getBNDSettings(fileName);
+
+		if (bndSettings == null) {
+			return;
+		}
+
+		String bundleSymbolicName = BNDSourceUtil.getDefinitionValue(
+			bndSettings.getContent(), "Bundle-SymbolicName");
+
+		if (bundleSymbolicName.endsWith(".impl") &&
+			packageName.contains(bundleSymbolicName)) {
+
+			addMessage(
+				fileName,
+				"Use 'internal' instead of 'impl' in package '" + packageName +
+					"'");
+		}
 	}
 
 }

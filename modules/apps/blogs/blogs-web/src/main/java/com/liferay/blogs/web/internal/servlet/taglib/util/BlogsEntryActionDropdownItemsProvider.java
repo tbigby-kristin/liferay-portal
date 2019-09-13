@@ -17,6 +17,7 @@ package com.liferay.blogs.web.internal.servlet.taglib.util;
 import com.liferay.blogs.constants.BlogsPortletKeys;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.blogs.web.internal.security.permission.resource.BlogsEntryPermission;
+import com.liferay.blogs.web.internal.sharing.BlogsEntrySharingUtil;
 import com.liferay.blogs.web.internal.util.BlogsEntryUtil;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerRegistryUtil;
@@ -72,11 +73,33 @@ public class BlogsEntryActionDropdownItemsProvider {
 		_httpServletRequest = PortalUtil.getHttpServletRequest(renderRequest);
 	}
 
-	public List<DropdownItem> getActionDropdownItems() {
+	public List<DropdownItem> getActionDropdownItems() throws PortalException {
 		return new DropdownItemList() {
 			{
 				if (_hasUpdatePermission()) {
 					add(_getEditEntryActionUnsafeConsumer());
+				}
+
+				if (BlogsEntrySharingUtil.isSharingEnabled(
+						_blogsEntry.getGroupId())) {
+
+					if (BlogsEntrySharingUtil.containsSharePermission(
+							_permissionChecker, _blogsEntry)) {
+
+						add(
+							BlogsEntrySharingUtil.createShareDropdownItem(
+								_blogsEntry, _httpServletRequest));
+					}
+
+					if (BlogsEntrySharingUtil.
+							containsManageCollaboratorsPermission(
+								_permissionChecker, _blogsEntry)) {
+
+						add(
+							BlogsEntrySharingUtil.
+								createManageCollaboratorsDropdownItem(
+									_blogsEntry, _httpServletRequest));
+					}
 				}
 
 				if (_hasPermissionsPermission()) {

@@ -73,16 +73,17 @@ public class AddFormInstanceRecordMVCCommandHelper {
 		Set<String> invisibleFields = getInvisibleFields(
 			ddmFormEvaluatorEvaluateResponse);
 
-		DDMFormLayout ddmFormLayout = getDDMFormLayout(actionRequest);
-
 		Set<String> fieldsFromDisabledPages = getFieldNamesFromDisabledPages(
-			ddmFormEvaluatorEvaluateResponse, ddmFormLayout);
+			ddmFormEvaluatorEvaluateResponse, getDDMFormLayout(actionRequest));
 
 		invisibleFields.addAll(fieldsFromDisabledPages);
 
 		if (invisibleFields.isEmpty()) {
 			return;
 		}
+
+		removeDDMValidationExpression(
+			ddmForm.getDDMFormFields(), invisibleFields);
 
 		removeRequiredProperty(invisibleFields, requiredFields);
 	}
@@ -202,6 +203,21 @@ public class AddFormInstanceRecordMVCCommandHelper {
 		stream = stream.filter(ddmFormField -> ddmFormField.isRequired());
 
 		return stream.collect(Collectors.toList());
+	}
+
+	protected void removeDDMValidationExpression(DDMFormField ddmFormField) {
+		ddmFormField.setDDMFormFieldValidation(null);
+	}
+
+	protected void removeDDMValidationExpression(
+		List<DDMFormField> ddmFormFields, Set<String> invisibleFields) {
+
+		Stream<DDMFormField> stream = ddmFormFields.stream();
+
+		stream = stream.filter(
+			ddmFormField -> invisibleFields.contains(ddmFormField.getName()));
+
+		stream.forEach(this::removeDDMValidationExpression);
 	}
 
 	protected void removeRequiredProperty(DDMFormField ddmFormField) {

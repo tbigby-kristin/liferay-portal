@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Component from 'metal-component';
 import core from 'metal';
 import Soy from 'metal-soy';
@@ -12,7 +26,6 @@ import templates from './ToggleDisableInputs.soy';
  */
 
 class ToggleDisableInputs extends Component {
-
 	/**
 	 * Toggles the state of the switch
 	 */
@@ -33,7 +46,7 @@ class ToggleDisableInputs extends Component {
 		const inputs = document.querySelectorAll(inputSelector);
 
 		for (let i = 0; i < inputs.length; i++) {
-			let input = inputs[i];
+			const input = inputs[i];
 
 			input.disabled = disableOnChecked ? checked : !checked;
 		}
@@ -47,7 +60,6 @@ class ToggleDisableInputs extends Component {
  */
 
 ToggleDisableInputs.STATE = {
-
 	/**
 	 * Switch state
 	 * @type {Boolean}

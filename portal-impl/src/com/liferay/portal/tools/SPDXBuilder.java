@@ -19,10 +19,12 @@ import com.liferay.petra.xml.Dom4jUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CSVUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.xml.SAXReaderFactory;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -36,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.TreeMap;
 
 import javax.xml.transform.Transformer;
@@ -66,22 +69,57 @@ public class SPDXBuilder {
 			xmls = bufferedReader.readLine();
 		}
 
-		new SPDXBuilder(StringUtil.split(xmls), args[0]);
+		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
+
+		String spdxFileName = ArgumentsUtil.getString(
+			arguments, "spdx.file", null);
+		String licenseOverridePropertiesFileName = ArgumentsUtil.getString(
+			arguments, "license.override.properties.file", null);
+
+		new SPDXBuilder(
+			StringUtil.split(xmls), spdxFileName,
+			licenseOverridePropertiesFileName);
 	}
 
-	public SPDXBuilder(String[] xmls, String rdf) {
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link #SPDXBuilder(
+	 *             String[], String, String)}
+	 */
+	@Deprecated
+	public SPDXBuilder(String[] xmls, String spdxFileName) {
+		new SPDXBuilder(xmls, spdxFileName, null);
+	}
+
+	public SPDXBuilder(
+		String[] xmls, String spdxFileName,
+		String licenseOverridePropertiesFileName) {
+
 		try {
 			System.setProperty("line.separator", StringPool.NEW_LINE);
 
-			Document document = _getDocument(xmls, rdf);
-			File rdfFile = new File(rdf);
+			File spdxFile = new File(spdxFileName);
+
+			Properties licenseOverrideProperties = new Properties();
+
+			if (Validator.isNotNull(licenseOverridePropertiesFileName)) {
+				File licenseOverridePropertiesfile = new File(
+					licenseOverridePropertiesFileName);
+
+				if (licenseOverridePropertiesfile.exists()) {
+					licenseOverrideProperties.load(
+						new FileInputStream(licenseOverridePropertiesfile));
+				}
+			}
+
+			Document document = _getDocument(
+				xmls, spdxFile, licenseOverrideProperties);
 
 			_write(
-				new File(rdfFile.getParentFile(), "versions-spdx.xml"),
+				new File(spdxFile.getParentFile(), "versions-spdx.xml"),
 				Dom4jUtil.toString(document));
 
 			_write(
-				new File(rdfFile.getParentFile(), "versions-spdx.csv"),
+				new File(spdxFile.getParentFile(), "versions-spdx.csv"),
 				_toCSV(document));
 
 			TransformerFactory transformerFactory =
@@ -89,10 +127,10 @@ public class SPDXBuilder {
 
 			Transformer transformer = transformerFactory.newTransformer(
 				new StreamSource(
-					new File(rdfFile.getParentFile(), "versions.xsl")));
+					new File(spdxFile.getParentFile(), "versions.xsl")));
 
 			File versionHtmlFile = new File(
-				rdfFile.getParentFile(), "versions-spdx.html");
+				spdxFile.getParentFile(), "versions-spdx.html");
 
 			transformer.transform(
 				new DocumentSource(document),
@@ -104,7 +142,9 @@ public class SPDXBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private List<Element> _createLibraryElements(Element packageElement) {
+	private List<Element> _createLibraryElements(
+		Element packageElement, Properties licenseOverrideProperties) {
+
 		List<Element> libraryElements = new ArrayList<>();
 
 		String downloadLocation = packageElement.elementText(
@@ -149,7 +189,8 @@ public class SPDXBuilder {
 				element.addText(downloadLocation);
 			}
 
-			String licenseName = _getLicenseName(packageElement);
+			String licenseName = _getLicenseName(
+				packageElement, fileName, licenseOverrideProperties);
 
 			if (licenseName != null) {
 				Element licensesElement = libraryElement.addElement("licenses");
@@ -160,7 +201,8 @@ public class SPDXBuilder {
 
 				element.addText(licenseName);
 
-				String licenseURL = _getLicenseURL(packageElement);
+				String licenseURL = _getLicenseURL(
+					packageElement, fileName, licenseOverrideProperties);
 
 				if (licenseURL != null) {
 					element = licenseElement.addElement("license-url");
@@ -188,7 +230,10 @@ public class SPDXBuilder {
 	}
 
 	@SuppressWarnings("unchecked")
-	private Document _getDocument(String[] xmls, String rdf) throws Exception {
+	private Document _getDocument(
+			String[] xmls, File spdxFile, Properties licenseOverrideProperties)
+		throws Exception {
+
 		Comparator<String> comparator = String.CASE_INSENSITIVE_ORDER;
 
 		Map<String, Element> libraryElementMap = new TreeMap<>(comparator);
@@ -209,7 +254,7 @@ public class SPDXBuilder {
 			}
 		}
 
-		Document spdxDocument = saxReader.read(new File(rdf));
+		Document spdxDocument = saxReader.read(spdxFile);
 
 		Element spdxRootElement = spdxDocument.getRootElement();
 
@@ -230,7 +275,7 @@ public class SPDXBuilder {
 				_getQName("Package"));
 
 			List<Element> libraryElements = _createLibraryElements(
-				packageElement);
+				packageElement, licenseOverrideProperties);
 
 			for (Element libraryElement : libraryElements) {
 				String key = _getKey("spdx", libraryElement);
@@ -280,7 +325,16 @@ public class SPDXBuilder {
 		return sb.toString();
 	}
 
-	private String _getLicenseName(Element packageElement) {
+	private String _getLicenseName(
+		Element packageElement, String fileName,
+		Properties licenseOverrideProperties) {
+
+		String key = "license.name[" + fileName + "]";
+
+		if (licenseOverrideProperties.containsKey(key)) {
+			return licenseOverrideProperties.getProperty(key);
+		}
+
 		Element licenseConcludedElement = packageElement.element(
 			_getQName("licenseConcluded"));
 
@@ -302,7 +356,15 @@ public class SPDXBuilder {
 		return null;
 	}
 
-	private String _getLicenseURL(Element packageElement) {
+	private String _getLicenseURL(
+		Element packageElement, String fileName, Properties licenseProperties) {
+
+		String key = "license.url[" + fileName + "]";
+
+		if (licenseProperties.containsKey(key)) {
+			return licenseProperties.getProperty(key);
+		}
+
 		Element licenseConcludedElement = packageElement.element(
 			_getQName("licenseConcluded"));
 

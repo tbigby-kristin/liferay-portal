@@ -20,7 +20,6 @@ import com.liferay.expando.kernel.model.ExpandoTable;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.expando.kernel.util.ExpandoBridgeIndexerUtil;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -30,8 +29,11 @@ import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.StringEntityField;
 import com.liferay.portal.odata.normalizer.Normalizer;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Javier Gamarra
@@ -39,20 +41,26 @@ import java.util.stream.Collectors;
 public class EntityFieldsUtil {
 
 	public static List<EntityField> getEntityFields(
-			long classNameId, long companyId,
-			ExpandoColumnLocalService expandoColumnLocalService,
-			ExpandoTableLocalService expandoTableLocalService)
-		throws PortalException {
+		long classNameId, long companyId,
+		ExpandoColumnLocalService expandoColumnLocalService,
+		ExpandoTableLocalService expandoTableLocalService) {
 
-		ExpandoTable expandoTable = expandoTableLocalService.getDefaultTable(
+		ExpandoTable expandoTable = expandoTableLocalService.fetchDefaultTable(
 			companyId, classNameId);
+
+		if (expandoTable == null) {
+			return Collections.emptyList();
+		}
 
 		List<ExpandoColumn> expandoColumns =
 			expandoColumnLocalService.getColumns(expandoTable.getTableId());
 
-		return expandoColumns.stream(
-		).map(
+		Stream<ExpandoColumn> expandoColumnStream = expandoColumns.stream();
+
+		return expandoColumnStream.map(
 			EntityFieldsUtil::_getEntityField
+		).filter(
+			Objects::nonNull
 		).collect(
 			Collectors.toList()
 		);
@@ -71,27 +79,28 @@ public class EntityFieldsUtil {
 
 		int type = expandoColumn.getType();
 
-		String columnName = Normalizer.normalizeIdentifier(
+		String externalName = Normalizer.normalizeIdentifier(
 			expandoColumn.getName());
 
-		String fieldName = ExpandoBridgeIndexerUtil.encodeFieldName(
-			columnName, indexType);
+		String internalName = ExpandoBridgeIndexerUtil.encodeFieldName(
+			expandoColumn.getName(), indexType);
 
 		if (type == ExpandoColumnConstants.BOOLEAN) {
-			return new BooleanEntityField(columnName, locale -> fieldName);
+			return new BooleanEntityField(externalName, locale -> internalName);
 		}
 		else if (type == ExpandoColumnConstants.DATE) {
 			return new DateTimeEntityField(
-				columnName, locale -> Field.getSortableFieldName(fieldName),
-				locale -> fieldName);
+				externalName,
+				locale -> Field.getSortableFieldName(internalName),
+				locale -> internalName);
 		}
 		else if (type == ExpandoColumnConstants.STRING_LOCALIZED) {
 			return new StringEntityField(
-				columnName,
-				locale -> Field.getLocalizedName(locale, fieldName));
+				externalName,
+				locale -> Field.getLocalizedName(locale, internalName));
 		}
 
-		return new StringEntityField(columnName, locale -> fieldName);
+		return new StringEntityField(externalName, locale -> internalName);
 	}
 
 }

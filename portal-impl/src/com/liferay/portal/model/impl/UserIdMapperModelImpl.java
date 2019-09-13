@@ -44,8 +44,6 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The base model implementation for the UserIdMapper service. Represents a row in the &quot;UserIdMapper&quot; database table, with each column mapped to a property of this class.
  *
@@ -57,11 +55,10 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see UserIdMapperImpl
  * @generated
  */
-@ProviderType
 public class UserIdMapperModelImpl
 	extends BaseModelImpl<UserIdMapper> implements UserIdMapperModel {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. All methods that expect a user ID mapper model instance should use the <code>UserIdMapper</code> interface instead.
@@ -447,7 +444,12 @@ public class UserIdMapperModelImpl
 	@Override
 	public UserIdMapper toEscapedModel() {
 		if (_escapedModel == null) {
-			_escapedModel = _escapedModelProxyProviderFunction.apply(
+			Function<InvocationHandler, UserIdMapper>
+				escapedModelProxyProviderFunction =
+					EscapedModelProxyProviderFunctionHolder.
+						_escapedModelProxyProviderFunction;
+
+			_escapedModel = escapedModelProxyProviderFunction.apply(
 				new AutoEscapeBeanHandler(this));
 		}
 
@@ -642,8 +644,12 @@ public class UserIdMapperModelImpl
 		return sb.toString();
 	}
 
-	private static final Function<InvocationHandler, UserIdMapper>
-		_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+	private static class EscapedModelProxyProviderFunctionHolder {
+
+		private static final Function<InvocationHandler, UserIdMapper>
+			_escapedModelProxyProviderFunction = _getProxyProviderFunction();
+
+	}
 
 	private long _mvccVersion;
 	private long _userIdMapperId;

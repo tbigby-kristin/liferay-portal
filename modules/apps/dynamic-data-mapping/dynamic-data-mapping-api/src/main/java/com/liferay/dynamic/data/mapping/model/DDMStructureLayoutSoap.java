@@ -20,20 +20,18 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.dynamic.data.mapping.service.http.DDMStructureLayoutServiceSoap}.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DDMStructureLayoutSoap implements Serializable {
 
 	public static DDMStructureLayoutSoap toSoapModel(DDMStructureLayout model) {
 		DDMStructureLayoutSoap soapModel = new DDMStructureLayoutSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setStructureLayoutId(model.getStructureLayoutId());
 		soapModel.setGroupId(model.getGroupId());
@@ -42,6 +40,8 @@ public class DDMStructureLayoutSoap implements Serializable {
 		soapModel.setUserName(model.getUserName());
 		soapModel.setCreateDate(model.getCreateDate());
 		soapModel.setModifiedDate(model.getModifiedDate());
+		soapModel.setClassNameId(model.getClassNameId());
+		soapModel.setStructureLayoutKey(model.getStructureLayoutKey());
 		soapModel.setStructureVersionId(model.getStructureVersionId());
 		soapModel.setName(model.getName());
 		soapModel.setDescription(model.getDescription());
@@ -108,6 +108,14 @@ public class DDMStructureLayoutSoap implements Serializable {
 		setStructureLayoutId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public String getUuid() {
 		return _uuid;
 	}
@@ -172,6 +180,22 @@ public class DDMStructureLayoutSoap implements Serializable {
 		_modifiedDate = modifiedDate;
 	}
 
+	public long getClassNameId() {
+		return _classNameId;
+	}
+
+	public void setClassNameId(long classNameId) {
+		_classNameId = classNameId;
+	}
+
+	public String getStructureLayoutKey() {
+		return _structureLayoutKey;
+	}
+
+	public void setStructureLayoutKey(String structureLayoutKey) {
+		_structureLayoutKey = structureLayoutKey;
+	}
+
 	public long getStructureVersionId() {
 		return _structureVersionId;
 	}
@@ -204,6 +228,7 @@ public class DDMStructureLayoutSoap implements Serializable {
 		_definition = definition;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _structureLayoutId;
 	private long _groupId;
@@ -212,6 +237,8 @@ public class DDMStructureLayoutSoap implements Serializable {
 	private String _userName;
 	private Date _createDate;
 	private Date _modifiedDate;
+	private long _classNameId;
+	private String _structureLayoutKey;
 	private long _structureVersionId;
 	private String _name;
 	private String _description;

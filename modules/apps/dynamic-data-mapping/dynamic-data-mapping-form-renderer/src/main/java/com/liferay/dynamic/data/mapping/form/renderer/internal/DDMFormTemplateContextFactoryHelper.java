@@ -25,6 +25,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Leonardo Barros
@@ -49,12 +51,9 @@ public class DDMFormTemplateContextFactoryHelper {
 				evaluableDDMFormFieldNames.add(ddmFormField.getName());
 			}
 
-			String visibilityExpression =
-				ddmFormField.getVisibilityExpression();
-
 			evaluableDDMFormFieldNames.addAll(
 				getReferencedFieldNamesByExpression(
-					visibilityExpression, ddmFormFieldNames));
+					ddmFormField.getVisibilityExpression(), ddmFormFieldNames));
 		}
 
 		return evaluableDDMFormFieldNames;
@@ -66,11 +65,9 @@ public class DDMFormTemplateContextFactoryHelper {
 		Set<String> referencedFieldNames = new HashSet<>();
 
 		for (DDMFormRule ddmFormRule : ddmFormRules) {
-			String condition = ddmFormRule.getCondition();
-
 			referencedFieldNames.addAll(
 				getReferencedFieldNamesByExpression(
-					condition, ddmFormFieldNames));
+					ddmFormRule.getCondition(), ddmFormFieldNames));
 
 			for (String action : ddmFormRule.getActions()) {
 				referencedFieldNames.addAll(
@@ -92,7 +89,12 @@ public class DDMFormTemplateContextFactoryHelper {
 		Set<String> referencedFieldNames = new HashSet<>();
 
 		for (String ddmFormFieldName : ddmFormFieldNames) {
-			if (expression.contains(ddmFormFieldName)) {
+			Pattern pattern = Pattern.compile(
+				String.format(".*('?%s'?).*", ddmFormFieldName));
+
+			Matcher matcher = pattern.matcher(expression);
+
+			if (matcher.matches()) {
 				referencedFieldNames.add(ddmFormFieldName);
 			}
 		}
@@ -109,7 +111,8 @@ public class DDMFormTemplateContextFactoryHelper {
 			ddmFormField.getDDMFormFieldValidation();
 
 		if ((ddmFormFieldValidation != null) &&
-			Validator.isNotNull(ddmFormFieldValidation.getExpression())) {
+			(ddmFormFieldValidation.getDDMFormFieldValidationExpression() !=
+				null)) {
 
 			return true;
 		}

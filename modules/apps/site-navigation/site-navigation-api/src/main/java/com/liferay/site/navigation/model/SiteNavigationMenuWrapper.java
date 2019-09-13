@@ -22,8 +22,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * <p>
  * This class is a wrapper for {@link SiteNavigationMenu}.
@@ -33,7 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see SiteNavigationMenu
  * @generated
  */
-@ProviderType
 public class SiteNavigationMenuWrapper
 	extends BaseModelWrapper<SiteNavigationMenu>
 	implements SiteNavigationMenu, ModelWrapper<SiteNavigationMenu> {
@@ -46,6 +43,7 @@ public class SiteNavigationMenuWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("siteNavigationMenuId", getSiteNavigationMenuId());
 		attributes.put("groupId", getGroupId());
@@ -64,6 +62,12 @@ public class SiteNavigationMenuWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -199,6 +203,16 @@ public class SiteNavigationMenuWrapper
 	}
 
 	/**
+	 * Returns the mvcc version of this site navigation menu.
+	 *
+	 * @return the mvcc version of this site navigation menu
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
+	}
+
+	/**
 	 * Returns the name of this site navigation menu.
 	 *
 	 * @return the name of this site navigation menu
@@ -298,6 +312,11 @@ public class SiteNavigationMenuWrapper
 		return model.isPrimary();
 	}
 
+	/**
+	 * NOTE FOR DEVELOPERS:
+	 *
+	 * Never modify or reference this class directly. All methods that expect a site navigation menu model instance should use the <code>SiteNavigationMenu</code> interface instead.
+	 */
 	@Override
 	public void persist() {
 		model.persist();
@@ -361,6 +380,16 @@ public class SiteNavigationMenuWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this site navigation menu.
+	 *
+	 * @param mvccVersion the mvcc version of this site navigation menu
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

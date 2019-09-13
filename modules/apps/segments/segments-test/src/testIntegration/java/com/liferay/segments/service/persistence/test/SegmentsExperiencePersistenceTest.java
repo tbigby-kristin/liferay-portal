@@ -141,6 +141,9 @@ public class SegmentsExperiencePersistenceTest {
 
 		newSegmentsExperience.setSegmentsEntryId(RandomTestUtil.nextLong());
 
+		newSegmentsExperience.setSegmentsExperienceKey(
+			RandomTestUtil.randomString());
+
 		newSegmentsExperience.setClassNameId(RandomTestUtil.nextLong());
 
 		newSegmentsExperience.setClassPK(RandomTestUtil.nextLong());
@@ -187,6 +190,9 @@ public class SegmentsExperiencePersistenceTest {
 		Assert.assertEquals(
 			existingSegmentsExperience.getSegmentsEntryId(),
 			newSegmentsExperience.getSegmentsEntryId());
+		Assert.assertEquals(
+			existingSegmentsExperience.getSegmentsExperienceKey(),
+			newSegmentsExperience.getSegmentsExperienceKey());
 		Assert.assertEquals(
 			existingSegmentsExperience.getClassNameId(),
 			newSegmentsExperience.getClassNameId());
@@ -247,6 +253,15 @@ public class SegmentsExperiencePersistenceTest {
 		_persistence.countBySegmentsEntryId(RandomTestUtil.nextLong());
 
 		_persistence.countBySegmentsEntryId(0L);
+	}
+
+	@Test
+	public void testCountByG_S() throws Exception {
+		_persistence.countByG_S(RandomTestUtil.nextLong(), "");
+
+		_persistence.countByG_S(0L, "null");
+
+		_persistence.countByG_S(0L, (String)null);
 	}
 
 	@Test
@@ -349,8 +364,9 @@ public class SegmentsExperiencePersistenceTest {
 			"SegmentsExperience", "uuid", true, "segmentsExperienceId", true,
 			"groupId", true, "companyId", true, "userId", true, "userName",
 			true, "createDate", true, "modifiedDate", true, "segmentsEntryId",
-			true, "classNameId", true, "classPK", true, "name", true,
-			"priority", true, "active", true, "lastPublishDate", true);
+			true, "segmentsExperienceKey", true, "classNameId", true, "classPK",
+			true, "name", true, "priority", true, "active", true,
+			"lastPublishDate", true);
 	}
 
 	@Test
@@ -603,6 +619,18 @@ public class SegmentsExperiencePersistenceTest {
 			ReflectionTestUtil.<Long>invoke(
 				existingSegmentsExperience, "getOriginalGroupId",
 				new Class<?>[0]));
+		Assert.assertTrue(
+			Objects.equals(
+				existingSegmentsExperience.getSegmentsExperienceKey(),
+				ReflectionTestUtil.invoke(
+					existingSegmentsExperience,
+					"getOriginalSegmentsExperienceKey", new Class<?>[0])));
+
+		Assert.assertEquals(
+			Long.valueOf(existingSegmentsExperience.getGroupId()),
+			ReflectionTestUtil.<Long>invoke(
+				existingSegmentsExperience, "getOriginalGroupId",
+				new Class<?>[0]));
 		Assert.assertEquals(
 			Long.valueOf(existingSegmentsExperience.getClassNameId()),
 			ReflectionTestUtil.<Long>invoke(
@@ -640,6 +668,9 @@ public class SegmentsExperiencePersistenceTest {
 		segmentsExperience.setModifiedDate(RandomTestUtil.nextDate());
 
 		segmentsExperience.setSegmentsEntryId(RandomTestUtil.nextLong());
+
+		segmentsExperience.setSegmentsExperienceKey(
+			RandomTestUtil.randomString());
 
 		segmentsExperience.setClassNameId(RandomTestUtil.nextLong());
 

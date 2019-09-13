@@ -28,11 +28,11 @@ import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionHelper;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.trash.BaseTrashHandler;
-import com.liferay.portal.kernel.trash.TrashActionKeys;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.trash.TrashRendererFactory;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.trash.constants.TrashActionKeys;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,9 +64,8 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 
 	@Override
 	public void deleteTrashEntry(long classPK) throws PortalException {
-		MBCategory category = _mbCategoryLocalService.getCategory(classPK);
-
-		_mbCategoryLocalService.deleteCategory(category, false);
+		_mbCategoryLocalService.deleteCategory(
+			_mbCategoryLocalService.getCategory(classPK), false);
 	}
 
 	@Override
@@ -337,12 +337,37 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 	}
 
 	@Override
+	public boolean isMovable(long classPK) throws PortalException {
+		MBCategory category = _mbCategoryLocalService.getCategory(classPK);
+
+		if (category.getParentCategoryId() > 0) {
+			MBCategory parentCategory = _mbCategoryLocalService.fetchMBCategory(
+				category.getParentCategoryId());
+
+			if ((parentCategory == null) || parentCategory.isInTrash()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	@Override
 	public boolean isRestorable(long classPK) throws PortalException {
 		MBCategory category = _mbCategoryLocalService.getCategory(classPK);
 
-		if ((category.getParentCategoryId() > 0) &&
-			(_mbCategoryLocalService.fetchMBCategory(
-				category.getParentCategoryId()) == null)) {
+		if (category.getParentCategoryId() > 0) {
+			MBCategory parentCategory = _mbCategoryLocalService.fetchMBCategory(
+				category.getParentCategoryId());
+
+			if (parentCategory == null) {
+				return false;
+			}
+		}
+
+		if (!hasTrashPermission(
+				PermissionThreadLocal.getPermissionChecker(),
+				category.getGroupId(), classPK, TrashActionKeys.RESTORE)) {
 
 			return false;
 		}
@@ -421,10 +446,9 @@ public class MBCategoryTrashHandler extends BaseTrashHandler {
 			PermissionChecker permissionChecker, long classPK, String actionId)
 		throws PortalException {
 
-		MBCategory category = _mbCategoryLocalService.getCategory(classPK);
-
 		return _categoryModelResourcePermission.contains(
-			permissionChecker, category, actionId);
+			permissionChecker, _mbCategoryLocalService.getCategory(classPK),
+			actionId);
 	}
 
 	@Reference(unbind = "-")

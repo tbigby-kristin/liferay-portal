@@ -58,7 +58,12 @@ definition {
 			MetalComponent.waitForManagementBar();
 		}
 
-		Click(locator1 = "Button#PLUS");
+		if ("${browserType}" == "internetexplorer") {
+			Click(locator1 = "Button#PLUS_IE");
+		}
+		else {
+			Click(locator1 = "Button#PLUS");
+		}
 	}
 
 	macro gotoAddDropdownMenuItem {
@@ -71,6 +76,16 @@ definition {
 		LexiconEntry.gotoAdd();
 
 		MenuItem.click(menuItem = "${menuItem}");
+	}
+
+	macro gotoAddReport {
+		var browserType = PropsUtil.get("browser.type");
+
+		if ("${browserType}" == "chrome") {
+			MetalComponent.waitForReportsManagementBar();
+		}
+
+		Click(locator1 = "Button#PLUS");
 	}
 
 	macro gotoEllipsisMenuItem {
@@ -136,13 +151,6 @@ definition {
 			locator1 = "Icon#ROW_VERTICAL_ELLIPSIS");
 	}
 
-	macro rate {
-		var key_ratingResult = StringUtil.replace("${ratingResult}", " ", "-");
-		var key_ratingResult = StringUtil.lowerCase("${key_ratingResult}");
-
-		Click(locator1 = "Ratings#THUMB");
-	}
-
 	macro selectEntry {
 		Check(
 			key_rowEntry = "${rowEntry}",
@@ -172,6 +180,13 @@ definition {
 		}
 	}
 
+	macro viewEntryStatus {
+		AssertElementPresent(
+			key_rowEntry = "${rowEntry}",
+			key_rowStatus = "${rowStatus}",
+			locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_STATUS");
+	}
+
 	macro viewNoEntry {
 		AssertElementNotPresent(
 			key_rowEntry = "${rowEntry}",
@@ -190,22 +205,6 @@ definition {
 		AssertElementNotPresent(
 			key_menuItem = "${menuItem}",
 			locator1 = "MenuItem#ANY_MENU_ITEM");
-	}
-
-	macro viewRating {
-		var key_ratingResult = StringUtil.replace("${ratingResult}", " ", "-");
-		var key_ratingResult = StringUtil.lowerCase("${key_ratingResult}");
-
-		if (isSet(ratingResult)) {
-			AssertTextEquals(
-				locator1 = "Ratings#THUMB",
-				value1 = "${voteCount}");
-		}
-		else {
-			AssertTextEquals(
-				locator1 = "Ratings#DISPLAY_VOTES",
-				value1 = "${voteCount}");
-		}
 	}
 
 }

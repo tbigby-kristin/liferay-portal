@@ -14,7 +14,7 @@
 
 package com.liferay.asset.categories.navigation.web.internal.display.context;
 
-import com.liferay.asset.categories.navigation.web.configuration.AssetCategoriesNavigationPortletInstanceConfiguration;
+import com.liferay.asset.categories.navigation.web.internal.configuration.AssetCategoriesNavigationPortletInstanceConfiguration;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
@@ -105,14 +105,16 @@ public class AssetCategoriesNavigationDisplayContext {
 
 		_assetVocabularyIds = getAvailableAssetVocabularyIds();
 
+		String[] assetVocabularyIdsArray =
+			_assetCategoriesNavigationPortletInstanceConfiguration.
+				assetVocabularyIds();
+
 		if (!_assetCategoriesNavigationPortletInstanceConfiguration.
 				allAssetVocabularies() &&
-			(_assetCategoriesNavigationPortletInstanceConfiguration.
-				assetVocabularyIds() != null)) {
+			(assetVocabularyIdsArray != null)) {
 
 			String assetVocabularyIds = StringUtil.merge(
-				_assetCategoriesNavigationPortletInstanceConfiguration.
-					assetVocabularyIds());
+				assetVocabularyIdsArray);
 
 			long[] configuredAssetVocabularyIds = StringUtil.split(
 				assetVocabularyIds, 0L);

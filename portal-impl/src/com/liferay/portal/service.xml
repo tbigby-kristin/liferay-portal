@@ -139,7 +139,7 @@
 			<finder-column name="value" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="ClusterGroup" remote-service="false">
+	<entity deprecated="true" local-service="true" name="ClusterGroup" remote-service="false">
 
 		<!-- PK fields -->
 
@@ -586,7 +586,7 @@
 			<finder-column comparator="&lt;" name="size" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="Layout" remote-service="true" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true" versioned="true">
+	<entity local-service="true" name="Layout" remote-service="true" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
 
 		<!-- PK fields -->
 
@@ -1015,7 +1015,7 @@
 		<reference entity="User" package-path="com.liferay.portal" />
 		<reference entity="WorkflowInstanceLink" package-path="com.liferay.portal" />
 	</entity>
-	<entity local-service="true" name="LayoutSet" remote-service="true" versioned="true">
+	<entity local-service="true" name="LayoutSet" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -2160,80 +2160,6 @@
 		<reference entity="Company" package-path="com.liferay.portal" />
 		<reference entity="ResourcePermission" package-path="com.liferay.portal" />
 	</entity>
-	<entity deprecated="true" local-service="true" name="ResourceBlock" remote-service="true">
-
-		<!-- PK fields -->
-
-		<column name="resourceBlockId" primary="true" type="long" />
-
-		<!-- Audit fields -->
-
-		<column name="companyId" type="long" />
-
-		<!-- Other fields -->
-
-		<column name="groupId" type="long" />
-		<column name="name" type="String" />
-		<column name="permissionsHash" type="String" />
-		<column name="referenceCount" type="long" />
-
-		<!-- Finder methods -->
-
-		<finder name="C_N" return-type="Collection">
-			<finder-column name="companyId" />
-			<finder-column name="name" />
-		</finder>
-		<finder name="C_G_N" return-type="Collection">
-			<finder-column name="companyId" />
-			<finder-column name="groupId" />
-			<finder-column name="name" />
-		</finder>
-		<finder name="C_G_N_P" return-type="ResourceBlock" unique="true">
-			<finder-column name="companyId" />
-			<finder-column name="groupId" />
-			<finder-column name="name" />
-			<finder-column name="permissionsHash" />
-		</finder>
-
-		<!-- References -->
-
-		<reference entity="Permission" package-path="com.liferay.portal" />
-		<reference entity="Resource" package-path="com.liferay.portal" />
-		<reference entity="ResourceAction" package-path="com.liferay.portal" />
-		<reference entity="ResourceBlockPermission" package-path="com.liferay.portal" />
-		<reference entity="ResourceTypePermission" package-path="com.liferay.portal" />
-		<reference entity="Role" package-path="com.liferay.portal" />
-	</entity>
-	<entity deprecated="true" local-service="true" name="ResourceBlockPermission" remote-service="false">
-
-		<!-- PK fields -->
-
-		<column name="resourceBlockPermissionId" primary="true" type="long" />
-
-		<!-- Audit fields -->
-
-		<column name="companyId" type="long" />
-
-		<!-- Other fields -->
-
-		<column name="resourceBlockId" type="long" />
-		<column name="roleId" type="long" />
-		<column name="actionIds" type="long" />
-
-		<!-- Finder methods -->
-
-		<finder name="RoleId" return-type="Collection">
-			<finder-column name="roleId" />
-		</finder>
-		<finder name="R_R" return-type="ResourceBlockPermission" unique="true">
-			<finder-column name="resourceBlockId" />
-			<finder-column name="roleId" />
-		</finder>
-
-		<!-- References -->
-
-		<reference entity="ResourceBlock" package-path="com.liferay.portal" />
-	</entity>
 	<entity local-service="true" name="ResourcePermission" remote-service="true">
 
 		<!-- PK fields -->
@@ -2308,44 +2234,6 @@
 		<reference entity="Permission" package-path="com.liferay.portal" />
 		<reference entity="ResourceAction" package-path="com.liferay.portal" />
 		<reference entity="Role" package-path="com.liferay.portal" />
-	</entity>
-	<entity deprecated="true" local-service="true" name="ResourceTypePermission" remote-service="false">
-
-		<!-- PK fields -->
-
-		<column name="resourceTypePermissionId" primary="true" type="long" />
-
-		<!-- Audit fields -->
-
-		<column name="companyId" type="long" />
-
-		<!-- Other fields -->
-
-		<column name="groupId" type="long" />
-		<column name="name" type="String" />
-		<column name="roleId" type="long" />
-		<column name="actionIds" type="long" />
-
-		<!-- Finder methods -->
-
-		<finder name="RoleId" return-type="Collection">
-			<finder-column name="roleId" />
-		</finder>
-		<finder name="C_N_R" return-type="Collection">
-			<finder-column name="companyId" />
-			<finder-column name="name" />
-			<finder-column name="roleId" />
-		</finder>
-		<finder name="C_G_N_R" return-type="ResourceTypePermission" unique="true">
-			<finder-column name="companyId" />
-			<finder-column name="groupId" />
-			<finder-column name="name" />
-			<finder-column name="roleId" />
-		</finder>
-
-		<!-- References -->
-
-		<reference entity="ResourceAction" package-path="com.liferay.portal" />
 	</entity>
 	<entity local-service="true" name="Role" remote-service="true" uad-application-name="Roles" uad-dir-path="../modules/apps/roles/roles-uad/src/main/java" uad-package-path="com.liferay.roles" uuid="true">
 
@@ -3457,6 +3345,7 @@
 		<exception>GroupFriendlyURL</exception>
 		<exception>GroupInheritContent</exception>
 		<exception>GroupKey</exception>
+		<exception>GroupName</exception>
 		<exception>GroupParent</exception>
 		<exception>ImageResolution</exception>
 		<exception>ImageType</exception>

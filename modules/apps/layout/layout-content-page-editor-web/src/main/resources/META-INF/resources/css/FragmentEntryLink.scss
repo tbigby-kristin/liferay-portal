@@ -1,10 +1,10 @@
-@import "bourbon";
+@import 'atlas-variables';
 
-@import "mixins";
-
-@import "variables";
+@import 'variables';
 
 .fragment-entry-link-wrapper {
+	cursor: pointer;
+
 	.portlet {
 		> .portlet-topper {
 			background-color: rgba(255, 255, 255, 0.95);
@@ -15,19 +15,18 @@
 			opacity: 0;
 			padding: 10px 20px 10px 10px;
 			pointer-events: none;
+			transform: translateY(0);
 			width: 100%;
 			z-index: $portletTopperZIndex;
-
-			@include transform(translateY(0));
 		}
 
-		@include sm {
-			&:hover, &.focus {
+		@include media-breakpoint-up(sm) {
+			&:hover,
+			&.focus {
 				> .portlet-topper {
 					opacity: 1;
 					pointer-events: all;
-
-					@include transform(translateY(0));
+					transform: translateY(0);
 
 					.portlet-topper-toolbar {
 						position: absolute;
@@ -42,7 +41,8 @@
 			}
 		}
 
-		.portlet-title-default, .portlet-title-text {
+		.portlet-title-default,
+		.portlet-title-text {
 			display: none;
 		}
 	}

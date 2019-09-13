@@ -19,7 +19,9 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.impl.LayoutPageTemplateEntryImpl;
 import com.liferay.layout.page.template.model.impl.LayoutPageTemplateEntryModelImpl;
 import com.liferay.layout.page.template.service.persistence.LayoutPageTemplateEntryPersistence;
+import com.liferay.layout.page.template.service.persistence.impl.constants.LayoutPersistenceConstants;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -28,21 +30,21 @@ import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
-import com.liferay.portal.kernel.service.persistence.CompanyProvider;
-import com.liferay.portal.kernel.service.persistence.CompanyProviderWrapper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.spring.extender.service.ServiceReference;
 
 import java.io.Serializable;
 
@@ -56,7 +58,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
+import javax.sql.DataSource;
+
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * The persistence implementation for the layout page template entry service.
@@ -68,12 +75,12 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
+@Component(service = LayoutPageTemplateEntryPersistence.class)
 public class LayoutPageTemplateEntryPersistenceImpl
 	extends BasePersistenceImpl<LayoutPageTemplateEntry>
 	implements LayoutPageTemplateEntryPersistence {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify or reference this class directly. Always use <code>LayoutPageTemplateEntryUtil</code> to access the layout page template entry persistence. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -156,14 +163,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByUuid(
 		String uuid, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		uuid = Objects.toString(uuid, "");
 
@@ -175,17 +182,20 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByUuid;
-			finderArgs = new Object[] {uuid};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByUuid;
+				finderArgs = new Object[] {uuid};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByUuid;
 			finderArgs = new Object[] {uuid, start, end, orderByComparator};
 		}
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -262,10 +272,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -705,20 +719,24 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 *
 	 * @param uuid the uuid
 	 * @param groupId the group ID
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
 	 */
 	@Override
 	public LayoutPageTemplateEntry fetchByUUID_G(
-		String uuid, long groupId, boolean retrieveFromCache) {
+		String uuid, long groupId, boolean useFinderCache) {
 
 		uuid = Objects.toString(uuid, "");
 
-		Object[] finderArgs = new Object[] {uuid, groupId};
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {uuid, groupId};
+		}
 
 		Object result = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			result = finderCache.getResult(
 				_finderPathFetchByUUID_G, finderArgs, this);
 		}
@@ -772,8 +790,10 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				List<LayoutPageTemplateEntry> list = q.list();
 
 				if (list.isEmpty()) {
-					finderCache.putResult(
-						_finderPathFetchByUUID_G, finderArgs, list);
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByUUID_G, finderArgs, list);
+					}
 				}
 				else {
 					LayoutPageTemplateEntry layoutPageTemplateEntry = list.get(
@@ -785,7 +805,10 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(_finderPathFetchByUUID_G, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(
+						_finderPathFetchByUUID_G, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -971,14 +994,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByUuid_C(
 		String uuid, long companyId, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		uuid = Objects.toString(uuid, "");
 
@@ -990,10 +1013,13 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByUuid_C;
-			finderArgs = new Object[] {uuid, companyId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByUuid_C;
+				finderArgs = new Object[] {uuid, companyId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByUuid_C;
 			finderArgs = new Object[] {
 				uuid, companyId, start, end, orderByComparator
@@ -1002,7 +1028,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -1085,10 +1111,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -1563,14 +1593,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByGroupId(
 		long groupId, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -1580,17 +1610,20 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByGroupId;
-			finderArgs = new Object[] {groupId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByGroupId;
+				finderArgs = new Object[] {groupId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByGroupId;
 			finderArgs = new Object[] {groupId, start, end, orderByComparator};
 		}
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -1656,10 +1689,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -2470,14 +2507,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByLayoutPrototypeId(
 		long layoutPrototypeId, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -2487,10 +2524,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByLayoutPrototypeId;
-			finderArgs = new Object[] {layoutPrototypeId};
+
+			if (useFinderCache) {
+				finderPath =
+					_finderPathWithoutPaginationFindByLayoutPrototypeId;
+				finderArgs = new Object[] {layoutPrototypeId};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByLayoutPrototypeId;
 			finderArgs = new Object[] {
 				layoutPrototypeId, start, end, orderByComparator
@@ -2499,7 +2540,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -2567,10 +2608,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -2978,18 +3023,22 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * Returns the layout page template entry where plid = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param plid the plid
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
 	 */
 	@Override
 	public LayoutPageTemplateEntry fetchByPlid(
-		long plid, boolean retrieveFromCache) {
+		long plid, boolean useFinderCache) {
 
-		Object[] finderArgs = new Object[] {plid};
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {plid};
+		}
 
 		Object result = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			result = finderCache.getResult(
 				_finderPathFetchByPlid, finderArgs, this);
 		}
@@ -3026,8 +3075,10 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				List<LayoutPageTemplateEntry> list = q.list();
 
 				if (list.isEmpty()) {
-					finderCache.putResult(
-						_finderPathFetchByPlid, finderArgs, list);
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByPlid, finderArgs, list);
+					}
 				}
 				else {
 					LayoutPageTemplateEntry layoutPageTemplateEntry = list.get(
@@ -3039,7 +3090,10 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(_finderPathFetchByPlid, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(
+						_finderPathFetchByPlid, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -3202,14 +3256,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_L(
 		long groupId, long layoutPageTemplateCollectionId, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -3219,10 +3273,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_L;
-			finderArgs = new Object[] {groupId, layoutPageTemplateCollectionId};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_L;
+				finderArgs = new Object[] {
+					groupId, layoutPageTemplateCollectionId
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_L;
 			finderArgs = new Object[] {
 				groupId, layoutPageTemplateCollectionId, start, end,
@@ -3232,7 +3291,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -3306,10 +3365,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -4165,20 +4228,24 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 *
 	 * @param groupId the group ID
 	 * @param name the name
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching layout page template entry, or <code>null</code> if a matching layout page template entry could not be found
 	 */
 	@Override
 	public LayoutPageTemplateEntry fetchByG_N(
-		long groupId, String name, boolean retrieveFromCache) {
+		long groupId, String name, boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
-		Object[] finderArgs = new Object[] {groupId, name};
+		Object[] finderArgs = null;
+
+		if (useFinderCache) {
+			finderArgs = new Object[] {groupId, name};
+		}
 
 		Object result = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			result = finderCache.getResult(
 				_finderPathFetchByG_N, finderArgs, this);
 		}
@@ -4232,8 +4299,10 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				List<LayoutPageTemplateEntry> list = q.list();
 
 				if (list.isEmpty()) {
-					finderCache.putResult(
-						_finderPathFetchByG_N, finderArgs, list);
+					if (useFinderCache) {
+						finderCache.putResult(
+							_finderPathFetchByG_N, finderArgs, list);
+					}
 				}
 				else {
 					LayoutPageTemplateEntry layoutPageTemplateEntry = list.get(
@@ -4245,7 +4314,9 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(_finderPathFetchByG_N, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(_finderPathFetchByG_N, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -4428,14 +4499,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_T(
 		long groupId, int type, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -4445,10 +4516,13 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_T;
-			finderArgs = new Object[] {groupId, type};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_T;
+				finderArgs = new Object[] {groupId, type};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_T;
 			finderArgs = new Object[] {
 				groupId, type, start, end, orderByComparator
@@ -4457,7 +4531,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -4529,10 +4603,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -5402,7 +5480,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -5410,7 +5488,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long layoutPageTemplateCollectionId, String name,
 		int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
@@ -5426,7 +5504,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -5519,10 +5597,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -5569,7 +5651,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", layoutPageTemplateCollectionId=");
 		msg.append(layoutPageTemplateCollectionId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append("}");
@@ -5635,7 +5717,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", layoutPageTemplateCollectionId=");
 		msg.append(layoutPageTemplateCollectionId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append("}");
@@ -6523,14 +6605,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_L_T(
 		long groupId, long layoutPageTemplateCollectionId, int type, int start,
 		int end, OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -6540,12 +6622,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_L_T;
-			finderArgs = new Object[] {
-				groupId, layoutPageTemplateCollectionId, type
-			};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_L_T;
+				finderArgs = new Object[] {
+					groupId, layoutPageTemplateCollectionId, type
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_L_T;
 			finderArgs = new Object[] {
 				groupId, layoutPageTemplateCollectionId, type, start, end,
@@ -6555,7 +6640,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -6634,10 +6719,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -7568,7 +7657,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -7576,7 +7665,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long layoutPageTemplateCollectionId, int status,
 		int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -7586,12 +7675,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_L_S;
-			finderArgs = new Object[] {
-				groupId, layoutPageTemplateCollectionId, status
-			};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_L_S;
+				finderArgs = new Object[] {
+					groupId, layoutPageTemplateCollectionId, status
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_L_S;
 			finderArgs = new Object[] {
 				groupId, layoutPageTemplateCollectionId, status, start, end,
@@ -7601,7 +7693,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -7680,10 +7772,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -8612,14 +8708,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_T_LikeN(
 		long groupId, String name, int type, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
@@ -8634,7 +8730,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -8724,10 +8820,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -8769,7 +8869,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append("groupId=");
 		msg.append(groupId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -8834,7 +8934,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append("groupId=");
 		msg.append(groupId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -9704,14 +9804,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_T_S(
 		long groupId, int type, int status, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -9721,10 +9821,13 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_T_S;
-			finderArgs = new Object[] {groupId, type, status};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_T_S;
+				finderArgs = new Object[] {groupId, type, status};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_T_S;
 			finderArgs = new Object[] {
 				groupId, type, status, start, end, orderByComparator
@@ -9733,7 +9836,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -9810,10 +9913,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -10732,7 +10839,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -10740,7 +10847,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long layoutPageTemplateCollectionId, String name,
 		int status, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
@@ -10756,7 +10863,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -10854,10 +10961,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -10906,7 +11017,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", layoutPageTemplateCollectionId=");
 		msg.append(layoutPageTemplateCollectionId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", status=");
@@ -10981,7 +11092,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", layoutPageTemplateCollectionId=");
 		msg.append(layoutPageTemplateCollectionId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", status=");
@@ -11925,14 +12036,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_C_C_T(
 		long groupId, long classNameId, long classTypeId, int type, int start,
 		int end, OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -11942,10 +12053,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_C_C_T;
-			finderArgs = new Object[] {groupId, classNameId, classTypeId, type};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_C_C_T;
+				finderArgs = new Object[] {
+					groupId, classNameId, classTypeId, type
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_C_C_T;
 			finderArgs = new Object[] {
 				groupId, classNameId, classTypeId, type, start, end,
@@ -11955,7 +12071,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -12039,10 +12155,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -13018,7 +13138,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -13026,7 +13146,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long classNameId, long classTypeId,
 		boolean defaultTemplate, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -13036,12 +13156,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_C_C_D;
-			finderArgs = new Object[] {
-				groupId, classNameId, classTypeId, defaultTemplate
-			};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_C_C_D;
+				finderArgs = new Object[] {
+					groupId, classNameId, classTypeId, defaultTemplate
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_C_C_D;
 			finderArgs = new Object[] {
 				groupId, classNameId, classTypeId, defaultTemplate, start, end,
@@ -13051,7 +13174,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -13136,10 +13259,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -14127,7 +14254,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -14135,7 +14262,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long classNameId, int type, boolean defaultTemplate,
 		int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -14145,12 +14272,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_C_T_D;
-			finderArgs = new Object[] {
-				groupId, classNameId, type, defaultTemplate
-			};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_C_T_D;
+				finderArgs = new Object[] {
+					groupId, classNameId, type, defaultTemplate
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_C_T_D;
 			finderArgs = new Object[] {
 				groupId, classNameId, type, defaultTemplate, start, end,
@@ -14160,7 +14290,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -14244,10 +14374,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -15218,14 +15352,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findByG_T_LikeN_S(
 		long groupId, String name, int type, int status, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
@@ -15240,7 +15374,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -15335,10 +15469,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -15382,7 +15520,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append("groupId=");
 		msg.append(groupId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -15453,7 +15591,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append("groupId=");
 		msg.append(groupId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -16381,7 +16519,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -16389,7 +16527,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long classNameId, long classTypeId, String name, int type,
 		int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
@@ -16405,7 +16543,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -16507,10 +16645,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -16563,7 +16705,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", classTypeId=");
 		msg.append(classTypeId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -16642,7 +16784,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", classTypeId=");
 		msg.append(classTypeId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -17612,7 +17754,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -17620,7 +17762,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long classNameId, long classTypeId, int type, int status,
 		int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -17630,12 +17772,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_C_C_T_S;
-			finderArgs = new Object[] {
-				groupId, classNameId, classTypeId, type, status
-			};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_C_C_T_S;
+				finderArgs = new Object[] {
+					groupId, classNameId, classTypeId, type, status
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_C_C_T_S;
 			finderArgs = new Object[] {
 				groupId, classNameId, classTypeId, type, status, start, end,
@@ -17645,7 +17790,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -17734,10 +17879,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -18770,7 +18919,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -18778,7 +18927,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long classNameId, long classTypeId,
 		boolean defaultTemplate, int status, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -18788,12 +18937,15 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindByG_C_C_D_S;
-			finderArgs = new Object[] {
-				groupId, classNameId, classTypeId, defaultTemplate, status
-			};
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindByG_C_C_D_S;
+				finderArgs = new Object[] {
+					groupId, classNameId, classTypeId, defaultTemplate, status
+				};
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindByG_C_C_D_S;
 			finderArgs = new Object[] {
 				groupId, classNameId, classTypeId, defaultTemplate, status,
@@ -18803,7 +18955,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -18893,10 +19045,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -19935,7 +20091,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching layout page template entries
 	 */
 	@Override
@@ -19943,7 +20099,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		long groupId, long classNameId, long classTypeId, String name, int type,
 		int status, int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		name = Objects.toString(name, "");
 
@@ -19959,7 +20115,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 
@@ -20066,10 +20222,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -20123,7 +20283,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", classTypeId=");
 		msg.append(classTypeId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -20208,7 +20368,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		msg.append(", classTypeId=");
 		msg.append(classTypeId);
 
-		msg.append(", name=");
+		msg.append(", nameLIKE");
 		msg.append(name);
 
 		msg.append(", type=");
@@ -21131,8 +21291,6 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		setModelImplClass(LayoutPageTemplateEntryImpl.class);
 		setModelPKClass(long.class);
-		setEntityCacheEnabled(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED);
 
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
@@ -21150,8 +21308,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	@Override
 	public void cacheResult(LayoutPageTemplateEntry layoutPageTemplateEntry) {
 		entityCache.putResult(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryImpl.class,
+			entityCacheEnabled, LayoutPageTemplateEntryImpl.class,
 			layoutPageTemplateEntry.getPrimaryKey(), layoutPageTemplateEntry);
 
 		finderCache.putResult(
@@ -21191,8 +21348,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				layoutPageTemplateEntries) {
 
 			if (entityCache.getResult(
-					LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-					LayoutPageTemplateEntryImpl.class,
+					entityCacheEnabled, LayoutPageTemplateEntryImpl.class,
 					layoutPageTemplateEntry.getPrimaryKey()) == null) {
 
 				cacheResult(layoutPageTemplateEntry);
@@ -21229,8 +21385,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	@Override
 	public void clearCache(LayoutPageTemplateEntry layoutPageTemplateEntry) {
 		entityCache.removeResult(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryImpl.class,
+			entityCacheEnabled, LayoutPageTemplateEntryImpl.class,
 			layoutPageTemplateEntry.getPrimaryKey());
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
@@ -21251,8 +21406,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 				layoutPageTemplateEntries) {
 
 			entityCache.removeResult(
-				LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-				LayoutPageTemplateEntryImpl.class,
+				entityCacheEnabled, LayoutPageTemplateEntryImpl.class,
 				layoutPageTemplateEntry.getPrimaryKey());
 
 			clearUniqueFindersCache(
@@ -21382,7 +21536,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		layoutPageTemplateEntry.setUuid(uuid);
 
-		layoutPageTemplateEntry.setCompanyId(companyProvider.getCompanyId());
+		layoutPageTemplateEntry.setCompanyId(CompanyThreadLocal.getCompanyId());
 
 		return layoutPageTemplateEntry;
 	}
@@ -21560,7 +21714,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 
-		if (!LayoutPageTemplateEntryModelImpl.COLUMN_BITMASK_ENABLED) {
+		if (!_columnBitmaskEnabled) {
 			finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 		}
 		else if (isNew) {
@@ -22068,8 +22222,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 		}
 
 		entityCache.putResult(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryImpl.class,
+			entityCacheEnabled, LayoutPageTemplateEntryImpl.class,
 			layoutPageTemplateEntry.getPrimaryKey(), layoutPageTemplateEntry,
 			false);
 
@@ -22191,14 +22344,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	 * @param start the lower bound of the range of layout page template entries
 	 * @param end the upper bound of the range of layout page template entries (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of layout page template entries
 	 */
 	@Override
 	public List<LayoutPageTemplateEntry> findAll(
 		int start, int end,
 		OrderByComparator<LayoutPageTemplateEntry> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		boolean pagination = true;
 		FinderPath finderPath = null;
@@ -22208,17 +22361,20 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			(orderByComparator == null)) {
 
 			pagination = false;
-			finderPath = _finderPathWithoutPaginationFindAll;
-			finderArgs = FINDER_ARGS_EMPTY;
+
+			if (useFinderCache) {
+				finderPath = _finderPathWithoutPaginationFindAll;
+				finderArgs = FINDER_ARGS_EMPTY;
+			}
 		}
-		else {
+		else if (useFinderCache) {
 			finderPath = _finderPathWithPaginationFindAll;
 			finderArgs = new Object[] {start, end, orderByComparator};
 		}
 
 		List<LayoutPageTemplateEntry> list = null;
 
-		if (retrieveFromCache) {
+		if (useFinderCache) {
 			list = (List<LayoutPageTemplateEntry>)finderCache.getResult(
 				finderPath, finderArgs, this);
 		}
@@ -22269,10 +22425,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 				cacheResult(list);
 
-				finderCache.putResult(finderPath, finderArgs, list);
+				if (useFinderCache) {
+					finderCache.putResult(finderPath, finderArgs, list);
+				}
 			}
 			catch (Exception e) {
-				finderCache.removeResult(finderPath, finderArgs);
+				if (useFinderCache) {
+					finderCache.removeResult(finderPath, finderArgs);
+				}
 
 				throw processException(e);
 			}
@@ -22361,29 +22521,31 @@ public class LayoutPageTemplateEntryPersistenceImpl
 	/**
 	 * Initializes the layout page template entry persistence.
 	 */
-	public void afterPropertiesSet() {
+	@Activate
+	public void activate() {
+		LayoutPageTemplateEntryModelImpl.setEntityCacheEnabled(
+			entityCacheEnabled);
+		LayoutPageTemplateEntryModelImpl.setFinderCacheEnabled(
+			finderCacheEnabled);
+
 		_finderPathWithPaginationFindAll = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findAll", new String[0]);
 
 		_finderPathWithoutPaginationFindAll = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findAll",
 			new String[0]);
 
 		_finderPathCountAll = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll",
 			new String[0]);
 
 		_finderPathWithPaginationFindByUuid = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid",
 			new String[] {
@@ -22392,8 +22554,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByUuid = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid",
 			new String[] {String.class.getName()},
@@ -22401,14 +22562,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByUuid = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid",
 			new String[] {String.class.getName()});
 
 		_finderPathFetchByUUID_G = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class, FINDER_CLASS_NAME_ENTITY,
 			"fetchByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()},
@@ -22416,14 +22575,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.GROUPID_COLUMN_BITMASK);
 
 		_finderPathCountByUUID_G = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUUID_G",
 			new String[] {String.class.getName(), Long.class.getName()});
 
 		_finderPathWithPaginationFindByUuid_C = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByUuid_C",
 			new String[] {
@@ -22433,8 +22590,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByUuid_C = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()},
@@ -22443,14 +22599,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByUuid_C = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByUuid_C",
 			new String[] {String.class.getName(), Long.class.getName()});
 
 		_finderPathWithPaginationFindByGroupId = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByGroupId",
 			new String[] {
@@ -22459,8 +22613,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByGroupId = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByGroupId",
 			new String[] {Long.class.getName()},
@@ -22468,14 +22621,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByGroupId = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByGroupId",
 			new String[] {Long.class.getName()});
 
 		_finderPathWithPaginationFindByLayoutPrototypeId = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByLayoutPrototypeId",
 			new String[] {
@@ -22484,8 +22635,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByLayoutPrototypeId = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
 			"findByLayoutPrototypeId", new String[] {Long.class.getName()},
@@ -22493,27 +22643,23 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByLayoutPrototypeId = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION,
 			"countByLayoutPrototypeId", new String[] {Long.class.getName()});
 
 		_finderPathFetchByPlid = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class, FINDER_CLASS_NAME_ENTITY,
 			"fetchByPlid", new String[] {Long.class.getName()},
 			LayoutPageTemplateEntryModelImpl.PLID_COLUMN_BITMASK);
 
 		_finderPathCountByPlid = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByPlid",
 			new String[] {Long.class.getName()});
 
 		_finderPathWithPaginationFindByG_L = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_L",
 			new String[] {
@@ -22523,8 +22669,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_L = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_L",
 			new String[] {Long.class.getName(), Long.class.getName()},
@@ -22534,14 +22679,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_L = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_L",
 			new String[] {Long.class.getName(), Long.class.getName()});
 
 		_finderPathFetchByG_N = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class, FINDER_CLASS_NAME_ENTITY,
 			"fetchByG_N",
 			new String[] {Long.class.getName(), String.class.getName()},
@@ -22549,14 +22692,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_N = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_N",
 			new String[] {Long.class.getName(), String.class.getName()});
 
 		_finderPathWithPaginationFindByG_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_T",
 			new String[] {
@@ -22566,8 +22707,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_T",
 			new String[] {Long.class.getName(), Integer.class.getName()},
@@ -22576,14 +22716,12 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_T",
 			new String[] {Long.class.getName(), Integer.class.getName()});
 
 		_finderPathWithPaginationFindByG_L_LikeN = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_L_LikeN",
 			new String[] {
@@ -22593,8 +22731,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationCountByG_L_LikeN = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_L_LikeN",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22602,8 +22739,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_L_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_L_T",
 			new String[] {
@@ -22613,8 +22749,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_L_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_L_T",
 			new String[] {
@@ -22628,8 +22763,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_L_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_L_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22637,8 +22771,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_L_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_L_S",
 			new String[] {
@@ -22648,8 +22781,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_L_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_L_S",
 			new String[] {
@@ -22663,8 +22795,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_L_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_L_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22672,8 +22803,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_T_LikeN = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_T_LikeN",
 			new String[] {
@@ -22683,8 +22813,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationCountByG_T_LikeN = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_T_LikeN",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
@@ -22692,8 +22821,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_T_S",
 			new String[] {
@@ -22703,8 +22831,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_T_S",
 			new String[] {
@@ -22717,8 +22844,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_T_S",
 			new String[] {
 				Long.class.getName(), Integer.class.getName(),
@@ -22726,8 +22852,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_L_LikeN_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_L_LikeN_S",
 			new String[] {
@@ -22738,8 +22863,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationCountByG_L_LikeN_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_L_LikeN_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22747,8 +22871,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_C_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C_T",
 			new String[] {
@@ -22759,8 +22882,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_C_C_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_C_T",
 			new String[] {
@@ -22774,8 +22896,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_C_C_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_C_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22783,8 +22904,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_C_D = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C_D",
 			new String[] {
@@ -22795,8 +22915,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_C_C_D = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_C_D",
 			new String[] {
@@ -22810,8 +22929,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_C_C_D = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_C_D",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22819,8 +22937,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_T_D = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_T_D",
 			new String[] {
@@ -22831,8 +22948,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_C_T_D = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_T_D",
 			new String[] {
@@ -22846,8 +22962,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_C_T_D = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_T_D",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22855,8 +22970,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_T_LikeN_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_T_LikeN_S",
 			new String[] {
@@ -22867,8 +22981,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationCountByG_T_LikeN_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_T_LikeN_S",
 			new String[] {
 				Long.class.getName(), String.class.getName(),
@@ -22876,8 +22989,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_C_LikeN_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C_LikeN_T",
 			new String[] {
@@ -22888,8 +23000,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationCountByG_C_C_LikeN_T = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_C_C_LikeN_T",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22898,8 +23009,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_C_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C_T_S",
 			new String[] {
@@ -22910,8 +23020,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_C_C_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_C_T_S",
 			new String[] {
@@ -22927,8 +23036,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_C_C_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_C_T_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22937,8 +23045,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_C_D_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C_D_S",
 			new String[] {
@@ -22949,8 +23056,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithoutPaginationFindByG_C_C_D_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "findByG_C_C_D_S",
 			new String[] {
@@ -22966,8 +23072,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			LayoutPageTemplateEntryModelImpl.NAME_COLUMN_BITMASK);
 
 		_finderPathCountByG_C_C_D_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_C_C_D_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22976,8 +23081,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationFindByG_C_C_LikeN_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED,
+			entityCacheEnabled, finderCacheEnabled,
 			LayoutPageTemplateEntryImpl.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_C_C_LikeN_T_S",
 			new String[] {
@@ -22989,8 +23093,7 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 
 		_finderPathWithPaginationCountByG_C_C_LikeN_T_S = new FinderPath(
-			LayoutPageTemplateEntryModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutPageTemplateEntryModelImpl.FINDER_CACHE_ENABLED, Long.class,
+			entityCacheEnabled, finderCacheEnabled, Long.class,
 			FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_C_C_LikeN_T_S",
 			new String[] {
 				Long.class.getName(), Long.class.getName(),
@@ -22999,20 +23102,52 @@ public class LayoutPageTemplateEntryPersistenceImpl
 			});
 	}
 
-	public void destroy() {
+	@Deactivate
+	public void deactivate() {
 		entityCache.removeCache(LayoutPageTemplateEntryImpl.class.getName());
 		finderCache.removeCache(FINDER_CLASS_NAME_ENTITY);
 		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
 		finderCache.removeCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
 	}
 
-	@ServiceReference(type = CompanyProviderWrapper.class)
-	protected CompanyProvider companyProvider;
+	@Override
+	@Reference(
+		target = LayoutPersistenceConstants.SERVICE_CONFIGURATION_FILTER,
+		unbind = "-"
+	)
+	public void setConfiguration(Configuration configuration) {
+		super.setConfiguration(configuration);
 
-	@ServiceReference(type = EntityCache.class)
+		_columnBitmaskEnabled = GetterUtil.getBoolean(
+			configuration.get(
+				"value.object.column.bitmask.enabled.com.liferay.layout.page.template.model.LayoutPageTemplateEntry"),
+			true);
+	}
+
+	@Override
+	@Reference(
+		target = LayoutPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		unbind = "-"
+	)
+	public void setDataSource(DataSource dataSource) {
+		super.setDataSource(dataSource);
+	}
+
+	@Override
+	@Reference(
+		target = LayoutPersistenceConstants.ORIGIN_BUNDLE_SYMBOLIC_NAME_FILTER,
+		unbind = "-"
+	)
+	public void setSessionFactory(SessionFactory sessionFactory) {
+		super.setSessionFactory(sessionFactory);
+	}
+
+	private boolean _columnBitmaskEnabled;
+
+	@Reference
 	protected EntityCache entityCache;
 
-	@ServiceReference(type = FinderCache.class)
+	@Reference
 	protected FinderCache finderCache;
 
 	private static final String _SQL_SELECT_LAYOUTPAGETEMPLATEENTRY =
@@ -23069,5 +23204,14 @@ public class LayoutPageTemplateEntryPersistenceImpl
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "type"});
+
+	static {
+		try {
+			Class.forName(LayoutPersistenceConstants.class.getName());
+		}
+		catch (ClassNotFoundException cnfe) {
+			throw new ExceptionInInitializerError(cnfe);
+		}
+	}
 
 }

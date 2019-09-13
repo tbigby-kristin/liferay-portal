@@ -1,3 +1,17 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 AUI.add(
 	'liferay-layouts-tree',
 	function(A) {
@@ -5,9 +19,11 @@ AUI.add(
 
 		var LString = Lang.String;
 
-		var NODE_ID_TPL = '{treeId}_layout_{layoutId}_plid_{plid}_groupId_{groupId}';
+		var NODE_ID_TPL =
+			'{treeId}_layout_{layoutId}_plid_{plid}_groupId_{groupId}';
 
-		var NODE_LINK_TPL = '<a class="{cssClass}" data-regular-url="{regularURL}" data-url="{url}" data-uuid="{uuid}" href="{layoutURL}" id="{id}" title="{title}">{label}</a>';
+		var NODE_LINK_TPL =
+			'<a class="{cssClass}" data-regular-url="{regularURL}" data-url="{url}" data-uuid="{uuid}" href="{layoutURL}" id="{id}" title="{title}">{label}</a>';
 
 		var STR_BOUNDING_BOX = 'boundingBox';
 
@@ -29,12 +45,12 @@ AUI.add(
 			iconUncheck: 'icon-check'
 		};
 
-		var TREE_LOADING_EL_TPL = '<div class="lfr-tree-loading">' +
-				'<span class="icon icon-loading lfr-tree-loading-icon"></span>' +
+		var TREE_LOADING_EL_TPL =
+			'<div class="lfr-tree-loading">' +
+			'<span class="icon icon-loading lfr-tree-loading-icon"></span>' +
 			'</div>';
 
-		var LayoutsTreeBase = function() {
-		};
+		var LayoutsTreeBase = function() {};
 
 		LayoutsTreeBase.ATTRS = {
 			incomplete: {
@@ -80,66 +96,7 @@ AUI.add(
 		};
 
 		LayoutsTreeBase.prototype = {
-			initializer: function() {
-				var instance = this;
-
-				var boundingBox = instance.get(STR_BOUNDING_BOX);
-
-				instance._treeLoadingElement = boundingBox.ancestor().insertBefore(
-					A.Node.create(TREE_LOADING_EL_TPL),
-					boundingBox
-				);
-
-				instance._treeId = instance.get(STR_BOUNDING_BOX).attr('data-treeid');
-
-				instance._bindUILTBase();
-			},
-
-			renderUI: function() {
-				var instance = this;
-
-				instance._parseLayouts(instance.get('layouts'));
-
-				instance.constructor.superclass.renderUI.apply(this, arguments);
-			},
-
-			destructor: function() {
-				var instance = this;
-
-				(new A.EventHandle(instance._eventHandles)).detach();
-			},
-
-			extractGroupId: function(node) {
-				var match = node.get(STR_ID).match(/groupId_(\d+)/);
-
-				return match && match[1];
-			},
-
-			extractLayoutId: function(node) {
-				var match = node.get(STR_ID).match(/layout_(\d+)/);
-
-				return match && match[1];
-			},
-
-			extractPlid: function(node) {
-				var match = node.get(STR_ID).match(/plid_(\d+)/);
-
-				return match && match[1];
-			},
-
-			restoreSelectedNode: function() {
-				var instance = this;
-
-				var pendingSelectedNodeId = instance._pendingSelectedNodeId;
-
-				if (pendingSelectedNodeId) {
-					instance.getNodeById(pendingSelectedNodeId).select();
-
-					instance._pendingSelectedNodeId = null;
-				}
-			},
-
-			_afterRenderTree: function(event) {
+			_afterRenderTree() {
 				var instance = this;
 
 				instance._treeLoadingElement.hide();
@@ -147,90 +104,98 @@ AUI.add(
 				instance.restoreSelectedNode();
 			},
 
-			_bindUILTBase: function() {
+			_bindUILTBase() {
 				var instance = this;
 
 				instance._eventHandles = instance._eventHandles || [];
 
 				instance._eventHandles.push(
-					instance.after('render', instance._afterRenderTree, instance),
+					instance.after(
+						'render',
+						instance._afterRenderTree,
+						instance
+					),
 					instance.on('dropAppend', instance._onDropAppend, instance),
 					instance.on('dropInsert', instance._onDropInsert, instance)
 				);
 			},
 
-			_createNodeId: function(groupId, layoutId, plid) {
+			_createNodeId(groupId, layoutId, plid) {
 				var instance = this;
 
-				return A.Lang.sub(
-					NODE_ID_TPL,
-					{
-						groupId: groupId,
-						layoutId: layoutId,
-						plid: plid,
-						treeId: instance._treeId
-					}
-				);
+				return A.Lang.sub(NODE_ID_TPL, {
+					groupId,
+					layoutId,
+					plid,
+					treeId: instance._treeId
+				});
 			},
 
-			_createNodeLink: function(data, template) {
+			_createNodeLink(data, template) {
 				var instance = this;
 
 				var className = 'layout-tree ';
 
-				data.cssClass = data.cssClass ? className + data.cssClass : className;
+				data.cssClass = data.cssClass
+					? className + data.cssClass
+					: className;
 
 				var urls = instance.get('urls');
 
-				urls.forEach(
-					function(item, index) {
-						data[item.name] = A.Lang.sub(
-							item.value,
-							{
-								selPlid: data.plid
-							}
-						);
-					}
-				);
+				urls.forEach(function(item) {
+					data[item.name] = A.Lang.sub(item.value, {
+						selPlid: data.plid
+					});
+				});
 
-				data.id = data.url ? LString.escapeHTML(instance._treeId + '_layout_' + data.url.substring(1)) : STR_EMPTY;
+				data.id = data.url
+					? LString.escapeHTML(
+							instance._treeId +
+								'_layout_' +
+								data.url.substring(1)
+					  )
+					: STR_EMPTY;
 
 				data.title = data.title ? data.title : STR_EMPTY;
 
 				data.url = data.url ? LString.escapeHTML(data.url) : STR_EMPTY;
 
-				data.uuid = data.uuid ? LString.escapeHTML(data.uuid) : STR_EMPTY;
+				data.uuid = data.uuid
+					? LString.escapeHTML(data.uuid)
+					: STR_EMPTY;
 
 				return A.Lang.sub(template, data);
 			},
 
-			_displayNotice: function(message, type, timeout, useAnimation) {
-				new Liferay.Notice(
-					{
-						closeText: false,
-						content: message + '<button aria-label="' + Liferay.Language.get('close') + '" class="close" type="button">&times;</button>',
-						noticeClass: 'hide',
-						timeout: timeout || 10000,
-						toggleText: false,
-						type: type || 'warning',
-						useAnimation: Lang.isValue(useAnimation) ? useAnimation : true
-					}
-				).show();
+			_displayNotice(message, type, timeout, useAnimation) {
+				new Liferay.Notice({
+					closeText: false,
+					content:
+						message +
+						'<button aria-label="' +
+						Liferay.Language.get('close') +
+						'" class="close" type="button">&times;</button>',
+					noticeClass: 'hide',
+					timeout: timeout || 10000,
+					toggleText: false,
+					type: type || 'warning',
+					useAnimation: Lang.isValue(useAnimation)
+						? useAnimation
+						: true
+				}).show();
 			},
 
-			_formatJSONResults: function(json) {
+			_formatJSONResults(json) {
 				var instance = this;
 
-				var output = json.layouts.map(
-					function(node) {
-						return instance._formatNode(node);
-					}
-				);
+				var output = json.layouts.map(function(node) {
+					return instance._formatNode(node);
+				});
 
 				return output;
 			},
 
-			_formatNode: function(node) {
+			_formatNode(node) {
 				var instance = this;
 
 				var childLayouts = [];
@@ -243,7 +208,11 @@ AUI.add(
 				var nodeChildren = node.children;
 				var nodeType = node.type;
 
-				if (nodeType === 'embedded' || nodeType === 'link_to_layout' || nodeType === 'url') {
+				if (
+					nodeType === 'embedded' ||
+					nodeType === 'link_to_layout' ||
+					nodeType === 'url'
+				) {
 					cssIcons = {
 						iconCollapsed: iconCssClassName,
 						iconExpanded: iconCssClassName
@@ -259,7 +228,11 @@ AUI.add(
 
 				var maxChildren = instance.get('maxChildren');
 
-				var id = instance._createNodeId(node.groupId, node.layoutId, node.plid);
+				var id = instance._createNodeId(
+					node.groupId,
+					node.layoutId,
+					node.plid
+				);
 
 				var newNode = {
 					alwaysShowHitArea: hasChildren,
@@ -267,21 +240,23 @@ AUI.add(
 						pages: A.merge(TREE_CSS_CLASSES, cssIcons)
 					},
 					draggable: node.sortable,
-					expanded: expanded,
-					id: id,
+					expanded,
+					id,
 					io: instance._getNodeIOConfig(),
 					leaf: false,
 					paginator: {
 						limit: maxChildren,
 						offsetParam: 'start',
 						start: Math.max(childLayouts.length - maxChildren, 0),
-						total: total
+						total
 					},
 					type: total > 0 ? 'io' : 'node'
 				};
 
 				if (nodeChildren && expanded) {
-					newNode.children = instance._formatJSONResults(nodeChildren);
+					newNode.children = instance._formatJSONResults(
+						nodeChildren
+					);
 				}
 
 				if (instance.get('selPlid') == node.plid) {
@@ -295,20 +270,27 @@ AUI.add(
 
 				if (node.layoutRevisionId) {
 					if (!node.layoutRevisionHead) {
-						title = Liferay.Language.get('there-is-not-a-version-of-this-page-marked-as-ready-for-publication');
-					}
-					else if (node.layoutBranchName) {
-						node.layoutBranchName = LString.escapeHTML(node.layoutBranchName);
+						title = Liferay.Language.get(
+							'there-is-not-a-version-of-this-page-marked-as-ready-for-publication'
+						);
+					} else if (node.layoutBranchName) {
+						node.layoutBranchName = LString.escapeHTML(
+							node.layoutBranchName
+						);
 
 						name += Lang.sub(' [{layoutBranchName}]', node);
 
-						title = Liferay.Language.get('this-is-the-page-variation-that-is-marked-as-ready-for-publication');
+						title = Liferay.Language.get(
+							'this-is-the-page-variation-that-is-marked-as-ready-for-publication'
+						);
 					}
 
 					if (node.incomplete) {
 						cssClass = 'incomplete-layout';
 
-						title = Liferay.Language.get('this-page-is-not-enabled-in-this-site-pages-variation,-but-is-available-in-other-variations');
+						title = Liferay.Language.get(
+							'this-page-is-not-enabled-in-this-site-pages-variation,-but-is-available-in-other-variations'
+						);
 					}
 				}
 
@@ -316,32 +298,40 @@ AUI.add(
 					cssClass = 'lfr-page-locked';
 				}
 
-				newNode.label = instance._formatNodeLabel(node, cssClass, name, title);
+				newNode.label = instance._formatNodeLabel(
+					node,
+					cssClass,
+					name,
+					title
+				);
 
 				return newNode;
 			},
 
-			_formatNodeLabel: function(node, cssClass, name, title) {
+			_formatNodeLabel(node, cssClass, name, title) {
 				var instance = this;
 
 				var data = A.merge(
 					{
-						cssClass: cssClass,
+						cssClass,
 						label: name,
 						plid: node.plid,
-						title: title,
+						title,
 						url: node.friendlyURL,
 						uuid: node.uuid
 					},
 					node
 				);
 
-				var label = instance._createNodeLink(data, instance.get(STR_LINK_TEMPLATE));
+				var label = instance._createNodeLink(
+					data,
+					instance.get(STR_LINK_TEMPLATE)
+				);
 
 				return label;
 			},
 
-			_formatRootNode: function(rootConfig, children) {
+			_formatRootNode(rootConfig, children) {
 				var instance = this;
 
 				var rootLabel = instance._createNodeLink(
@@ -361,19 +351,26 @@ AUI.add(
 
 				var rootNode = {
 					alwaysShowHitArea: true,
-					children: children,
+					children,
 					cssClasses: {
 						pages: TREE_CSS_CLASSES
 					},
 					draggable: false,
 					expanded: rootConfig.expand,
-					id: instance._createNodeId(rootConfig.groupId, rootConfig.defaultParentLayoutId, 0),
+					id: instance._createNodeId(
+						rootConfig.groupId,
+						rootConfig.defaultParentLayoutId,
+						0
+					),
 					label: rootLabel,
 					leaf: false,
 					paginator: {
 						limit: maxChildren,
 						offsetParam: 'start',
-						start: Math.max(layouts.layouts.length - maxChildren, 0),
+						start: Math.max(
+							layouts.layouts.length - maxChildren,
+							0
+						),
 						total: layouts.total
 					},
 					type: 'io'
@@ -382,12 +379,12 @@ AUI.add(
 				return rootNode;
 			},
 
-			_getNodeIOConfig: function() {
+			_getNodeIOConfig() {
 				var instance = this;
 
 				var ioCfg = {
 					cfg: {
-						data: function(node) {
+						data(node) {
 							return {
 								cmd: 'get',
 								doAsGroupId: themeDisplay.getScopeGroupId(),
@@ -397,25 +394,25 @@ AUI.add(
 								p_l_id: themeDisplay.getPlid(),
 								p_p_id: '88',
 								parentLayoutId: instance.extractLayoutId(node),
-								privateLayout: instance.get('root').privateLayout,
+								privateLayout: instance.get('root')
+									.privateLayout,
 								selPlid: instance.get('selPlid'),
 								treeId: instance._treeId
 							};
 						},
 						method: A.config.io.method,
 						on: {
-							success: function(event, id, xhr) {
+							success(event, id, xhr) {
 								var response;
 
 								try {
 									response = JSON.parse(xhr.responseText);
 
-									this.get('paginator').total = response.total;
+									this.get('paginator').total =
+										response.total;
 
 									this.syncUI();
-								}
-								catch (e) {
-								}
+								} catch (e) {}
 
 								this.fire('ioSuccess');
 							}
@@ -428,12 +425,13 @@ AUI.add(
 				return ioCfg;
 			},
 
-			_onDropAppend: function(event) {
+			_onDropAppend(event) {
 				var instance = this;
 
 				var tree = event.tree;
 
-				var index = tree.dragNode.get(STR_PARENT_NODE).getChildrenLength() - 1;
+				var index =
+					tree.dragNode.get(STR_PARENT_NODE).getChildrenLength() - 1;
 
 				instance._updateLayoutParent(
 					instance.extractPlid(tree.dragNode),
@@ -442,12 +440,14 @@ AUI.add(
 				);
 			},
 
-			_onDropInsert: function(event) {
+			_onDropInsert(event) {
 				var instance = this;
 
 				var tree = event.tree;
 
-				var index = tree.dragNode.get(STR_PARENT_NODE).indexOf(tree.dragNode);
+				var index = tree.dragNode
+					.get(STR_PARENT_NODE)
+					.indexOf(tree.dragNode);
 
 				instance._updateLayoutParent(
 					instance.extractPlid(tree.dragNode),
@@ -456,7 +456,7 @@ AUI.add(
 				);
 			},
 
-			_parseLayouts: function(value) {
+			_parseLayouts(value) {
 				var instance = this;
 
 				var children = instance._formatJSONResults(value);
@@ -467,43 +467,41 @@ AUI.add(
 					children = [instance._formatRootNode(rootConfig, children)];
 				}
 
-				instance.set(
-					'children',
-					children,
-					{
-						src: A.Widget.UI_SRC
-					}
-				);
+				instance.set('children', children, {
+					src: A.Widget.UI_SRC
+				});
 
-				instance.getChildren()[0].get('contentBox').addClass('lfr-root-node');
+				instance
+					.getChildren()[0]
+					.get('contentBox')
+					.addClass('lfr-root-node');
 
 				return value;
 			},
 
-			_restoreNodePosition: function(response) {
+			_restoreNodePosition(response) {
 				var instance = this;
 
-				instance._displayNotice(response.message, 'warning', 10000, true);
-
-				var nodeId = A.Lang.sub(
-					NODE_ID_TPL,
-					{
-						groupId: response.groupId,
-						layoutId: response.layoutId,
-						plid: response.plid,
-						treeId: instance._treeId
-					}
+				instance._displayNotice(
+					response.message,
+					'warning',
+					10000,
+					true
 				);
 
-				var parentNodeId = A.Lang.sub(
-					NODE_ID_TPL,
-					{
-						groupId: response.groupId,
-						layoutId: response.originalParentLayoutId,
-						plid: response.originalParentPlid,
-						treeId: instance._treeId
-					}
-				);
+				var nodeId = A.Lang.sub(NODE_ID_TPL, {
+					groupId: response.groupId,
+					layoutId: response.layoutId,
+					plid: response.plid,
+					treeId: instance._treeId
+				});
+
+				var parentNodeId = A.Lang.sub(NODE_ID_TPL, {
+					groupId: response.groupId,
+					layoutId: response.originalParentLayoutId,
+					plid: response.originalParentPlid,
+					treeId: instance._treeId
+				});
 
 				var action = 'append';
 
@@ -517,8 +515,7 @@ AUI.add(
 				if (index > 0) {
 					if (index === parentNode.childrenLength) {
 						action = 'append';
-					}
-					else {
+					} else {
 						var siblingIndex = index;
 
 						if (node.get('parentNode').get('id') !== parentNodeId) {
@@ -533,13 +530,12 @@ AUI.add(
 
 				if (sibling) {
 					instance.insert(node, sibling, action);
-				}
-				else {
+				} else {
 					parentNode.appendChild(node);
 				}
 			},
 
-			_setRootConfig: function(val) {
+			_setRootConfig(val) {
 				var defaultRootConfig = {
 					linkTemplate: NODE_LINK_TPL
 				};
@@ -547,70 +543,120 @@ AUI.add(
 				return A.merge(defaultRootConfig, val);
 			},
 
-			_updateLayout: function(data) {
+			_updateLayout(data) {
 				var instance = this;
 
-				A.io.request(
+				Liferay.Util.fetch(
 					themeDisplay.getPathMain() + '/portal/edit_layout',
 					{
-						data: A.mix(
-							data,
-							{
+						body: Liferay.Util.objectToFormData(
+							A.mix(data, {
 								doAsGroupId: themeDisplay.getScopeGroupId(),
 								p_auth: Liferay.authToken,
 								p_l_id: themeDisplay.getPlid(),
 								p_p_id: '88'
-							}
+							})
 						),
-						dataType: 'JSON',
-						on: {
-							success: function(event, id, xhr) {
-								var response;
-
-								try {
-									response = JSON.parse(xhr.responseText);
-
-									if (response.status === Liferay.STATUS_CODE.BAD_REQUEST) {
-										instance._restoreNodePosition(response);
-									}
-								}
-								catch (e) {
-								}
-							}
-						}
+						method: 'POST'
 					}
-				);
+				)
+					.then(response => response.json())
+					.then(response => {
+						if (
+							response.status === Liferay.STATUS_CODE.BAD_REQUEST
+						) {
+							instance._restoreNodePosition(response);
+						}
+					})
+					.catch(() => {});
 			},
 
-			_updateLayoutParent: function(dragPlid, dropPlid, index) {
+			_updateLayoutParent(dragPlid, dropPlid, index) {
 				var instance = this;
 
-				instance._updateLayout(
-					{
-						cmd: 'parent_layout_id',
-						parentPlid: dropPlid,
-						plid: dragPlid,
-						priority: index
-					}
-				);
+				instance._updateLayout({
+					cmd: 'parent_layout_id',
+					parentPlid: dropPlid,
+					plid: dragPlid,
+					priority: index
+				});
+			},
+
+			destructor() {
+				var instance = this;
+
+				new A.EventHandle(instance._eventHandles).detach();
+			},
+
+			extractGroupId(node) {
+				var match = node.get(STR_ID).match(/groupId_(\d+)/);
+
+				return match && match[1];
+			},
+
+			extractLayoutId(node) {
+				var match = node.get(STR_ID).match(/layout_(\d+)/);
+
+				return match && match[1];
+			},
+
+			extractPlid(node) {
+				var match = node.get(STR_ID).match(/plid_(\d+)/);
+
+				return match && match[1];
+			},
+
+			initializer() {
+				var instance = this;
+
+				var boundingBox = instance.get(STR_BOUNDING_BOX);
+
+				instance._treeLoadingElement = boundingBox
+					.ancestor()
+					.insertBefore(
+						A.Node.create(TREE_LOADING_EL_TPL),
+						boundingBox
+					);
+
+				instance._treeId = instance
+					.get(STR_BOUNDING_BOX)
+					.attr('data-treeid');
+
+				instance._bindUILTBase();
+			},
+
+			renderUI() {
+				var instance = this;
+
+				instance._parseLayouts(instance.get('layouts'));
+
+				instance.constructor.superclass.renderUI.apply(this, arguments);
+			},
+
+			restoreSelectedNode() {
+				var instance = this;
+
+				var pendingSelectedNodeId = instance._pendingSelectedNodeId;
+
+				if (pendingSelectedNodeId) {
+					instance.getNodeById(pendingSelectedNodeId).select();
+
+					instance._pendingSelectedNodeId = null;
+				}
 			}
 		};
 
-		Liferay.LayoutsTree = A.Component.create(
-			{
-				AUGMENTS: LayoutsTreeBase,
-				EXTENDS: A.TreeView,
-				NAME: 'liferaylayoutstree'
-			}
-		);
+		Liferay.LayoutsTree = A.Component.create({
+			AUGMENTS: LayoutsTreeBase,
+			EXTENDS: A.TreeView,
+			NAME: 'liferaylayoutstree'
+		});
 
-		Liferay.LayoutsTreeDD = A.Component.create(
-			{
-				AUGMENTS: LayoutsTreeBase,
-				EXTENDS: A.TreeViewDD,
-				NAME: 'liferaylayoutstreedd'
-			}
-		);
+		Liferay.LayoutsTreeDD = A.Component.create({
+			AUGMENTS: LayoutsTreeBase,
+			EXTENDS: A.TreeViewDD,
+			NAME: 'liferaylayoutstreedd'
+		});
 	},
 	'',
 	{

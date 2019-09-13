@@ -37,15 +37,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.servlet.ServletContext;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * @author Ivica Cardic
  * @author Brian Wing Shun Chan
  * @author Raymond Augé
  * @author Miguel Pastor
  */
-@ProviderType
 public class HotDeployEvent {
 
 	public HotDeployEvent(ServletContext servletContext) {
@@ -148,11 +145,10 @@ public class HotDeployEvent {
 		}
 
 		if (!_dependentServletContextNames.isEmpty() && _log.isInfoEnabled()) {
-			String servletContextName = _servletContext.getServletContextName();
-
 			_log.info(
 				StringBundler.concat(
-					"Plugin ", servletContextName, " requires ",
+					"Plugin ", _servletContext.getServletContextName(),
+					" requires ",
 					StringUtil.merge(_dependentServletContextNames, ", ")));
 		}
 	}

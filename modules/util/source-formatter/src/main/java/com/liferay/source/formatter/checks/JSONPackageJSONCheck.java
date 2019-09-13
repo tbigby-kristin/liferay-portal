@@ -15,15 +15,9 @@
 package com.liferay.source.formatter.checks;
 
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.source.formatter.util.FileUtil;
 
 import java.io.IOException;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 import org.json.JSONObject;
 
@@ -34,19 +28,21 @@ import org.json.JSONObject;
 public class JSONPackageJSONCheck extends BaseFileCheck {
 
 	@Override
+	public boolean isLiferaySourceCheck() {
+		return true;
+	}
+
+	@Override
 	protected String doProcess(
 			String fileName, String absolutePath, String content)
 		throws IOException {
 
 		if (!absolutePath.endsWith("/package.json") ||
-			!absolutePath.contains("/modules/apps/")) {
+			(!absolutePath.contains("/modules/apps/") &&
+			 !absolutePath.contains("/modules/private/apps/"))) {
 
 			return content;
 		}
-
-		JSONObject jsonObject = new JSONObject(content);
-
-		content = _fixDependencyVersions(absolutePath, content, jsonObject);
 
 		String dirName = absolutePath.substring(0, absolutePath.length() - 12);
 
@@ -55,6 +51,8 @@ public class JSONPackageJSONCheck extends BaseFileCheck {
 
 			return content;
 		}
+
+		JSONObject jsonObject = new JSONObject(content);
 
 		_checkIncorrectEntry(fileName, jsonObject, "devDependencies");
 
@@ -77,9 +75,9 @@ public class JSONPackageJSONCheck extends BaseFileCheck {
 
 		_checkScript(
 			fileName, scriptsJSONObject, "checkFormat",
-			"liferay-npm-scripts lint", true);
+			"liferay-npm-scripts check", true);
 		_checkScript(
-			fileName, scriptsJSONObject, "format", "liferay-npm-scripts format",
+			fileName, scriptsJSONObject, "format", "liferay-npm-scripts fix",
 			true);
 
 		return content;
@@ -116,105 +114,5 @@ public class JSONPackageJSONCheck extends BaseFileCheck {
 					"' does not contain '", expectedValue, "'"));
 		}
 	}
-
-	private String _fixDependencyVersions(
-			String absolutePath, String content, JSONObject jsonObject)
-		throws IOException {
-
-		if (jsonObject.isNull("dependencies")) {
-			return content;
-		}
-
-		Map<String, String> expectedDependencyVersionsMap =
-			_getExpectedDependencyVersionsMap(absolutePath);
-
-		JSONObject dependenciesJSONObject = jsonObject.getJSONObject(
-			"dependencies");
-
-		Iterator<String> keys = dependenciesJSONObject.keys();
-
-		while (keys.hasNext()) {
-			String dependencyName = keys.next();
-
-			String actualVersion = dependenciesJSONObject.getString(
-				dependencyName);
-			String expectedVersion = expectedDependencyVersionsMap.get(
-				dependencyName);
-
-			if ((expectedVersion != null) &&
-				!expectedVersion.equals(actualVersion)) {
-
-				content = StringUtil.replace(
-					content,
-					StringBundler.concat(
-						"\"", dependencyName, "\": \"", actualVersion, "\""),
-					StringBundler.concat(
-						"\"", dependencyName, "\": \"", expectedVersion, "\""));
-			}
-		}
-
-		return content;
-	}
-
-	private Map<String, String> _getDependencyVersionsMap(
-			String fileName, String absolutePath, String regex)
-		throws IOException {
-
-		Map<String, String> dependencyVersionsMap = new HashMap<>();
-
-		String content = getPortalContent(fileName, absolutePath);
-
-		if (Validator.isNull(content)) {
-			return dependencyVersionsMap;
-		}
-
-		JSONObject jsonObject = new JSONObject(content);
-
-		JSONObject dependenciesJSONObject = jsonObject.getJSONObject(
-			"dependencies");
-
-		Iterator<String> keys = dependenciesJSONObject.keys();
-
-		while (keys.hasNext()) {
-			String dependencyName = keys.next();
-
-			if (dependencyName.matches(regex)) {
-				dependencyVersionsMap.put(
-					dependencyName,
-					dependenciesJSONObject.getString(dependencyName));
-			}
-		}
-
-		return dependencyVersionsMap;
-	}
-
-	private synchronized Map<String, String> _getExpectedDependencyVersionsMap(
-			String absolutePath)
-		throws IOException {
-
-		if (_expectedDependencyVersionsMap != null) {
-			return _expectedDependencyVersionsMap;
-		}
-
-		_expectedDependencyVersionsMap = new HashMap<>();
-
-		_expectedDependencyVersionsMap.putAll(
-			_getDependencyVersionsMap(
-				"modules/apps/frontend-js/frontend-js-metal-web/package.json",
-				absolutePath, "metal(-.*)?"));
-		_expectedDependencyVersionsMap.putAll(
-			_getDependencyVersionsMap(
-				"modules/apps/frontend-js/frontend-js-spa-web/package.json",
-				absolutePath, "senna"));
-		_expectedDependencyVersionsMap.putAll(
-			_getDependencyVersionsMap(
-				"modules/apps/frontend-taglib/frontend-taglib-clay" +
-					"/package.json",
-				absolutePath, "clay-.*"));
-
-		return _expectedDependencyVersionsMap;
-	}
-
-	private Map<String, String> _expectedDependencyVersionsMap;
 
 }

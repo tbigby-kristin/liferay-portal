@@ -26,8 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * The persistence utility for the asset link service. This utility wraps <code>com.liferay.portlet.asset.service.persistence.impl.AssetLinkPersistenceImpl</code> and provides direct access to the database for CRUD operations. This utility should only be used by the service layer, as it must operate within a transaction. Never access this utility in a JSP, controller, model, or other front-end class.
  *
@@ -39,10 +37,9 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see AssetLinkPersistence
  * @generated
  */
-@ProviderType
 public class AssetLinkUtil {
 
-	/*
+	/**
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this class directly. Modify <code>service.xml</code> and rerun ServiceBuilder to regenerate this class.
@@ -181,16 +178,16 @@ public class AssetLinkUtil {
 	 * @param start the lower bound of the range of asset links
 	 * @param end the upper bound of the range of asset links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset links
 	 */
 	public static List<AssetLink> findByE1(
 		long entryId1, int start, int end,
 		OrderByComparator<AssetLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByE1(
-			entryId1, start, end, orderByComparator, retrieveFromCache);
+			entryId1, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -344,16 +341,16 @@ public class AssetLinkUtil {
 	 * @param start the lower bound of the range of asset links
 	 * @param end the upper bound of the range of asset links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset links
 	 */
 	public static List<AssetLink> findByE2(
 		long entryId2, int start, int end,
 		OrderByComparator<AssetLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByE2(
-			entryId2, start, end, orderByComparator, retrieveFromCache);
+			entryId2, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -513,17 +510,16 @@ public class AssetLinkUtil {
 	 * @param start the lower bound of the range of asset links
 	 * @param end the upper bound of the range of asset links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset links
 	 */
 	public static List<AssetLink> findByE_E(
 		long entryId1, long entryId2, int start, int end,
 		OrderByComparator<AssetLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByE_E(
-			entryId1, entryId2, start, end, orderByComparator,
-			retrieveFromCache);
+			entryId1, entryId2, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -698,16 +694,16 @@ public class AssetLinkUtil {
 	 * @param start the lower bound of the range of asset links
 	 * @param end the upper bound of the range of asset links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset links
 	 */
 	public static List<AssetLink> findByE1_T(
 		long entryId1, int type, int start, int end,
 		OrderByComparator<AssetLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByE1_T(
-			entryId1, type, start, end, orderByComparator, retrieveFromCache);
+			entryId1, type, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -882,16 +878,16 @@ public class AssetLinkUtil {
 	 * @param start the lower bound of the range of asset links
 	 * @param end the upper bound of the range of asset links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of matching asset links
 	 */
 	public static List<AssetLink> findByE2_T(
 		long entryId2, int type, int start, int end,
 		OrderByComparator<AssetLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findByE2_T(
-			entryId2, type, start, end, orderByComparator, retrieveFromCache);
+			entryId2, type, start, end, orderByComparator, useFinderCache);
 	}
 
 	/**
@@ -1037,14 +1033,14 @@ public class AssetLinkUtil {
 	 * @param entryId1 the entry id1
 	 * @param entryId2 the entry id2
 	 * @param type the type
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the matching asset link, or <code>null</code> if a matching asset link could not be found
 	 */
 	public static AssetLink fetchByE_E_T(
-		long entryId1, long entryId2, int type, boolean retrieveFromCache) {
+		long entryId1, long entryId2, int type, boolean useFinderCache) {
 
 		return getPersistence().fetchByE_E_T(
-			entryId1, entryId2, type, retrieveFromCache);
+			entryId1, entryId2, type, useFinderCache);
 	}
 
 	/**
@@ -1194,15 +1190,15 @@ public class AssetLinkUtil {
 	 * @param start the lower bound of the range of asset links
 	 * @param end the upper bound of the range of asset links (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
-	 * @param retrieveFromCache whether to retrieve from the finder cache
+	 * @param useFinderCache whether to use the finder cache
 	 * @return the ordered range of asset links
 	 */
 	public static List<AssetLink> findAll(
 		int start, int end, OrderByComparator<AssetLink> orderByComparator,
-		boolean retrieveFromCache) {
+		boolean useFinderCache) {
 
 		return getPersistence().findAll(
-			start, end, orderByComparator, retrieveFromCache);
+			start, end, orderByComparator, useFinderCache);
 	}
 
 	/**

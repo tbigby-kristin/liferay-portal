@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.service.http.TunnelUtil;
 import com.liferay.portal.kernel.util.MethodHandler;
 import com.liferay.portal.kernel.util.MethodKey;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * Provides the HTTP utility for the
  * <code>OrganizationServiceUtil</code> service
@@ -51,7 +49,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * @see OrganizationServiceSoap
  * @generated
  */
-@ProviderType
 public class OrganizationServiceHttp {
 
 	public static void addGroupOrganizations(
@@ -746,7 +743,7 @@ public class OrganizationServiceHttp {
 				HttpPrincipal httpPrincipal, long organizationId,
 				long parentOrganizationId, String name, String type,
 				long regionId, long countryId, long statusId, String comments,
-				boolean logo, byte[] logoBytes, boolean site,
+				boolean hasLogo, byte[] logoBytes, boolean site,
 				java.util.List<com.liferay.portal.kernel.model.Address>
 					addresses,
 				java.util.List<com.liferay.portal.kernel.model.EmailAddress>
@@ -766,8 +763,8 @@ public class OrganizationServiceHttp {
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, organizationId, parentOrganizationId, name, type,
-				regionId, countryId, statusId, comments, logo, logoBytes, site,
-				addresses, emailAddresses, orgLabors, phones, websites,
+				regionId, countryId, statusId, comments, hasLogo, logoBytes,
+				site, addresses, emailAddresses, orgLabors, phones, websites,
 				serviceContext);
 
 			Object returnObj = null;

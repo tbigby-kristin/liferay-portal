@@ -29,11 +29,17 @@ import com.liferay.headless.admin.user.client.pagination.Pagination;
 import com.liferay.headless.admin.user.client.resource.v1_0.SegmentUserResource;
 import com.liferay.headless.admin.user.client.serdes.v1_0.SegmentUserSerDes;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -48,9 +54,8 @@ import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -92,7 +97,17 @@ public abstract class BaseSegmentUserResourceTestCase {
 	public void setUp() throws Exception {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
-		testLocale = LocaleUtil.getDefault();
+
+		testCompany = CompanyLocalServiceUtil.getCompany(
+			testGroup.getCompanyId());
+
+		_segmentUserResource.setContextCompany(testCompany);
+
+		SegmentUserResource.Builder builder = SegmentUserResource.builder();
+
+		segmentUserResource = builder.locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	@After
@@ -175,6 +190,11 @@ public abstract class BaseSegmentUserResourceTestCase {
 
 	@Test
 	public void testGetSegmentUserAccountsPage() throws Exception {
+		Page<SegmentUser> page = segmentUserResource.getSegmentUserAccountsPage(
+			testGetSegmentUserAccountsPage_getSegmentId(), Pagination.of(1, 2));
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long segmentId = testGetSegmentUserAccountsPage_getSegmentId();
 		Long irrelevantSegmentId =
 			testGetSegmentUserAccountsPage_getIrrelevantSegmentId();
@@ -184,9 +204,8 @@ public abstract class BaseSegmentUserResourceTestCase {
 				testGetSegmentUserAccountsPage_addSegmentUser(
 					irrelevantSegmentId, randomIrrelevantSegmentUser());
 
-			Page<SegmentUser> page =
-				SegmentUserResource.getSegmentUserAccountsPage(
-					irrelevantSegmentId, Pagination.of(1, 2));
+			page = segmentUserResource.getSegmentUserAccountsPage(
+				irrelevantSegmentId, Pagination.of(1, 2));
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -204,7 +223,7 @@ public abstract class BaseSegmentUserResourceTestCase {
 			testGetSegmentUserAccountsPage_addSegmentUser(
 				segmentId, randomSegmentUser());
 
-		Page<SegmentUser> page = SegmentUserResource.getSegmentUserAccountsPage(
+		page = segmentUserResource.getSegmentUserAccountsPage(
 			segmentId, Pagination.of(1, 2));
 
 		Assert.assertEquals(2, page.getTotalCount());
@@ -234,7 +253,7 @@ public abstract class BaseSegmentUserResourceTestCase {
 				segmentId, randomSegmentUser());
 
 		Page<SegmentUser> page1 =
-			SegmentUserResource.getSegmentUserAccountsPage(
+			segmentUserResource.getSegmentUserAccountsPage(
 				segmentId, Pagination.of(1, 2));
 
 		List<SegmentUser> segmentUsers1 = (List<SegmentUser>)page1.getItems();
@@ -242,7 +261,7 @@ public abstract class BaseSegmentUserResourceTestCase {
 		Assert.assertEquals(segmentUsers1.toString(), 2, segmentUsers1.size());
 
 		Page<SegmentUser> page2 =
-			SegmentUserResource.getSegmentUserAccountsPage(
+			segmentUserResource.getSegmentUserAccountsPage(
 				segmentId, Pagination.of(2, 2));
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -251,14 +270,13 @@ public abstract class BaseSegmentUserResourceTestCase {
 
 		Assert.assertEquals(segmentUsers2.toString(), 1, segmentUsers2.size());
 
+		Page<SegmentUser> page3 =
+			segmentUserResource.getSegmentUserAccountsPage(
+				segmentId, Pagination.of(1, 3));
+
 		assertEqualsIgnoringOrder(
 			Arrays.asList(segmentUser1, segmentUser2, segmentUser3),
-			new ArrayList<SegmentUser>() {
-				{
-					addAll(segmentUsers1);
-					addAll(segmentUsers2);
-				}
-			});
+			(List<SegmentUser>)page3.getItems());
 	}
 
 	protected SegmentUser testGetSegmentUserAccountsPage_addSegmentUser(
@@ -280,6 +298,13 @@ public abstract class BaseSegmentUserResourceTestCase {
 		throws Exception {
 
 		return null;
+	}
+
+	protected SegmentUser testGraphQLSegmentUser_addSegmentUser()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -332,6 +357,25 @@ public abstract class BaseSegmentUserResourceTestCase {
 		}
 	}
 
+	protected void assertEqualsJSONArray(
+		List<SegmentUser> segmentUsers, JSONArray jsonArray) {
+
+		for (SegmentUser segmentUser : segmentUsers) {
+			boolean contains = false;
+
+			for (Object object : jsonArray) {
+				if (equalsJSONObject(segmentUser, (JSONObject)object)) {
+					contains = true;
+
+					break;
+				}
+			}
+
+			Assert.assertTrue(
+				jsonArray + " does not contain " + segmentUser, contains);
+		}
+	}
+
 	protected void assertValid(SegmentUser segmentUser) {
 		boolean valid = true;
 
@@ -369,7 +413,7 @@ public abstract class BaseSegmentUserResourceTestCase {
 	protected void assertValid(Page<SegmentUser> page) {
 		boolean valid = false;
 
-		Collection<SegmentUser> segmentUsers = page.getItems();
+		java.util.Collection<SegmentUser> segmentUsers = page.getItems();
 
 		int size = segmentUsers.size();
 
@@ -384,6 +428,22 @@ public abstract class BaseSegmentUserResourceTestCase {
 	}
 
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected List<GraphQLField> getGraphQLFields() {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		}
+
+		return graphQLFields;
+	}
+
+	protected String[] getIgnoredEntityFieldNames() {
 		return new String[0];
 	}
 
@@ -436,7 +496,51 @@ public abstract class BaseSegmentUserResourceTestCase {
 		return true;
 	}
 
-	protected Collection<EntityField> getEntityFields() throws Exception {
+	protected boolean equalsJSONObject(
+		SegmentUser segmentUser, JSONObject jsonObject) {
+
+		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("emailAddress", fieldName)) {
+				if (!Objects.deepEquals(
+						segmentUser.getEmailAddress(),
+						jsonObject.getString("emailAddress"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", fieldName)) {
+				if (!Objects.deepEquals(
+						segmentUser.getId(), jsonObject.getLong("id"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("name", fieldName)) {
+				if (!Objects.deepEquals(
+						segmentUser.getName(), jsonObject.getString("name"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid field name " + fieldName);
+		}
+
+		return true;
+	}
+
+	protected java.util.Collection<EntityField> getEntityFields()
+		throws Exception {
+
 		if (!(_segmentUserResource instanceof EntityModelResource)) {
 			throw new UnsupportedOperationException(
 				"Resource is not an instance of EntityModelResource");
@@ -457,12 +561,15 @@ public abstract class BaseSegmentUserResourceTestCase {
 	protected List<EntityField> getEntityFields(EntityField.Type type)
 		throws Exception {
 
-		Collection<EntityField> entityFields = getEntityFields();
+		java.util.Collection<EntityField> entityFields = getEntityFields();
 
 		Stream<EntityField> stream = entityFields.stream();
 
 		return stream.filter(
-			entityField -> Objects.equals(entityField.getType(), type)
+			entityField ->
+				Objects.equals(entityField.getType(), type) &&
+				!ArrayUtil.contains(
+					getIgnoredEntityFieldNames(), entityField.getName())
 		).collect(
 			Collectors.toList()
 		);
@@ -506,6 +613,23 @@ public abstract class BaseSegmentUserResourceTestCase {
 			"Invalid entity field " + entityFieldName);
 	}
 
+	protected String invoke(String query) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(
+			JSONUtil.put(
+				"query", query
+			).toString(),
+			"application/json");
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		httpInvoker.path("http://localhost:8080/o/graphql");
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
+	}
+
 	protected SegmentUser randomSegmentUser() throws Exception {
 		return new SegmentUser() {
 			{
@@ -526,10 +650,68 @@ public abstract class BaseSegmentUserResourceTestCase {
 		return randomSegmentUser();
 	}
 
+	protected SegmentUserResource segmentUserResource;
 	protected Group irrelevantGroup;
+	protected Company testCompany;
 	protected Group testGroup;
-	protected Locale testLocale;
-	protected String testUserNameAndPassword = "test@liferay.com:test";
+
+	protected class GraphQLField {
+
+		public GraphQLField(String key, GraphQLField... graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = graphQLFields;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(_key);
+
+			if (!_parameterMap.isEmpty()) {
+				sb.append("(");
+
+				for (Map.Entry<String, Object> entry :
+						_parameterMap.entrySet()) {
+
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append(")");
+			}
+
+			if (_graphQLFields.length > 0) {
+				sb.append("{");
+
+				for (GraphQLField graphQLField : _graphQLFields) {
+					sb.append(graphQLField.toString());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append("}");
+			}
+
+			return sb.toString();
+		}
+
+		private final GraphQLField[] _graphQLFields;
+		private final String _key;
+		private final Map<String, Object> _parameterMap;
+
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseSegmentUserResourceTestCase.class);

@@ -1,11 +1,11 @@
-@import "bourbon";
-@import "mixins";
+@import 'atlas-variables';
 
 .control-menu {
 	.staging-links {
 		position: static;
 
-		.live-link, .staging-link {
+		.live-link,
+		.staging-link {
 			font-size: 16px;
 			padding: 0 8px;
 		}
@@ -21,27 +21,27 @@
 	.staging-bar {
 		position: absolute;
 
-		@include sm() {
+		@include media-breakpoint-up(sm) {
 			position: static;
 		}
 	}
 }
 
 .custom-info-alert {
-	background: #FFF;
+	background: #fff;
 	border: none;
 }
 
 .publish-btn-group {
 	vertical-align: middle;
 
-	@include sm() {
+	@include media-breakpoint-up(sm) {
 		border-radius: 3px;
 		overflow: hidden;
 	}
 
 	.btn {
-		@include media-query(null, $screen-xs-max) {
+		@include media-breakpoint-down(sm) {
 			font-size: 1em;
 			padding: 13px 15px;
 
@@ -54,7 +54,7 @@
 	}
 
 	.dropdown-toggle {
-		@include media-query(null, $screen-xs-max) {
+		@include media-breakpoint-down(sm) {
 			border-bottom-left-radius: 0;
 			border-top-left-radius: 0;
 			position: absolute;
@@ -62,7 +62,7 @@
 			top: 0;
 
 			&:after {
-				background-color: #FFF;
+				background-color: #fff;
 				bottom: 7px;
 				content: '';
 				display: block;
@@ -92,7 +92,7 @@
 			margin-bottom: 0;
 			min-width: 210px;
 
-			@include sm() {
+			@include media-breakpoint-up(sm) {
 				float: left;
 			}
 
@@ -108,8 +108,8 @@
 	}
 }
 
-.staging-bar-workflow-text .status{
-	color: #2E5AAC;
+.staging-bar-workflow-text .status {
+	color: #2e5aac;
 }
 
 .staging-ready {
@@ -120,7 +120,7 @@
 }
 
 .staging-layout-revision-details-list {
-	@include justify-content(space-between);
+	justify-content: space-between;
 
 	> li.control-menu-nav-item {
 		padding: 0 8px;
@@ -136,7 +136,7 @@
 		text-decoration: none;
 	}
 
-	@include sm() {
+	@include media-breakpoint-up(sm) {
 		font-size: 14px;
 	}
 }
@@ -149,8 +149,8 @@
 }
 
 .staging-variation-selector {
-	background: #F5F7F8;
-	border: 1px solid #E9E9EF;
+	background: #f5f7f8;
+	border: 1px solid #e9e9ef;
 	border-radius: 4px;
 	color: #000000;
 	display: block;
@@ -163,7 +163,7 @@
 	white-space: nowrap;
 	width: 100%;
 
-	@include sm() {
+	@include media-breakpoint-up(sm) {
 		font-size: 14px;
 	}
 

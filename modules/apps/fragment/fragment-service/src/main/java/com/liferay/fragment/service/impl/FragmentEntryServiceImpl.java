@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.List;
 
@@ -44,6 +45,12 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, long, int, int,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, int type,
@@ -55,10 +62,16 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
 
 		return fragmentEntryLocalService.addFragmentEntry(
-			getUserId(), groupId, fragmentCollectionId, name, type, status,
-			serviceContext);
+			getUserId(), groupId, fragmentCollectionId, null, name, 0, type,
+			status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, long, int, int,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, int status,
@@ -70,10 +83,16 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
 
 		return fragmentEntryLocalService.addFragmentEntry(
-			getUserId(), groupId, fragmentCollectionId, name, status,
-			serviceContext);
+			getUserId(), groupId, fragmentCollectionId, null, name, 0,
+			FragmentConstants.TYPE_SECTION, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, long, int, int,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -86,9 +105,15 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
 		return fragmentEntryLocalService.addFragmentEntry(
 			getUserId(), groupId, fragmentCollectionId, fragmentEntryKey, name,
-			type, status, serviceContext);
+			0, type, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, long, int, int,
+	 *             ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -101,9 +126,31 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
 		return fragmentEntryLocalService.addFragmentEntry(
 			getUserId(), groupId, fragmentCollectionId, fragmentEntryKey, name,
-			status, serviceContext);
+			0, FragmentConstants.TYPE_SECTION, status, serviceContext);
 	}
 
+	@Override
+	public FragmentEntry addFragmentEntry(
+			long groupId, long fragmentCollectionId, String fragmentEntryKey,
+			String name, long previewFileEntryId, int type, int status,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), groupId,
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+
+		return fragmentEntryLocalService.addFragmentEntry(
+			getUserId(), groupId, fragmentCollectionId, fragmentEntryKey, name,
+			previewFileEntryId, type, status, serviceContext);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, String, String,
+	 *             String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, String css,
@@ -120,6 +167,12 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			type, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, String, String,
+	 *             String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String name, String css,
@@ -135,6 +188,12 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, String, String,
+	 *             String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -151,6 +210,12 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			css, html, js, type, status, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #addFragmentEntry(long, long, String, String, String, String,
+	 *             String, String, long, int, int, ServiceContext)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry addFragmentEntry(
 			long groupId, long fragmentCollectionId, String fragmentEntryKey,
@@ -165,6 +230,24 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 		return fragmentEntryLocalService.addFragmentEntry(
 			getUserId(), groupId, fragmentCollectionId, fragmentEntryKey, name,
 			css, html, js, status, serviceContext);
+	}
+
+	@Override
+	public FragmentEntry addFragmentEntry(
+			long groupId, long fragmentCollectionId, String fragmentEntryKey,
+			String name, String css, String html, String js,
+			String configuration, long previewFileEntryId, int type, int status,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), groupId,
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+
+		return fragmentEntryLocalService.addFragmentEntry(
+			getUserId(), groupId, fragmentCollectionId, fragmentEntryKey, name,
+			css, html, js, configuration, previewFileEntryId, type, status,
+			serviceContext);
 	}
 
 	@Override
@@ -228,45 +311,69 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 		return fragmentEntry;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesCount(Long, Long)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId) {
 
-		return fragmentEntryPersistence.countByG_FCI(
-			groupId, fragmentCollectionId);
+		return getFragmentEntriesCount(groupId, fragmentCollectionId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesCount(Long, Long, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId, int status) {
 
-		return fragmentEntryPersistence.countByG_FCI_S(
+		return getFragmentEntriesCountByStatus(
 			groupId, fragmentCollectionId, status);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesCount(Long, Long, String)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId, String name) {
 
-		return fragmentEntryPersistence.countByG_FCI_LikeN(
+		return getFragmentEntriesCountByName(
 			groupId, fragmentCollectionId,
 			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0]);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesCount(Long, Long, String, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCount(
 		long groupId, long fragmentCollectionId, String name, int status) {
 
-		return fragmentEntryPersistence.countByG_FCI_LikeN_S(
+		return getFragmentEntriesCountByNameAndStatus(
 			groupId, fragmentCollectionId,
 			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], status);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesCount(Long, Long, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public int getFragmentCollectionsCountByType(
 		long groupId, long fragmentCollectionId, int type) {
 
-		return fragmentEntryPersistence.countByG_FCI_T(
+		return getFragmentEntriesCountByType(
 			groupId, fragmentCollectionId, type);
 	}
 
@@ -276,11 +383,16 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			fragmentCollectionId);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesByStatus(Long, Long, Integer)}
+	 */
+	@Deprecated
 	@Override
 	public List<FragmentEntry> getFragmentEntries(
 		long groupId, long fragmentCollectionId, int status) {
 
-		return fragmentEntryLocalService.getFragmentEntries(
+		return getFragmentEntriesByStatus(
 			groupId, fragmentCollectionId, status);
 	}
 
@@ -292,12 +404,17 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			groupId, fragmentCollectionId, start, end);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesByStatus(Long, Long, Integer, Integer, Integer, OrderByComparator)}
+	 */
+	@Deprecated
 	@Override
 	public List<FragmentEntry> getFragmentEntries(
 		long groupId, long fragmentCollectionId, int status, int start, int end,
 		OrderByComparator<FragmentEntry> orderByComparator) {
 
-		return fragmentEntryPersistence.findByG_FCI_S(
+		return getFragmentEntriesByStatus(
 			groupId, fragmentCollectionId, status, start, end,
 			orderByComparator);
 	}
@@ -311,20 +428,41 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			groupId, fragmentCollectionId, start, end, orderByComparator);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesByNameAndStatus(Long, Long, String, Integer, Integer, Integer, OrderByComparator)}
+	 */
+	@Deprecated
 	@Override
 	public List<FragmentEntry> getFragmentEntries(
 		long groupId, long fragmentCollectionId, String name, int status,
 		int start, int end,
 		OrderByComparator<FragmentEntry> orderByComparator) {
 
-		return fragmentEntryPersistence.findByG_FCI_LikeN_S(
+		return getFragmentEntriesByNameAndStatus(
 			groupId, fragmentCollectionId,
 			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], status,
 			start, end, orderByComparator);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesByName(Long, Long, String, Integer, Integer, OrderByComparator)}
+	 */
+	@Deprecated
 	@Override
 	public List<FragmentEntry> getFragmentEntries(
+		long groupId, long fragmentCollectionId, String name, int start,
+		int end, OrderByComparator<FragmentEntry> orderByComparator) {
+
+		return getFragmentEntriesByName(
+			groupId, fragmentCollectionId,
+			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], start,
+			end, orderByComparator);
+	}
+
+	@Override
+	public List<FragmentEntry> getFragmentEntriesByName(
 		long groupId, long fragmentCollectionId, String name, int start,
 		int end, OrderByComparator<FragmentEntry> orderByComparator) {
 
@@ -335,10 +473,62 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 	}
 
 	@Override
+	public List<FragmentEntry> getFragmentEntriesByNameAndStatus(
+		long groupId, long fragmentCollectionId, String name, int status,
+		int start, int end,
+		OrderByComparator<FragmentEntry> orderByComparator) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.findByG_FCI_LikeN(
+				groupId, fragmentCollectionId,
+				_customSQL.keywords(name, false, WildcardMode.SURROUND)[0],
+				start, end, orderByComparator);
+		}
+
+		return fragmentEntryPersistence.findByG_FCI_LikeN_S(
+			groupId, fragmentCollectionId,
+			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], status,
+			start, end, orderByComparator);
+	}
+
+	@Override
+	public List<FragmentEntry> getFragmentEntriesByStatus(
+		long groupId, long fragmentCollectionId, int status) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.findByG_FCI(
+				groupId, fragmentCollectionId);
+		}
+
+		return fragmentEntryLocalService.getFragmentEntries(
+			groupId, fragmentCollectionId, status);
+	}
+
+	@Override
+	public List<FragmentEntry> getFragmentEntriesByStatus(
+		long groupId, long fragmentCollectionId, int status, int start, int end,
+		OrderByComparator<FragmentEntry> orderByComparator) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.findByG_FCI(
+				groupId, fragmentCollectionId, start, end, orderByComparator);
+		}
+
+		return fragmentEntryPersistence.findByG_FCI_S(
+			groupId, fragmentCollectionId, status, start, end,
+			orderByComparator);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #getFragmentEntriesByTypeAndStatus(Long, Long, Integer, Integer)}
+	 */
+	@Deprecated
+	@Override
 	public List<FragmentEntry> getFragmentEntriesByType(
 		long groupId, long fragmentCollectionId, int type, int status) {
 
-		return fragmentEntryPersistence.findByG_FCI_T_S(
+		return getFragmentEntriesByTypeAndStatus(
 			groupId, fragmentCollectionId, type, status);
 	}
 
@@ -349,6 +539,97 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
 		return fragmentEntryPersistence.findByG_FCI_T(
 			groupId, fragmentCollectionId, type, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<FragmentEntry> getFragmentEntriesByTypeAndStatus(
+		long groupId, long fragmentCollectionId, int type, int status) {
+
+		return fragmentEntryPersistence.findByG_FCI_T_S(
+			groupId, fragmentCollectionId, type, status);
+	}
+
+	@Override
+	public List<FragmentEntry> getFragmentEntriesByTypeAndStatus(
+		long groupId, long fragmentCollectionId, int type, int status,
+		int start, int end,
+		OrderByComparator<FragmentEntry> orderByComparator) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.findByG_FCI_T(
+				groupId, fragmentCollectionId, type, start, end,
+				orderByComparator);
+		}
+
+		return fragmentEntryPersistence.findByG_FCI_T_S(
+			groupId, fragmentCollectionId, type, status, start, end,
+			orderByComparator);
+	}
+
+	@Override
+	public int getFragmentEntriesCount(
+		long groupId, long fragmentCollectionId) {
+
+		return fragmentEntryPersistence.countByG_FCI(
+			groupId, fragmentCollectionId);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByName(
+		long groupId, long fragmentCollectionId, String name) {
+
+		return fragmentEntryPersistence.countByG_FCI_LikeN(
+			groupId, fragmentCollectionId,
+			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0]);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByNameAndStatus(
+		long groupId, long fragmentCollectionId, String name, int status) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.countByG_FCI_LikeN(
+				groupId, fragmentCollectionId,
+				_customSQL.keywords(name, false, WildcardMode.SURROUND)[0]);
+		}
+
+		return fragmentEntryPersistence.countByG_FCI_LikeN_S(
+			groupId, fragmentCollectionId,
+			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], status);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByStatus(
+		long groupId, long fragmentCollectionId, int status) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.countByG_FCI(
+				groupId, fragmentCollectionId);
+		}
+
+		return fragmentEntryPersistence.countByG_FCI_S(
+			groupId, fragmentCollectionId, status);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByType(
+		long groupId, long fragmentCollectionId, int type) {
+
+		return fragmentEntryPersistence.countByG_FCI_T(
+			groupId, fragmentCollectionId, type);
+	}
+
+	@Override
+	public int getFragmentEntriesCountByTypeAndStatus(
+		long groupId, long fragmentCollectionId, int type, int status) {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return fragmentEntryPersistence.countByG_FCI_T(
+				groupId, fragmentCollectionId, type);
+		}
+
+		return fragmentEntryPersistence.countByG_FCI_T_S(
+			groupId, fragmentCollectionId, type, status);
 	}
 
 	@Override
@@ -410,6 +691,12 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			fragmentEntryId, name);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #updateFragmentEntry(long, String, String, String,
+	 *             String, String, int)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry updateFragmentEntry(
 			long fragmentEntryId, String name, String css, String html,
@@ -427,6 +714,12 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 			getUserId(), fragmentEntryId, name, css, html, js, status);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #updateFragmentEntry(long, String, String, String,
+	 *             String, String, long, int)}
+	 */
+	@Deprecated
 	@Override
 	public FragmentEntry updateFragmentEntry(
 			long fragmentEntryId, String name, String css, String html,
@@ -442,6 +735,43 @@ public class FragmentEntryServiceImpl extends FragmentEntryServiceBaseImpl {
 
 		return fragmentEntryLocalService.updateFragmentEntry(
 			getUserId(), fragmentEntryId, name, css, html, js,
+			previewFileEntryId, status);
+	}
+
+	@Override
+	public FragmentEntry updateFragmentEntry(
+			long fragmentEntryId, String name, String css, String html,
+			String js, String configuration, int status)
+		throws PortalException {
+
+		FragmentEntry fragmentEntry =
+			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), fragmentEntry.getGroupId(),
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+
+		return fragmentEntryLocalService.updateFragmentEntry(
+			getUserId(), fragmentEntryId, name, css, html, js, configuration,
+			status);
+	}
+
+	@Override
+	public FragmentEntry updateFragmentEntry(
+			long fragmentEntryId, String name, String css, String html,
+			String js, String configuration, long previewFileEntryId,
+			int status)
+		throws PortalException {
+
+		FragmentEntry fragmentEntry =
+			fragmentEntryLocalService.getFragmentEntry(fragmentEntryId);
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), fragmentEntry.getGroupId(),
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+
+		return fragmentEntryLocalService.updateFragmentEntry(
+			getUserId(), fragmentEntryId, name, css, html, js, configuration,
 			previewFileEntryId, status);
 	}
 

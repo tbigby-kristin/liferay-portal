@@ -190,9 +190,8 @@ public class Serializer {
 		else if (serializable instanceof Class) {
 			Class<?> clazz = (Class<?>)serializable;
 
-			ClassLoader classLoader = clazz.getClassLoader();
-
-			String contextName = ClassLoaderPool.getContextName(classLoader);
+			String contextName = ClassLoaderPool.getContextName(
+				clazz.getClassLoader());
 
 			writeByte(SerializationConstants.TC_CLASS);
 			writeString(contextName);
@@ -513,9 +512,7 @@ public class Serializer {
 
 		@Override
 		public void write(byte[] bytes, int offset, int length) {
-			byte[] buffer = getBuffer(length);
-
-			System.arraycopy(bytes, offset, buffer, index, length);
+			System.arraycopy(bytes, offset, getBuffer(length), index, length);
 
 			index += length;
 		}

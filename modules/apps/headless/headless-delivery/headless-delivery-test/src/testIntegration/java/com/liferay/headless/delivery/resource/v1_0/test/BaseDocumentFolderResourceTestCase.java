@@ -28,31 +28,43 @@ import com.liferay.headless.delivery.client.pagination.Page;
 import com.liferay.headless.delivery.client.pagination.Pagination;
 import com.liferay.headless.delivery.client.resource.v1_0.DocumentFolderResource;
 import com.liferay.headless.delivery.client.serdes.v1_0.DocumentFolderSerDes;
+import com.liferay.petra.function.UnsafeTriConsumer;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONDeserializer;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
+import com.liferay.portal.test.log.CaptureAppender;
+import com.liferay.portal.test.log.Log4JLoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.text.DateFormat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -65,6 +77,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.log4j.Level;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -96,7 +109,18 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	public void setUp() throws Exception {
 		irrelevantGroup = GroupTestUtil.addGroup();
 		testGroup = GroupTestUtil.addGroup();
-		testLocale = LocaleUtil.getDefault();
+
+		testCompany = CompanyLocalServiceUtil.getCompany(
+			testGroup.getCompanyId());
+
+		_documentFolderResource.setContextCompany(testCompany);
+
+		DocumentFolderResource.Builder builder =
+			DocumentFolderResource.builder();
+
+		documentFolderResource = builder.locale(
+			LocaleUtil.getDefault()
+		).build();
 	}
 
 	@After
@@ -184,23 +208,70 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		assertHttpResponseStatusCode(
 			204,
-			DocumentFolderResource.deleteDocumentFolderHttpResponse(
+			documentFolderResource.deleteDocumentFolderHttpResponse(
 				documentFolder.getId()));
 
 		assertHttpResponseStatusCode(
 			404,
-			DocumentFolderResource.getDocumentFolderHttpResponse(
+			documentFolderResource.getDocumentFolderHttpResponse(
 				documentFolder.getId()));
 
 		assertHttpResponseStatusCode(
-			404, DocumentFolderResource.getDocumentFolderHttpResponse(0L));
+			404, documentFolderResource.getDocumentFolderHttpResponse(0L));
 	}
 
 	protected DocumentFolder testDeleteDocumentFolder_addDocumentFolder()
 		throws Exception {
 
-		return DocumentFolderResource.postSiteDocumentFolder(
+		return documentFolderResource.postSiteDocumentFolder(
 			testGroup.getGroupId(), randomDocumentFolder());
+	}
+
+	@Test
+	public void testGraphQLDeleteDocumentFolder() throws Exception {
+		DocumentFolder documentFolder =
+			testGraphQLDocumentFolder_addDocumentFolder();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"mutation",
+			new GraphQLField(
+				"deleteDocumentFolder",
+				new HashMap<String, Object>() {
+					{
+						put("documentFolderId", documentFolder.getId());
+					}
+				}));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(dataJSONObject.getBoolean("deleteDocumentFolder"));
+
+		try (CaptureAppender captureAppender =
+				Log4JLoggerTestUtil.configureLog4JLogger(
+					"graphql.execution.SimpleDataFetcherExceptionHandler",
+					Level.WARN)) {
+
+			graphQLField = new GraphQLField(
+				"query",
+				new GraphQLField(
+					"documentFolder",
+					new HashMap<String, Object>() {
+						{
+							put("documentFolderId", documentFolder.getId());
+						}
+					},
+					new GraphQLField("id")));
+
+			jsonObject = JSONFactoryUtil.createJSONObject(
+				invoke(graphQLField.toString()));
+
+			JSONArray errorsJSONArray = jsonObject.getJSONArray("errors");
+
+			Assert.assertTrue(errorsJSONArray.length() > 0);
+		}
 	}
 
 	@Test
@@ -209,7 +280,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			testGetDocumentFolder_addDocumentFolder();
 
 		DocumentFolder getDocumentFolder =
-			DocumentFolderResource.getDocumentFolder(
+			documentFolderResource.getDocumentFolder(
 				postDocumentFolder.getId());
 
 		assertEquals(postDocumentFolder, getDocumentFolder);
@@ -219,8 +290,37 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	protected DocumentFolder testGetDocumentFolder_addDocumentFolder()
 		throws Exception {
 
-		return DocumentFolderResource.postSiteDocumentFolder(
+		return documentFolderResource.postSiteDocumentFolder(
 			testGroup.getGroupId(), randomDocumentFolder());
+	}
+
+	@Test
+	public void testGraphQLGetDocumentFolder() throws Exception {
+		DocumentFolder documentFolder =
+			testGraphQLDocumentFolder_addDocumentFolder();
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"documentFolder",
+				new HashMap<String, Object>() {
+					{
+						put("documentFolderId", documentFolder.getId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				documentFolder,
+				dataJSONObject.getJSONObject("documentFolder")));
 	}
 
 	@Test
@@ -231,7 +331,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		DocumentFolder randomPatchDocumentFolder = randomPatchDocumentFolder();
 
 		DocumentFolder patchDocumentFolder =
-			DocumentFolderResource.patchDocumentFolder(
+			documentFolderResource.patchDocumentFolder(
 				postDocumentFolder.getId(), randomPatchDocumentFolder);
 
 		DocumentFolder expectedPatchDocumentFolder =
@@ -241,7 +341,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			expectedPatchDocumentFolder, randomPatchDocumentFolder);
 
 		DocumentFolder getDocumentFolder =
-			DocumentFolderResource.getDocumentFolder(
+			documentFolderResource.getDocumentFolder(
 				patchDocumentFolder.getId());
 
 		assertEquals(expectedPatchDocumentFolder, getDocumentFolder);
@@ -251,7 +351,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	protected DocumentFolder testPatchDocumentFolder_addDocumentFolder()
 		throws Exception {
 
-		return DocumentFolderResource.postSiteDocumentFolder(
+		return documentFolderResource.postSiteDocumentFolder(
 			testGroup.getGroupId(), randomDocumentFolder());
 	}
 
@@ -263,14 +363,14 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		DocumentFolder randomDocumentFolder = randomDocumentFolder();
 
 		DocumentFolder putDocumentFolder =
-			DocumentFolderResource.putDocumentFolder(
+			documentFolderResource.putDocumentFolder(
 				postDocumentFolder.getId(), randomDocumentFolder);
 
 		assertEquals(randomDocumentFolder, putDocumentFolder);
 		assertValid(putDocumentFolder);
 
 		DocumentFolder getDocumentFolder =
-			DocumentFolderResource.getDocumentFolder(putDocumentFolder.getId());
+			documentFolderResource.getDocumentFolder(putDocumentFolder.getId());
 
 		assertEquals(randomDocumentFolder, getDocumentFolder);
 		assertValid(getDocumentFolder);
@@ -279,12 +379,19 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	protected DocumentFolder testPutDocumentFolder_addDocumentFolder()
 		throws Exception {
 
-		return DocumentFolderResource.postSiteDocumentFolder(
+		return documentFolderResource.postSiteDocumentFolder(
 			testGroup.getGroupId(), randomDocumentFolder());
 	}
 
 	@Test
 	public void testGetDocumentFolderDocumentFoldersPage() throws Exception {
+		Page<DocumentFolder> page =
+			documentFolderResource.getDocumentFolderDocumentFoldersPage(
+				testGetDocumentFolderDocumentFoldersPage_getParentDocumentFolderId(),
+				RandomTestUtil.randomString(), null, Pagination.of(1, 2), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long parentDocumentFolderId =
 			testGetDocumentFolderDocumentFoldersPage_getParentDocumentFolderId();
 		Long irrelevantParentDocumentFolderId =
@@ -296,10 +403,9 @@ public abstract class BaseDocumentFolderResourceTestCase {
 					irrelevantParentDocumentFolderId,
 					randomIrrelevantDocumentFolder());
 
-			Page<DocumentFolder> page =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
-					irrelevantParentDocumentFolderId, null, null,
-					Pagination.of(1, 2), null);
+			page = documentFolderResource.getDocumentFolderDocumentFoldersPage(
+				irrelevantParentDocumentFolderId, null, null,
+				Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -317,9 +423,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			testGetDocumentFolderDocumentFoldersPage_addDocumentFolder(
 				parentDocumentFolderId, randomDocumentFolder());
 
-		Page<DocumentFolder> page =
-			DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
-				parentDocumentFolderId, null, null, Pagination.of(1, 2), null);
+		page = documentFolderResource.getDocumentFolderDocumentFoldersPage(
+			parentDocumentFolderId, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -327,6 +432,10 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			Arrays.asList(documentFolder1, documentFolder2),
 			(List<DocumentFolder>)page.getItems());
 		assertValid(page);
+
+		documentFolderResource.deleteDocumentFolder(documentFolder1.getId());
+
+		documentFolderResource.deleteDocumentFolder(documentFolder2.getId());
 	}
 
 	@Test
@@ -351,7 +460,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> page =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
+				documentFolderResource.getDocumentFolderDocumentFoldersPage(
 					parentDocumentFolderId, null,
 					getFilterString(entityField, "between", documentFolder1),
 					Pagination.of(1, 2), null);
@@ -387,7 +496,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> page =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
+				documentFolderResource.getDocumentFolderDocumentFoldersPage(
 					parentDocumentFolderId, null,
 					getFilterString(entityField, "eq", documentFolder1),
 					Pagination.of(1, 2), null);
@@ -418,7 +527,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				parentDocumentFolderId, randomDocumentFolder());
 
 		Page<DocumentFolder> page1 =
-			DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
+			documentFolderResource.getDocumentFolderDocumentFoldersPage(
 				parentDocumentFolderId, null, null, Pagination.of(1, 2), null);
 
 		List<DocumentFolder> documentFolders1 =
@@ -428,7 +537,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			documentFolders1.toString(), 2, documentFolders1.size());
 
 		Page<DocumentFolder> page2 =
-			DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
+			documentFolderResource.getDocumentFolderDocumentFoldersPage(
 				parentDocumentFolderId, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -439,74 +548,82 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		Assert.assertEquals(
 			documentFolders2.toString(), 1, documentFolders2.size());
 
+		Page<DocumentFolder> page3 =
+			documentFolderResource.getDocumentFolderDocumentFoldersPage(
+				parentDocumentFolderId, null, null, Pagination.of(1, 3), null);
+
 		assertEqualsIgnoringOrder(
 			Arrays.asList(documentFolder1, documentFolder2, documentFolder3),
-			new ArrayList<DocumentFolder>() {
-				{
-					addAll(documentFolders1);
-					addAll(documentFolders2);
-				}
-			});
+			(List<DocumentFolder>)page3.getItems());
 	}
 
 	@Test
 	public void testGetDocumentFolderDocumentFoldersPageWithSortDateTime()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.DATE_TIME);
+		testGetDocumentFolderDocumentFoldersPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, documentFolder1, documentFolder2) -> {
+				BeanUtils.setProperty(
+					documentFolder1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
 
-		if (entityFields.isEmpty()) {
-			return;
-		}
+	@Test
+	public void testGetDocumentFolderDocumentFoldersPageWithSortInteger()
+		throws Exception {
 
-		Long parentDocumentFolderId =
-			testGetDocumentFolderDocumentFoldersPage_getParentDocumentFolderId();
-
-		DocumentFolder documentFolder1 = randomDocumentFolder();
-		DocumentFolder documentFolder2 = randomDocumentFolder();
-
-		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				documentFolder1, entityField.getName(),
-				DateUtils.addMinutes(new Date(), -2));
-		}
-
-		documentFolder1 =
-			testGetDocumentFolderDocumentFoldersPage_addDocumentFolder(
-				parentDocumentFolderId, documentFolder1);
-
-		documentFolder2 =
-			testGetDocumentFolderDocumentFoldersPage_addDocumentFolder(
-				parentDocumentFolderId, documentFolder2);
-
-		for (EntityField entityField : entityFields) {
-			Page<DocumentFolder> ascPage =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
-					parentDocumentFolderId, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":asc");
-
-			assertEquals(
-				Arrays.asList(documentFolder1, documentFolder2),
-				(List<DocumentFolder>)ascPage.getItems());
-
-			Page<DocumentFolder> descPage =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
-					parentDocumentFolderId, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":desc");
-
-			assertEquals(
-				Arrays.asList(documentFolder2, documentFolder1),
-				(List<DocumentFolder>)descPage.getItems());
-		}
+		testGetDocumentFolderDocumentFoldersPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, documentFolder1, documentFolder2) -> {
+				BeanUtils.setProperty(
+					documentFolder1, entityField.getName(), 0);
+				BeanUtils.setProperty(
+					documentFolder2, entityField.getName(), 1);
+			});
 	}
 
 	@Test
 	public void testGetDocumentFolderDocumentFoldersPageWithSortString()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.STRING);
+		testGetDocumentFolderDocumentFoldersPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, documentFolder1, documentFolder2) -> {
+				Class<?> clazz = documentFolder1.getClass();
+
+				Method method = clazz.getMethod(
+					"get" +
+						StringUtil.upperCaseFirstLetter(entityField.getName()));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						documentFolder1, entityField.getName(),
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						documentFolder2, entityField.getName(),
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else {
+					BeanUtils.setProperty(
+						documentFolder1, entityField.getName(), "Aaa");
+					BeanUtils.setProperty(
+						documentFolder2, entityField.getName(), "Bbb");
+				}
+			});
+	}
+
+	protected void testGetDocumentFolderDocumentFoldersPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer
+				<EntityField, DocumentFolder, DocumentFolder, Exception>
+					unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
 
 		if (entityFields.isEmpty()) {
 			return;
@@ -519,10 +636,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		DocumentFolder documentFolder2 = randomDocumentFolder();
 
 		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				documentFolder1, entityField.getName(), "Aaa");
-			BeanUtils.setProperty(
-				documentFolder2, entityField.getName(), "Bbb");
+			unsafeTriConsumer.accept(
+				entityField, documentFolder1, documentFolder2);
 		}
 
 		documentFolder1 =
@@ -535,7 +650,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> ascPage =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
+				documentFolderResource.getDocumentFolderDocumentFoldersPage(
 					parentDocumentFolderId, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":asc");
 
@@ -544,7 +659,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				(List<DocumentFolder>)ascPage.getItems());
 
 			Page<DocumentFolder> descPage =
-				DocumentFolderResource.getDocumentFolderDocumentFoldersPage(
+				documentFolderResource.getDocumentFolderDocumentFoldersPage(
 					parentDocumentFolderId, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":desc");
 
@@ -559,7 +674,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				Long parentDocumentFolderId, DocumentFolder documentFolder)
 		throws Exception {
 
-		return DocumentFolderResource.postDocumentFolderDocumentFolder(
+		return documentFolderResource.postDocumentFolderDocumentFolder(
 			parentDocumentFolderId, documentFolder);
 	}
 
@@ -595,13 +710,20 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				DocumentFolder documentFolder)
 		throws Exception {
 
-		return DocumentFolderResource.postDocumentFolderDocumentFolder(
+		return documentFolderResource.postDocumentFolderDocumentFolder(
 			testGetDocumentFolderDocumentFoldersPage_getParentDocumentFolderId(),
 			documentFolder);
 	}
 
 	@Test
 	public void testGetSiteDocumentFoldersPage() throws Exception {
+		Page<DocumentFolder> page =
+			documentFolderResource.getSiteDocumentFoldersPage(
+				testGetSiteDocumentFoldersPage_getSiteId(), null,
+				RandomTestUtil.randomString(), null, Pagination.of(1, 2), null);
+
+		Assert.assertEquals(0, page.getTotalCount());
+
 		Long siteId = testGetSiteDocumentFoldersPage_getSiteId();
 		Long irrelevantSiteId =
 			testGetSiteDocumentFoldersPage_getIrrelevantSiteId();
@@ -611,10 +733,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				testGetSiteDocumentFoldersPage_addDocumentFolder(
 					irrelevantSiteId, randomIrrelevantDocumentFolder());
 
-			Page<DocumentFolder> page =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
-					irrelevantSiteId, null, null, null, Pagination.of(1, 2),
-					null);
+			page = documentFolderResource.getSiteDocumentFoldersPage(
+				irrelevantSiteId, null, null, null, Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -632,9 +752,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			testGetSiteDocumentFoldersPage_addDocumentFolder(
 				siteId, randomDocumentFolder());
 
-		Page<DocumentFolder> page =
-			DocumentFolderResource.getSiteDocumentFoldersPage(
-				siteId, null, null, null, Pagination.of(1, 2), null);
+		page = documentFolderResource.getSiteDocumentFoldersPage(
+			siteId, null, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -642,6 +761,10 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			Arrays.asList(documentFolder1, documentFolder2),
 			(List<DocumentFolder>)page.getItems());
 		assertValid(page);
+
+		documentFolderResource.deleteDocumentFolder(documentFolder1.getId());
+
+		documentFolderResource.deleteDocumentFolder(documentFolder2.getId());
 	}
 
 	@Test
@@ -664,7 +787,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> page =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
+				documentFolderResource.getSiteDocumentFoldersPage(
 					siteId, null, null,
 					getFilterString(entityField, "between", documentFolder1),
 					Pagination.of(1, 2), null);
@@ -699,7 +822,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> page =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
+				documentFolderResource.getSiteDocumentFoldersPage(
 					siteId, null, null,
 					getFilterString(entityField, "eq", documentFolder1),
 					Pagination.of(1, 2), null);
@@ -729,7 +852,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				siteId, randomDocumentFolder());
 
 		Page<DocumentFolder> page1 =
-			DocumentFolderResource.getSiteDocumentFoldersPage(
+			documentFolderResource.getSiteDocumentFoldersPage(
 				siteId, null, null, null, Pagination.of(1, 2), null);
 
 		List<DocumentFolder> documentFolders1 =
@@ -739,7 +862,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			documentFolders1.toString(), 2, documentFolders1.size());
 
 		Page<DocumentFolder> page2 =
-			DocumentFolderResource.getSiteDocumentFoldersPage(
+			documentFolderResource.getSiteDocumentFoldersPage(
 				siteId, null, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
@@ -750,71 +873,82 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		Assert.assertEquals(
 			documentFolders2.toString(), 1, documentFolders2.size());
 
+		Page<DocumentFolder> page3 =
+			documentFolderResource.getSiteDocumentFoldersPage(
+				siteId, null, null, null, Pagination.of(1, 3), null);
+
 		assertEqualsIgnoringOrder(
 			Arrays.asList(documentFolder1, documentFolder2, documentFolder3),
-			new ArrayList<DocumentFolder>() {
-				{
-					addAll(documentFolders1);
-					addAll(documentFolders2);
-				}
-			});
+			(List<DocumentFolder>)page3.getItems());
 	}
 
 	@Test
 	public void testGetSiteDocumentFoldersPageWithSortDateTime()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.DATE_TIME);
+		testGetSiteDocumentFoldersPageWithSort(
+			EntityField.Type.DATE_TIME,
+			(entityField, documentFolder1, documentFolder2) -> {
+				BeanUtils.setProperty(
+					documentFolder1, entityField.getName(),
+					DateUtils.addMinutes(new Date(), -2));
+			});
+	}
 
-		if (entityFields.isEmpty()) {
-			return;
-		}
+	@Test
+	public void testGetSiteDocumentFoldersPageWithSortInteger()
+		throws Exception {
 
-		Long siteId = testGetSiteDocumentFoldersPage_getSiteId();
-
-		DocumentFolder documentFolder1 = randomDocumentFolder();
-		DocumentFolder documentFolder2 = randomDocumentFolder();
-
-		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				documentFolder1, entityField.getName(),
-				DateUtils.addMinutes(new Date(), -2));
-		}
-
-		documentFolder1 = testGetSiteDocumentFoldersPage_addDocumentFolder(
-			siteId, documentFolder1);
-
-		documentFolder2 = testGetSiteDocumentFoldersPage_addDocumentFolder(
-			siteId, documentFolder2);
-
-		for (EntityField entityField : entityFields) {
-			Page<DocumentFolder> ascPage =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
-					siteId, null, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":asc");
-
-			assertEquals(
-				Arrays.asList(documentFolder1, documentFolder2),
-				(List<DocumentFolder>)ascPage.getItems());
-
-			Page<DocumentFolder> descPage =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
-					siteId, null, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":desc");
-
-			assertEquals(
-				Arrays.asList(documentFolder2, documentFolder1),
-				(List<DocumentFolder>)descPage.getItems());
-		}
+		testGetSiteDocumentFoldersPageWithSort(
+			EntityField.Type.INTEGER,
+			(entityField, documentFolder1, documentFolder2) -> {
+				BeanUtils.setProperty(
+					documentFolder1, entityField.getName(), 0);
+				BeanUtils.setProperty(
+					documentFolder2, entityField.getName(), 1);
+			});
 	}
 
 	@Test
 	public void testGetSiteDocumentFoldersPageWithSortString()
 		throws Exception {
 
-		List<EntityField> entityFields = getEntityFields(
-			EntityField.Type.STRING);
+		testGetSiteDocumentFoldersPageWithSort(
+			EntityField.Type.STRING,
+			(entityField, documentFolder1, documentFolder2) -> {
+				Class<?> clazz = documentFolder1.getClass();
+
+				Method method = clazz.getMethod(
+					"get" +
+						StringUtil.upperCaseFirstLetter(entityField.getName()));
+
+				Class<?> returnType = method.getReturnType();
+
+				if (returnType.isAssignableFrom(Map.class)) {
+					BeanUtils.setProperty(
+						documentFolder1, entityField.getName(),
+						Collections.singletonMap("Aaa", "Aaa"));
+					BeanUtils.setProperty(
+						documentFolder2, entityField.getName(),
+						Collections.singletonMap("Bbb", "Bbb"));
+				}
+				else {
+					BeanUtils.setProperty(
+						documentFolder1, entityField.getName(), "Aaa");
+					BeanUtils.setProperty(
+						documentFolder2, entityField.getName(), "Bbb");
+				}
+			});
+	}
+
+	protected void testGetSiteDocumentFoldersPageWithSort(
+			EntityField.Type type,
+			UnsafeTriConsumer
+				<EntityField, DocumentFolder, DocumentFolder, Exception>
+					unsafeTriConsumer)
+		throws Exception {
+
+		List<EntityField> entityFields = getEntityFields(type);
 
 		if (entityFields.isEmpty()) {
 			return;
@@ -826,10 +960,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		DocumentFolder documentFolder2 = randomDocumentFolder();
 
 		for (EntityField entityField : entityFields) {
-			BeanUtils.setProperty(
-				documentFolder1, entityField.getName(), "Aaa");
-			BeanUtils.setProperty(
-				documentFolder2, entityField.getName(), "Bbb");
+			unsafeTriConsumer.accept(
+				entityField, documentFolder1, documentFolder2);
 		}
 
 		documentFolder1 = testGetSiteDocumentFoldersPage_addDocumentFolder(
@@ -840,7 +972,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> ascPage =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
+				documentFolderResource.getSiteDocumentFoldersPage(
 					siteId, null, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":asc");
 
@@ -849,7 +981,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				(List<DocumentFolder>)ascPage.getItems());
 
 			Page<DocumentFolder> descPage =
-				DocumentFolderResource.getSiteDocumentFoldersPage(
+				documentFolderResource.getSiteDocumentFoldersPage(
 					siteId, null, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":desc");
 
@@ -863,7 +995,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			Long siteId, DocumentFolder documentFolder)
 		throws Exception {
 
-		return DocumentFolderResource.postSiteDocumentFolder(
+		return documentFolderResource.postSiteDocumentFolder(
 			siteId, documentFolder);
 	}
 
@@ -875,6 +1007,62 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		throws Exception {
 
 		return irrelevantGroup.getGroupId();
+	}
+
+	@Test
+	public void testGraphQLGetSiteDocumentFoldersPage() throws Exception {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		List<GraphQLField> itemsGraphQLFields = getGraphQLFields();
+
+		graphQLFields.add(
+			new GraphQLField(
+				"items", itemsGraphQLFields.toArray(new GraphQLField[0])));
+
+		graphQLFields.add(new GraphQLField("page"));
+		graphQLFields.add(new GraphQLField("totalCount"));
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"documentFolders",
+				new HashMap<String, Object>() {
+					{
+						put("page", 1);
+						put("pageSize", 2);
+						put("siteId", testGroup.getGroupId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		JSONObject documentFoldersJSONObject = dataJSONObject.getJSONObject(
+			"documentFolders");
+
+		Assert.assertEquals(0, documentFoldersJSONObject.get("totalCount"));
+
+		DocumentFolder documentFolder1 =
+			testGraphQLDocumentFolder_addDocumentFolder();
+		DocumentFolder documentFolder2 =
+			testGraphQLDocumentFolder_addDocumentFolder();
+
+		jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		dataJSONObject = jsonObject.getJSONObject("data");
+
+		documentFoldersJSONObject = dataJSONObject.getJSONObject(
+			"documentFolders");
+
+		Assert.assertEquals(2, documentFoldersJSONObject.get("totalCount"));
+
+		assertEqualsJSONArray(
+			Arrays.asList(documentFolder1, documentFolder2),
+			documentFoldersJSONObject.getJSONArray("items"));
 	}
 
 	@Test
@@ -892,8 +1080,184 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			DocumentFolder documentFolder)
 		throws Exception {
 
-		return DocumentFolderResource.postSiteDocumentFolder(
+		return documentFolderResource.postSiteDocumentFolder(
 			testGetSiteDocumentFoldersPage_getSiteId(), documentFolder);
+	}
+
+	@Test
+	public void testGraphQLPostSiteDocumentFolder() throws Exception {
+		DocumentFolder randomDocumentFolder = randomDocumentFolder();
+
+		DocumentFolder documentFolder =
+			testGraphQLDocumentFolder_addDocumentFolder(randomDocumentFolder);
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				randomDocumentFolder,
+				JSONFactoryUtil.createJSONObject(
+					JSONFactoryUtil.serialize(documentFolder))));
+	}
+
+	protected DocumentFolder testGraphQLDocumentFolder_addDocumentFolder()
+		throws Exception {
+
+		return testGraphQLDocumentFolder_addDocumentFolder(
+			randomDocumentFolder());
+	}
+
+	protected DocumentFolder testGraphQLDocumentFolder_addDocumentFolder(
+			DocumentFolder documentFolder)
+		throws Exception {
+
+		StringBuilder sb = new StringBuilder("{");
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("description", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getDescription();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals("id", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getId();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals("name", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getName();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals(
+					"numberOfDocumentFolders", additionalAssertFieldName)) {
+
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getNumberOfDocumentFolders();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals(
+					"numberOfDocuments", additionalAssertFieldName)) {
+
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getNumberOfDocuments();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
+			if (Objects.equals("siteId", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getSiteId();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+		}
+
+		sb.append("}");
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		graphQLFields.add(new GraphQLField("id"));
+
+		GraphQLField graphQLField = new GraphQLField(
+			"mutation",
+			new GraphQLField(
+				"createSiteDocumentFolder",
+				new HashMap<String, Object>() {
+					{
+						put("siteId", testGroup.getGroupId());
+						put("documentFolder", sb.toString());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONDeserializer<DocumentFolder> jsonDeserializer =
+			JSONFactoryUtil.createJSONDeserializer();
+
+		String object = invoke(graphQLField.toString());
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(object);
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		return jsonDeserializer.deserialize(
+			String.valueOf(
+				dataJSONObject.getJSONObject("createSiteDocumentFolder")),
+			DocumentFolder.class);
 	}
 
 	protected void assertHttpResponseStatusCode(
@@ -946,6 +1310,25 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			Assert.assertTrue(
 				documentFolders2 + " does not contain " + documentFolder1,
 				contains);
+		}
+	}
+
+	protected void assertEqualsJSONArray(
+		List<DocumentFolder> documentFolders, JSONArray jsonArray) {
+
+		for (DocumentFolder documentFolder : documentFolders) {
+			boolean contains = false;
+
+			for (Object object : jsonArray) {
+				if (equalsJSONObject(documentFolder, (JSONObject)object)) {
+					contains = true;
+
+					break;
+				}
+			}
+
+			Assert.assertTrue(
+				jsonArray + " does not contain " + documentFolder, contains);
 		}
 	}
 
@@ -1044,7 +1427,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	protected void assertValid(Page<DocumentFolder> page) {
 		boolean valid = false;
 
-		Collection<DocumentFolder> documentFolders = page.getItems();
+		java.util.Collection<DocumentFolder> documentFolders = page.getItems();
 
 		int size = documentFolders.size();
 
@@ -1059,6 +1442,22 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	}
 
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected List<GraphQLField> getGraphQLFields() {
+		List<GraphQLField> graphQLFields = new ArrayList<>();
+
+		for (String additionalAssertFieldName :
+				getAdditionalAssertFieldNames()) {
+
+			graphQLFields.add(new GraphQLField(additionalAssertFieldName));
+		}
+
+		return graphQLFields;
+	}
+
+	protected String[] getIgnoredEntityFieldNames() {
 		return new String[0];
 	}
 
@@ -1198,7 +1597,74 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		return true;
 	}
 
-	protected Collection<EntityField> getEntityFields() throws Exception {
+	protected boolean equalsJSONObject(
+		DocumentFolder documentFolder, JSONObject jsonObject) {
+
+		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("description", fieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder.getDescription(),
+						jsonObject.getString("description"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("id", fieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder.getId(), jsonObject.getLong("id"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("name", fieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder.getName(),
+						jsonObject.getString("name"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("numberOfDocumentFolders", fieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder.getNumberOfDocumentFolders(),
+						jsonObject.getInt("numberOfDocumentFolders"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("numberOfDocuments", fieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder.getNumberOfDocuments(),
+						jsonObject.getInt("numberOfDocuments"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid field name " + fieldName);
+		}
+
+		return true;
+	}
+
+	protected java.util.Collection<EntityField> getEntityFields()
+		throws Exception {
+
 		if (!(_documentFolderResource instanceof EntityModelResource)) {
 			throw new UnsupportedOperationException(
 				"Resource is not an instance of EntityModelResource");
@@ -1219,12 +1685,15 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	protected List<EntityField> getEntityFields(EntityField.Type type)
 		throws Exception {
 
-		Collection<EntityField> entityFields = getEntityFields();
+		java.util.Collection<EntityField> entityFields = getEntityFields();
 
 		Stream<EntityField> stream = entityFields.stream();
 
 		return stream.filter(
-			entityField -> Objects.equals(entityField.getType(), type)
+			entityField ->
+				Objects.equals(entityField.getType(), type) &&
+				!ArrayUtil.contains(
+					getIgnoredEntityFieldNames(), entityField.getName())
 		).collect(
 			Collectors.toList()
 		);
@@ -1365,6 +1834,23 @@ public abstract class BaseDocumentFolderResourceTestCase {
 			"Invalid entity field " + entityFieldName);
 	}
 
+	protected String invoke(String query) throws Exception {
+		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+		httpInvoker.body(
+			JSONUtil.put(
+				"query", query
+			).toString(),
+			"application/json");
+		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		httpInvoker.path("http://localhost:8080/o/graphql");
+		httpInvoker.userNameAndPassword("test@liferay.com:test");
+
+		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
+
+		return httpResponse.getContent();
+	}
+
 	protected DocumentFolder randomDocumentFolder() throws Exception {
 		return new DocumentFolder() {
 			{
@@ -1373,6 +1859,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				description = RandomTestUtil.randomString();
 				id = RandomTestUtil.randomLong();
 				name = RandomTestUtil.randomString();
+				numberOfDocumentFolders = RandomTestUtil.randomInt();
+				numberOfDocuments = RandomTestUtil.randomInt();
 				siteId = testGroup.getGroupId();
 			}
 		};
@@ -1390,10 +1878,68 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		return randomDocumentFolder();
 	}
 
+	protected DocumentFolderResource documentFolderResource;
 	protected Group irrelevantGroup;
+	protected Company testCompany;
 	protected Group testGroup;
-	protected Locale testLocale;
-	protected String testUserNameAndPassword = "test@liferay.com:test";
+
+	protected class GraphQLField {
+
+		public GraphQLField(String key, GraphQLField... graphQLFields) {
+			this(key, new HashMap<>(), graphQLFields);
+		}
+
+		public GraphQLField(
+			String key, Map<String, Object> parameterMap,
+			GraphQLField... graphQLFields) {
+
+			_key = key;
+			_parameterMap = parameterMap;
+			_graphQLFields = graphQLFields;
+		}
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder(_key);
+
+			if (!_parameterMap.isEmpty()) {
+				sb.append("(");
+
+				for (Map.Entry<String, Object> entry :
+						_parameterMap.entrySet()) {
+
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append(")");
+			}
+
+			if (_graphQLFields.length > 0) {
+				sb.append("{");
+
+				for (GraphQLField graphQLField : _graphQLFields) {
+					sb.append(graphQLField.toString());
+					sb.append(",");
+				}
+
+				sb.setLength(sb.length() - 1);
+
+				sb.append("}");
+			}
+
+			return sb.toString();
+		}
+
+		private final GraphQLField[] _graphQLFields;
+		private final String _key;
+		private final Map<String, Object> _parameterMap;
+
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseDocumentFolderResourceTestCase.class);

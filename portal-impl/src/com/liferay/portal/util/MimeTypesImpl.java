@@ -33,6 +33,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -123,9 +124,7 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 		try (TikaInputStream tikaInputStream = TikaInputStream.get(
 				new CloseShieldInputStream(inputStream))) {
 
-			String extension = FileUtil.getExtension(fileName);
-
-			contentType = getCustomContentType(extension);
+			contentType = getCustomContentType(FileUtil.getExtension(fileName));
 
 			if (ContentTypes.APPLICATION_OCTET_STREAM.equals(contentType)) {
 				Metadata metadata = new Metadata();
@@ -172,9 +171,7 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 		String contentType = null;
 
 		try {
-			String extension = FileUtil.getExtension(fileName);
-
-			contentType = getCustomContentType(extension);
+			contentType = getCustomContentType(FileUtil.getExtension(fileName));
 
 			if (ContentTypes.APPLICATION_OCTET_STREAM.equals(contentType)) {
 				Metadata metadata = new Metadata();
@@ -345,6 +342,16 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 					extensions.add(extension);
 				}
 			}
+		}
+
+		if (extensions.isEmpty()) {
+			return;
+		}
+
+		if (extensions.size() == 1) {
+			Iterator<String> iterator = extensions.iterator();
+
+			extensions = Collections.singleton(iterator.next());
 		}
 
 		for (String mimeType : mimeTypes) {

@@ -18,13 +18,17 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
 import com.liferay.project.templates.internal.ProjectGenerator;
-import com.liferay.project.templates.internal.util.FileUtil;
 import com.liferay.project.templates.internal.util.ProjectTemplatesUtil;
 import com.liferay.project.templates.internal.util.StringUtil;
 import com.liferay.project.templates.internal.util.Validator;
 
 import java.io.File;
 import java.io.InputStream;
+
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -39,6 +43,7 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.jar.Attributes;
@@ -174,7 +179,39 @@ public class ProjectTemplates {
 	public static void main(String[] args) throws Exception {
 		ProjectTemplatesArgs projectTemplatesArgs = new ProjectTemplatesArgs();
 
-		JCommander jCommander = new JCommander(projectTemplatesArgs);
+		JCommander.Builder builder = JCommander.newBuilder();
+
+		builder.addObject(projectTemplatesArgs);
+
+		JCommander jCommander = builder.build();
+
+		jCommander.setAcceptUnknownOptions(true);
+
+		jCommander.parseWithoutValidation(args);
+
+		File templateFile = ProjectTemplatesUtil.getTemplateFile(
+			projectTemplatesArgs);
+
+		ProjectTemplatesArgsExt projectTemplatesArgsExt =
+			_getProjectTemplateArgsExt(
+				projectTemplatesArgs.getTemplate(), templateFile);
+
+		builder = JCommander.newBuilder();
+
+		projectTemplatesArgs = new ProjectTemplatesArgs();
+
+		builder = builder.addObject(projectTemplatesArgs);
+
+		if (projectTemplatesArgsExt != null) {
+			builder = builder.addObject(projectTemplatesArgsExt);
+		}
+
+		jCommander = builder.build();
+
+		if (projectTemplatesArgsExt != null) {
+			projectTemplatesArgs.setProjectTemplatesArgsExt(
+				projectTemplatesArgsExt);
+		}
 
 		try {
 			Path jarPath = FileUtil.getJarPath();
@@ -186,7 +223,7 @@ public class ProjectTemplates {
 				jCommander.setProgramName("java -jar " + jarPath.getFileName());
 			}
 
-			jCommander.parse(args);
+			jCommander.parseWithoutValidation(args);
 
 			String template = projectTemplatesArgs.getTemplate();
 
@@ -266,6 +303,37 @@ public class ProjectTemplates {
 		if (!projectTemplatesArgs.isMaven()) {
 			FileUtil.deleteFiles(templateDirPath, "pom.xml");
 		}
+	}
+
+	private static ProjectTemplatesArgsExt _getProjectTemplateArgsExt(
+			String templateName, File archetypeFile)
+		throws MalformedURLException {
+
+		if (archetypeFile == null) {
+			return null;
+		}
+
+		URI uri = archetypeFile.toURI();
+
+		URLClassLoader urlClassLoader = new URLClassLoader(
+			new URL[] {uri.toURL()});
+
+		ServiceLoader<ProjectTemplatesArgsExt> serviceLoader =
+			ServiceLoader.load(ProjectTemplatesArgsExt.class, urlClassLoader);
+
+		Iterator<ProjectTemplatesArgsExt> iterator = serviceLoader.iterator();
+
+		while (iterator.hasNext()) {
+			ProjectTemplatesArgsExt projectTemplatesArgsExt = iterator.next();
+
+			if (templateName.equals(
+					projectTemplatesArgsExt.getTemplateName())) {
+
+				return projectTemplatesArgsExt;
+			}
+		}
+
+		return null;
 	}
 
 	private static void _printHelp(
@@ -395,9 +463,7 @@ public class ProjectTemplates {
 			projectTemplatesArgs.setPackageName(_getPackageName(name));
 		}
 
-		String contributorType = projectTemplatesArgs.getContributorType();
-
-		if (Validator.isNull(contributorType)) {
+		if (Validator.isNull(projectTemplatesArgs.getContributorType())) {
 			projectTemplatesArgs.setContributorType(name);
 		}
 	}

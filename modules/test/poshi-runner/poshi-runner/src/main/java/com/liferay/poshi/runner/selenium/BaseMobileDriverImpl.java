@@ -269,9 +269,8 @@ public abstract class BaseMobileDriverImpl
 
 			return false;
 		}
-		else {
-			return true;
-		}
+
+		return true;
 	}
 
 	@Override
@@ -295,11 +294,10 @@ public abstract class BaseMobileDriverImpl
 
 			return isInViewport(locator);
 		}
-		else {
-			scrollWebElementIntoView(webElement);
 
-			return webElement.isDisplayed();
-		}
+		scrollWebElementIntoView(webElement);
+
+		return webElement.isDisplayed();
 	}
 
 	@Override
@@ -551,9 +549,7 @@ public abstract class BaseMobileDriverImpl
 	}
 
 	protected void swipeWebElementIntoView(String locator) {
-		WebElement webElement = getWebElement(locator);
-
-		scrollWebElementIntoView(webElement);
+		scrollWebElementIntoView(getWebElement(locator));
 	}
 
 	protected void tap(String locator) {

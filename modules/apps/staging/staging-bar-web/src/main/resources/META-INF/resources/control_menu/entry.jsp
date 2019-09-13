@@ -14,9 +14,7 @@
  */
 --%>
 
-<%@ taglib uri="http://liferay.com/tld/portlet" prefix="liferay-portlet" %>
-
-<%@ page import="com.liferay.staging.bar.web.internal.portlet.constants.StagingBarPortletKeys" %>
+<%@ include file="/control_menu/init.jsp" %>
 
 <li class="control-menu-nav-item staging-links">
 	<liferay-portlet:runtime

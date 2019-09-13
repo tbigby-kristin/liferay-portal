@@ -1,5 +1,19 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import Soy from 'metal-soy';
-import Treeview from 'frontend-js-web/liferay/compat/treeview/Treeview.es';
+import {Treeview} from 'frontend-js-web';
 import {Config} from 'metal-state';
 
 import templates from './CardsTreeview.soy';
@@ -16,7 +30,6 @@ import templates from './CardsTreeview.soy';
  * @review
  */
 class CardsTreeview extends Treeview {
-
 	/**
 	 * @inheritDoc
 	 * @review
@@ -34,17 +47,15 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	addSelectedNodes_(nodes) {
-		nodes.forEach(
-			(node) => {
-				if (node.children) {
-					this.addSelectedNodes_(node.children);
-				}
-
-				if (node.selected) {
-					this.selectNode_(node);
-				}
+		nodes.forEach(node => {
+			if (node.children) {
+				this.addSelectedNodes_(node.children);
 			}
-		);
+
+			if (node.selected) {
+				this.selectNode_(node);
+			}
+		});
 	}
 
 	/**
@@ -83,22 +94,21 @@ class CardsTreeview extends Treeview {
 		let expanded;
 		let expandedParent;
 
-		nodes.forEach(
-			(node) => {
-				expanded = node.expanded;
+		nodes.forEach(node => {
+			expanded = node.expanded;
 
-				if (node.selected) {
-					expandedParent = true;
-				}
+			if (node.selected) {
+				expandedParent = true;
+			}
 
-				if (node.children) {
-					expanded = this.expandSelectedNodesParentNodes_(node.children) || expanded;
-				}
+			if (node.children) {
+				expanded =
+					this.expandSelectedNodesParentNodes_(node.children) ||
+					expanded;
+			}
 
-				node.expanded = expanded;
-			},
-			this
-		);
+			node.expanded = expanded;
+		}, this);
 
 		return expandedParent;
 	}
@@ -111,7 +121,9 @@ class CardsTreeview extends Treeview {
 	 */
 	focus_(nodeObj) {
 		if (nodeObj) {
-			this.element.querySelector('[data-treeitemid="' + nodeObj.id + '"] .card').focus();
+			this.element
+				.querySelector('[data-treeitemid="' + nodeObj.id + '"] .card')
+				.focus();
 		}
 	}
 
@@ -122,9 +134,9 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	focusNextNode_(node) {
-		let path = node.getAttribute('data-treeview-path').split('-');
+		const path = node.getAttribute('data-treeview-path').split('-');
 
-		let nodeObj = this.getNodeObj(path);
+		const nodeObj = this.getNodeObj(path);
 
 		let nextNodeObj;
 
@@ -132,8 +144,7 @@ class CardsTreeview extends Treeview {
 			path.push(0);
 
 			nextNodeObj = this.getNodeObj(path);
-		}
-		else {
+		} else {
 			while (!nextNodeObj && path.length > 0) {
 				path[path.length - 1]++;
 
@@ -153,7 +164,7 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	focusPrevNode_(node) {
-		let path = node.getAttribute('data-treeview-path').split('-');
+		const path = node.getAttribute('data-treeview-path').split('-');
 
 		let prevNodeObj;
 
@@ -161,14 +172,14 @@ class CardsTreeview extends Treeview {
 			path.pop();
 
 			prevNodeObj = this.getNodeObj(path);
-		}
-		else {
+		} else {
 			path[path.length - 1]--;
 
 			prevNodeObj = this.getNodeObj(path);
 
 			while (prevNodeObj.children && prevNodeObj.expanded) {
-				prevNodeObj = prevNodeObj.children[prevNodeObj.children.length - 1];
+				prevNodeObj =
+					prevNodeObj.children[prevNodeObj.children.length - 1];
 			}
 		}
 
@@ -182,9 +193,11 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	handleNodeClicked_(event) {
-		let path = event.delegateTarget.parentNode.parentNode.parentNode.getAttribute('data-treeview-path').split('-');
+		const path = event.delegateTarget.parentNode.parentNode.parentNode
+			.getAttribute('data-treeview-path')
+			.split('-');
 
-		let node = this.getNodeObj(path);
+		const node = this.getNodeObj(path);
 
 		if (node.disabled) {
 			return;
@@ -193,12 +206,10 @@ class CardsTreeview extends Treeview {
 		if (this.multiSelection) {
 			if (node.selected) {
 				this.deselectNode_(node);
-			}
-			else {
+			} else {
 				this.selectNode_(node);
 			}
-		}
-		else if (!node.selected) {
+		} else if (!node.selected) {
 			this.deselectAll_();
 			this.selectNode_(node);
 		}
@@ -219,31 +230,21 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	handleNodeKeyUp_(event) {
-		let node = event.delegateTarget.parentNode.parentNode.parentNode;
+		const node = event.delegateTarget.parentNode.parentNode.parentNode;
 
 		if (event.keyCode === 37) {
-			this.setNodeExpandedState_(
-				node,
-				{
-					expanded: false
-				}
-			);
-		}
-		else if (event.keyCode === 38) {
+			this.setNodeExpandedState_(node, {
+				expanded: false
+			});
+		} else if (event.keyCode === 38) {
 			this.focusPrevNode_(node);
-		}
-		else if (event.keyCode === 39) {
-			this.setNodeExpandedState_(
-				node,
-				{
-					expanded: true
-				}
-			);
-		}
-		else if (event.keyCode === 40) {
+		} else if (event.keyCode === 39) {
+			this.setNodeExpandedState_(node, {
+				expanded: true
+			});
+		} else if (event.keyCode === 40) {
 			this.focusNextNode_(node);
-		}
-		else if (event.keyCode === 13 || event.keyCode === 32) {
+		} else if (event.keyCode === 13 || event.keyCode === 32) {
 			this.handleNodeClicked_(event);
 		}
 	}
@@ -255,7 +256,9 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	handleNodeTogglerClicked_(event) {
-		this.toggleExpandedState_(event.delegateTarget.parentNode.parentNode.parentNode);
+		this.toggleExpandedState_(
+			event.delegateTarget.parentNode.parentNode.parentNode
+		);
 	}
 
 	/**
@@ -280,9 +283,9 @@ class CardsTreeview extends Treeview {
 	 * @review
 	 */
 	setNodeExpandedState_(node, state) {
-		let path = node.getAttribute('data-treeview-path').split('-');
+		const path = node.getAttribute('data-treeview-path').split('-');
 
-		let nodeObj = this.getNodeObj(path);
+		const nodeObj = this.getNodeObj(path);
 
 		nodeObj.expanded = state.expanded;
 
@@ -297,7 +300,6 @@ class CardsTreeview extends Treeview {
  * @static
  */
 CardsTreeview.STATE = {
-
 	/**
 	 * Enables multiple selection of tree elements
 	 * @review

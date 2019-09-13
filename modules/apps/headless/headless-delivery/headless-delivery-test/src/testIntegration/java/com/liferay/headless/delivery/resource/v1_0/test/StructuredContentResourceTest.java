@@ -18,14 +18,16 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeRequest;
 import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeResponse;
-import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerTracker;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureConstants;
+import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestHelper;
 import com.liferay.dynamic.data.mapping.test.util.DDMTemplateTestUtil;
+import com.liferay.headless.delivery.client.dto.v1_0.ContentField;
 import com.liferay.headless.delivery.client.dto.v1_0.StructuredContent;
+import com.liferay.headless.delivery.client.dto.v1_0.Value;
 import com.liferay.headless.delivery.client.resource.v1_0.StructuredContentResource;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalFolder;
@@ -36,16 +38,17 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.ServiceReference;
+import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.io.InputStream;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -56,20 +59,21 @@ import org.junit.runner.RunWith;
 public class StructuredContentResourceTest
 	extends BaseStructuredContentResourceTestCase {
 
+	@ClassRule
+	@Rule
+	public static final LiferayIntegrationTestRule liferayIntegrationTestRule =
+		new LiferayIntegrationTestRule();
+
 	@Before
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
 
-		Registry registry = RegistryUtil.getRegistry();
-
-		_serviceReference = registry.getServiceReference(
-			DDMFormDeserializerTracker.class);
-
-		_ddmFormDeserializerTracker = registry.getService(_serviceReference);
-
 		_ddmStructure = _addDDMStructure(testGroup);
 		_irrelevantDDMStructure = _addDDMStructure(irrelevantGroup);
+
+		_ddmTemplate = _addDDMTemplate(_ddmStructure);
+		_addDDMTemplate(_irrelevantDDMStructure);
 
 		_journalFolder = JournalTestUtil.addFolder(
 			testGroup.getGroupId(), RandomTestUtil.randomString());
@@ -80,51 +84,85 @@ public class StructuredContentResourceTest
 	@After
 	@Override
 	public void tearDown() throws Exception {
-		Registry registry = RegistryUtil.getRegistry();
-
-		_ddmFormDeserializerTracker = null;
-
-		registry.ungetService(_serviceReference);
-
 		super.tearDown();
 	}
 
-	@Ignore
 	@Test
 	public void testGetSiteStructuredContentWithDifferentLocale()
 		throws Exception {
 
 		StructuredContent structuredContent =
-			StructuredContentResource.postSiteStructuredContent(
+			structuredContentResource.postSiteStructuredContent(
 				testGroup.getGroupId(), randomStructuredContent());
 
 		String title = structuredContent.getTitle();
 
-		testLocale = LocaleUtil.FRANCE;
+		StructuredContentResource.Builder builder =
+			StructuredContentResource.builder();
+
+		StructuredContentResource frenchStructuredContentResource =
+			builder.locale(
+				LocaleUtil.FRANCE
+			).build();
 
 		String frenchTitle = RandomTestUtil.randomString();
 
 		structuredContent.setTitle(frenchTitle);
 
-		StructuredContentResource.putStructuredContent(
+		frenchStructuredContentResource.putStructuredContent(
 			structuredContent.getId(), structuredContent);
 
-		structuredContent = StructuredContentResource.getStructuredContent(
-			structuredContent.getId());
+		structuredContent =
+			frenchStructuredContentResource.getStructuredContent(
+				structuredContent.getId());
 
 		Assert.assertEquals(frenchTitle, structuredContent.getTitle());
 
-		testLocale = LocaleUtil.getDefault();
-
-		structuredContent = StructuredContentResource.getStructuredContent(
+		structuredContent = structuredContentResource.getStructuredContent(
 			structuredContent.getId());
 
 		Assert.assertEquals(title, structuredContent.getTitle());
 	}
 
 	@Override
+	@Test
+	public void testGetStructuredContentRenderedContentTemplate()
+		throws Exception {
+
+		StructuredContent structuredContent =
+			testGetSiteStructuredContentByKey_addStructuredContent();
+
+		ContentField[] contentFields = structuredContent.getContentFields();
+
+		Value value = contentFields[0].getValue();
+
+		Assert.assertEquals(
+			"<div>" + value.getData() + "</div>",
+			structuredContentResource.
+				getStructuredContentRenderedContentTemplate(
+					structuredContent.getId(), _ddmTemplate.getTemplateId()));
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetSiteStructuredContentByKey() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetSiteStructuredContentByUuid() {
+	}
+
+	@Override
 	protected String[] getAdditionalAssertFieldNames() {
 		return new String[] {"contentStructureId", "description", "title"};
+	}
+
+	@Override
+	protected String[] getIgnoredEntityFieldNames() {
+		return new String[] {"contentStructureId", "creatorId"};
 	}
 
 	@Override
@@ -143,6 +181,19 @@ public class StructuredContentResourceTest
 	protected StructuredContent randomStructuredContent() throws Exception {
 		StructuredContent structuredContent = super.randomStructuredContent();
 
+		structuredContent.setContentFields(
+			new ContentField[] {
+				new ContentField() {
+					{
+						name = "MyText";
+						value = new Value() {
+							{
+								data = RandomTestUtil.randomString(10);
+							}
+						};
+					}
+				}
+			});
 		structuredContent.setContentStructureId(_ddmStructure.getStructureId());
 
 		return structuredContent;
@@ -154,7 +205,7 @@ public class StructuredContentResourceTest
 				Long contentStructureId, StructuredContent structuredContent)
 		throws Exception {
 
-		return StructuredContentResource.postSiteStructuredContent(
+		return structuredContentResource.postSiteStructuredContent(
 			testGroup.getGroupId(), structuredContent);
 	}
 
@@ -185,31 +236,30 @@ public class StructuredContentResourceTest
 			new DDMStructureTestHelper(
 				PortalUtil.getClassNameId(JournalArticle.class), group);
 
-		DDMStructure ddmStructure = ddmStructureTestHelper.addStructure(
+		return ddmStructureTestHelper.addStructure(
 			PortalUtil.getClassNameId(JournalArticle.class),
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 			_deserialize(_read("test-structured-content-structure.json")),
 			StorageType.JSON.getValue(), DDMStructureConstants.TYPE_DEFAULT);
+	}
 
-		DDMTemplateTestUtil.addTemplate(
+	private DDMTemplate _addDDMTemplate(DDMStructure ddmStructure)
+		throws Exception {
+
+		return DDMTemplateTestUtil.addTemplate(
 			ddmStructure.getGroupId(), ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
 			TemplateConstants.LANG_TYPE_VM,
 			_read("test-structured-content-template.xsl"), LocaleUtil.US);
-
-		return ddmStructure;
 	}
 
 	private DDMForm _deserialize(String content) {
-		DDMFormDeserializer ddmFormDeserializer =
-			_ddmFormDeserializerTracker.getDDMFormDeserializer("json");
-
 		DDMFormDeserializerDeserializeRequest.Builder builder =
 			DDMFormDeserializerDeserializeRequest.Builder.newBuilder(content);
 
 		DDMFormDeserializerDeserializeResponse
 			ddmFormDeserializerDeserializeResponse =
-				ddmFormDeserializer.deserialize(builder.build());
+				_jsonDDMFormDeserializer.deserialize(builder.build());
 
 		return ddmFormDeserializerDeserializeResponse.getDDMForm();
 	}
@@ -223,11 +273,13 @@ public class StructuredContentResourceTest
 		return StringUtil.read(inputStream);
 	}
 
-	private DDMFormDeserializerTracker _ddmFormDeserializerTracker;
+	@Inject(filter = "ddm.form.deserializer.type=json")
+	private static DDMFormDeserializer _jsonDDMFormDeserializer;
+
 	private DDMStructure _ddmStructure;
+	private DDMTemplate _ddmTemplate;
 	private DDMStructure _irrelevantDDMStructure;
 	private JournalFolder _irrelevantJournalFolder;
 	private JournalFolder _journalFolder;
-	private ServiceReference<DDMFormDeserializerTracker> _serviceReference;
 
 }

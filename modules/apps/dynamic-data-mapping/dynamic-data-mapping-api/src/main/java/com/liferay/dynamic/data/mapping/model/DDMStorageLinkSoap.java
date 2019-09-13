@@ -19,20 +19,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.osgi.annotation.versioning.ProviderType;
-
 /**
  * This class is used by SOAP remote services.
  *
  * @author Brian Wing Shun Chan
  * @generated
  */
-@ProviderType
 public class DDMStorageLinkSoap implements Serializable {
 
 	public static DDMStorageLinkSoap toSoapModel(DDMStorageLink model) {
 		DDMStorageLinkSoap soapModel = new DDMStorageLinkSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setStorageLinkId(model.getStorageLinkId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -98,6 +96,14 @@ public class DDMStorageLinkSoap implements Serializable {
 		setStorageLinkId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public String getUuid() {
 		return _uuid;
 	}
@@ -154,6 +160,7 @@ public class DDMStorageLinkSoap implements Serializable {
 		_structureVersionId = structureVersionId;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _storageLinkId;
 	private long _companyId;

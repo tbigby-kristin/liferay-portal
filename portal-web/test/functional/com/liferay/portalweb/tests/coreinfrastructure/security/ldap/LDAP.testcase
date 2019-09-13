@@ -29,7 +29,7 @@ definition {
 	test ImportLDAPUserWithBlankPassword {
 		property apacheds.blank.user.password.enabled = "true";
 		property apacheds.enabled = "true";
-		property app.server.types = "jboss,resin,tcserver,tomcat,weblogic,websphere,wildfly";
+		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
 		property database.types = "db2,hypersonic,mariadb,mysql,oracle,postgresql,sqlserver,sybase";
 		property environment.acceptance = "true";
 		property portal.acceptance = "true";
@@ -98,6 +98,8 @@ definition {
 		Portlet.shutdownServer();
 
 		Portlet.startServer(deleteLiferayHome = "false");
+
+		User.firstLoginPG();
 
 		// LRQA-46018
 
@@ -196,7 +198,7 @@ definition {
 			configurationName = "Authentication",
 			configurationScope = "Virtual Instance Scope");
 
-		FormFields.viewCheckboxNotChecked(fieldName = "enabled");
+		FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
 
 		PortalSettings.configureLDAPSetting(enableSettingList = "enabled");
 
@@ -210,7 +212,7 @@ definition {
 			configurationName = "Authentication",
 			configurationScope = "Virtual Instance Scope");
 
-		FormFields.viewCheckboxNotChecked(fieldName = "enabled");
+		FormFields.viewCheckboxNotChecked(fieldName = "Enabled");
 	}
 
 }

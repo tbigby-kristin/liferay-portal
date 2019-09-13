@@ -1,7 +1,21 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
 import {Align} from 'metal-position';
 import Component from 'metal-component';
 import {Config} from 'metal-state';
-import debounce from 'metal-debounce';
+import {debounce} from 'frontend-js-web';
 import dom from 'metal-dom';
 import Soy from 'metal-soy';
 
@@ -17,7 +31,6 @@ const WINDOW_RESIZE_DEBOUNCE_DELAY = 100;
  * Creates a Fragment Editable Field Tooltip component.
  */
 class FragmentEditableFieldTooltip extends Component {
-
 	/**
 	 * @inheritDoc
 	 */
@@ -30,7 +43,9 @@ class FragmentEditableFieldTooltip extends Component {
 	 */
 	created() {
 		this._handleDocumentClick = this._handleDocumentClick.bind(this);
-		this._handleFragmentEntryLinkListWrapperScroll = this._handleFragmentEntryLinkListWrapperScroll.bind(this);
+		this._handleFragmentEntryLinkListWrapperScroll = this._handleFragmentEntryLinkListWrapperScroll.bind(
+			this
+		);
 
 		this._handleWindowResize = debounce(
 			this._handleWindowResize.bind(this),
@@ -94,12 +109,7 @@ class FragmentEditableFieldTooltip extends Component {
 	 */
 	_alignTooltip() {
 		if (this.refs.tooltip) {
-			Align.align(
-				this.refs.tooltip,
-				this.alignElement,
-				Align.Top,
-				false
-			);
+			Align.align(this.refs.tooltip, this.alignElement, Align.Top, false);
 		}
 	}
 
@@ -112,12 +122,9 @@ class FragmentEditableFieldTooltip extends Component {
 		const button = event.delegateTarget;
 		const buttonId = button.dataset.tooltipButtonId;
 
-		this.emit(
-			'buttonClick',
-			{
-				buttonId
-			}
-		);
+		this.emit('buttonClick', {
+			buttonId
+		});
 	}
 
 	/**
@@ -150,7 +157,6 @@ class FragmentEditableFieldTooltip extends Component {
 	_handleFragmentEntryLinkListWrapperScroll() {
 		this._alignTooltip();
 	}
-
 }
 
 /**
@@ -160,7 +166,6 @@ class FragmentEditableFieldTooltip extends Component {
  * @type {!Object}
  */
 FragmentEditableFieldTooltip.STATE = {
-
 	/**
 	 * Reference element the tooltip alignment is based on.
 	 *
@@ -183,13 +188,11 @@ FragmentEditableFieldTooltip.STATE = {
 	 * }>}
 	 */
 	buttons: Config.arrayOf(
-		Config.shapeOf(
-			{
-				icon: Config.string().required(),
-				id: Config.string().required(),
-				label: Config.string().required()
-			}
-		)
+		Config.shapeOf({
+			icon: Config.string().required(),
+			id: Config.string().required(),
+			label: Config.string().required()
+		})
 	)
 };
 

@@ -314,6 +314,10 @@ definition {
 			ContentConfiguration.contentDeletion();
 		}
 
+		if ("${pageDeletion}" == "true") {
+			ContentConfiguration.pageDeletion();
+		}
+
 		if (isSet(checkContentNameList)) {
 			ContentConfiguration.checkContentNameList(checkContentNameList = "${checkContentNameList}");
 		}
@@ -704,9 +708,16 @@ definition {
 
 		Pause(locator1 = "30000");
 
-		AssertTextEquals(
-			locator1 = "Staging#PROCESS_RESULT",
-			value1 = "SUCCESSFUL");
+		if (isSet(failureExpected)) {
+			AssertTextEquals(
+				locator1 = "Staging#PROCESS_RESULT",
+				value1 = "FAILED");
+		}
+		else {
+			AssertTextEquals(
+				locator1 = "Staging#PROCESS_RESULT",
+				value1 = "Successful");
+		}
 	}
 
 	macro publishToLive {
@@ -891,6 +902,16 @@ definition {
 	}
 
 	macro remoteStagingSetUp {
+		if (isSet(remotePort)) {
+			User.loginPG(
+				nodePort = "${remotePort}",
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+		}
+		else {
+			Navigator.openURL();
+		}
+
 		var siteID = "${siteID}";
 
 		ProductMenu.gotoPortlet(
@@ -911,7 +932,14 @@ definition {
 			locator1 = "SitesEditSite#SITE_ID",
 			value1 = "siteID");
 
-		ProductMenu.gotoSite(site = "${siteName}");
+		if (isSet(remotePort)) {
+			User.loginPG(
+				nodePort = "8080",
+				password = "test",
+				userEmailAddress = "test@liferay.com");
+		}
+
+		SitePages.openPagesAdmin(siteURLKey = "${siteName}");
 
 		ProductMenu.gotoPortlet(
 			category = "Publishing",
@@ -1192,6 +1220,68 @@ definition {
 		SelectFrame(locator1 = "IFrame#DIALOG");
 
 		AssertElementPresent(locator1 = "Staging#PROCESS_SUMMARY_PAGES_TITLE");
+
+		if (isSet(content)) {
+			for (var content : list "${contentList}") {
+				var key_content = "${content}";
+
+				AssertTextPresent(
+					locator1 = "Staging#PUBLICATION_CONTENT",
+					value1 = "${content}");
+			}
+		}
+
+		if (isSet(deletions)) {
+			AssertElementPresent(locator1 = "Staging#PUBLICATION_DELETIONS");
+		}
+
+		if (isSet(lookAndFeelList)) {
+			for (var lookAndFeel : list "${lookAndFeelList}") {
+				var key_lookAndFeel = "${lookAndFeel}";
+
+				AssertTextPresent(
+					locator1 = "Staging#PUBLICATION_LOOK_AND_FEEL",
+					value1 = "${lookAndFeel}");
+			}
+		}
+
+		if ("${dateRestrictionOption}" == "All") {
+			var key_dateRestrictionOption = "Without Restriction";
+
+			AssertTextPresent(
+				locator1 = "Staging#PUBLICATION_DATE",
+				value1 = "${key_dateRestrictionOption}");
+		}
+
+		if ("${dateRestrictionOption}" == "From Last Publish Date") {
+			AssertTextPresent(
+				locator1 = "Staging#PUBLICATION_DATE",
+				value1 = "${dateRestrictionOption}");
+		}
+
+		if ("${dateRestrictionOption}" == "Date Range") {
+			var key_dateRestrictionOption = "Modified or Created Between";
+
+			AssertTextPresent(
+				locator1 = "Staging#PUBLICATION_DATE",
+				value1 = "${key_dateRestrictionOption}");
+		}
+
+		if ("${dateRestrictionOption}" == "Last") {
+			AssertTextPresent(
+				locator1 = "Staging#PUBLICATION_DATE",
+				value1 = "${dateRestrictionOption}");
+		}
+
+		if (isSet(pagesOption)) {
+			AssertTextEquals(
+				locator1 = "Staging#PUBLICATION_PAGE_OPTION",
+				value1 = "${pagesOption}");
+		}
+
+		if (isSet(permissions)) {
+			AssertElementPresent(locator1 = "Staging#PUBLICATION_PERMISSION");
+		}
 
 		IFrame.closeFrame();
 	}

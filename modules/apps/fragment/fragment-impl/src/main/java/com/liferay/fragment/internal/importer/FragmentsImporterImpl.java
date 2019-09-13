@@ -29,6 +29,7 @@ import com.liferay.fragment.service.FragmentCollectionLocalService;
 import com.liferay.fragment.service.FragmentCollectionService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.service.FragmentEntryService;
+import com.liferay.fragment.validator.FragmentEntryValidator;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -142,15 +143,13 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 				if (fragmentCollection == null) {
 					Locale locale = _portal.getSiteDefaultLocale(groupId);
 
-					ServiceContext serviceContext =
-						ServiceContextThreadLocal.getServiceContext();
-
 					fragmentCollection =
 						_fragmentCollectionService.addFragmentCollection(
 							groupId, _DEFAULT_FRAGMENT_COLLECTION_KEY,
 							LanguageUtil.get(
 								locale, _DEFAULT_FRAGMENT_COLLECTION_KEY),
-							StringPool.BLANK, serviceContext);
+							StringPool.BLANK,
+							ServiceContextThreadLocal.getServiceContext());
 				}
 
 				fragmentCollectionId =
@@ -175,13 +174,10 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 				groupId, fragmentCollectionKey);
 
 		if (fragmentCollection == null) {
-			ServiceContext serviceContext =
-				ServiceContextThreadLocal.getServiceContext();
-
 			fragmentCollection =
 				_fragmentCollectionService.addFragmentCollection(
 					groupId, fragmentCollectionKey, name, description,
-					serviceContext);
+					ServiceContextThreadLocal.getServiceContext());
 		}
 		else if (overwrite) {
 			fragmentCollection =
@@ -199,8 +195,8 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 
 	private FragmentEntry _addFragmentEntry(
 			long fragmentCollectionId, String fragmentEntryKey, String name,
-			String css, String html, String js, String typeLabel,
-			boolean overwrite)
+			String css, String html, String js, String configuration,
+			String typeLabel, boolean overwrite)
 		throws Exception {
 
 		FragmentCollection fragmentCollection =
@@ -218,7 +214,10 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 		int status = WorkflowConstants.STATUS_APPROVED;
 
 		try {
-			_fragmentEntryProcessorRegistry.validateFragmentEntryHTML(html);
+			_fragmentEntryProcessorRegistry.validateFragmentEntryHTML(
+				html, configuration);
+
+			_fragmentEntryValidator.validateConfiguration(configuration);
 		}
 		catch (PortalException pe) {
 			if (_log.isDebugEnabled()) {
@@ -234,17 +233,15 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 			StringUtil.toLowerCase(StringUtil.trim(typeLabel)));
 
 		if (fragmentEntry == null) {
-			ServiceContext serviceContext =
-				ServiceContextThreadLocal.getServiceContext();
-
 			return _fragmentEntryService.addFragmentEntry(
 				fragmentCollection.getGroupId(), fragmentCollectionId,
-				fragmentEntryKey, name, css, html, js, type, status,
-				serviceContext);
+				fragmentEntryKey, name, css, html, js, configuration, 0, type,
+				status, ServiceContextThreadLocal.getServiceContext());
 		}
 
 		return _fragmentEntryService.updateFragmentEntry(
-			fragmentEntry.getFragmentEntryId(), name, css, html, js, status);
+			fragmentEntry.getFragmentEntryId(), name, css, html, js,
+			configuration, fragmentEntry.getPreviewFileEntryId(), status);
 	}
 
 	private String _getContent(ZipFile zipFile, String fileName)
@@ -334,6 +331,10 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 					fragmentCollectionKey = _getKey(
 						zipFile, groupId, fragmentCollectionFileName);
 
+					break;
+				}
+
+				if (Validator.isNull(fragmentCollectionPath)) {
 					break;
 				}
 
@@ -496,6 +497,7 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 			String css = StringPool.BLANK;
 			String html = StringPool.BLANK;
 			String js = StringPool.BLANK;
+			String configuration = StringPool.BLANK;
 			String typeLabel = StringPool.BLANK;
 
 			String fragmentJSON = _getContent(zipFile, entry.getValue());
@@ -512,12 +514,15 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 					jsonObject.getString("htmlPath"));
 				js = _getFragmentEntryContent(
 					zipFile, entry.getValue(), jsonObject.getString("jsPath"));
+				configuration = _getFragmentEntryContent(
+					zipFile, entry.getValue(),
+					jsonObject.getString("configurationPath"));
 				typeLabel = jsonObject.getString("type");
 			}
 
 			FragmentEntry fragmentEntry = _addFragmentEntry(
 				fragmentCollectionId, entry.getKey(), name, css, html, js,
-				typeLabel, overwrite);
+				configuration, typeLabel, overwrite);
 
 			if (Validator.isNotNull(fragmentJSON)) {
 				if (fragmentEntry.getPreviewFileEntryId() > 0) {
@@ -589,6 +594,7 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 					return Arrays.stream(
 						new String[] {
 							path + "fragment.json",
+							path + jsonObject.getString("configuration"),
 							path + jsonObject.getString("cssPath"),
 							path + jsonObject.getString("htmlPath"),
 							path + jsonObject.getString("jsPath"),
@@ -694,6 +700,9 @@ public class FragmentsImporterImpl implements FragmentsImporter {
 
 	@Reference
 	private FragmentEntryService _fragmentEntryService;
+
+	@Reference
+	private FragmentEntryValidator _fragmentEntryValidator;
 
 	private List<String> _invalidFragmentEntriesNames;
 

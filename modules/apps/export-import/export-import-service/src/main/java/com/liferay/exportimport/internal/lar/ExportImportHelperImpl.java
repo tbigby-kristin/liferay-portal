@@ -52,10 +52,11 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.model.LayoutRevision;
 import com.liferay.portal.kernel.model.Portlet;
-import com.liferay.portal.kernel.model.StagedGroupedModel;
 import com.liferay.portal.kernel.model.StagedModel;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -67,6 +68,7 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.xml.SecureXMLFactoryProviderUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.SystemEventLocalService;
@@ -88,6 +90,7 @@ import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.ElementHandler;
@@ -113,11 +116,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 
-import org.osgi.annotation.versioning.ProviderType;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Modified;
@@ -136,7 +139,6 @@ import org.xml.sax.XMLReader;
 	configurationPid = "com.liferay.exportimport.configuration.ExportImportServiceConfiguration",
 	immediate = true, service = ExportImportHelper.class
 )
-@ProviderType
 public class ExportImportHelperImpl implements ExportImportHelper {
 
 	@Override
@@ -546,6 +548,34 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 	}
 
 	@Override
+	public long getLayoutModelDeletionCount(
+			final PortletDataContext portletDataContext, boolean privateLayout)
+		throws PortalException {
+
+		ActionableDynamicQuery actionableDynamicQuery =
+			_systemEventLocalService.getActionableDynamicQuery();
+
+		StagedModelType stagedModelType = new StagedModelType(Layout.class);
+
+		actionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				doAddCriteria(
+					portletDataContext, stagedModelType, dynamicQuery);
+
+				Property extraDataProperty = PropertyFactoryUtil.forName(
+					"extraData");
+
+				dynamicQuery.add(
+					extraDataProperty.like(
+						"%\"privateLayout\":\"" + privateLayout + "\"%"));
+			});
+
+		actionableDynamicQuery.setCompanyId(portletDataContext.getCompanyId());
+
+		return actionableDynamicQuery.performCount();
+	}
+
+	@Override
 	public Layout getLayoutOrCreateDummyRootLayout(long plid)
 		throws PortalException {
 
@@ -802,6 +832,10 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 
 		Portlet portlet = _portletLocalService.getPortletById(rootPortletId);
 
+		if (portlet == null) {
+			return true;
+		}
+
 		PortletDataHandler portletDataHandler =
 			portlet.getPortletDataHandlerInstance();
 
@@ -831,26 +865,55 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 	}
 
 	@Override
-	public boolean isReferenceWithinExportScope(
-		PortletDataContext portletDataContext, StagedModel stagedModel) {
+	public boolean isExportPortletData(PortletDataContext portletDataContext) {
+		if (((portletDataContext.getScopeGroupId() ==
+				portletDataContext.getGroupId()) ||
+			 (portletDataContext.getScopeGroupId() ==
+				 portletDataContext.getCompanyGroupId())) &&
+			(ExportImportThreadLocal.isLayoutExportInProcess() ||
+			 ExportImportThreadLocal.isLayoutStagingInProcess())) {
 
-		if (!(stagedModel instanceof StagedGroupedModel)) {
+			return false;
+		}
+
+		return true;
+	}
+
+	public boolean isLayoutRevisionInReview(Layout layout) {
+		List<LayoutRevision> layoutRevisions =
+			_layoutRevisionLocalService.getLayoutRevisions(layout.getPlid());
+
+		Stream<LayoutRevision> layoutRevisionsStream = layoutRevisions.stream();
+
+		if (layoutRevisionsStream.anyMatch(
+				layoutRevision ->
+					layoutRevision.getStatus() ==
+						WorkflowConstants.STATUS_PENDING)) {
+
 			return true;
 		}
 
-		StagedGroupedModel stagedGroupedModel = (StagedGroupedModel)stagedModel;
+		return false;
+	}
 
-		if (portletDataContext.getGroupId() ==
-				stagedGroupedModel.getGroupId()) {
+	@Override
+	public boolean isReferenceWithinExportScope(
+		PortletDataContext portletDataContext, StagedModel stagedModel) {
 
+		if (!(stagedModel instanceof GroupedModel)) {
+			return true;
+		}
+
+		GroupedModel groupedModel = (GroupedModel)stagedModel;
+
+		if (portletDataContext.getGroupId() == groupedModel.getGroupId()) {
 			return true;
 		}
 
 		Group group = null;
 
 		try {
-			group = _groupLocalService.getGroup(
-				stagedGroupedModel.getGroupId());
+			group = _groupLocalService.getGroup(groupedModel.getGroupId());
 		}
 		catch (Exception e) {
 			return false;
@@ -1455,13 +1518,11 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 
 		Property createDateProperty = PropertyFactoryUtil.forName("createDate");
 
-		Date startDate = portletDataContext.getStartDate();
+		dynamicQuery.add(
+			createDateProperty.ge(portletDataContext.getStartDate()));
 
-		dynamicQuery.add(createDateProperty.ge(startDate));
-
-		Date endDate = portletDataContext.getEndDate();
-
-		dynamicQuery.add(createDateProperty.le(endDate));
+		dynamicQuery.add(
+			createDateProperty.le(portletDataContext.getEndDate()));
 	}
 
 	protected void doAddCriteria(
@@ -1649,11 +1710,14 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		if (importPortletConfigurationAll) {
 			boolean importCurPortletConfiguration = true;
 
-			if ((manifestSummary != null) &&
-				(manifestSummary.getConfigurationPortletOptions(
-					rootPortletId) == null)) {
+			if (manifestSummary != null) {
+				String[] configurationPortletOptions =
+					manifestSummary.getConfigurationPortletOptions(
+						rootPortletId);
 
-				importCurPortletConfiguration = false;
+				if (configurationPortletOptions == null) {
+					importCurPortletConfiguration = false;
+				}
 			}
 
 			importPortletSetupControlsMap = _createAllPortletSetupControlsMap(
@@ -1762,6 +1826,13 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		LayoutLocalService layoutLocalService) {
 
 		_layoutLocalService = layoutLocalService;
+	}
+
+	@Reference(unbind = "-")
+	protected void setLayoutRevisionLocalService(
+		LayoutRevisionLocalService layoutRevisionLocalService) {
+
+		_layoutRevisionLocalService = layoutRevisionLocalService;
 	}
 
 	@Reference(unbind = "-")
@@ -1930,6 +2001,7 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 	private ExportImportServiceConfiguration _exportImportServiceConfiguration;
 	private GroupLocalService _groupLocalService;
 	private LayoutLocalService _layoutLocalService;
+	private LayoutRevisionLocalService _layoutRevisionLocalService;
 	private LayoutService _layoutService;
 
 	@Reference

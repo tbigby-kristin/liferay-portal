@@ -46,6 +46,8 @@ public interface Build {
 
 	public String getBrowser();
 
+	public String getBuildDescription();
+
 	public JSONObject getBuildJSONObject();
 
 	public int getBuildNumber();
@@ -159,6 +161,8 @@ public interface Build {
 		String status, boolean modifiedBuildsOnly, boolean ignoreCurrentBuild);
 
 	public boolean hasBuildURL(String buildURL);
+
+	public boolean hasGenericCIFailure();
 
 	public boolean hasModifiedDownstreamBuilds();
 

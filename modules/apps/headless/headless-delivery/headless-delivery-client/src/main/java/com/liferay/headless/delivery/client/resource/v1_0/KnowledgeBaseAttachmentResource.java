@@ -21,6 +21,8 @@ import com.liferay.headless.delivery.client.serdes.v1_0.KnowledgeBaseAttachmentS
 
 import java.io.File;
 
+import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -32,189 +34,376 @@ import javax.annotation.Generated;
  * @generated
  */
 @Generated("")
-public class KnowledgeBaseAttachmentResource {
+public interface KnowledgeBaseAttachmentResource {
 
-	public static Page<KnowledgeBaseAttachment>
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	public Page<KnowledgeBaseAttachment>
 			getKnowledgeBaseArticleKnowledgeBaseAttachmentsPage(
 				Long knowledgeBaseArticleId)
-		throws Exception {
+		throws Exception;
 
-		HttpInvoker.HttpResponse httpResponse =
-			getKnowledgeBaseArticleKnowledgeBaseAttachmentsPageHttpResponse(
-				knowledgeBaseArticleId);
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine(
-			"HTTP response status code: " + httpResponse.getStatusCode());
-
-		return Page.of(content, KnowledgeBaseAttachmentSerDes::toDTO);
-	}
-
-	public static HttpInvoker.HttpResponse
+	public HttpInvoker.HttpResponse
 			getKnowledgeBaseArticleKnowledgeBaseAttachmentsPageHttpResponse(
 				Long knowledgeBaseArticleId)
-		throws Exception {
+		throws Exception;
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
-
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments",
-			knowledgeBaseArticleId);
-
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
-
-		return httpInvoker.invoke();
-	}
-
-	public static KnowledgeBaseAttachment
+	public KnowledgeBaseAttachment
 			postKnowledgeBaseArticleKnowledgeBaseAttachment(
 				Long knowledgeBaseArticleId,
 				KnowledgeBaseAttachment knowledgeBaseAttachment,
 				Map<String, File> multipartFiles)
-		throws Exception {
+		throws Exception;
 
-		HttpInvoker.HttpResponse httpResponse =
-			postKnowledgeBaseArticleKnowledgeBaseAttachmentHttpResponse(
-				knowledgeBaseArticleId, knowledgeBaseAttachment,
-				multipartFiles);
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine(
-			"HTTP response status code: " + httpResponse.getStatusCode());
-
-		try {
-			return KnowledgeBaseAttachmentSerDes.toDTO(content);
-		}
-		catch (Exception e) {
-			_logger.log(
-				Level.WARNING, "Unable to process HTTP response: " + content,
-				e);
-
-			throw e;
-		}
-	}
-
-	public static HttpInvoker.HttpResponse
+	public HttpInvoker.HttpResponse
 			postKnowledgeBaseArticleKnowledgeBaseAttachmentHttpResponse(
 				Long knowledgeBaseArticleId,
 				KnowledgeBaseAttachment knowledgeBaseAttachment,
 				Map<String, File> multipartFiles)
-		throws Exception {
+		throws Exception;
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+	public void deleteKnowledgeBaseAttachment(Long knowledgeBaseAttachmentId)
+		throws Exception;
 
-		httpInvoker.multipart();
+	public HttpInvoker.HttpResponse deleteKnowledgeBaseAttachmentHttpResponse(
+			Long knowledgeBaseAttachmentId)
+		throws Exception;
 
-		httpInvoker.part(
-			"knowledgeBaseAttachment",
-			KnowledgeBaseAttachmentSerDes.toJSON(knowledgeBaseAttachment));
+	public KnowledgeBaseAttachment getKnowledgeBaseAttachment(
+			Long knowledgeBaseAttachmentId)
+		throws Exception;
 
-		for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
-			httpInvoker.part(entry.getKey(), entry.getValue());
+	public HttpInvoker.HttpResponse getKnowledgeBaseAttachmentHttpResponse(
+			Long knowledgeBaseAttachmentId)
+		throws Exception;
+
+	public static class Builder {
+
+		public Builder authentication(String login, String password) {
+			_login = login;
+			_password = password;
+
+			return this;
 		}
 
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+		public KnowledgeBaseAttachmentResource build() {
+			return new KnowledgeBaseAttachmentResourceImpl(this);
+		}
 
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments",
-			knowledgeBaseArticleId);
+		public Builder endpoint(String host, int port, String scheme) {
+			_host = host;
+			_port = port;
+			_scheme = scheme;
 
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
+			return this;
+		}
 
-		return httpInvoker.invoke();
+		public Builder header(String key, String value) {
+			_headers.put(key, value);
+
+			return this;
+		}
+
+		public Builder locale(Locale locale) {
+			_locale = locale;
+
+			return this;
+		}
+
+		public Builder parameter(String key, String value) {
+			_parameters.put(key, value);
+
+			return this;
+		}
+
+		private Builder() {
+		}
+
+		private Map<String, String> _headers = new LinkedHashMap<>();
+		private String _host = "localhost";
+		private Locale _locale;
+		private String _login = "test@liferay.com";
+		private String _password = "test";
+		private Map<String, String> _parameters = new LinkedHashMap<>();
+		private int _port = 8080;
+		private String _scheme = "http";
+
 	}
 
-	public static void deleteKnowledgeBaseAttachment(
-			Long knowledgeBaseAttachmentId)
-		throws Exception {
+	public static class KnowledgeBaseAttachmentResourceImpl
+		implements KnowledgeBaseAttachmentResource {
 
-		HttpInvoker.HttpResponse httpResponse =
-			deleteKnowledgeBaseAttachmentHttpResponse(
+		public Page<KnowledgeBaseAttachment>
+				getKnowledgeBaseArticleKnowledgeBaseAttachmentsPage(
+					Long knowledgeBaseArticleId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				getKnowledgeBaseArticleKnowledgeBaseAttachmentsPageHttpResponse(
+					knowledgeBaseArticleId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			return Page.of(content, KnowledgeBaseAttachmentSerDes::toDTO);
+		}
+
+		public HttpInvoker.HttpResponse
+				getKnowledgeBaseArticleKnowledgeBaseAttachmentsPageHttpResponse(
+					Long knowledgeBaseArticleId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments",
+				knowledgeBaseArticleId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public KnowledgeBaseAttachment
+				postKnowledgeBaseArticleKnowledgeBaseAttachment(
+					Long knowledgeBaseArticleId,
+					KnowledgeBaseAttachment knowledgeBaseAttachment,
+					Map<String, File> multipartFiles)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				postKnowledgeBaseArticleKnowledgeBaseAttachmentHttpResponse(
+					knowledgeBaseArticleId, knowledgeBaseAttachment,
+					multipartFiles);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+
+			try {
+				return KnowledgeBaseAttachmentSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw e;
+			}
+		}
+
+		public HttpInvoker.HttpResponse
+				postKnowledgeBaseArticleKnowledgeBaseAttachmentHttpResponse(
+					Long knowledgeBaseArticleId,
+					KnowledgeBaseAttachment knowledgeBaseAttachment,
+					Map<String, File> multipartFiles)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.multipart();
+
+			httpInvoker.part(
+				"knowledgeBaseAttachment",
+				KnowledgeBaseAttachmentSerDes.toJSON(knowledgeBaseAttachment));
+
+			for (Map.Entry<String, File> entry : multipartFiles.entrySet()) {
+				httpInvoker.part(entry.getKey(), entry.getValue());
+			}
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.POST);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/knowledge-base-attachments",
+				knowledgeBaseArticleId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void deleteKnowledgeBaseAttachment(
+				Long knowledgeBaseAttachmentId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				deleteKnowledgeBaseAttachmentHttpResponse(
+					knowledgeBaseAttachmentId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				deleteKnowledgeBaseAttachmentHttpResponse(
+					Long knowledgeBaseAttachmentId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/knowledge-base-attachments/{knowledgeBaseAttachmentId}",
 				knowledgeBaseAttachmentId);
 
-		String content = httpResponse.getContent();
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
 
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine(
-			"HTTP response status code: " + httpResponse.getStatusCode());
-	}
-
-	public static HttpInvoker.HttpResponse
-			deleteKnowledgeBaseAttachmentHttpResponse(
-				Long knowledgeBaseAttachmentId)
-		throws Exception {
-
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
-
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.DELETE);
-
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-attachments/{knowledgeBaseAttachmentId}",
-			knowledgeBaseAttachmentId);
-
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
-
-		return httpInvoker.invoke();
-	}
-
-	public static KnowledgeBaseAttachment getKnowledgeBaseAttachment(
-			Long knowledgeBaseAttachmentId)
-		throws Exception {
-
-		HttpInvoker.HttpResponse httpResponse =
-			getKnowledgeBaseAttachmentHttpResponse(knowledgeBaseAttachmentId);
-
-		String content = httpResponse.getContent();
-
-		_logger.fine("HTTP response content: " + content);
-
-		_logger.fine("HTTP response message: " + httpResponse.getMessage());
-		_logger.fine(
-			"HTTP response status code: " + httpResponse.getStatusCode());
-
-		try {
-			return KnowledgeBaseAttachmentSerDes.toDTO(content);
+			return httpInvoker.invoke();
 		}
-		catch (Exception e) {
-			_logger.log(
-				Level.WARNING, "Unable to process HTTP response: " + content,
-				e);
 
-			throw e;
-		}
-	}
-
-	public static HttpInvoker.HttpResponse
-			getKnowledgeBaseAttachmentHttpResponse(
+		public KnowledgeBaseAttachment getKnowledgeBaseAttachment(
 				Long knowledgeBaseAttachmentId)
-		throws Exception {
+			throws Exception {
 
-		HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+			HttpInvoker.HttpResponse httpResponse =
+				getKnowledgeBaseAttachmentHttpResponse(
+					knowledgeBaseAttachmentId);
 
-		httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+			String content = httpResponse.getContent();
 
-		httpInvoker.path(
-			"http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-attachments/{knowledgeBaseAttachmentId}",
-			knowledgeBaseAttachmentId);
+			_logger.fine("HTTP response content: " + content);
 
-		httpInvoker.userNameAndPassword("test@liferay.com:test");
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
 
-		return httpInvoker.invoke();
+			try {
+				return KnowledgeBaseAttachmentSerDes.toDTO(content);
+			}
+			catch (Exception e) {
+				_logger.log(
+					Level.WARNING,
+					"Unable to process HTTP response: " + content, e);
+
+				throw e;
+			}
+		}
+
+		public HttpInvoker.HttpResponse getKnowledgeBaseAttachmentHttpResponse(
+				Long knowledgeBaseAttachmentId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/knowledge-base-attachments/{knowledgeBaseAttachmentId}",
+				knowledgeBaseAttachmentId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		private KnowledgeBaseAttachmentResourceImpl(Builder builder) {
+			_builder = builder;
+		}
+
+		private static final Logger _logger = Logger.getLogger(
+			KnowledgeBaseAttachmentResource.class.getName());
+
+		private Builder _builder;
+
 	}
-
-	private static final Logger _logger = Logger.getLogger(
-		KnowledgeBaseAttachmentResource.class.getName());
 
 }

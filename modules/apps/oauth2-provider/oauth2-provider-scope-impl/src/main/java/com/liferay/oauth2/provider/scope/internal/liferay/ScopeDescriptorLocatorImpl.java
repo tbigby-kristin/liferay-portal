@@ -16,9 +16,9 @@ package com.liferay.oauth2.provider.scope.internal.liferay;
 
 import com.liferay.oauth2.provider.scope.internal.constants.OAuth2ProviderScopeConstants;
 import com.liferay.oauth2.provider.scope.liferay.ScopeDescriptorLocator;
+import com.liferay.oauth2.provider.scope.liferay.ScopedServiceTrackerMap;
+import com.liferay.oauth2.provider.scope.liferay.ScopedServiceTrackerMapFactory;
 import com.liferay.oauth2.provider.scope.spi.scope.descriptor.ScopeDescriptor;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -33,41 +33,45 @@ import org.osgi.service.component.annotations.Reference;
 public class ScopeDescriptorLocatorImpl implements ScopeDescriptorLocator {
 
 	@Override
+	public ScopeDescriptor getScopeDescriptor(
+		long companyId, String applicationName) {
+
+		return _scopedServiceTrackerMap.getService(companyId, applicationName);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
+	@Override
 	public ScopeDescriptor getScopeDescriptor(String applicationName) {
-		ScopeDescriptor scopeDescriptor =
-			_scopeDescriptorsByApplicationName.getService(applicationName);
-
-		if (scopeDescriptor == null) {
-			return _defaultScopeDescriptor;
-		}
-
-		return scopeDescriptor;
+		return _scopedServiceTrackerMap.getService(0, applicationName);
 	}
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_scopeDescriptorsByApplicationName =
-			ServiceTrackerMapFactory.openSingleValueMap(
-				bundleContext, ScopeDescriptor.class,
-				OAuth2ProviderScopeConstants.OSGI_JAXRS_NAME);
-		_scopeDescriptorsByCompany =
-			ServiceTrackerMapFactory.openSingleValueMap(
-				bundleContext, ScopeDescriptor.class, "company.id");
+		_scopedServiceTrackerMap = _scopedServiceTrackerMapFactory.create(
+			bundleContext, ScopeDescriptor.class,
+			OAuth2ProviderScopeConstants.OSGI_JAXRS_NAME,
+			() -> _defaultScopeDescriptor);
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_scopeDescriptorsByApplicationName.close();
+		_scopedServiceTrackerMap.close();
+	}
 
-		_scopeDescriptorsByCompany.close();
+	@Reference(unbind = "-")
+	protected void setScopedServiceTrackerMapFactory(
+		ScopedServiceTrackerMapFactory scopedServiceTrackerMapFactory) {
+
+		_scopedServiceTrackerMapFactory = scopedServiceTrackerMapFactory;
 	}
 
 	@Reference(target = "(default=true)")
 	private ScopeDescriptor _defaultScopeDescriptor;
 
-	private ServiceTrackerMap<String, ScopeDescriptor>
-		_scopeDescriptorsByApplicationName;
-	private ServiceTrackerMap<String, ScopeDescriptor>
-		_scopeDescriptorsByCompany;
+	private ScopedServiceTrackerMap<ScopeDescriptor> _scopedServiceTrackerMap;
+	private ScopedServiceTrackerMapFactory _scopedServiceTrackerMapFactory;
 
 }

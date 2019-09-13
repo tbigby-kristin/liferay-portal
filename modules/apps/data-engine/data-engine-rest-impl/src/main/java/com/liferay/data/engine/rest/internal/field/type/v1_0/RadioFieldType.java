@@ -14,12 +14,12 @@
 
 package com.liferay.data.engine.rest.internal.field.type.v1_0;
 
-import com.liferay.data.engine.rest.internal.field.type.v1_0.util.CustomPropertiesUtil;
+import com.liferay.data.engine.field.type.BaseFieldType;
+import com.liferay.data.engine.field.type.FieldType;
+import com.liferay.data.engine.field.type.FieldTypeTracker;
+import com.liferay.data.engine.field.type.util.LocalizedValueUtil;
 import com.liferay.data.engine.rest.internal.field.type.v1_0.util.DataFieldOptionUtil;
-import com.liferay.data.engine.spi.field.type.BaseFieldType;
-import com.liferay.data.engine.spi.field.type.FieldType;
-import com.liferay.data.engine.spi.field.type.SPIDataDefinitionField;
-import com.liferay.data.engine.spi.field.type.util.LocalizedValueUtil;
+import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 
 import java.util.Map;
@@ -46,7 +47,7 @@ import org.osgi.service.component.annotations.Component;
 		"data.engine.field.type.display.order:Integer=4",
 		"data.engine.field.type.group=basic",
 		"data.engine.field.type.icon=radio-button",
-		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/metal/Radio/Radio.es",
+		"data.engine.field.type.js.module=dynamic-data-mapping-form-field-type/Radio/Radio.es",
 		"data.engine.field.type.label=radio-field-type-label"
 	},
 	service = FieldType.class
@@ -54,11 +55,12 @@ import org.osgi.service.component.annotations.Component;
 public class RadioFieldType extends BaseFieldType {
 
 	@Override
-	public SPIDataDefinitionField deserialize(JSONObject jsonObject)
+	public SPIDataDefinitionField deserialize(
+			FieldTypeTracker fieldTypeTracker, JSONObject jsonObject)
 		throws Exception {
 
 		SPIDataDefinitionField spiDataDefinitionField = super.deserialize(
-			jsonObject);
+			fieldTypeTracker, jsonObject);
 
 		Map<String, Object> customProperties =
 			spiDataDefinitionField.getCustomProperties();
@@ -66,12 +68,10 @@ public class RadioFieldType extends BaseFieldType {
 		customProperties.put("inline", jsonObject.getBoolean("inline"));
 		customProperties.put(
 			"options",
-			DataFieldOptionUtil.toDataFieldOptions(
-				jsonObject.getJSONObject("options")));
-		customProperties.put(
-			"predefinedValue",
-			LocalizedValueUtil.toLocalizedValues(
-				jsonObject.getJSONObject("predefinedValue")));
+			DataFieldOptionUtil.toLocalizedDataFieldOptions(
+				(JSONObject)GetterUtil.getObject(
+					jsonObject.getJSONObject("options"),
+					JSONFactoryUtil.createJSONObject())));
 
 		return spiDataDefinitionField;
 	}
@@ -83,10 +83,12 @@ public class RadioFieldType extends BaseFieldType {
 
 	@Override
 	public JSONObject toJSONObject(
+			FieldTypeTracker fieldTypeTracker,
 			SPIDataDefinitionField spiDataDefinitionField)
 		throws Exception {
 
-		JSONObject jsonObject = super.toJSONObject(spiDataDefinitionField);
+		JSONObject jsonObject = super.toJSONObject(
+			fieldTypeTracker, spiDataDefinitionField);
 
 		return jsonObject.put(
 			"inline",
@@ -95,12 +97,7 @@ public class RadioFieldType extends BaseFieldType {
 		).put(
 			"options",
 			DataFieldOptionUtil.toJSONObject(
-				CustomPropertiesUtil.getDataFieldOptions(
-					spiDataDefinitionField.getCustomProperties(), "options"))
-		).put(
-			"predefinedValue",
-			CustomPropertiesUtil.getMap(
-				spiDataDefinitionField.getCustomProperties(), "predefinedValue")
+				spiDataDefinitionField.getCustomProperties(), "options")
 		);
 	}
 
@@ -115,17 +112,16 @@ public class RadioFieldType extends BaseFieldType {
 			MapUtil.getBoolean(
 				spiDataDefinitionField.getCustomProperties(), "inline", false));
 		context.put(
-			"options",
-			DataFieldOptionUtil.toDataFieldOptions(
-				CustomPropertiesUtil.getDataFieldOptions(
-					spiDataDefinitionField.getCustomProperties(), "options"),
-				LanguageUtil.getLanguageId(httpServletRequest)));
-		context.put(
 			"predefinedValue",
-			MapUtil.getString(
-				CustomPropertiesUtil.getMap(
-					spiDataDefinitionField.getCustomProperties(),
-					"predefinedValue"),
+			_getValue(
+				GetterUtil.getString(
+					LocalizedValueUtil.getLocalizedValue(
+						httpServletRequest.getLocale(),
+						spiDataDefinitionField.getDefaultValue()))));
+		context.put(
+			"options",
+			DataFieldOptionUtil.getLocalizedDataFieldOptions(
+				spiDataDefinitionField.getCustomProperties(), "options",
 				LanguageUtil.getLanguageId(httpServletRequest)));
 		context.put(
 			"value",

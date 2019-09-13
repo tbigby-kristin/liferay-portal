@@ -10,7 +10,7 @@
 	}
 
 	.asset-title {
-		@include sm {
+		@include media-breakpoint-up(sm) {
 			font-size: 40px;
 			font-weight: 300;
 		}
@@ -23,7 +23,7 @@
 	}
 
 	.asset-user-name {
-		border-bottom: 1px solid #FFF;
+		border-bottom: 1px solid #fff;
 		font-size: 12px;
 		line-height: 32px;
 		padding-bottom: 10px;
@@ -31,9 +31,10 @@
 	}
 
 	.blog-list-card-content {
-		@include position(absolute, null null 10px null);
+		bottom: 10px;
+		position: absolute;
 
-		@include media-query($breakpoint_tablet, null) {
+		@include media-breakpoint-up(lg) {
 			padding: 10px 30px;
 		}
 	}
@@ -42,7 +43,7 @@
 .blog-list {
 	margin-top: 20px;
 
-	@include sm {
+	@include media-breakpoint-up(sm) {
 		margin-top: 40px;
 	}
 
@@ -71,18 +72,18 @@
 
 .blog-carousel {
 	h4 a {
-		color: #FFF;
+		color: #fff;
 		font-size: 20px;
 		font-weight: 300;
 
-		@include sm {
+		@include media-breakpoint-up(sm) {
 			font-size: 36px;
 		}
 	}
 
 	.asset-user-name {
-		border-bottom: 1px solid #FFF;
-		color: #FFF;
+		border-bottom: 1px solid #fff;
+		color: #fff;
 		display: inline-block;
 		font-size: 12px;
 		line-height: 32px;

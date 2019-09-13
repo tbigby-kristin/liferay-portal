@@ -14,6 +14,7 @@
 
 package com.liferay.portal.workflow.kaleo.service.impl;
 
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Junction;
@@ -44,9 +45,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.osgi.service.component.annotations.Component;
+
 /**
  * @author Brian Wing Shun Chan
  */
+@Component(
+	property = "model.class.name=com.liferay.portal.workflow.kaleo.model.KaleoLog",
+	service = AopService.class
+)
 public class KaleoLogLocalServiceImpl extends KaleoLogLocalServiceBaseImpl {
 
 	@Override
@@ -163,16 +170,16 @@ public class KaleoLogLocalServiceImpl extends KaleoLogLocalServiceBaseImpl {
 			currentKaleoNode.getKaleoDefinitionVersionId());
 		kaleoLog.setKaleoNodeName(currentKaleoNode.getName());
 
-		if (previousKaleoTaskAssignmentInstances != null) {
-			if (previousKaleoTaskAssignmentInstances.size() == 1) {
-				KaleoTaskAssignmentInstance kaleoTaskAssignmentInstance =
-					previousKaleoTaskAssignmentInstances.get(0);
+		if ((previousKaleoTaskAssignmentInstances != null) &&
+			(previousKaleoTaskAssignmentInstances.size() == 1)) {
 
-				kaleoLog.setPreviousAssigneeClassName(
-					kaleoTaskAssignmentInstance.getAssigneeClassName());
-				kaleoLog.setPreviousAssigneeClassPK(
-					kaleoTaskAssignmentInstance.getAssigneeClassPK());
-			}
+			KaleoTaskAssignmentInstance kaleoTaskAssignmentInstance =
+				previousKaleoTaskAssignmentInstances.get(0);
+
+			kaleoLog.setPreviousAssigneeClassName(
+				kaleoTaskAssignmentInstance.getAssigneeClassName());
+			kaleoLog.setPreviousAssigneeClassPK(
+				kaleoTaskAssignmentInstance.getAssigneeClassPK());
 		}
 
 		List<KaleoTaskAssignmentInstance> kaleoTaskAssignmentInstances =
@@ -250,11 +257,9 @@ public class KaleoLogLocalServiceImpl extends KaleoLogLocalServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
-		KaleoInstanceToken kaleoInstanceToken =
-			kaleoTaskInstanceToken.getKaleoInstanceToken();
-
 		KaleoLog kaleoLog = createKaleoLog(
-			kaleoInstanceToken, LogType.TASK_UPDATE, serviceContext);
+			kaleoTaskInstanceToken.getKaleoInstanceToken(), LogType.TASK_UPDATE,
+			serviceContext);
 
 		List<KaleoTaskAssignmentInstance> kaleoTaskAssignmentInstances =
 			kaleoTaskInstanceToken.getKaleoTaskAssignmentInstances();

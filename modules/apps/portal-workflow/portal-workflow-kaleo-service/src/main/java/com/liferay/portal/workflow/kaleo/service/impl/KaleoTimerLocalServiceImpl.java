@@ -14,6 +14,7 @@
 
 package com.liferay.portal.workflow.kaleo.service.impl;
 
+import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -24,15 +25,25 @@ import com.liferay.portal.workflow.kaleo.definition.DurationScale;
 import com.liferay.portal.workflow.kaleo.definition.Notification;
 import com.liferay.portal.workflow.kaleo.definition.Timer;
 import com.liferay.portal.workflow.kaleo.model.KaleoTimer;
+import com.liferay.portal.workflow.kaleo.service.KaleoActionLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoNotificationLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTaskAssignmentLocalService;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoTimerLocalServiceBaseImpl;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Marcellus Tavares
  */
+@Component(
+	property = "model.class.name=com.liferay.portal.workflow.kaleo.model.KaleoTimer",
+	service = AopService.class
+)
 public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 
 	@Override
@@ -88,7 +99,7 @@ public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 		Set<Action> actions = timer.getActions();
 
 		for (Action action : actions) {
-			kaleoActionLocalService.addKaleoAction(
+			_kaleoActionLocalService.addKaleoAction(
 				KaleoTimer.class.getName(), kaleoTimerId,
 				kaleoDefinitionVersionId, timer.getName(), action,
 				serviceContext);
@@ -99,7 +110,7 @@ public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 		Set<Assignment> reassignments = timer.getReassignments();
 
 		for (Assignment reassignment : reassignments) {
-			kaleoTaskAssignmentLocalService.addKaleoTaskAssignment(
+			_kaleoTaskAssignmentLocalService.addKaleoTaskAssignment(
 				KaleoTimer.class.getName(), kaleoTimerId,
 				kaleoDefinitionVersionId, reassignment, serviceContext);
 		}
@@ -109,7 +120,7 @@ public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 		Set<Notification> notifications = timer.getNotifications();
 
 		for (Notification notification : notifications) {
-			kaleoNotificationLocalService.addKaleoNotification(
+			_kaleoNotificationLocalService.addKaleoNotification(
 				KaleoTimer.class.getName(), kaleoTimerId,
 				kaleoDefinitionVersionId, timer.getName(), notification,
 				serviceContext);
@@ -133,5 +144,14 @@ public class KaleoTimerLocalServiceImpl extends KaleoTimerLocalServiceBaseImpl {
 		return kaleoTimerPersistence.findByKCN_KCPK_Blocking(
 			kaleoClassName, kaleoClassPK, blocking);
 	}
+
+	@Reference
+	private KaleoActionLocalService _kaleoActionLocalService;
+
+	@Reference
+	private KaleoNotificationLocalService _kaleoNotificationLocalService;
+
+	@Reference
+	private KaleoTaskAssignmentLocalService _kaleoTaskAssignmentLocalService;
 
 }

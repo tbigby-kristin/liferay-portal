@@ -1,4 +1,18 @@
-import ClayIcon from '../shared/ClayIcon.es';
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+import ClayIcon from '@clayui/icon';
 import getCN from 'classnames';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
@@ -38,12 +52,7 @@ class CriteriaSidebarItem extends Component {
 	static propTypes = {
 		className: PropTypes.string,
 		connectDragSource: PropTypes.func,
-		defaultValue: PropTypes.oneOfType(
-			[
-				PropTypes.string,
-				PropTypes.number
-			]
-		),
+		defaultValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 		dragging: PropTypes.bool,
 		label: PropTypes.string,
 		name: PropTypes.string,
@@ -63,18 +72,18 @@ class CriteriaSidebarItem extends Component {
 		const classes = getCN(
 			'criteria-sidebar-item-root',
 			{dragging},
-			className,
+			className
 		);
 
 		return connectDragSource(
 			<li className={classes}>
 				<span className="inline-item">
-					<ClayIcon iconName="drag" />
+					<ClayIcon symbol="drag" />
 				</span>
 
 				<span className="criteria-sidebar-item-type sticker sticker-light">
 					<span className="inline-item">
-						<ClayIcon iconName={TYPE_ICON_MAP[type] || 'text'} />
+						<ClayIcon symbol={TYPE_ICON_MAP[type] || 'text'} />
 					</span>
 				</span>
 

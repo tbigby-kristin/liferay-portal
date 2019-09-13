@@ -81,7 +81,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
@@ -1126,10 +1126,7 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 
 					long expandoRowId = rs.getLong("classPK");
 
-					Map<String, String> expandoValuesMap = getExpandoValuesMap(
-						expandoRowId);
-
-					String xml = toXML(expandoValuesMap);
+					String xml = toXML(getExpandoValuesMap(expandoRowId));
 
 					ps2.setString(1, PortalUUIDUtil.generate());
 					ps2.setLong(2, expandoRowId);

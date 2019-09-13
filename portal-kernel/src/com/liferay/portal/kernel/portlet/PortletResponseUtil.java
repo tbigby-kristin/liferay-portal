@@ -43,8 +43,6 @@ import javax.portlet.MimeResponse;
 import javax.portlet.PortletRequest;
 import javax.portlet.ResourceResponse;
 
-import javax.servlet.http.HttpServletRequest;
-
 /**
  * @author Brian Wing Shun Chan
  */
@@ -233,13 +231,10 @@ public class PortletResponseUtil {
 			return;
 		}
 
-		if (contentLength > 0) {
-			if (mimeResponse instanceof ResourceResponse) {
-				ResourceResponse resourceResponse =
-					(ResourceResponse)mimeResponse;
+		if ((contentLength > 0) && (mimeResponse instanceof ResourceResponse)) {
+			ResourceResponse resourceResponse = (ResourceResponse)mimeResponse;
 
-				resourceResponse.setContentLength(contentLength);
-			}
+			resourceResponse.setContentLength(contentLength);
 		}
 
 		StreamUtil.transfer(inputStream, mimeResponse.getPortletOutputStream());
@@ -298,10 +293,9 @@ public class PortletResponseUtil {
 			if (!ascii) {
 				String encodedFileName = URLCodec.encodeURL(fileName, true);
 
-				HttpServletRequest httpServletRequest =
-					PortalUtil.getHttpServletRequest(portletRequest);
+				if (BrowserSnifferUtil.isIe(
+						PortalUtil.getHttpServletRequest(portletRequest))) {
 
-				if (BrowserSnifferUtil.isIe(httpServletRequest)) {
 					contentDispositionFileName =
 						"filename=\"" + encodedFileName + "\"";
 				}
