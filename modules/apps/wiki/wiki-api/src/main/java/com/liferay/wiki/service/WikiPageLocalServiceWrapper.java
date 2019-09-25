@@ -24,7 +24,7 @@ import com.liferay.portal.kernel.service.ServiceWrapper;
  * @generated
  */
 public class WikiPageLocalServiceWrapper
-	implements WikiPageLocalService, ServiceWrapper<WikiPageLocalService> {
+	implements ServiceWrapper<WikiPageLocalService>, WikiPageLocalService {
 
 	public WikiPageLocalServiceWrapper(
 		WikiPageLocalService wikiPageLocalService) {
@@ -1198,6 +1198,11 @@ public class WikiPageLocalServiceWrapper
 		_wikiPageLocalService.updateAsset(
 			userId, page, assetCategoryIds, assetTagNames, assetLinkEntryIds,
 			priority);
+	}
+
+	@Override
+	public void updateLastPostDate(long nodeId, java.util.Date lastPostDate) {
+		_wikiPageLocalService.updateLastPostDate(nodeId, lastPostDate);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ function renderComponent({props, context}) {
 		viewSegmentsExperimentDetailsURL
 	} = context;
 	const {
+		calculateSegmentsExperimentEstimatedDurationURL,
 		createSegmentsExperimentURL,
 		createSegmentsVariantURL,
 		deleteSegmentsExperimentURL,
@@ -44,6 +45,7 @@ function renderComponent({props, context}) {
 					contentPageEditorNamespace:
 						context.contentPageEditorNamespace,
 					endpoints: {
+						calculateSegmentsExperimentEstimatedDurationURL,
 						createSegmentsExperimentURL,
 						createSegmentsVariantURL,
 						deleteSegmentsExperimentURL,
@@ -62,6 +64,7 @@ function renderComponent({props, context}) {
 			}}
 		>
 			<SegmentsExperimentsSidebar
+				initialExperimentHistory={props.historySegmentsExperiments}
 				initialGoals={props.segmentsExperimentGoals}
 				initialSegmentsExperiences={props.segmentsExperiences}
 				initialSegmentsExperiment={props.segmentsExperiment}

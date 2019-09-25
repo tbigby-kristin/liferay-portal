@@ -31,12 +31,15 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.portlet.MockLiferayPortletActionRequest;
+import com.liferay.portal.kernel.test.portlet.MockLiferayPortletActionResponse;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.Sync;
@@ -45,12 +48,14 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceRegistration;
@@ -71,6 +76,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 
 /**
  * @author Jürgen Kappler
@@ -82,7 +88,9 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Before
 	public void setUp() throws Exception {
@@ -90,6 +98,11 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 
 		_company = _companyLocalService.getCompany(_group.getCompanyId());
 		_layout = LayoutTestUtil.addLayout(_group);
+
+		_serviceContext = _getServiceContext(
+			_group, TestPropsValues.getUserId());
+
+		ServiceContextThreadLocal.pushServiceContext(_serviceContext);
 
 		Registry registry = RegistryUtil.getRegistry();
 
@@ -100,14 +113,13 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 	@After
 	public void tearDown() {
 		_serviceRegistration.unregister();
+
+		ServiceContextThreadLocal.popServiceContext();
 	}
 
 	@Test
 	public void testDuplicateDynamicFragment() throws Exception {
 		TestFragmentRenderer testFragmentRenderer = new TestFragmentRenderer();
-
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext();
 
 		FragmentEntryLink originalFragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
@@ -116,7 +128,7 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 				_layout.getPlid(), StringPool.BLANK, StringPool.BLANK,
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
 				StringPool.BLANK, 0, testFragmentRenderer.getKey(),
-				serviceContext);
+				_serviceContext);
 
 		ActionRequest actionRequest = _getMockActionRequest(
 			originalFragmentEntryLink.getFragmentEntryLinkId());
@@ -177,22 +189,16 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 			originalFragmentEntryLink.getJs(),
 			persistedFragmentEntryLink.getJs());
 		Assert.assertEquals(
-			originalFragmentEntryLink.getNamespace(),
-			persistedFragmentEntryLink.getNamespace());
-		Assert.assertEquals(
 			originalFragmentEntryLink.getRendererKey(),
 			persistedFragmentEntryLink.getRendererKey());
 	}
 
 	@Test
 	public void testDuplicateFragmentEntryLink() throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext();
-
 		FragmentCollection fragmentCollection =
 			_fragmentCollectionLocalService.addFragmentCollection(
 				TestPropsValues.getUserId(), _group.getGroupId(),
-				StringUtil.randomString(), StringPool.BLANK, serviceContext);
+				StringUtil.randomString(), StringPool.BLANK, _serviceContext);
 
 		FragmentEntry fragmentEntry =
 			_fragmentEntryLocalService.addFragmentEntry(
@@ -202,7 +208,7 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
 				RandomTestUtil.randomString(), "{\"fieldSets\":[]}", 0,
 				FragmentConstants.TYPE_COMPONENT,
-				WorkflowConstants.STATUS_APPROVED, serviceContext);
+				WorkflowConstants.STATUS_APPROVED, _serviceContext);
 
 		FragmentEntryLink originalFragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
@@ -213,7 +219,7 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 				fragmentEntry.getHtml(), fragmentEntry.getJs(),
 				fragmentEntry.getConfiguration(), "{}",
 				StringUtil.randomString(), 0, StringUtil.randomString(),
-				serviceContext);
+				_serviceContext);
 
 		ActionRequest actionRequest = _getMockActionRequest(
 			originalFragmentEntryLink.getFragmentEntryLinkId());
@@ -271,9 +277,6 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 			originalFragmentEntryLink.getJs(),
 			persistedFragmentEntryLink.getJs());
 		Assert.assertEquals(
-			originalFragmentEntryLink.getNamespace(),
-			persistedFragmentEntryLink.getNamespace());
-		Assert.assertEquals(
 			originalFragmentEntryLink.getRendererKey(),
 			persistedFragmentEntryLink.getRendererKey());
 	}
@@ -299,15 +302,31 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 	private MockActionRequest _getMockActionRequest(long fragmentEntryLinkId)
 		throws PortalException {
 
-		MockActionRequest mockActionRequest = new MockActionRequest();
+		ThemeDisplay themeDisplay = _getThemeDisplay();
 
-		mockActionRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, _getThemeDisplay());
+		MockActionRequest mockActionRequest = new MockActionRequest(
+			themeDisplay);
+
+		mockActionRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
 
 		mockActionRequest.addParameter(
 			"fragmentEntryLinkId", String.valueOf(fragmentEntryLinkId));
 
 		return mockActionRequest;
+	}
+
+	private ServiceContext _getServiceContext(Group group, long userId) {
+		HttpServletRequest httpServletRequest = new MockHttpServletRequest();
+
+		httpServletRequest.setAttribute(
+			JavaConstants.JAVAX_PORTLET_RESPONSE, new MockActionResponse());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group, userId);
+
+		serviceContext.setRequest(httpServletRequest);
+
+		return serviceContext;
 	}
 
 	private ThemeDisplay _getThemeDisplay() throws PortalException {
@@ -316,8 +335,14 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 		themeDisplay.setCompany(_company);
 		themeDisplay.setLayout(_layout);
 		themeDisplay.setLayoutSet(_layout.getLayoutSet());
+
+		LayoutSet layoutSet = _group.getPublicLayoutSet();
+
+		themeDisplay.setLookAndFeel(layoutSet.getTheme(), null);
+
 		themeDisplay.setPermissionChecker(
 			PermissionThreadLocal.getPermissionChecker());
+		themeDisplay.setRealUser(TestPropsValues.getUser());
 		themeDisplay.setScopeGroupId(_group.getGroupId());
 		themeDisplay.setSiteGroupId(_group.getGroupId());
 		themeDisplay.setUser(TestPropsValues.getUser());
@@ -349,14 +374,39 @@ public class DuplicateFragmentEntryLinkMVCActionCommandTest {
 	)
 	private MVCActionCommand _mvcActionCommand;
 
+	private ServiceContext _serviceContext;
 	private ServiceRegistration<FragmentRenderer> _serviceRegistration;
 
 	private static class MockActionRequest
 		extends MockLiferayPortletActionRequest {
 
+		public MockActionRequest(ThemeDisplay themeDisplay) {
+			_themeDisplay = themeDisplay;
+		}
+
 		@Override
 		public HttpServletRequest getHttpServletRequest() {
-			return new MockHttpServletRequest();
+			MockHttpServletRequest httpServletRequest =
+				new MockHttpServletRequest();
+
+			httpServletRequest.setAttribute(
+				JavaConstants.JAVAX_PORTLET_RESPONSE, new MockActionResponse());
+			httpServletRequest.setAttribute(
+				WebKeys.THEME_DISPLAY, _themeDisplay);
+
+			return httpServletRequest;
+		}
+
+		private final ThemeDisplay _themeDisplay;
+
+	}
+
+	private static class MockActionResponse
+		extends MockLiferayPortletActionResponse {
+
+		@Override
+		public HttpServletResponse getHttpServletResponse() {
+			return new MockHttpServletResponse();
 		}
 
 	}

@@ -26,8 +26,10 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -37,7 +39,9 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsExperimentConstants;
+import com.liferay.segments.experiment.web.internal.configuration.SegmentsExperimentConfiguration;
 import com.liferay.segments.experiment.web.internal.util.SegmentsExperimentUtil;
+import com.liferay.segments.experiment.web.internal.util.comparator.SegmentsExperimentModifiedDateComparator;
 import com.liferay.segments.model.SegmentsExperience;
 import com.liferay.segments.model.SegmentsExperiment;
 import com.liferay.segments.model.SegmentsExperimentRel;
@@ -45,11 +49,13 @@ import com.liferay.segments.service.SegmentsExperienceService;
 import com.liferay.segments.service.SegmentsExperimentRelService;
 import com.liferay.segments.service.SegmentsExperimentService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Stream;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletURL;
@@ -63,19 +69,22 @@ import javax.servlet.http.HttpServletRequest;
 public class SegmentsExperimentDisplayContext {
 
 	public SegmentsExperimentDisplayContext(
-		HttpServletRequest httpServletRequest, RenderResponse renderResponse,
+		HttpServletRequest httpServletRequest,
 		LayoutLocalService layoutLocalService, Portal portal,
+		RenderResponse renderResponse,
 		SegmentsExperienceService segmentsExperienceService,
-		SegmentsExperimentService segmentsExperimentService,
-		SegmentsExperimentRelService segmentsExperimentRelService) {
+		SegmentsExperimentConfiguration segmentsExperimentConfiguration,
+		SegmentsExperimentRelService segmentsExperimentRelService,
+		SegmentsExperimentService segmentsExperimentService) {
 
 		_httpServletRequest = httpServletRequest;
-		_renderResponse = renderResponse;
 		_layoutLocalService = layoutLocalService;
 		_portal = portal;
+		_renderResponse = renderResponse;
 		_segmentsExperienceService = segmentsExperienceService;
-		_segmentsExperimentService = segmentsExperimentService;
+		_segmentsExperimentConfiguration = segmentsExperimentConfiguration;
 		_segmentsExperimentRelService = segmentsExperimentRelService;
+		_segmentsExperimentService = segmentsExperimentService;
 
 		_themeDisplay = (ThemeDisplay)_httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -83,6 +92,11 @@ public class SegmentsExperimentDisplayContext {
 
 	public String getAssetsPath() {
 		return PortalUtil.getPathContext(_httpServletRequest) + "/assets";
+	}
+
+	public String getCalculateSegmentsExperimentEstimatedDurationURL() {
+		return _getSegmentsExperimentActionURL(
+			"/calculate_segments_experiment_estimated_duration");
 	}
 
 	public String getContentPageEditorPortletNamespace() {
@@ -131,6 +145,9 @@ public class SegmentsExperimentDisplayContext {
 			draftLayout, _themeDisplay);
 
 		layoutFullURL = HttpUtil.setParameter(
+			layoutFullURL, "redirect", layoutFullURL);
+
+		layoutFullURL = HttpUtil.setParameter(
 			layoutFullURL, "p_l_mode", Constants.EDIT);
 
 		return HttpUtil.setParameter(
@@ -139,6 +156,35 @@ public class SegmentsExperimentDisplayContext {
 
 	public String getEditSegmentsVariantURL() {
 		return _getSegmentsExperimentActionURL("/edit_segments_experiment_rel");
+	}
+
+	public JSONArray getHistorySegmentsExperimentsJSONArray(Locale locale)
+		throws PortalException {
+
+		Layout layout = _themeDisplay.getLayout();
+
+		List<SegmentsExperiment> segmentsExperiments =
+			_segmentsExperimentService.getSegmentsExperiments(
+				getSelectedSegmentsExperienceId(),
+				_portal.getClassNameId(Layout.class), layout.getPlid(),
+				SegmentsExperimentConstants.Status.
+					getNonexclusiveStatusValues(),
+				new SegmentsExperimentModifiedDateComparator());
+
+		JSONArray segmentsExperimentsJSONArray =
+			JSONFactoryUtil.createJSONArray();
+
+		if (ListUtil.isEmpty(segmentsExperiments)) {
+			return segmentsExperimentsJSONArray;
+		}
+
+		for (SegmentsExperiment segmentsExperiment : segmentsExperiments) {
+			segmentsExperimentsJSONArray.put(
+				SegmentsExperimentUtil.toSegmentsExperimentJSONObject(
+					locale, segmentsExperiment));
+		}
+
+		return segmentsExperimentsJSONArray;
 	}
 
 	public String getRunSegmentsExperimenttURL() {
@@ -205,16 +251,21 @@ public class SegmentsExperimentDisplayContext {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", locale, getClass());
 
-		for (SegmentsExperimentConstants.Goal goal :
-				SegmentsExperimentConstants.Goal.values()) {
+		String[] goalsEnabled = _segmentsExperimentConfiguration.goalsEnabled();
 
-			segmentsExperimentGoalsJSONArray.put(
+		Stream<SegmentsExperimentConstants.Goal> stream = Arrays.stream(
+			SegmentsExperimentConstants.Goal.values());
+
+		stream.filter(
+			goal -> ArrayUtil.contains(goalsEnabled, goal.name())
+		).forEach(
+			goal -> segmentsExperimentGoalsJSONArray.put(
 				JSONUtil.put(
 					"label", LanguageUtil.get(resourceBundle, goal.getLabel())
 				).put(
 					"value", goal.getLabel()
-				));
-		}
+				))
+		);
 
 		return segmentsExperimentGoalsJSONArray;
 	}
@@ -434,6 +485,8 @@ public class SegmentsExperimentDisplayContext {
 	private Long _segmentsExperienceId;
 	private final SegmentsExperienceService _segmentsExperienceService;
 	private SegmentsExperiment _segmentsExperiment;
+	private final SegmentsExperimentConfiguration
+		_segmentsExperimentConfiguration;
 	private final SegmentsExperimentRelService _segmentsExperimentRelService;
 	private final SegmentsExperimentService _segmentsExperimentService;
 	private final ThemeDisplay _themeDisplay;

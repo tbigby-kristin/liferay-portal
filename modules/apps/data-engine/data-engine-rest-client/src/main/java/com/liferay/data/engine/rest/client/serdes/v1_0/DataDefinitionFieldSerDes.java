@@ -100,6 +100,20 @@ public class DataDefinitionFieldSerDes {
 			sb.append(dataDefinitionField.getId());
 		}
 
+		if (dataDefinitionField.getIndexType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"indexType\": ");
+
+			sb.append("\"");
+
+			sb.append(dataDefinitionField.getIndexType());
+
+			sb.append("\"");
+		}
+
 		if (dataDefinitionField.getIndexable() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -172,6 +186,16 @@ public class DataDefinitionFieldSerDes {
 			sb.append("]");
 		}
 
+		if (dataDefinitionField.getReadOnly() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"readOnly\": ");
+
+			sb.append(dataDefinitionField.getReadOnly());
+		}
+
 		if (dataDefinitionField.getRepeatable() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -182,6 +206,26 @@ public class DataDefinitionFieldSerDes {
 			sb.append(dataDefinitionField.getRepeatable());
 		}
 
+		if (dataDefinitionField.getRequired() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"required\": ");
+
+			sb.append(dataDefinitionField.getRequired());
+		}
+
+		if (dataDefinitionField.getShowLabel() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"showLabel\": ");
+
+			sb.append(dataDefinitionField.getShowLabel());
+		}
+
 		if (dataDefinitionField.getTip() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -190,6 +234,16 @@ public class DataDefinitionFieldSerDes {
 			sb.append("\"tip\": ");
 
 			sb.append(_toJSON(dataDefinitionField.getTip()));
+		}
+
+		if (dataDefinitionField.getVisible() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"visible\": ");
+
+			sb.append(dataDefinitionField.getVisible());
 		}
 
 		sb.append("}");
@@ -247,6 +301,15 @@ public class DataDefinitionFieldSerDes {
 			map.put("id", String.valueOf(dataDefinitionField.getId()));
 		}
 
+		if (dataDefinitionField.getIndexType() == null) {
+			map.put("indexType", null);
+		}
+		else {
+			map.put(
+				"indexType",
+				String.valueOf(dataDefinitionField.getIndexType()));
+		}
+
 		if (dataDefinitionField.getIndexable() == null) {
 			map.put("indexable", null);
 		}
@@ -289,6 +352,14 @@ public class DataDefinitionFieldSerDes {
 					dataDefinitionField.getNestedDataDefinitionFields()));
 		}
 
+		if (dataDefinitionField.getReadOnly() == null) {
+			map.put("readOnly", null);
+		}
+		else {
+			map.put(
+				"readOnly", String.valueOf(dataDefinitionField.getReadOnly()));
+		}
+
 		if (dataDefinitionField.getRepeatable() == null) {
 			map.put("repeatable", null);
 		}
@@ -298,11 +369,36 @@ public class DataDefinitionFieldSerDes {
 				String.valueOf(dataDefinitionField.getRepeatable()));
 		}
 
+		if (dataDefinitionField.getRequired() == null) {
+			map.put("required", null);
+		}
+		else {
+			map.put(
+				"required", String.valueOf(dataDefinitionField.getRequired()));
+		}
+
+		if (dataDefinitionField.getShowLabel() == null) {
+			map.put("showLabel", null);
+		}
+		else {
+			map.put(
+				"showLabel",
+				String.valueOf(dataDefinitionField.getShowLabel()));
+		}
+
 		if (dataDefinitionField.getTip() == null) {
 			map.put("tip", null);
 		}
 		else {
 			map.put("tip", String.valueOf(dataDefinitionField.getTip()));
+		}
+
+		if (dataDefinitionField.getVisible() == null) {
+			map.put("visible", null);
+		}
+		else {
+			map.put(
+				"visible", String.valueOf(dataDefinitionField.getVisible()));
 		}
 
 		return map;
@@ -352,6 +448,13 @@ public class DataDefinitionFieldSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "indexType")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinitionField.setIndexType(
+						DataDefinitionField.IndexType.create(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "indexable")) {
 				if (jsonParserFieldValue != null) {
 					dataDefinitionField.setIndexable(
@@ -391,9 +494,27 @@ public class DataDefinitionFieldSerDes {
 						));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "readOnly")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinitionField.setReadOnly(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "repeatable")) {
 				if (jsonParserFieldValue != null) {
 					dataDefinitionField.setRepeatable(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "required")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinitionField.setRequired(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "showLabel")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinitionField.setShowLabel(
 						(Boolean)jsonParserFieldValue);
 				}
 			}
@@ -402,6 +523,12 @@ public class DataDefinitionFieldSerDes {
 					dataDefinitionField.setTip(
 						(Map)DataDefinitionFieldSerDes.toMap(
 							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "visible")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinitionField.setVisible(
+						(Boolean)jsonParserFieldValue);
 				}
 			}
 			else {

@@ -31,8 +31,10 @@ public interface JSONWebServiceClient {
 		String url, MultivaluedMap<String, Object> parameters,
 		Map<String, String> headers);
 
-	public <T> T doPost(
-		Class<T> clazz, String url, T object, Map<String, String> headers);
+	public <T> void doPatch(String url, T object, Map<String, String> headers);
+
+	public <T, V> V doPost(
+		Class<V> clazz, String url, T object, Map<String, String> headers);
 
 	public <T> void doPut(String url, T object, Map<String, String> headers);
 

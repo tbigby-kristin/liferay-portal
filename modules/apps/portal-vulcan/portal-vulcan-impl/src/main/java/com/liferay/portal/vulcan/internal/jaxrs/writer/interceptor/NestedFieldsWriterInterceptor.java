@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -64,6 +63,7 @@ import org.apache.cxf.message.Message;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceObjects;
 import org.osgi.framework.ServiceReference;
 
 /**
@@ -112,18 +112,29 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 		return ProviderFactory.getInstance(message);
 	}
 
-	protected List<Object> getResources() throws InvalidSyntaxException {
-		List<Object> resources = new ArrayList<>();
+	protected Class<?> getResourceClass(ServiceReference<?> serviceReference) {
+		Object resource = _bundleContext.getService(serviceReference);
 
-		ServiceReference<?>[] serviceReferences =
-			_bundleContext.getAllServiceReferences(
-				null, "(osgi.jaxrs.resource=true)");
-
-		for (ServiceReference<?> serviceReference : serviceReferences) {
-			resources.add(_bundleContext.getService(serviceReference));
+		try {
+			return resource.getClass();
 		}
+		finally {
+			_bundleContext.ungetService(serviceReference);
+		}
+	}
 
-		return resources;
+	protected ServiceObjects<?> getServiceObjects(
+		ServiceReference<?> serviceReference) {
+
+		return _bundleContext.getServiceObjects(serviceReference);
+	}
+
+	protected List<ServiceReference<?>> getServiceReferences()
+		throws InvalidSyntaxException {
+
+		return Arrays.asList(
+			_bundleContext.getAllServiceReferences(
+				null, "(&(api.version=*)(osgi.jaxrs.resource=true))"));
 	}
 
 	private Object _adaptToFieldType(Class<?> fieldType, Object value) {
@@ -141,10 +152,8 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 
 			int i = 0;
 
-			Iterator iterator = collection.iterator();
-
-			while (iterator.hasNext()) {
-				Array.set(value, i++, iterator.next());
+			for (Object object : collection) {
+				Array.set(value, i++, object);
 			}
 		}
 
@@ -367,7 +376,7 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 				fieldName, nestedFieldsContext, pathParameters, queryParameters,
 				resourceBaseClassParameter);
 
-			if (args[i] == null) {
+			if ((args[i] == null) && (resourceClassParameters != null)) {
 				args[i] = _getMethodArgValueFromItem(
 					item, resourceBaseClassParameter,
 					resourceClassParameters[i]);
@@ -485,8 +494,8 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 			NestedFieldsContext nestedFieldsContext)
 		throws Exception {
 
-		for (Object resource : getResources()) {
-			Class<?> resourceClass = resource.getClass();
+		for (ServiceReference<?> serviceReference : getServiceReferences()) {
+			Class<?> resourceClass = getResourceClass(serviceReference);
 
 			if (!Objects.equals(
 					nestedFieldsContext.getResourceVersion(),
@@ -501,13 +510,25 @@ public class NestedFieldsWriterInterceptor implements WriterInterceptor {
 				continue;
 			}
 
-			_setResourceContexts(nestedFieldsContext.getMessage(), resource);
+			@SuppressWarnings("unchecked")
+			ServiceObjects<Object> serviceObjects =
+				(ServiceObjects<Object>)getServiceObjects(serviceReference);
 
-			Object[] args = _getMethodArgs(
-				fieldName, item, method, nestedFieldsContext,
-				resource.getClass());
+			Object resource = serviceObjects.getService();
 
-			return method.invoke(resource, args);
+			try {
+				_setResourceContexts(
+					nestedFieldsContext.getMessage(), resource);
+
+				Object[] args = _getMethodArgs(
+					fieldName, item, method, nestedFieldsContext,
+					resourceClass);
+
+				return method.invoke(resource, args);
+			}
+			finally {
+				serviceObjects.ungetService(resource);
+			}
 		}
 
 		return null;

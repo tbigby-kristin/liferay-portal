@@ -347,11 +347,11 @@ public class AssetEntryFinderImpl
 	protected SQLQuery buildAssetQuerySQL(
 		AssetEntryQuery entryQuery, boolean count, Session session) {
 
-		StringBundler sb = new StringBundler(52);
+		StringBundler sb = new StringBundler(59);
 
 		if (count) {
-			sb.append(
-				"SELECT COUNT(DISTINCT AssetEntry.entryId) AS COUNT_VALUE ");
+			sb.append("SELECT COUNT(DISTINCT AssetEntry.entryId) AS ");
+			sb.append("COUNT_VALUE ");
 		}
 		else {
 			sb.append("SELECT {AssetEntry.*} ");
@@ -366,7 +366,7 @@ public class AssetEntryFinderImpl
 
 				selectRatings = true;
 
-				sb.append(", TEMP_TABLE.averageScore ");
+				sb.append(", TEMP_TABLE_ASSET_ENTRY.averageScore ");
 			}
 
 			sb.append("FROM (SELECT DISTINCT AssetEntry.entryId ");
@@ -386,9 +386,13 @@ public class AssetEntryFinderImpl
 		}
 
 		if (entryQuery.getLinkedAssetEntryId() > 0) {
-			sb.append("INNER JOIN AssetLink ON (AssetEntry.entryId = ");
-			sb.append("AssetLink.entryId1) OR (AssetEntry.entryId = ");
-			sb.append("AssetLink.entryId2)");
+			sb.append("INNER JOIN (SELECT AssetLink.entryId1 AS entryId ");
+			sb.append("FROM AssetLink WHERE AssetLink.entryId2 = ? AND ");
+			sb.append("AssetLink.entryId1 != ? UNION SELECT ");
+			sb.append("AssetLink.entryId2 AS entryId FROM AssetLink WHERE ");
+			sb.append("AssetLink.entryId1 = ? AND AssetLink.entryId2 != ? ) ");
+			sb.append("TEMP_TABLE_ASSET_LINK ON ");
+			sb.append("(TEMP_TABLE_ASSET_LINK.entryId = AssetEntry.entryId) ");
 		}
 
 		String orderByCol1 = AssetEntryQuery.ORDER_BY_COLUMNS[2];
@@ -415,8 +419,7 @@ public class AssetEntryFinderImpl
 		int whereIndex = sb.index();
 
 		if (entryQuery.getLinkedAssetEntryId() > 0) {
-			sb.append(" AND ((AssetLink.entryId1 = ?) OR (AssetLink.entryId2 ");
-			sb.append("= ?)) AND (AssetEntry.entryId != ?)");
+			sb.append(" AND (AssetEntry.entryId != ?)");
 		}
 
 		if (entryQuery.isListable() != null) {
@@ -532,12 +535,15 @@ public class AssetEntryFinderImpl
 		sb.append(getClassNameIds(entryQuery.getClassNameIds()));
 
 		if (!count) {
-			sb.append(") TEMP_TABLE INNER JOIN AssetEntry AssetEntry ON ");
-			sb.append("TEMP_TABLE.entryId = AssetEntry.entryId ORDER BY ");
+			sb.append(") TEMP_TABLE_ASSET_ENTRY INNER JOIN ");
+			sb.append("AssetEntry AssetEntry ON ");
+			sb.append("TEMP_TABLE_ASSET_ENTRY.entryId = ");
+			sb.append("AssetEntry.entryId ORDER BY ");
 
 			if (orderByCol1.equals("ratings")) {
-				sb.append("CASE WHEN TEMP_TABLE.averageScore IS NULL THEN 0 ");
-				sb.append("ELSE TEMP_TABLE.averageScore END");
+				sb.append("CASE WHEN TEMP_TABLE_ASSET_ENTRY.averageScore ");
+				sb.append("IS NULL THEN 0 ");
+				sb.append("ELSE TEMP_TABLE_ASSET_ENTRY.averageScore END");
 			}
 			else {
 				sb.append("AssetEntry.");
@@ -551,9 +557,10 @@ public class AssetEntryFinderImpl
 				!orderByCol1.equals(orderByCol2)) {
 
 				if (orderByCol2.equals("ratings")) {
-					sb.append(
-						", CASE WHEN TEMP_TABLE.averageScore IS NULL THEN 0 ");
-					sb.append("ELSE TEMP_TABLE.averageScore END");
+					sb.append(", CASE WHEN ");
+					sb.append("TEMP_TABLE_ASSET_ENTRY.averageScore IS NULL ");
+					sb.append("THEN 0 ELSE ");
+					sb.append("TEMP_TABLE_ASSET_ENTRY.averageScore END");
 				}
 				else {
 					sb.append(", AssetEntry.");
@@ -587,6 +594,8 @@ public class AssetEntryFinderImpl
 		QueryPos qPos = QueryPos.getInstance(q);
 
 		if (entryQuery.getLinkedAssetEntryId() > 0) {
+			qPos.add(entryQuery.getLinkedAssetEntryId());
+			qPos.add(entryQuery.getLinkedAssetEntryId());
 			qPos.add(entryQuery.getLinkedAssetEntryId());
 			qPos.add(entryQuery.getLinkedAssetEntryId());
 			qPos.add(entryQuery.getLinkedAssetEntryId());

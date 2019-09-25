@@ -332,6 +332,13 @@ public class FragmentEntryProcessorEditableTest {
 			"fragment_entry_with_missing_editable_attributes.html");
 	}
 
+	@Test(expected = FragmentEntryContentException.class)
+	public void testFragmentEntryProcessorEditableWithNestedEditablesInHTML()
+		throws Exception {
+
+		_addFragmentEntry("fragment_entry_with_nested_editable_in_html.html");
+	}
+
 	@Test
 	public void testFragmentEntryProcessorEditableWithUnmatchedLanguage()
 		throws Exception {

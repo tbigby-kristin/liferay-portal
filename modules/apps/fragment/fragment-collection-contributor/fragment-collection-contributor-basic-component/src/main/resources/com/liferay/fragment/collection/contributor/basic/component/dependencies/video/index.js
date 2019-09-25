@@ -71,17 +71,19 @@ const rawProvider = {
 
 const youtubeProvider = {
 	getParameters: url => {
+		const start = url.searchParams.get('start');
+
 		if (['www.youtube.com', 'youtube.com'].includes(url.hostname)) {
 			const videoId = url.searchParams.get('v');
 
 			if (videoId) {
-				return {videoId};
+				return {videoId, start};
 			}
 		} else if (['www.youtu.be', 'youtu.be'].includes(url.hostname)) {
 			const videoId = url.pathname.substr(1);
 
 			if (videoId) {
-				return {videoId};
+				return {videoId, start};
 			}
 		}
 	},
@@ -95,7 +97,8 @@ const youtubeProvider = {
 				playerVars: {
 					autoplay: configuration.autoPlay,
 					controls: configuration.hideControls ? 0 : 1,
-					loop: configuration.loop ? 0 : 1
+					loop: configuration.loop ? 0 : 1,
+					start: !parameters.start ? 0 : parameters.start
 				},
 				events: {
 					onReady: () => {

@@ -23,7 +23,6 @@ import com.liferay.portal.aop.AopService;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -115,17 +114,8 @@ public class FragmentCollectionServiceImpl
 	public FragmentCollection fetchFragmentCollection(long fragmentCollectionId)
 		throws PortalException {
 
-		FragmentCollection fragmentCollection =
-			fragmentCollectionLocalService.fetchFragmentCollection(
-				fragmentCollectionId);
-
-		if (fragmentCollection != null) {
-			_portletResourcePermission.check(
-				getPermissionChecker(), fragmentCollection.getGroupId(),
-				ActionKeys.VIEW);
-		}
-
-		return fragmentCollection;
+		return fragmentCollectionLocalService.fetchFragmentCollection(
+			fragmentCollectionId);
 	}
 
 	@Override
@@ -171,6 +161,26 @@ public class FragmentCollectionServiceImpl
 	}
 
 	@Override
+	public List<FragmentCollection> getFragmentCollections(
+		long[] groupIds, int start, int end,
+		OrderByComparator<FragmentCollection> orderByComparator) {
+
+		return fragmentCollectionPersistence.findByGroupId(
+			groupIds, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<FragmentCollection> getFragmentCollections(
+		long[] groupIds, String name, int start, int end,
+		OrderByComparator<FragmentCollection> orderByComparator) {
+
+		return fragmentCollectionPersistence.findByG_LikeN(
+			groupIds,
+			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0], start,
+			end, orderByComparator);
+	}
+
+	@Override
 	public int getFragmentCollectionsCount(long groupId) {
 		return fragmentCollectionPersistence.countByGroupId(groupId);
 	}
@@ -179,6 +189,18 @@ public class FragmentCollectionServiceImpl
 	public int getFragmentCollectionsCount(long groupId, String name) {
 		return fragmentCollectionPersistence.countByG_LikeN(
 			groupId,
+			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0]);
+	}
+
+	@Override
+	public int getFragmentCollectionsCount(long[] groupIds) {
+		return fragmentCollectionPersistence.countByGroupId(groupIds);
+	}
+
+	@Override
+	public int getFragmentCollectionsCount(long[] groupIds, String name) {
+		return fragmentCollectionPersistence.countByG_LikeN(
+			groupIds,
 			_customSQL.keywords(name, false, WildcardMode.SURROUND)[0]);
 	}
 

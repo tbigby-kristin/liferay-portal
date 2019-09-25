@@ -17,6 +17,7 @@ import {fetch} from 'frontend-js-web';
 
 function APIService({endpoints, namespace, contentPageEditorNamespace}) {
 	const {
+		calculateSegmentsExperimentEstimatedDurationURL,
 		createSegmentsExperimentURL,
 		createSegmentsVariantURL,
 		deleteSegmentsExperimentURL,
@@ -83,12 +84,15 @@ function APIService({endpoints, namespace, contentPageEditorNamespace}) {
 		});
 	}
 
-	function discardExperiment(body) {
-		return _fetchWithError(editSegmentsExperimentStatusURL, {
-			body: _getFormDataRequest(body, namespace),
-			credentials: 'include',
-			method: 'POST'
-		});
+	function getEstimatedTime(body) {
+		return _fetchWithError(
+			calculateSegmentsExperimentEstimatedDurationURL,
+			{
+				body: _getFormDataRequest(body, namespace),
+				credentials: 'include',
+				method: 'POST'
+			}
+		);
 	}
 
 	function publishExperience(body) {
@@ -113,10 +117,10 @@ function APIService({endpoints, namespace, contentPageEditorNamespace}) {
 		createVariant,
 		deleteExperiment,
 		deleteVariant,
-		discardExperiment,
 		editExperiment,
 		editExperimentStatus,
 		editVariant,
+		getEstimatedTime,
 		publishExperience,
 		runExperiment
 	};
@@ -125,6 +129,8 @@ function APIService({endpoints, namespace, contentPageEditorNamespace}) {
 APIService.propTypes = {
 	contentPageEditorNamespace: PropTypes.string.isRequired,
 	endpoints: PropTypes.shape({
+		calculateSegmentsExperimentEstimatedDurationURL:
+			PropTypes.string.isRequired,
 		createSegmentsExperimentURL: PropTypes.string.isRequired,
 		createSegmentsVariantURL: PropTypes.string.isRequired,
 		deleteSegmentsExperimentURL: PropTypes.string.isRequired,

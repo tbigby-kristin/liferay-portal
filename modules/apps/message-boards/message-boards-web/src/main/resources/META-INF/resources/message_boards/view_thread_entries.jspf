@@ -139,7 +139,7 @@
 			int viewCount = thread.getViewCount();
 			%>
 
-			<div>
+			<div class="mt-2">
 				<liferay-ui:message arguments="<%= repliesCount %>" key='<%= (repliesCount == 1) ? "x-reply" : "x-replies" %>' />
 			</div>
 
@@ -162,6 +162,8 @@
 
 			<c:if test="<%= thread.isLocked() %>">
 				<div>
+					<aui:icon image="lock" markupView="lexicon" />
+
 					<liferay-ui:message key="locked" />
 				</div>
 			</c:if>

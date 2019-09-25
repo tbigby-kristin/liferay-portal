@@ -21,6 +21,8 @@ public class GroupConstants {
 
 	public static final int ANY_PARENT_GROUP_ID = -1;
 
+	public static final String APP = "App";
+
 	public static final String CONTROL_PANEL = "Control Panel";
 
 	public static final String CONTROL_PANEL_FRIENDLY_URL = "/control_panel";

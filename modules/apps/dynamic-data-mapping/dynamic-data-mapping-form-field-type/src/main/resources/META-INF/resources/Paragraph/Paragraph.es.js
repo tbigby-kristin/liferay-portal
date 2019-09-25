@@ -115,6 +115,15 @@ Paragraph.STATE = {
 	/**
 	 * @default undefined
 	 * @instance
+	 * @memberof Paragraph
+	 * @type {?(object|undefined)}
+	 */
+
+	text: Config.object(),
+
+	/**
+	 * @default undefined
+	 * @instance
 	 * @memberof FieldBase
 	 * @type {?(string|undefined)}
 	 */

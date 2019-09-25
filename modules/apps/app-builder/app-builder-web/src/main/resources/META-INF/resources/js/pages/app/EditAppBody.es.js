@@ -12,24 +12,16 @@
  * details.
  */
 
-import {ClayRadio, ClayRadioGroup} from '@clayui/form';
-import ClayTable from '@clayui/table';
-import classNames from 'classnames';
-import moment from 'moment';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
+import ListItems from './ListItems.es';
 import Button from '../../components/button/Button.es';
-import {getItem} from '../../utils/client.es';
+import {useRequest} from '../../hooks/index.es';
 
-const {Body, Cell, Head, Row} = ClayTable;
-
-export default ({endpoint, itemId, onItemIdChange, title}) => {
-	const [items, setItems] = useState([]);
-
-	useEffect(() => {
-		getItem(endpoint)
-			.then(response => response.items || [])
-			.then(setItems);
-	}, [endpoint]);
+export default ({endpoint, title, ...restProps}) => {
+	const {
+		response: {items = []},
+		isLoading
+	} = useRequest(endpoint);
 
 	return (
 		<>
@@ -38,6 +30,7 @@ export default ({endpoint, itemId, onItemIdChange, title}) => {
 					<h2>{title}</h2>
 				</div>
 			</div>
+
 			<div className="autofit-row pl-4 pr-4 mb-4">
 				<div className="autofit-col-expand">
 					<div className="input-group">
@@ -61,70 +54,15 @@ export default ({endpoint, itemId, onItemIdChange, title}) => {
 					</div>
 				</div>
 			</div>
+
 			<div className="autofit-row pl-4 pr-4 scrollable-container">
 				<div className="autofit-col-expand">
-					<table className="table table-responsive table-autofit table-hover table-heading-nowrap table-nowrap">
-						<Head>
-							<Row>
-								<Cell expanded={true} headingCell>
-									{Liferay.Language.get('name')}
-								</Cell>
-								<Cell headingCell>
-									{Liferay.Language.get('create-date')}
-								</Cell>
-								<Cell headingCell>
-									{Liferay.Language.get('modified-date')}
-								</Cell>
-								<Cell headingCell></Cell>
-							</Row>
-						</Head>
-						<Body>
-							{items.map(
-								(
-									{
-										dateCreated,
-										dateModified,
-										id,
-										name: {en_US: itemName}
-									},
-									index
-								) => {
-									return (
-										<Row
-											className={classNames(
-												'selectable-row',
-												{
-													'selectable-active':
-														id === itemId
-												}
-											)}
-											key={index}
-											onClick={() => onItemIdChange(id)}
-										>
-											<Cell align="left">{itemName}</Cell>
-											<Cell>
-												{moment(dateCreated).fromNow()}
-											</Cell>
-											<Cell>
-												{moment(dateModified).fromNow()}
-											</Cell>
-											<Cell align={'right'}>
-												<ClayRadioGroup
-													inline
-													onSelectedValueChange={() =>
-														onItemIdChange(id)
-													}
-													selectedValue={itemId}
-												>
-													<ClayRadio value={id} />
-												</ClayRadioGroup>
-											</Cell>
-										</Row>
-									);
-								}
-							)}
-						</Body>
-					</table>
+					<ListItems
+						isEmpty={items.length === 0}
+						isLoading={isLoading}
+						items={items}
+						{...restProps}
+					/>
 				</div>
 			</div>
 		</>

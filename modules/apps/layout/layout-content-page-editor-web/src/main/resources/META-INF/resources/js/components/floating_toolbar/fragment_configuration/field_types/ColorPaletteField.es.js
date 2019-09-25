@@ -51,7 +51,7 @@ ColorPaletteField.STATE = {
 	 */
 	field: Config.shapeOf({
 		dataType: Config.string(),
-		defaultValue: Config.string(),
+		defaultValue: Config.object(),
 		description: Config.string(),
 		label: Config.string(),
 		name: Config.string(),

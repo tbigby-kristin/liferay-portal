@@ -358,7 +358,8 @@ public class JournalPortletDataHandler extends BasePortletDataHandler {
 			// Importing DDM structure default values
 
 			for (Element articleElement : articleElements) {
-				String className = articleElement.attributeValue("class-name");
+				String className = articleElement.attributeValue(
+					"attached-class-name");
 
 				if (Validator.isNotNull(className) &&
 					className.equals(DDMStructure.class.getName())) {

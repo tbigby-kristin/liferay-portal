@@ -14,8 +14,6 @@
 
 package com.liferay.account.model;
 
-import com.liferay.account.service.persistence.AccountEntryUserRelPK;
-
 import java.io.Serializable;
 
 import java.util.ArrayList;
@@ -34,10 +32,10 @@ public class AccountEntryUserRelSoap implements Serializable {
 
 		AccountEntryUserRelSoap soapModel = new AccountEntryUserRelSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setAccountEntryUserRelId(model.getAccountEntryUserRelId());
-		soapModel.setCompanyId(model.getCompanyId());
-		soapModel.setUserId(model.getUserId());
 		soapModel.setAccountEntryId(model.getAccountEntryId());
+		soapModel.setAccountUserId(model.getAccountUserId());
 
 		return soapModel;
 	}
@@ -92,15 +90,20 @@ public class AccountEntryUserRelSoap implements Serializable {
 	public AccountEntryUserRelSoap() {
 	}
 
-	public AccountEntryUserRelPK getPrimaryKey() {
-		return new AccountEntryUserRelPK(
-			_accountEntryUserRelId, _userId, _accountEntryId);
+	public long getPrimaryKey() {
+		return _accountEntryUserRelId;
 	}
 
-	public void setPrimaryKey(AccountEntryUserRelPK pk) {
-		setAccountEntryUserRelId(pk.accountEntryUserRelId);
-		setUserId(pk.userId);
-		setAccountEntryId(pk.accountEntryId);
+	public void setPrimaryKey(long pk) {
+		setAccountEntryUserRelId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public long getAccountEntryUserRelId() {
@@ -111,22 +114,6 @@ public class AccountEntryUserRelSoap implements Serializable {
 		_accountEntryUserRelId = accountEntryUserRelId;
 	}
 
-	public long getCompanyId() {
-		return _companyId;
-	}
-
-	public void setCompanyId(long companyId) {
-		_companyId = companyId;
-	}
-
-	public long getUserId() {
-		return _userId;
-	}
-
-	public void setUserId(long userId) {
-		_userId = userId;
-	}
-
 	public long getAccountEntryId() {
 		return _accountEntryId;
 	}
@@ -135,9 +122,17 @@ public class AccountEntryUserRelSoap implements Serializable {
 		_accountEntryId = accountEntryId;
 	}
 
+	public long getAccountUserId() {
+		return _accountUserId;
+	}
+
+	public void setAccountUserId(long accountUserId) {
+		_accountUserId = accountUserId;
+	}
+
+	private long _mvccVersion;
 	private long _accountEntryUserRelId;
-	private long _companyId;
-	private long _userId;
 	private long _accountEntryId;
+	private long _accountUserId;
 
 }

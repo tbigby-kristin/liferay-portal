@@ -2,20 +2,11 @@
 
 <@insertLayout _layoutModel=layoutModel />
 
-<@insertGroup
-	_groupModel=dataFactory.globalGroupModel
-	_publicPageCount=1
-/>
+<@insertGroup _groupModel=dataFactory.globalGroupModel />
 
-<@insertGroup
-	_groupModel=dataFactory.guestGroupModel
-	_publicPageCount=1
-/>
+<@insertGroup _groupModel=dataFactory.guestGroupModel />
 
-<@insertGroup
-	_groupModel=dataFactory.userPersonalSiteGroupModel
-	_publicPageCount=1
-/>
+<@insertGroup _groupModel=dataFactory.userPersonalSiteGroupModel />
 
 <#list dataFactory.groupModels as groupModel>
 	<#assign groupId = groupModel.groupId />
@@ -47,12 +38,7 @@
 		<@insertLayout _layoutModel=publicLayoutModel />
 	</#list>
 
-	<#assign publicPageCount = publicLayoutModels?size + dataFactory.maxDDLRecordSetCount + dataFactory.maxJournalArticleCount />
-
-	<@insertGroup
-		_groupModel=groupModel
-		_publicPageCount=publicPageCount
-	/>
+	<@insertGroup _groupModel=groupModel />
 
 	${dataFactory.getCSVWriter("repository").write(groupId + ", " + groupModel.name + "\n")}
 </#list>

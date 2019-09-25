@@ -14,10 +14,7 @@
 
 	<@insertLayout _layoutModel=layoutModel />
 
-	<@insertGroup
-		_groupModel=userGroupModel
-		_publicPageCount=1
-	/>
+	<@insertGroup _groupModel=userGroupModel />
 
 	<@insertUser
 		_groupIds=groupIds

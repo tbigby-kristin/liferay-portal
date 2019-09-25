@@ -22,7 +22,6 @@ import {setIn, updateIn} from '../utils/FragmentsEditorUpdateUtils.es';
 import {
 	UPDATE_EDITABLE_VALUE_ERROR,
 	UPDATE_EDITABLE_VALUE_LOADING,
-	UPDATE_EDITABLE_VALUE_SUCCESS,
 	UPDATE_FRAGMENT_ENTRY_LINK_CONTENT
 } from './actions.es';
 import {updateEditableValues} from '../utils/FragmentsEditorFetchUtils.es';
@@ -53,12 +52,14 @@ const updateEditableValueContentAction = (
 			),
 			{
 				content,
-				path: [
-					processor,
-					editableId,
-					_getSegmentsExperienceId(getState),
-					_getLanguageId(getState)
-				]
+				path: _getSegmentsExperienceId(getState)
+					? [
+							processor,
+							editableId,
+							_getSegmentsExperienceId(getState),
+							_getLanguageId(getState)
+					  ]
+					: [processor, editableId, _getLanguageId(getState)]
 			}
 		],
 		dispatch,
@@ -138,10 +139,12 @@ const updateFragmentConfigurationAction = (
 		[
 			{
 				content: configuration,
-				path: [
-					FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
-					_getSegmentsExperienceId(getState)
-				]
+				path: _getSegmentsExperienceId(getState)
+					? [
+							FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
+							_getSegmentsExperienceId(getState)
+					  ]
+					: [FREEMARKER_FRAGMENT_ENTRY_PROCESSOR]
 			}
 		],
 		dispatch,
@@ -265,7 +268,6 @@ const _sendEditableValues = (
 
 	return updateEditableValues(fragmentEntryLinkId, nextEditableValues)
 		.then(() => {
-			dispatch(_updateEditableValuesSuccessAction());
 			dispatch(disableSavingChangesStatusAction());
 			dispatch(updateLastSaveDateAction());
 		})
@@ -326,18 +328,6 @@ function _updateEditableValuesLoadingAction(
 		editableValues,
 		fragmentEntryLinkId,
 		type: UPDATE_EDITABLE_VALUE_LOADING
-	};
-}
-
-/**
- * @param {Date} [date=new Date()]
- * @return {object}
- * @review
- */
-function _updateEditableValuesSuccessAction(date = new Date()) {
-	return {
-		date,
-		type: UPDATE_EDITABLE_VALUE_SUCCESS
 	};
 }
 

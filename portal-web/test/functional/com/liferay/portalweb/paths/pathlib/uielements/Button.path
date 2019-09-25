@@ -385,7 +385,7 @@
 </tr>
 <tr>
 	<td>MOVE_TO_RECYCLE_BIN</td>
-	<td>//a[contains(@class,'btn') and contains(.,'Move to Recycle Bin')] | //button[contains(.,'Move to Recycle Bin')]</td>
+	<td>//a[contains(@class,'btn') and contains(.,'Move to Recycle Bin')] | //button[contains(.,'Move to Recycle Bin')] | //*[contains(@class, 'icon-trash')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -506,6 +506,11 @@
 <tr>
 	<td>RESET_CHANGES</td>
 	<td>//button[contains(.,'Reset Changes')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>RESET_VALUES</td>
+	<td>//button/span[contains(.,'Reset Values')]</td>
 	<td></td>
 </tr>
 <tr>

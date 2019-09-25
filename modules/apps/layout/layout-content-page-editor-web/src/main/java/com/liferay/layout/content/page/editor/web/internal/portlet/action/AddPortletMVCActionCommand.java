@@ -133,7 +133,7 @@ public class AddPortletMVCActionCommand extends BaseMVCActionCommand {
 
 				if (count > 0) {
 					throw new PortletIdException(
-						"Cannot add non-instanceable portlet more than once");
+						"Unable to add uninstanceable portlet more than once");
 				}
 			}
 

@@ -407,6 +407,7 @@ public class Query {
 	@GraphQLField
 	public SegmentPage segments(
 			@GraphQLName("siteId") Long siteId,
+			@GraphQLName("siteKey") String siteKey,
 			@GraphQLName("pageSize") int pageSize,
 			@GraphQLName("page") int page)
 		throws Exception {
@@ -427,6 +428,7 @@ public class Query {
 	@GraphQLField
 	public SegmentPage userAccountSegments(
 			@GraphQLName("siteId") Long siteId,
+			@GraphQLName("siteKey") String siteKey,
 			@GraphQLName("userAccountId") Long userAccountId)
 		throws Exception {
 
@@ -500,7 +502,11 @@ public class Query {
 	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {site(siteId: ___){availableLanguages, creator, description, friendlyUrlPath, id, key, membershipType, name, sites}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
-	public Site site(@GraphQLName("siteId") Long siteId) throws Exception {
+	public Site site(
+			@GraphQLName("siteId") Long siteId,
+			@GraphQLName("siteKey") String siteKey)
+		throws Exception {
+
 		return _applyComponentServiceObjects(
 			_siteResourceComponentServiceObjects,
 			this::_populateResourceContext,
@@ -549,11 +555,12 @@ public class Query {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {userAccounts(filter: ___, page: ___, pageSize: ___, search: ___, siteId: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {siteUserAccounts(filter: ___, page: ___, pageSize: ___, search: ___, siteId: ___, sorts: ___){items {__}, page, pageSize, totalCount}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
-	public UserAccountPage userAccounts(
+	public UserAccountPage siteUserAccounts(
 			@GraphQLName("siteId") Long siteId,
+			@GraphQLName("siteKey") String siteKey,
 			@GraphQLName("search") String search,
 			@GraphQLName("filter") String filterString,
 			@GraphQLName("pageSize") int pageSize,

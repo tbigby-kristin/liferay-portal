@@ -57,7 +57,7 @@ public class Query {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {app(appId: ___){dataDefinitionId, dataLayoutId, dataListViewId, dateCreated, dateModified, id, name, settings, siteId, status, userId}}"}' -u 'test@liferay.com:test'
+	 * curl -H 'Content-Type: text/plain; charset=utf-8' -X 'POST' 'http://localhost:8080/o/graphql' -d $'{"query": "query {app(appId: ___){appDeployments, dataDefinitionId, dataLayoutId, dataListViewId, dateCreated, dateModified, id, name, siteId, status, userId}}"}' -u 'test@liferay.com:test'
 	 */
 	@GraphQLField
 	public App app(@GraphQLName("appId") Long appId) throws Exception {
@@ -96,6 +96,7 @@ public class Query {
 	@GraphQLField
 	public AppPage apps(
 			@GraphQLName("siteId") Long siteId,
+			@GraphQLName("siteKey") String siteKey,
 			@GraphQLName("keywords") String keywords,
 			@GraphQLName("pageSize") int pageSize,
 			@GraphQLName("page") int page,

@@ -14,10 +14,15 @@
 
 package com.liferay.account.service.impl;
 
+import com.liferay.account.exception.DuplicateAccountEntryUserRelException;
+import com.liferay.account.model.AccountEntryUserRel;
+import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.base.AccountEntryUserRelLocalServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
+import com.liferay.portal.kernel.exception.PortalException;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Brian Wing Shun Chan
@@ -28,4 +33,33 @@ import org.osgi.service.component.annotations.Component;
 )
 public class AccountEntryUserRelLocalServiceImpl
 	extends AccountEntryUserRelLocalServiceBaseImpl {
+
+	@Override
+	public AccountEntryUserRel addAccountEntryUserRel(
+			long accountEntryId, long accountUserId)
+		throws PortalException {
+
+		AccountEntryUserRel accountEntryUserRel =
+			accountEntryUserRelPersistence.fetchByAEI_AUI(
+				accountEntryId, accountUserId);
+
+		if (accountEntryUserRel != null) {
+			throw new DuplicateAccountEntryUserRelException();
+		}
+
+		accountEntryLocalService.getAccountEntry(accountEntryId);
+		userLocalService.getUser(accountUserId);
+
+		accountEntryUserRel = createAccountEntryUserRel(
+			counterLocalService.increment());
+
+		accountEntryUserRel.setAccountEntryId(accountEntryId);
+		accountEntryUserRel.setAccountUserId(accountUserId);
+
+		return addAccountEntryUserRel(accountEntryUserRel);
+	}
+
+	@Reference
+	protected AccountEntryLocalService accountEntryLocalService;
+
 }

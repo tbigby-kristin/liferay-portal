@@ -42,7 +42,7 @@ export function reducer(state, action) {
 			return {
 				...state,
 				editingTarget: null,
-				mode: 'inactive',
+				mode: 'active',
 				selectedTarget: action.selector
 			};
 

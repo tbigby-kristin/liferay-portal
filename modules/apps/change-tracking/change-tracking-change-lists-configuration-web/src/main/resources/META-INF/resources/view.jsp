@@ -16,10 +16,25 @@
 
 <%@ include file="/init.jsp" %>
 
-<liferay-ui:success key="configurationSaved" message="the-configuration-has-been-saved" />
-
-<soy:component-renderer
-	context="<%= changeListsConfigurationDisplayContext.getChangeListsConfigurationContext() %>"
-	module="js/ChangeListsConfiguration.es"
-	templateNamespace="com.liferay.change.tracking.change.lists.configuration.web.ChangeListsConfiguration.render"
+<clay:navigation-bar
+	inverted="<%= true %>"
+	navigationItems="<%= changeListsConfigurationDisplayContext.getViewNavigationItems() %>"
 />
+
+<div class="container-fluid container-fluid-max-xl container-form-lg">
+	<aui:form action="<%= changeListsConfigurationDisplayContext.getActionURL() %>" method="post" name="fm">
+		<aui:input name="navigation" type="hidden" value="<%= changeListsConfigurationDisplayContext.getNavigation() %>" />
+		<aui:input name="redirectToOverview" type="hidden" value="<%= false %>" />
+
+		<div class="sheet sheet-lg">
+			<c:choose>
+				<c:when test='<%= Objects.equals(changeListsConfigurationDisplayContext.getNavigation(), "global-settings") %>'>
+					<%@ include file="/global_settings.jspf" %>
+				</c:when>
+				<c:otherwise>
+					<%@ include file="/user_settings.jspf" %>
+				</c:otherwise>
+			</c:choose>
+		</div>
+	</aui:form>
+</div>

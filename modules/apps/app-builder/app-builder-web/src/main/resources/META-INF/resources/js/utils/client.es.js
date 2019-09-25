@@ -22,9 +22,7 @@ export const addItem = (endpoint, item) => {
 			'Content-Type': 'application/json'
 		},
 		method: 'POST'
-	}).then(response => {
-		return response.json();
-	});
+	}).then(response => response.json());
 };
 
 export const confirmDelete = endpoint => item =>
@@ -48,6 +46,15 @@ export const deleteItem = endpoint => {
 	});
 };
 
+export const request = (endpoint, method = 'GET') =>
+	fetch(getURL(endpoint), {
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json'
+		},
+		method
+	});
+
 export const getItem = endpoint => {
 	return fetch(getURL(endpoint), {
 		headers: {
@@ -55,9 +62,7 @@ export const getItem = endpoint => {
 			'Content-Type': 'application/json'
 		},
 		method: 'GET'
-	}).then(response => {
-		return response.json();
-	});
+	}).then(response => response.json());
 };
 
 export const getURL = (
@@ -80,7 +85,5 @@ export const updateItem = (endpoint, item) => {
 			'Content-Type': 'application/json'
 		},
 		method: 'PUT'
-	}).then(response => {
-		return response.json();
-	});
+	}).then(response => response.json());
 };

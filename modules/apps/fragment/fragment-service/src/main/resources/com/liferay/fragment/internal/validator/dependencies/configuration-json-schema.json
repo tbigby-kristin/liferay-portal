@@ -213,6 +213,9 @@
 						"validValues": {
 							"items": {
 								"additionalProperties": false,
+								"not": {
+									"type": "null"
+								},
 								"properties": {
 									"label": {
 										"title": "The Label Schema",

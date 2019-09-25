@@ -23,12 +23,15 @@ import com.liferay.portal.kernel.util.Validator;
 import java.io.InputStream;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.everit.json.schema.Schema;
 import org.everit.json.schema.ValidationException;
 import org.everit.json.schema.loader.SchemaLoader;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -59,7 +62,40 @@ public class FragmentEntryValidatorImpl implements FragmentEntryValidator {
 
 			Schema schema = SchemaLoader.load(jsonObject);
 
-			schema.validate(new JSONObject(configuration));
+			JSONObject configurationJSONObject = new JSONObject(configuration);
+
+			schema.validate(configurationJSONObject);
+
+			JSONArray fieldSetsJSONArray = configurationJSONObject.getJSONArray(
+				"fieldSets");
+
+			Set<String> fieldNames = new HashSet<>();
+
+			for (int fieldSetIndex = 0;
+				 fieldSetIndex < fieldSetsJSONArray.length(); fieldSetIndex++) {
+
+				JSONObject fieldSetJSONObject =
+					fieldSetsJSONArray.getJSONObject(fieldSetIndex);
+
+				JSONArray fieldsJSONArray = fieldSetJSONObject.getJSONArray(
+					"fields");
+
+				for (int fieldIndex = 0; fieldIndex < fieldsJSONArray.length();
+					 fieldIndex++) {
+
+					JSONObject fieldJSONObject = fieldsJSONArray.getJSONObject(
+						fieldIndex);
+
+					if (fieldNames.contains(
+							fieldJSONObject.getString("name"))) {
+
+						throw new FragmentEntryConfigurationException(
+							"Field names must be unique");
+					}
+
+					fieldNames.add(fieldJSONObject.getString("name"));
+				}
+			}
 		}
 		catch (Exception e) {
 			if (e instanceof JSONException) {

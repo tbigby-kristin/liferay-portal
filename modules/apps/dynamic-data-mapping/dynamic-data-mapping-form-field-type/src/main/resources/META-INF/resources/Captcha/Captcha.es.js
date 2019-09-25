@@ -25,6 +25,12 @@ import {Config} from 'metal-state';
  */
 
 class Captcha extends Component {
+	rendered() {
+		if (window.grecaptcha) {
+			window.grecaptcha.reset();
+		}
+	}
+
 	shouldUpdate() {
 		return false;
 	}

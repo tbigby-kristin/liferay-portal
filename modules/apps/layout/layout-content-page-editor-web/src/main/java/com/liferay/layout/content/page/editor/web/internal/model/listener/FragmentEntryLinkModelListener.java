@@ -15,7 +15,6 @@
 package com.liferay.layout.content.page.editor.web.internal.model.listener;
 
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.model.AssetEntryUsage;
 import com.liferay.asset.service.AssetEntryUsageLocalService;
 import com.liferay.dynamic.data.mapping.kernel.DDMTemplate;
@@ -30,8 +29,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.BaseModelListener;
+import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.Portal;
@@ -114,8 +115,15 @@ public class FragmentEntryLinkModelListener
 					ResourceActionsUtil.getCompositeModelName(
 						FragmentEntryLink.class.getName(), editableKey);
 
+				ClassName className = _classNameLocalService.fetchClassName(
+					compositeClassName);
+
+				if (className == null) {
+					continue;
+				}
+
 				_ddmTemplateLinkLocalService.deleteTemplateLink(
-					_portal.getClassNameId(compositeClassName),
+					className.getClassNameId(),
 					fragmentEntryLink.getFragmentEntryLinkId());
 			}
 		}
@@ -241,10 +249,10 @@ public class FragmentEntryLinkModelListener
 	}
 
 	@Reference
-	private AssetEntryLocalService _assetEntryLocalService;
+	private AssetEntryUsageLocalService _assetEntryUsageLocalService;
 
 	@Reference
-	private AssetEntryUsageLocalService _assetEntryUsageLocalService;
+	private ClassNameLocalService _classNameLocalService;
 
 	@Reference
 	private CommentManager _commentManager;

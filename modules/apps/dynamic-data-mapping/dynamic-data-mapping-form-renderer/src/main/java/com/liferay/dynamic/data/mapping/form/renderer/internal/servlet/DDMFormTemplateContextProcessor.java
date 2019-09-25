@@ -127,6 +127,7 @@ public class DDMFormTemplateContextProcessor {
 			jsonObject.getBoolean("required", false), ddmFormField);
 		setDDMFormFieldShowAsSwitcher(
 			jsonObject.getBoolean("showAsSwitcher"), ddmFormField);
+		setDDMFormFieldText(jsonObject.getJSONObject("text"), ddmFormField);
 		setDDMFormFieldTooltip(jsonObject.getString("tooltip"), ddmFormField);
 		setDDMFormFieldValid(
 			jsonObject.getBoolean("valid", true), ddmFormField);
@@ -335,6 +336,17 @@ public class DDMFormTemplateContextProcessor {
 		boolean showAsSwitcher, DDMFormField ddmFormField) {
 
 		ddmFormField.setProperty("showAsSwitcher", showAsSwitcher);
+	}
+
+	protected void setDDMFormFieldText(
+		JSONObject jsonObject, DDMFormField ddmFormField) {
+
+		if (jsonObject == null) {
+			return;
+		}
+
+		ddmFormField.setProperty(
+			"text", getLocalizedValue(jsonObject.getString("content")));
 	}
 
 	protected void setDDMFormFieldTooltip(

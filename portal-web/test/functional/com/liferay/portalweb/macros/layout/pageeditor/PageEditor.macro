@@ -1,5 +1,23 @@
 definition {
 
+	macro addBasicComponent {
+		PageEditor.gotoTab(tabName = "Section Builder");
+
+		PageEditor.expandFragmentCollection(collectionName = "Basic Components");
+
+		DragAndDrop(
+			fragmentName = "${fragmentName}",
+			locator1 = "PageEditor#SECTION_BUILDER_BASIC_COMPONENTS_FRAGMENT",
+			locator2 = "PageEditor#FRAGMENT_DROP_TARGET",
+			value1 = "");
+
+		AssertElementPresent(
+			key_fragmentName = "${fragmentName}",
+			locator1 = "Fragment#FRAGMENT_HEADER");
+
+		PageEditor.waitForAutoSave();
+	}
+
 	macro addComment {
 		PageEditor.gotoTab(tabName = "Comments");
 
@@ -20,6 +38,10 @@ definition {
 			value1 = "${fragmentComment}");
 
 		Button.clickComment();
+
+		AssertElementNotPresent(
+			key_fragmentComment = "${fragmentComment}",
+			locator1 = "PageEditor#FRAGMENT_SIDEBAR_COMMENT_ENTRY_INPUT");
 	}
 
 	macro addCommentViaFragment {
@@ -39,6 +61,10 @@ definition {
 			value1 = "${fragmentComment}");
 
 		Button.clickComment();
+
+		AssertElementNotPresent(
+			key_fragmentComment = "${fragmentComment}",
+			locator1 = "PageEditor#FRAGMENT_SIDEBAR_COMMENT_ENTRY_INPUT");
 	}
 
 	macro addExperience {
@@ -327,7 +353,7 @@ definition {
 			fragmentName = "${fragmentName}",
 			id = "${id}");
 
-		Click(locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_EDIT_BUTTON");
+		DoubleClick(locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_EDIT_BUTTON");
 	}
 
 	macro gotoEditableFieldImageProperties {
@@ -335,23 +361,25 @@ definition {
 			fragmentName = "${fragmentName}",
 			id = "${id}");
 
-		Click(locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_IMAGE_PROPERTIES_BUTTON");
+		DoubleClick(locator1 = "PageEditor#EDITABLE_FIELD_TOOLBAR_IMAGE_PROPERTIES_BUTTON");
 	}
 
 	macro gotoTab {
-		Click(
-			key_tabName = "${tabName}",
-			locator1 = "PageEditor#FRAGMENT_SIDEBAR_TAB_BUTTON");
+		if (IsElementNotPresent(key_tabName = "${tabName}", locator1 = "PageEditor#FRAGMENT_SIDEBAR_TAB_BUTTON_ACTIVE")) {
+			Click(
+				key_tabName = "${tabName}",
+				locator1 = "PageEditor#FRAGMENT_SIDEBAR_TAB_BUTTON");
+		}
 	}
 
 	macro removeFragment {
-		Click(
-			fragment_name = "${fragmentName}",
-			locator1 = "PageEditor#SECTION_NAME");
+		MouseOver.mouseOverNotVisible(
+			key_fragmentName = "${fragmentName}",
+			locator1 = "Fragment#FRAGMENT_HEADER");
 
 		Click(
 			key_fragmentName = "${fragmentName}",
-			locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_DELETE");
+			locator1 = "Fragment#FRAGMENT_HEADER_DELETE_BUTTON");
 
 		AssertElementNotPresent(
 			key_fragmentName = "${fragmentName}",

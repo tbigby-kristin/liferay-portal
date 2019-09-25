@@ -69,29 +69,11 @@ public class SubrepositoryGitRepositoryJob
 	public PortalGitWorkingDirectory getPortalGitWorkingDirectory() {
 		if (portalGitWorkingDirectory == null) {
 			portalGitWorkingDirectory =
-				JenkinsResultsParserUtil.getPortalGitWorkingDirectory(
+				GitWorkingDirectoryFactory.newPortalGitWorkingDirectory(
 					getBranchName());
 		}
 
 		return portalGitWorkingDirectory;
-	}
-
-	public String getPoshiQuery(String testBatchName) {
-		Properties jobProperties = getJobProperties();
-
-		String propertyName = JenkinsResultsParserUtil.combine(
-			"test.batch.run.property.query[", testBatchName, "]");
-
-		if (jobProperties.containsKey(propertyName)) {
-			String propertyValue = JenkinsResultsParserUtil.getProperty(
-				jobProperties, propertyName);
-
-			if ((propertyValue != null) && !propertyValue.isEmpty()) {
-				return propertyValue;
-			}
-		}
-
-		return null;
 	}
 
 	@Override

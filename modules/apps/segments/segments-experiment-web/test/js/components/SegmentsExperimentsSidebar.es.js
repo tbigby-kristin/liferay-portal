@@ -37,6 +37,16 @@ import {
 	STATUS_COMPLETED
 } from '../../../src/main/resources/META-INF/resources/js/util/statuses.es';
 
+jest.mock(
+	'../../../src/main/resources/META-INF/resources/js/util/toasts.es',
+	() => {
+		return {
+			openErrorToast: () => {},
+			openSuccessToast: () => {}
+		};
+	}
+);
+
 function _renderSegmentsExperimentsSidebarComponent({
 	classNameId = '',
 	classPK = '',
@@ -53,9 +63,9 @@ function _renderSegmentsExperimentsSidebarComponent({
 		createExperiment = () => {},
 		createVariant = () => {},
 		deleteVariant = () => {},
-		discardExperiment = () => {},
 		editExperiment = () => {},
 		editVariant = () => {},
+		getEstimatedTime = () => Promise.resolve(),
 		publishExperience = () => {}
 	} = APIService;
 
@@ -66,9 +76,9 @@ function _renderSegmentsExperimentsSidebarComponent({
 					createExperiment,
 					createVariant,
 					deleteVariant,
-					discardExperiment,
 					editExperiment,
 					editVariant,
+					getEstimatedTime,
 					publishExperience
 				},
 				assetsPath: '',
@@ -80,6 +90,7 @@ function _renderSegmentsExperimentsSidebarComponent({
 			}}
 		>
 			<SegmentsExperimentsSidebar
+				initialExperimentHistory={[]}
 				initialGoals={initialGoals}
 				initialSegmentsExperiences={initialSegmentsExperiences}
 				initialSegmentsExperiment={initialSegmentsExperiment}
@@ -298,16 +309,11 @@ describe('Run and review test', () => {
 			initialSegmentsVariants: segmentsVariants
 		});
 
-		const defaultExperience = getByDisplayValue(
-			segmentsExperiences[0].name
-		);
-		expect(defaultExperience).not.toBe(null);
+		getByDisplayValue(segmentsExperiences[0].name);
 
-		const experiment = getByText(segmentsExperiment.name);
-		expect(experiment).not.toBe(null);
+		getByText(segmentsExperiment.name);
 
 		const createTestHelpMessage = getByText('review-and-run-test');
-		expect(createTestHelpMessage).not.toBe(null);
 		expect(createTestHelpMessage).not.toHaveAttribute('disabled');
 
 		userEvent.click(createTestHelpMessage);
@@ -322,6 +328,62 @@ describe('Run and review test', () => {
 		expect(confidenceSlider.length).toBe(1);
 		expect(splitSliders.length).toBe(2);
 	});
+
+	test.todo('Running test cannot be edited');
+
+	test.todo(
+		'Variants cannot be edited/deleted/added in a running experiment'
+	);
+});
+
+describe('Click Target selection', () => {
+	test.todo(
+		'Set Click Target section appears when draft test has goal set to click'
+	);
+
+	test.todo(
+		'All clickable elements highlighted when the user clicks on Set Target Button'
+	);
+
+	test.todo(
+		'A tooltip Click Element to Set as Click Target for your Goal appears when the user clicks on Set Target Button'
+	);
+
+	test.todo('Selectable as target elements show tooltips on hover');
+
+	test.todo(
+		'When the user Set Element as Click Target, then The element is set as the Click Target and the id of the element as a link'
+	);
+
+	test.todo(
+		'Cancel selection click target element proccess when clickign out of selection zone'
+	);
+
+	test.todo(
+		'When hovering over to invalid click target elements, the mouse is displayed in not-allowed mode'
+	);
+
+	test.todo(
+		'The user can edit a selected click target in a draft experiment'
+	);
+
+	test.todo('The user can remove a selected click target in a draft element');
+
+	test.todo(
+		'The user clicks in the UI reference to the selected click target element, the page scrolls to make it visible'
+	);
+});
+
+describe('Experiment history tab', () => {
+	test.todo('test is archived after terminating it');
+
+	test.todo('test is archive after completing it');
+
+	test.todo('test just archived are shown in the top of the history list');
+
+	test.todo('tests have name, description and status label');
+
+	test.todo('history tab title has number of archived tests next to it');
 });
 
 describe('Winner declared', () => {
@@ -408,7 +470,7 @@ describe('Winner declared', () => {
 
 		const {getByText} = _renderSegmentsExperimentsSidebarComponent({
 			APIService: {
-				discardExperiment: mockDiscard
+				publishExperience: mockDiscard
 			},
 			initialSegmentsExperiences: segmentsExperiences,
 			initialSegmentsExperiment: {
@@ -429,7 +491,8 @@ describe('Winner declared', () => {
 
 		expect(mockDiscard).toHaveBeenCalledWith({
 			segmentsExperimentId: segmentsExperiment.segmentsExperimentId,
-			status: STATUS_COMPLETED
+			status: STATUS_COMPLETED,
+			winnerSegmentsExperienceId: segmentsExperiment.segmentsExperienceId
 		});
 
 		await waitForElement(() => getByText('completed'));

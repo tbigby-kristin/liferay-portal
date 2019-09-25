@@ -16,9 +16,10 @@ package com.liferay.app.builder.deploy;
 
 /**
  * @author Jeyvison Nascimento
+ * @author Gabriel Albuquerque
  */
 public interface AppDeployerTracker {
 
-	public AppDeployer getAppDeployer(String deploymentType);
+	public AppDeployer getAppDeployer(String type);
 
 }

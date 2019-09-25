@@ -245,7 +245,8 @@ public interface DEDataDefinitionFieldLinkPersistence
 	 * @throws NoSuchDataDefinitionFieldLinkException if a matching de data definition field link could not be found
 	 */
 	public DEDataDefinitionFieldLink findByC_C_D_F(
-			long classNameId, long classPK, long ddmStructureId, long fieldName)
+			long classNameId, long classPK, long ddmStructureId,
+			String fieldName)
 		throws NoSuchDataDefinitionFieldLinkException;
 
 	/**
@@ -258,7 +259,7 @@ public interface DEDataDefinitionFieldLinkPersistence
 	 * @return the matching de data definition field link, or <code>null</code> if a matching de data definition field link could not be found
 	 */
 	public DEDataDefinitionFieldLink fetchByC_C_D_F(
-		long classNameId, long classPK, long ddmStructureId, long fieldName);
+		long classNameId, long classPK, long ddmStructureId, String fieldName);
 
 	/**
 	 * Returns the de data definition field link where classNameId = &#63; and classPK = &#63; and ddmStructureId = &#63; and fieldName = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
@@ -271,7 +272,7 @@ public interface DEDataDefinitionFieldLinkPersistence
 	 * @return the matching de data definition field link, or <code>null</code> if a matching de data definition field link could not be found
 	 */
 	public DEDataDefinitionFieldLink fetchByC_C_D_F(
-		long classNameId, long classPK, long ddmStructureId, long fieldName,
+		long classNameId, long classPK, long ddmStructureId, String fieldName,
 		boolean useFinderCache);
 
 	/**
@@ -284,7 +285,8 @@ public interface DEDataDefinitionFieldLinkPersistence
 	 * @return the de data definition field link that was removed
 	 */
 	public DEDataDefinitionFieldLink removeByC_C_D_F(
-			long classNameId, long classPK, long ddmStructureId, long fieldName)
+			long classNameId, long classPK, long ddmStructureId,
+			String fieldName)
 		throws NoSuchDataDefinitionFieldLinkException;
 
 	/**
@@ -297,7 +299,7 @@ public interface DEDataDefinitionFieldLinkPersistence
 	 * @return the number of matching de data definition field links
 	 */
 	public int countByC_C_D_F(
-		long classNameId, long classPK, long ddmStructureId, long fieldName);
+		long classNameId, long classPK, long ddmStructureId, String fieldName);
 
 	/**
 	 * Caches the de data definition field link in the entity cache if it is enabled.

@@ -14,40 +14,64 @@
 
 package com.liferay.batch.engine.internal;
 
-import com.liferay.batch.engine.BatchEngineTaskContentType;
 import com.liferay.batch.engine.BatchEngineTaskExecuteStatus;
 import com.liferay.batch.engine.BatchEngineTaskExecutor;
-import com.liferay.batch.engine.BatchEngineTaskItemWriter;
-import com.liferay.batch.engine.BatchEngineTaskOperation;
 import com.liferay.batch.engine.internal.reader.BatchEngineTaskItemReader;
 import com.liferay.batch.engine.internal.reader.BatchEngineTaskItemReaderFactory;
+import com.liferay.batch.engine.internal.writer.BatchEngineTaskItemWriter;
+import com.liferay.batch.engine.internal.writer.BatchEngineTaskItemWriterFactory;
 import com.liferay.batch.engine.model.BatchEngineTask;
 import com.liferay.batch.engine.service.BatchEngineTaskLocalService;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.TransactionConfig;
 import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
-
-import java.sql.Blob;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
+
 /**
  * @author Ivica Cardic
  */
-public class BatchEngineTaskExecutorImpl<T> implements BatchEngineTaskExecutor {
+@Component(service = BatchEngineTaskExecutor.class)
+public class BatchEngineTaskExecutorImpl implements BatchEngineTaskExecutor {
 
-	public BatchEngineTaskExecutorImpl(
-		BatchEngineTaskItemWriterRegistry batchEngineTaskItemWriterRegistry,
-		BatchEngineTaskLocalService batchEngineTaskLocalService,
-		Class<T> itemClass) {
+	@Activate
+	public void activate(BundleContext bundleContext)
+		throws InvalidSyntaxException {
 
-		_batchEngineTaskItemWriterRegistry = batchEngineTaskItemWriterRegistry;
-		_batchEngineTaskLocalService = batchEngineTaskLocalService;
-		_itemClass = itemClass;
+		_batchEngineTaskMethodServiceRegistry =
+			new BatchEngineTaskMethodRegistry(bundleContext);
+
+		_batchEngineTaskItemReaderFactory =
+			new BatchEngineTaskItemReaderFactory(
+				_batchEngineTaskMethodServiceRegistry);
+
+		_batchEngineTaskItemWriterFactory =
+			new BatchEngineTaskItemWriterFactory(
+				_batchEngineTaskMethodServiceRegistry, _companyLocalService,
+				_userLocalService);
+	}
+
+	@Deactivate
+	public void deactivate() {
+		_batchEngineTaskMethodServiceRegistry.destroy();
 	}
 
 	@Override
@@ -66,6 +90,8 @@ public class BatchEngineTaskExecutorImpl<T> implements BatchEngineTaskExecutor {
 				BatchEngineTaskExecuteStatus.COMPLETED.toString());
 
 			_batchEngineTaskLocalService.updateBatchEngineTask(batchEngineTask);
+
+			BatchEngineTaskCallbackUtil.sendCallback(batchEngineTask);
 		}
 		catch (Throwable t) {
 			_log.error(
@@ -77,68 +103,64 @@ public class BatchEngineTaskExecutorImpl<T> implements BatchEngineTaskExecutor {
 				BatchEngineTaskExecuteStatus.FAILED.toString());
 
 			_batchEngineTaskLocalService.updateBatchEngineTask(batchEngineTask);
+
+			BatchEngineTaskCallbackUtil.sendCallback(batchEngineTask);
 		}
 	}
 
 	private void _commitItems(
-			BatchEngineTaskItemWriter<T> batchEngineTaskItemWriter,
-			List<T> items, BatchEngineTaskOperation batchEngineTaskOperation)
+			BatchEngineTaskItemWriter batchEngineTaskItemWriter,
+			List<Object> items)
 		throws Throwable {
-
-		batchEngineTaskItemWriter.write(items, batchEngineTaskOperation);
 
 		TransactionInvokerUtil.invoke(
 			_transactionConfig,
 			() -> {
-				batchEngineTaskItemWriter.write(
-					items, batchEngineTaskOperation);
+				batchEngineTaskItemWriter.write(items);
 
 				return null;
 			});
 	}
 
 	private void _execute(BatchEngineTask batchEngineTask) throws Throwable {
-		List<T> items = new ArrayList<>();
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
 
-		T item = null;
+		User user = _userLocalService.getUser(batchEngineTask.getUserId());
 
-		Blob content = batchEngineTask.getContent();
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(user));
 
-		BatchEngineTaskItemWriter<T> batchEngineTaskItemWriter =
-			_batchEngineTaskItemWriterRegistry.get(
-				batchEngineTask.getClassName(), batchEngineTask.getVersion());
+		String name = PrincipalThreadLocal.getName();
 
-		BatchEngineTaskOperation batchEngineTaskOperation =
-			BatchEngineTaskOperation.valueOf(batchEngineTask.getOperation());
+		PrincipalThreadLocal.setName(user.getUserId());
 
-		try (BatchEngineTaskItemReader<T> batchEngineTaskItemReader =
-				BatchEngineTaskItemReaderFactory.create(
-					BatchEngineTaskContentType.valueOf(
-						batchEngineTask.getContentType()),
-					content.getBinaryStream(), _itemClass)) {
+		try (BatchEngineTaskItemReader batchEngineTaskItemReader =
+				_batchEngineTaskItemReaderFactory.create(batchEngineTask);
+			BatchEngineTaskItemWriter batchEngineTaskItemWriter =
+				_batchEngineTaskItemWriterFactory.create(batchEngineTask)) {
+
+			List<Object> items = new ArrayList<>();
+
+			Object item = null;
 
 			while ((item = batchEngineTaskItemReader.read()) != null) {
-				if (items.size() < batchEngineTask.getBatchSize()) {
-					items.add(item);
-				}
-				else {
-					_commitItems(
-						batchEngineTaskItemWriter, items,
-						batchEngineTaskOperation);
+				items.add(item);
+
+				if (items.size() == batchEngineTask.getBatchSize()) {
+					_commitItems(batchEngineTaskItemWriter, items);
 
 					items.clear();
 				}
 			}
 
 			if (!items.isEmpty()) {
-				_commitItems(
-					batchEngineTaskItemWriter, items, batchEngineTaskOperation);
+				_commitItems(batchEngineTaskItemWriter, items);
 			}
 		}
-
-		if (!items.isEmpty()) {
-			_commitItems(
-				batchEngineTaskItemWriter, items, batchEngineTaskOperation);
+		finally {
+			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+			PrincipalThreadLocal.setName(name);
 		}
 	}
 
@@ -149,9 +171,18 @@ public class BatchEngineTaskExecutorImpl<T> implements BatchEngineTaskExecutor {
 		TransactionConfig.Factory.create(
 			Propagation.REQUIRES_NEW, new Class<?>[] {Exception.class});
 
-	private final BatchEngineTaskItemWriterRegistry
-		_batchEngineTaskItemWriterRegistry;
-	private final BatchEngineTaskLocalService _batchEngineTaskLocalService;
-	private final Class<T> _itemClass;
+	private BatchEngineTaskItemReaderFactory _batchEngineTaskItemReaderFactory;
+	private BatchEngineTaskItemWriterFactory _batchEngineTaskItemWriterFactory;
+
+	@Reference
+	private BatchEngineTaskLocalService _batchEngineTaskLocalService;
+
+	private BatchEngineTaskMethodRegistry _batchEngineTaskMethodServiceRegistry;
+
+	@Reference
+	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

@@ -70,6 +70,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FRAGMENT_SIDEBAR_COMMENT_ENTRY_INPUT</td>
+	<td>//div[contains(@class,'alloy-editor-container') and contains(@id,'pageEditorCommentEditor')]/div[contains(@data-placeholder,'Type your comment here.')]/p[contains(.,'${fragmentComment}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FRAGMENT_SIDEBAR_COMMENT_LIST_HEADING</td>
 	<td>//strong[contains(@class,'text-dark') and contains(.,'${key_fragmentName}')]</td>
 	<td></td>
@@ -185,6 +190,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FRAGMENT_SIDEBAR_TAB_BUTTON_ACTIVE</td>
+	<td>//button[@data-title='${key_tabName}'][contains(@class,'active')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -274,6 +284,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDITABLE_FIELD_TOOLBAR_LINK_BUTTON</td>
+	<td>//button[@data-title='Link']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDITABLE_FIELD_TOOLBAR_MAP_BUTTON</td>
 	<td>//button[@data-title='Map']</td>
 	<td></td>
@@ -289,6 +304,11 @@
 	<td></td>
 </tr>
 <!--SECTION_BUILDER-->
+<tr>
+	<td>SECTION_BUILDER_BASIC_COMPONENTS_FRAGMENT</td>
+	<td>//div[contains(@class,'fragments-editor-sidebar-section__elements-panel-grid')]//div[contains(@data-item-name,'${fragmentName}')]</td>
+	<td></td>
+</tr>
 <tr>
 	<td>SECTION_BUILDER_LAYOUTS_1_COLUMN</td>
 	<td>//div[contains(@class,'sidebar-layouts-section')]//div[1]/div[contains(@class,'drag-handler')]</td>

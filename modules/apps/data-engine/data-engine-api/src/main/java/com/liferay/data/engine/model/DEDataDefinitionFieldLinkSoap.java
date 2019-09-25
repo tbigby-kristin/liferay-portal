@@ -154,11 +154,11 @@ public class DEDataDefinitionFieldLinkSoap implements Serializable {
 		_ddmStructureId = ddmStructureId;
 	}
 
-	public long getFieldName() {
+	public String getFieldName() {
 		return _fieldName;
 	}
 
-	public void setFieldName(long fieldName) {
+	public void setFieldName(String fieldName) {
 		_fieldName = fieldName;
 	}
 
@@ -168,6 +168,6 @@ public class DEDataDefinitionFieldLinkSoap implements Serializable {
 	private long _classNameId;
 	private long _classPK;
 	private long _ddmStructureId;
-	private long _fieldName;
+	private String _fieldName;
 
 }

@@ -69,7 +69,7 @@ public class DEDataDefinitionFieldLinkModelImpl
 		{"uuid_", Types.VARCHAR}, {"deDataDefinitionFieldLinkId", Types.BIGINT},
 		{"groupId", Types.BIGINT}, {"classNameId", Types.BIGINT},
 		{"classPK", Types.BIGINT}, {"ddmStructureId", Types.BIGINT},
-		{"fieldName", Types.BIGINT}
+		{"fieldName", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -82,11 +82,11 @@ public class DEDataDefinitionFieldLinkModelImpl
 		TABLE_COLUMNS_MAP.put("classNameId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("classPK", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("ddmStructureId", Types.BIGINT);
-		TABLE_COLUMNS_MAP.put("fieldName", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("fieldName", Types.VARCHAR);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DEDataDefinitionFieldLink (uuid_ VARCHAR(75) null,deDataDefinitionFieldLinkId LONG not null primary key,groupId LONG,classNameId LONG,classPK LONG,ddmStructureId LONG,fieldName LONG)";
+		"create table DEDataDefinitionFieldLink (uuid_ VARCHAR(75) null,deDataDefinitionFieldLinkId LONG not null primary key,groupId LONG,classNameId LONG,classPK LONG,ddmStructureId LONG,fieldName VARCHAR(75) null)";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table DEDataDefinitionFieldLink";
@@ -298,7 +298,7 @@ public class DEDataDefinitionFieldLinkModelImpl
 			"fieldName", DEDataDefinitionFieldLink::getFieldName);
 		attributeSetterBiConsumers.put(
 			"fieldName",
-			(BiConsumer<DEDataDefinitionFieldLink, Long>)
+			(BiConsumer<DEDataDefinitionFieldLink, String>)
 				DEDataDefinitionFieldLink::setFieldName);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
@@ -453,25 +453,28 @@ public class DEDataDefinitionFieldLinkModelImpl
 	}
 
 	@Override
-	public long getFieldName() {
-		return _fieldName;
+	public String getFieldName() {
+		if (_fieldName == null) {
+			return "";
+		}
+		else {
+			return _fieldName;
+		}
 	}
 
 	@Override
-	public void setFieldName(long fieldName) {
+	public void setFieldName(String fieldName) {
 		_columnBitmask |= FIELDNAME_COLUMN_BITMASK;
 
-		if (!_setOriginalFieldName) {
-			_setOriginalFieldName = true;
-
+		if (_originalFieldName == null) {
 			_originalFieldName = _fieldName;
 		}
 
 		_fieldName = fieldName;
 	}
 
-	public long getOriginalFieldName() {
-		return _originalFieldName;
+	public String getOriginalFieldName() {
+		return GetterUtil.getString(_originalFieldName);
 	}
 
 	public long getColumnBitmask() {
@@ -609,8 +612,6 @@ public class DEDataDefinitionFieldLinkModelImpl
 		deDataDefinitionFieldLinkModelImpl._originalFieldName =
 			deDataDefinitionFieldLinkModelImpl._fieldName;
 
-		deDataDefinitionFieldLinkModelImpl._setOriginalFieldName = false;
-
 		deDataDefinitionFieldLinkModelImpl._columnBitmask = 0;
 	}
 
@@ -641,6 +642,12 @@ public class DEDataDefinitionFieldLinkModelImpl
 			getDdmStructureId();
 
 		deDataDefinitionFieldLinkCacheModel.fieldName = getFieldName();
+
+		String fieldName = deDataDefinitionFieldLinkCacheModel.fieldName;
+
+		if ((fieldName != null) && (fieldName.length() == 0)) {
+			deDataDefinitionFieldLinkCacheModel.fieldName = null;
+		}
 
 		return deDataDefinitionFieldLinkCacheModel;
 	}
@@ -737,9 +744,8 @@ public class DEDataDefinitionFieldLinkModelImpl
 	private long _ddmStructureId;
 	private long _originalDdmStructureId;
 	private boolean _setOriginalDdmStructureId;
-	private long _fieldName;
-	private long _originalFieldName;
-	private boolean _setOriginalFieldName;
+	private String _fieldName;
+	private String _originalFieldName;
 	private long _columnBitmask;
 	private DEDataDefinitionFieldLink _escapedModel;
 

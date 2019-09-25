@@ -114,7 +114,7 @@ public class GoogleDocsMetadataHelper {
 	}
 
 	public boolean containsField(String fieldName) {
-		initDLFileEntryMetadataAndFields();
+		_initDLFileEntryMetadataAndFields();
 
 		Field field = _fieldsMap.get(fieldName);
 
@@ -145,7 +145,7 @@ public class GoogleDocsMetadataHelper {
 		return false;
 	}
 
-	protected void addGoogleDocsDLFileEntryMetadata() {
+	private void _addGoogleDocsDLFileEntryMetadata() {
 		try {
 			DLFileEntry dlFileEntry = _dlFileVersion.getFileEntry();
 
@@ -187,7 +187,7 @@ public class GoogleDocsMetadataHelper {
 			serviceContext.setScopeGroupId(_dlFileVersion.getGroupId());
 			serviceContext.setUserId(_dlFileVersion.getUserId());
 
-			DDMFormValues ddmFormValues = toDDMFormValues(fields);
+			DDMFormValues ddmFormValues = _toDDMFormValues(fields);
 
 			long ddmStorageId = _storageEngine.create(
 				_dlFileVersion.getCompanyId(), ddmStructureId, ddmFormValues,
@@ -212,7 +212,19 @@ public class GoogleDocsMetadataHelper {
 		}
 	}
 
-	protected void initDLFileEntryMetadataAndFields() {
+	private Field _getField(String fieldName) {
+		_initDLFileEntryMetadataAndFields();
+
+		Field field = _fieldsMap.get(fieldName);
+
+		if (field == null) {
+			throw new IllegalArgumentException("Unknown field " + fieldName);
+		}
+
+		return field;
+	}
+
+	private void _initDLFileEntryMetadataAndFields() {
 		if (_fieldsMap != null) {
 			return;
 		}
@@ -229,7 +241,7 @@ public class GoogleDocsMetadataHelper {
 				_dlFileVersion.getFileVersionId());
 
 		if (_dlFileEntryMetadata == null) {
-			addGoogleDocsDLFileEntryMetadata();
+			_addGoogleDocsDLFileEntryMetadata();
 		}
 
 		try {
@@ -253,25 +265,13 @@ public class GoogleDocsMetadataHelper {
 		}
 	}
 
-	protected DDMFormValues toDDMFormValues(Fields fields)
+	private DDMFormValues _toDDMFormValues(Fields fields)
 		throws PortalException {
 
 		return _fieldsToDDMFormValuesConverter.convert(
 			_ddmStructureLocalService.getDDMStructure(
 				_ddmStructure.getStructureId()),
 			fields);
-	}
-
-	private Field _getField(String fieldName) {
-		initDLFileEntryMetadataAndFields();
-
-		Field field = _fieldsMap.get(fieldName);
-
-		if (field == null) {
-			throw new IllegalArgumentException("Unknown field " + fieldName);
-		}
-
-		return field;
 	}
 
 	private final DDMFormValuesToFieldsConverter

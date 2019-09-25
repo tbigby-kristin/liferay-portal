@@ -219,6 +219,8 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 			public static final boolean FINDER_CACHE_ENABLED = false;
 		</#if>
+
+		<#assign columnBitmaskEnabled = false />
 	<#else>
 		<#if !dependencyInjectorDS>
 			public static final boolean ENTITY_CACHE_ENABLED = GetterUtil.getBoolean(${propsUtil}.get("value.object.entity.cache.enabled.${apiPackagePath}.model.${entity.name}"),
@@ -285,11 +287,15 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 
 	<#if dependencyInjectorDS>
 		public static void setEntityCacheEnabled(boolean entityCacheEnabled) {
-			_entityCacheEnabled = entityCacheEnabled;
+			<#if !entity.hasEagerBlobColumn()>
+				_entityCacheEnabled = entityCacheEnabled;
+			</#if>
 		}
 
 		public static void setFinderCacheEnabled(boolean finderCacheEnabled) {
-			_finderCacheEnabled = finderCacheEnabled;
+			<#if !entity.hasEagerBlobColumn()>
+				_finderCacheEnabled = finderCacheEnabled;
+			</#if>
 		}
 	</#if>
 
@@ -1768,8 +1774,13 @@ public class ${entity.name}ModelImpl extends BaseModelImpl<${entity.name}> imple
 	}
 
 	<#if dependencyInjectorDS>
-		private static boolean _entityCacheEnabled;
-		private static boolean _finderCacheEnabled;
+		<#if entity.hasEagerBlobColumn()>
+			private static final boolean _entityCacheEnabled = false;
+			private static final boolean _finderCacheEnabled = false;
+		<#else>
+			private static boolean _entityCacheEnabled;
+			private static boolean _finderCacheEnabled;
+		</#if>
 	</#if>
 
 	<#list entity.databaseRegularEntityColumns as entityColumn>

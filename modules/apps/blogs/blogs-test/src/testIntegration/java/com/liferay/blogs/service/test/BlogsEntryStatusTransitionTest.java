@@ -182,7 +182,7 @@ public class BlogsEntryStatusTransitionTest {
 
 		entry.setDisplayDate(displayDate.getTime());
 
-		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
+		entry = BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
 
 		BlogsEntryLocalServiceUtil.updateStatus(
 			TestPropsValues.getUserId(), entry.getEntryId(),
@@ -190,6 +190,7 @@ public class BlogsEntryStatusTransitionTest {
 			new HashMap<String, Serializable>());
 
 		Assert.assertFalse(isAssetEntryVisible(entry.getEntryId()));
+
 		Assert.assertEquals(0, searchBlogsEntriesCount(group.getGroupId()));
 
 		checkSocialActivity(BlogsActivityKeys.ADD_ENTRY, 1);
@@ -218,7 +219,7 @@ public class BlogsEntryStatusTransitionTest {
 
 		entry.setDisplayDate(displayDate.getTime());
 
-		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
+		entry = BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
 
 		BlogsEntryLocalServiceUtil.updateStatus(
 			TestPropsValues.getUserId(), entry.getEntryId(),
@@ -226,6 +227,7 @@ public class BlogsEntryStatusTransitionTest {
 			new HashMap<String, Serializable>());
 
 		Assert.assertFalse(isAssetEntryVisible(entry.getEntryId()));
+
 		Assert.assertEquals(0, searchBlogsEntriesCount(group.getGroupId()));
 
 		checkSocialActivity(BlogsActivityKeys.UPDATE_ENTRY, 1);
@@ -255,7 +257,7 @@ public class BlogsEntryStatusTransitionTest {
 
 		entry.setDisplayDate(displayDate.getTime());
 
-		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
+		entry = BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
 
 		entry = BlogsEntryLocalServiceUtil.updateStatus(
 			TestPropsValues.getUserId(), entry.getEntryId(),
@@ -266,7 +268,7 @@ public class BlogsEntryStatusTransitionTest {
 
 		entry.setDisplayDate(displayDate.getTime());
 
-		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
+		entry = BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
 
 		BlogsEntryLocalServiceUtil.checkEntries();
 
@@ -289,7 +291,7 @@ public class BlogsEntryStatusTransitionTest {
 
 		entry.setStatus(WorkflowConstants.STATUS_DRAFT);
 
-		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
+		entry = BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
 
 		entry = BlogsEntryLocalServiceUtil.updateStatus(
 			TestPropsValues.getUserId(), entry.getEntryId(),
@@ -302,7 +304,7 @@ public class BlogsEntryStatusTransitionTest {
 
 		entry.setDisplayDate(displayDate.getTime());
 
-		BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
+		entry = BlogsEntryLocalServiceUtil.updateBlogsEntry(entry);
 
 		BlogsEntryLocalServiceUtil.checkEntries();
 

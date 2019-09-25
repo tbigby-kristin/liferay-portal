@@ -95,7 +95,7 @@ public class DEDataDefinitionFieldLinkWrapper
 			setDdmStructureId(ddmStructureId);
 		}
 
-		Long fieldName = (Long)attributes.get("fieldName");
+		String fieldName = (String)attributes.get("fieldName");
 
 		if (fieldName != null) {
 			setFieldName(fieldName);
@@ -158,7 +158,7 @@ public class DEDataDefinitionFieldLinkWrapper
 	 * @return the field name of this de data definition field link
 	 */
 	@Override
-	public long getFieldName() {
+	public String getFieldName() {
 		return model.getFieldName();
 	}
 
@@ -255,7 +255,7 @@ public class DEDataDefinitionFieldLinkWrapper
 	 * @param fieldName the field name of this de data definition field link
 	 */
 	@Override
-	public void setFieldName(long fieldName) {
+	public void setFieldName(String fieldName) {
 		model.setFieldName(fieldName);
 	}
 

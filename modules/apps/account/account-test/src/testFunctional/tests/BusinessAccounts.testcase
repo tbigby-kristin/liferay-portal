@@ -1,0 +1,334 @@
+@component-name = "portal-user-management-and-portal-configuration"
+definition {
+
+	property portal.upstream = "true";
+	property testray.main.component.name = "Business Accounts";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			Accounts.tearDownCP();
+		}
+	}
+
+	@priority = "4"
+	test CancelAccountCreation {
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		LexiconEntry.gotoAdd();
+
+		AssertTextEquals(
+			locator1 = "Portlet#HEADER",
+			value1 = "Add Account");
+
+		PortletEntry.inputName(name = "Cancel Accounts Name");
+
+		Button.clickCancel();
+
+		AssertTextEquals(
+			locator1 = "Portlet#HEADER",
+			value1 = "Accounts");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Search.searchCP(searchTerm = "Cancel Accounts Name");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Cancel Accounts Name");
+	}
+
+	@priority = "4"
+	test DeactivateAccount {
+		for (var accountNumber : list "1,2,3") {
+			ProductMenu.gotoPortlet(
+				category = "Accounts",
+				panel = "Control Panel",
+				portlet = "Accounts");
+
+			Accounts.addCP(
+				accountDescription = "Accounts Name ${accountNumber} Description",
+				accountName = "Accounts Name ${accountNumber} for Test");
+		}
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.deactivateAccount(accountName = "Accounts Name 1 for Test");
+
+		Accounts.viewDeactivateAccount(accountName = "Accounts Name 1 for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.deactivateAccount(
+			accountName = "Accounts Name 2 for Test",
+			deactivateType = "Hide Icon");
+
+		Accounts.viewDeactivateAccount(accountName = "Accounts Name 2 for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.deactivateAccount(
+			accountName = "Accounts Name 3 for Test",
+			deactivateType = "Management Toolbar");
+
+		Accounts.viewDeactivateAccount(accountName = "Accounts Name 3 for Test");
+	}
+
+	@priority = "4"
+	test DeleteAccount {
+		for (var accountNumber : list "1,2,3") {
+			ProductMenu.gotoPortlet(
+				category = "Accounts",
+				panel = "Control Panel",
+				portlet = "Accounts");
+
+			Accounts.addCP(
+				accountDescription = "Accounts Name ${accountNumber} Description",
+				accountName = "Delete Accounts Name ${accountNumber} for Test");
+		}
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.deleteAccount(accountName = "Delete Accounts Name 1 for Test");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Delete Accounts Name 1 for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.deleteAccount(
+			accountName = "Delete Accounts Name 2 for Test",
+			deactivateType = "Delete Icon");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Delete Accounts Name 2 for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.deleteAccount(
+			accountName = "Delete Accounts Name 3 for Test",
+			deactivateType = "Management Toolbar");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Delete Accounts Name 3 for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+
+		for (var accountNumber : list "1,2,3") {
+			LexiconEntry.viewNoEntry(rowEntry = "Delete Accounts Name ${accountNumber} for Test");
+		}
+	}
+
+	@description = "This is a use case for LPS-101315."
+	@priority = "4"
+	test DeleteDeactivateAccount {
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.addCP(
+			accountDescription = "Accounts Name Description for Test",
+			accountName = "Accounts Name for Test",
+			accountStatus = "Inactive");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+
+		Accounts.deleteAccount(accountName = "Accounts Name for Test");
+
+		ManagementBar.viewFilterAndOrder(menuItem = "Inactive");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Accounts Name for Test");
+	}
+
+	@priority = "5"
+	test Smoke {
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.addCP(accountName = "Accounts Name for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Search.searchCP(searchTerm = "Accounts Name for Test");
+
+		LexiconEntry.viewEntryName(rowEntry = "Accounts Name for Test");
+
+		LexiconEntry.viewEntryStatus(
+			rowEntry = "Accounts Name for Test",
+			rowStatus = "ACTIVE");
+	}
+
+	@priority = "4"
+	test UpdateAccount {
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.addCP(
+			accountDescription = "Accounts Name Description for Test",
+			accountName = "Accounts Name for Test");
+
+		AssertElementPresent(locator1 = "Icon#BACK");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Search.searchCP(searchTerm = "Accounts Name for Test");
+
+		Accounts.editCP(
+			accountDescriptionEdit = "Update Accounts Name Description for Test",
+			accountName = "Accounts Name for Test",
+			accountNameEdit = "Update Accounts Name for Test",
+			accountStatusEdit = "Inactive");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+
+		LexiconEntry.viewEntryName(rowEntry = "Update Accounts Name for Test");
+
+		LexiconEntry.viewEntryStatus(
+			rowEntry = "Update Accounts Name for Test",
+			rowStatus = "INACTIVE");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Accounts Name for Test");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Accounts Name for Test");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+
+		LexiconEntry.gotoEntry(rowEntry = "Update Accounts Name for Test");
+
+		PortletEntry.inputName(name = "Update Accounts Name via Name Link");
+
+		Check.checkToggleSwitch(locator1 = "ToggleSwitch#ACCOUNT_STATUS");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		AssertTextEquals(
+			locator1 = "Portlet#HEADER",
+			value1 = "Edit Update Accounts Name via Name Link");
+
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		LexiconEntry.viewEntryName(rowEntry = "Update Accounts Name via Name Link");
+
+		LexiconEntry.viewEntryStatus(
+			rowEntry = "Update Accounts Name via Name Link",
+			rowStatus = "ACTIVE");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Update Accounts Name for Test");
+	}
+
+	@description = "This is a use case for LPS-101221."
+	@priority = "4"
+	test UpdateDeactivateAccountViaNameLink {
+		ProductMenu.gotoPortlet(
+			category = "Accounts",
+			panel = "Control Panel",
+			portlet = "Accounts");
+
+		Accounts.addCP(
+			accountDescription = "Accounts Name Description for Test",
+			accountName = "Accounts Name for Test",
+			accountStatus = "Inactive");
+
+		Navigator.gotoBack();
+
+		LexiconEntry.viewNoEntry(rowEntry = "Accounts Name for Test");
+
+		ManagementBar.setFilterAndOrder(filterBy = "Inactive");
+
+		LexiconEntry.viewEntryName(rowEntry = "Accounts Name for Test");
+
+		LexiconEntry.viewEntryStatus(
+			rowEntry = "Accounts Name for Test",
+			rowStatus = "INACTIVE");
+
+		LexiconEntry.gotoEntry(rowEntry = "Accounts Name for Test");
+
+		PortletEntry.inputName(name = "Update Accounts Name via Name Link");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+
+		AssertTextEquals(
+			locator1 = "Portlet#HEADER",
+			value1 = "Edit Update Accounts Name via Name Link");
+
+		Navigator.gotoBack();
+
+		ManagementBar.viewFilterAndOrder(menuItem = "Inactive");
+
+		LexiconEntry.viewEntryName(rowEntry = "Update Accounts Name via Name Link");
+
+		LexiconEntry.viewEntryStatus(
+			rowEntry = "Update Accounts Name via Name Link",
+			rowStatus = "INACTIVE");
+
+		LexiconEntry.viewNoEntry(rowEntry = "Accounts Name for Test");
+	}
+
+}

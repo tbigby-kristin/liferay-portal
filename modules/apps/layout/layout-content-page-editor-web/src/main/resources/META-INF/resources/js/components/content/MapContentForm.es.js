@@ -64,62 +64,71 @@ class MapContentForm extends PortletBase {
 	 */
 	syncSelectedItems() {
 		if (this.selectedItems) {
-			this.selectedItems = this.selectedItems.map(selectedItem => {
-				const itemPath = getItemPath(
-					selectedItem.itemId,
-					selectedItem.itemType,
-					this.layoutData.structure
-				);
-
-				const fragmentEntryLinkId = itemPath.find(
-					activeItem =>
-						activeItem.itemType ===
-						FRAGMENTS_EDITOR_ITEM_TYPES.fragment
-				).itemId;
-
-				const fragmentEntryLink = this.fragmentEntryLinks[
-					fragmentEntryLinkId
-				];
-
-				const editableValues =
-					fragmentEntryLink.editableValues[
-						EDITABLE_FRAGMENT_ENTRY_PROCESSOR
-					] || {};
-
-				const languageId = this.languageId || this.defaultLanguageId;
-				const segmentsExperienceId = `segments-experience-id-${this
-					.segmentsExperienceId || this.defaultSegmentsExperienceId}`;
-
-				const editableId = selectedItem.itemId
-					.split('-')
-					.slice(1)
-					.join('-');
-
-				selectedItem.editableId = editableId;
-				selectedItem.fragmentEntryLinkId = fragmentEntryLinkId;
-				selectedItem.itemValue = editableValues[editableId][
-					segmentsExperienceId
-				]
-					? editableValues[editableId][segmentsExperienceId][
-							languageId
-					  ]
-					: editableValues[editableId].defaultValue.trim();
-
-				if (selectedItem.itemValue.url) {
-					selectedItem.itemValue = selectedItem.itemValue.url;
-					selectedItem.displayValue = stripHTML(
-						selectedItem.itemValue.title
-							? selectedItem.itemValue.title
-							: selectedItem.itemValue
+			this.selectedItems = this.selectedItems
+				.filter(selectedItem => {
+					return (
+						selectedItem.itemType ===
+						FRAGMENTS_EDITOR_ITEM_TYPES.editable
 					);
-				} else {
-					selectedItem.displayValue = stripHTML(
-						selectedItem.itemValue
+				})
+				.map(selectedItem => {
+					const itemPath = getItemPath(
+						selectedItem.itemId,
+						selectedItem.itemType,
+						this.layoutData.structure
 					);
-				}
 
-				return selectedItem;
-			});
+					const fragmentEntryLinkId = itemPath.find(
+						activeItem =>
+							activeItem.itemType ===
+							FRAGMENTS_EDITOR_ITEM_TYPES.fragment
+					).itemId;
+
+					const fragmentEntryLink = this.fragmentEntryLinks[
+						fragmentEntryLinkId
+					];
+
+					const editableValues =
+						fragmentEntryLink.editableValues[
+							EDITABLE_FRAGMENT_ENTRY_PROCESSOR
+						] || {};
+
+					const languageId =
+						this.languageId || this.defaultLanguageId;
+					const segmentsExperienceId = `segments-experience-id-${this
+						.segmentsExperienceId ||
+						this.defaultSegmentsExperienceId}`;
+
+					const editableId = selectedItem.itemId
+						.split('-')
+						.slice(1)
+						.join('-');
+
+					selectedItem.editableId = editableId;
+					selectedItem.fragmentEntryLinkId = fragmentEntryLinkId;
+					selectedItem.itemValue = editableValues[editableId][
+						segmentsExperienceId
+					]
+						? editableValues[editableId][segmentsExperienceId][
+								languageId
+						  ]
+						: editableValues[editableId].defaultValue.trim();
+
+					if (selectedItem.itemValue.url) {
+						selectedItem.itemValue = selectedItem.itemValue.url;
+						selectedItem.displayValue = stripHTML(
+							selectedItem.itemValue.title
+								? selectedItem.itemValue.title
+								: selectedItem.itemValue
+						);
+					} else {
+						selectedItem.displayValue = stripHTML(
+							selectedItem.itemValue
+						);
+					}
+
+					return selectedItem;
+				});
 		}
 	}
 
@@ -135,7 +144,11 @@ class MapContentForm extends PortletBase {
 		const newFields = this.fields.map(field => {
 			let newField = Object.assign({}, field);
 
-			if (fieldKey === '-' && field.editableId === editableId) {
+			if (
+				(fieldKey === '-' || field.key !== fieldKey) &&
+				field.editableId === editableId &&
+				field.fragmentEntryLinkId === fragmentEntryLinkId
+			) {
 				newField = {
 					disabled: false,
 					key: field.key,
@@ -165,7 +178,11 @@ class MapContentForm extends PortletBase {
 				let itemValue = '';
 
 				this.selectedItems.forEach(selectedItem => {
-					if (selectedItem.editableId === field.editableId) {
+					if (
+						selectedItem.editableId === field.editableId &&
+						selectedItem.fragmentEntryLinkId ===
+							field.fragmentEntryLinkId
+					) {
 						itemValue = selectedItem.itemValue;
 					}
 				});

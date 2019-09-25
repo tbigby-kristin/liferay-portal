@@ -25,7 +25,7 @@ import {
 	CLEAR_HOVERED_ITEM,
 	UPDATE_HOVERED_ITEM
 } from './actions/actions.es';
-import {getFragmentEntryLinkListElement} from './utils/FragmentsEditorGetUtils.es';
+import {getFragmentEntryLinkListElements} from './utils/FragmentsEditorGetUtils.es';
 import {INITIAL_STATE} from './store/state.es';
 import {
 	startListeningWidgetConfigurationChange,
@@ -34,17 +34,26 @@ import {
 import {Store} from './store/store.es';
 import templates from './FragmentsEditor.soy';
 import {updateActiveItemAction} from './actions/updateActiveItem.es';
-import {FRAGMENTS_EDITOR_ITEM_TYPES} from './utils/constants';
 
 /**
- * DOM selector where the fragmentEntryLinks are rendered
+ * @type {string}
  */
-const WRAPPER_SELECTOR = '.fragment-entry-link-list-wrapper';
+const ITEM_CLASS = 'fragments-editor__item';
+
+/**
+ * @type {string}
+ */
+const HOVERED_ITEM_CLASS = `${ITEM_CLASS}--hovered`;
 
 /**
  * DOM selector where the sidebar is rendered
  */
 const SIDEBAR_SELECTOR = '.fragments-editor-sidebar';
+
+/**
+ * DOM selector where the fragmentEntryLinks are rendered
+ */
+const WRAPPER_SELECTOR = '.fragment-entry-link-list-wrapper';
 
 /**
  * FragmentsEditor
@@ -53,27 +62,29 @@ const SIDEBAR_SELECTOR = '.fragments-editor-sidebar';
 class FragmentsEditor extends Component {
 	/**
 	 * @param {KeyboardEvent|MouseEvent} event
-	 * @return {{fragmentsEditorItemId: string|null, fragmentsEditorItemType: string|null}}
+	 * @return {{targetItem: HTMLElement, targetItemId: string|null, targetItemType: string|null}}
 	 * @private
 	 * @review
 	 */
 	static _getTargetItemData(event) {
+		let targetItem = event.target;
 		let {targetItemId = null, targetItemType = null} =
-			event.target.dataset || {};
+			targetItem.dataset || {};
 
 		if (!targetItemId || !targetItemType) {
-			const parent = dom.closest(
+			targetItem = dom.closest(
 				event.target,
 				'[data-fragments-editor-item-id]'
 			);
 
-			if (parent) {
-				targetItemId = parent.dataset.fragmentsEditorItemId;
-				targetItemType = parent.dataset.fragmentsEditorItemType;
+			if (targetItem) {
+				targetItemId = targetItem.dataset.fragmentsEditorItemId;
+				targetItemType = targetItem.dataset.fragmentsEditorItemType;
 			}
 		}
 
 		return {
+			targetItem,
 			targetItemId,
 			targetItemType
 		};
@@ -103,6 +114,7 @@ class FragmentsEditor extends Component {
 	 */
 	disposed() {
 		document.removeEventListener('click', this._handleDocumentClick, true);
+		document.removeEventListener('keydown', this._handleDocumentKeyDown);
 		document.removeEventListener('keyup', this._handleDocumentKeyUp);
 		document.removeEventListener(
 			'mouseover',
@@ -204,39 +216,28 @@ class FragmentsEditor extends Component {
 			targetItemType
 		} = FragmentsEditor._getTargetItemData(event);
 
-		const targetItem = getFragmentEntryLinkListElement(
+		document
+			.querySelectorAll(`.${HOVERED_ITEM_CLASS}`)
+			.forEach(hoveredItem => {
+				hoveredItem.classList.remove(HOVERED_ITEM_CLASS);
+			});
+
+		const targetItems = getFragmentEntryLinkListElements(
 			targetItemId,
 			targetItemType
 		);
 
-		if (targetItem) {
-			const targetItemIsEditable =
-				targetItemType === FRAGMENTS_EDITOR_ITEM_TYPES.editable ||
-				targetItemType ===
-					FRAGMENTS_EDITOR_ITEM_TYPES.backgroundImageEditable;
+		if (targetItems.length > 0) {
+			targetItems.forEach(targetItem => {
+				targetItem.classList.add(ITEM_CLASS);
+				targetItem.classList.add(HOVERED_ITEM_CLASS);
+			});
+		}
 
-			let hoveredItemId = targetItemId;
-			let hoveredItemType = targetItemType;
-
-			if (targetItemIsEditable) {
-				const fragment = getFragmentEntryLinkListElement(
-					targetItem.dataset.fragmentEntryLinkId,
-					FRAGMENTS_EDITOR_ITEM_TYPES.fragment
-				);
-
-				if (
-					!targetItem.classList.contains(
-						'fragments-editor__editable--highlighted'
-					)
-				) {
-					hoveredItemId = fragment.dataset.fragmentsEditorItemId;
-					hoveredItemType = FRAGMENTS_EDITOR_ITEM_TYPES.fragment;
-				}
-			}
-
+		if (targetItemId && targetItemType) {
 			this.store.dispatch({
-				hoveredItemId,
-				hoveredItemType,
+				hoveredItemId: targetItemId,
+				hoveredItemType: targetItemType,
 				type: UPDATE_HOVERED_ITEM
 			});
 		} else {

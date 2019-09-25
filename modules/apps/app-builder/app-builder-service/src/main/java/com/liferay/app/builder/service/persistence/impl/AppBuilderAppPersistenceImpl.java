@@ -1601,7 +1601,7 @@ public class AppBuilderAppPersistenceImpl
 
 			if ((list != null) && !list.isEmpty()) {
 				for (AppBuilderApp appBuilderApp : list) {
-					if ((groupId != appBuilderApp.getGroupId())) {
+					if (groupId != appBuilderApp.getGroupId()) {
 						list = null;
 
 						break;
@@ -3182,7 +3182,6 @@ public class AppBuilderAppPersistenceImpl
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("uuid", "uuid_");
-		dbColumnNames.put("settings", "settings_");
 
 		setDBColumnNames(dbColumnNames);
 	}
@@ -4161,7 +4160,7 @@ public class AppBuilderAppPersistenceImpl
 		AppBuilderAppPersistenceImpl.class);
 
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
-		new String[] {"uuid", "settings"});
+		new String[] {"uuid"});
 
 	static {
 		try {

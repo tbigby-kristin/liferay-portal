@@ -1376,8 +1376,6 @@ public class DLAppHelperLocalServiceImpl
 			throw new TrashEntryException();
 		}
 
-		// File versions
-
 		List<DLFileVersion> dlFileVersions =
 			dlFileVersionLocalService.getFileVersions(
 				fileEntry.getFileEntryId(), WorkflowConstants.STATUS_ANY);
@@ -1415,6 +1413,9 @@ public class DLAppHelperLocalServiceImpl
 		}
 
 		// Trash
+
+		dlFileVersions = dlFileVersionLocalService.getFileVersions(
+			fileEntry.getFileEntryId(), WorkflowConstants.STATUS_ANY);
 
 		for (DLFileVersion curDLFileVersion : dlFileVersions) {
 			curDLFileVersion.setStatus(WorkflowConstants.STATUS_IN_TRASH);

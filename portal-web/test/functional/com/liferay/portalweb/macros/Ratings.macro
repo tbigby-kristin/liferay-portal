@@ -4,7 +4,12 @@ definition {
 		var key_ratingResult = StringUtil.replace("${ratingResult}", " ", "-");
 		var key_ratingResult = StringUtil.lowerCase("${key_ratingResult}");
 
-		Click(locator1 = "Ratings#THUMB");
+		if (isSet(commentRating)) {
+			Click(locator1 = "Ratings#COMMENT_RATING_THUMB");
+		}
+		else {
+			Click(locator1 = "Ratings#THUMB");
+		}
 	}
 
 	macro viewRating {
@@ -12,9 +17,16 @@ definition {
 		var key_ratingResult = StringUtil.lowerCase("${key_ratingResult}");
 
 		if (isSet(ratingResult)) {
-			AssertTextEquals(
-				locator1 = "Ratings#THUMB",
-				value1 = "${voteCount}");
+			if (isSet(commentRating)) {
+				AssertTextEquals(
+					locator1 = "Ratings#COMMENT_RATING_THUMB",
+					value1 = "${voteCount}");
+			}
+			else {
+				AssertTextEquals(
+					locator1 = "Ratings#THUMB",
+					value1 = "${voteCount}");
+			}
 		}
 		else {
 			AssertTextEquals(

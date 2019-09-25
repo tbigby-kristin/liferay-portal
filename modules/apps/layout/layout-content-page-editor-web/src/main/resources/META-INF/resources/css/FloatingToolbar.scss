@@ -49,28 +49,12 @@
 		z-index: $floatingToolbarPanelZIndex;
 
 		& > .popover {
+			max-height: 250px;
 			min-width: $floatingToolbarPanelMinWidth;
-			padding: $fragmentsEditorSpacing * 2;
 			position: static;
-		}
 
-		& > .dropdown-menu {
-			min-width: $floatingToolbarPanelMinWidth;
-		}
-
-		&--fixed {
-			padding: $fragmentsEditorSpacing;
-
-			.dropdown-menu {
-				max-width: none;
-
-				&:after {
-					padding: 0;
-				}
-
-				.inline-scroller {
-					max-height: 320px;
-				}
+			&.popover-scrollable {
+				overflow: auto;
 			}
 		}
 
@@ -156,5 +140,11 @@
 }
 
 .item-selector-dropdown-menu {
-	max-height: 240px;
+	max-height: 230px;
+}
+
+.floating-toolbar-fragment-configuration-panel {
+	.item-selector-dropdown-menu {
+		max-height: 130px;
+	}
 }

@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
 import com.liferay.portal.kernel.exception.CompanyWebIdException;
 import com.liferay.portal.kernel.exception.NoSuchCompanyException;
 import com.liferay.portal.kernel.exception.RequiredCompanyException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
@@ -116,6 +118,8 @@ public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 				SessionErrors.add(actionRequest, e.getClass());
 			}
 			else {
+				_log.error(e, e);
+
 				throw e;
 			}
 
@@ -163,6 +167,9 @@ public class EditInstanceMVCActionCommand extends BaseMVCActionCommand {
 
 		synchronizePortalInstances();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		EditInstanceMVCActionCommand.class);
 
 	@Reference
 	private CompanyLocalService _companyLocalService;

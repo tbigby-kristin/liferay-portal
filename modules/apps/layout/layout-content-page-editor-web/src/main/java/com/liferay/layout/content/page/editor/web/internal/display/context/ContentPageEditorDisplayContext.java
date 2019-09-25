@@ -42,7 +42,6 @@ import com.liferay.info.item.selector.InfoItemSelectorTracker;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.ItemSelectorCriterion;
 import com.liferay.item.selector.criteria.DownloadFileEntryItemSelectorReturnType;
-import com.liferay.item.selector.criteria.DownloadURLItemSelectorReturnType;
 import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
 import com.liferay.item.selector.criteria.image.criterion.ImageItemSelectorCriterion;
 import com.liferay.item.selector.criteria.url.criterion.URLItemSelectorCriterion;
@@ -236,15 +235,12 @@ public class ContentPageEditorDisplayContext {
 		).put(
 			"editFragmentEntryLinkCommentURL",
 			getFragmentEntryActionURL(
-				"/content_layout/edit_fragment_entry_link_comment")
+				"/content_layout/edit_fragment_entry_link_comment",
+				Constants.UPDATE)
 		).put(
 			"editFragmentEntryLinkURL",
 			getFragmentEntryActionURL(
 				"/content_layout/edit_fragment_entry_link")
-		).put(
-			"editFragmentEntryLinksURL",
-			getFragmentEntryActionURL(
-				"/content_layout/edit_fragment_entry_links")
 		).put(
 			"elements",
 			_getFragmentCollectionsSoyContexts(FragmentConstants.TYPE_COMPONENT)
@@ -351,9 +347,17 @@ public class ContentPageEditorDisplayContext {
 	}
 
 	protected String getFragmentEntryActionURL(String action) {
+		return getFragmentEntryActionURL(action, null);
+	}
+
+	protected String getFragmentEntryActionURL(String action, String command) {
 		PortletURL actionURL = _renderResponse.createActionURL();
 
 		actionURL.setParameter(ActionRequest.ACTION_NAME, action);
+
+		if (Validator.isNotNull(command)) {
+			actionURL.setParameter(Constants.CMD, command);
+		}
 
 		return HttpUtil.addParameter(
 			actionURL.toString(), "p_l_mode", Constants.EDIT);
@@ -1037,8 +1041,7 @@ public class ContentPageEditorDisplayContext {
 			new ImageItemSelectorCriterion();
 
 		itemSelectorCriterion.setDesiredItemSelectorReturnTypes(
-			new DownloadFileEntryItemSelectorReturnType(),
-			new DownloadURLItemSelectorReturnType());
+			new DownloadFileEntryItemSelectorReturnType());
 
 		_imageItemSelectorCriterion = itemSelectorCriterion;
 

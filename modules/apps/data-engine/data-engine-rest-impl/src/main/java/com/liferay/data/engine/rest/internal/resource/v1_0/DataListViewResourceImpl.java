@@ -19,6 +19,7 @@ import com.liferay.data.engine.model.DEDataListView;
 import com.liferay.data.engine.rest.dto.v1_0.DataListView;
 import com.liferay.data.engine.rest.internal.odata.entity.v1_0.DataDefinitionEntityModel;
 import com.liferay.data.engine.rest.resource.v1_0.DataListViewResource;
+import com.liferay.data.engine.service.DEDataDefinitionFieldLinkLocalService;
 import com.liferay.data.engine.service.DEDataListViewLocalService;
 import com.liferay.data.engine.util.comparator.DEDataListViewCreateDateComparator;
 import com.liferay.data.engine.util.comparator.DEDataListViewModifiedDateComparator;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
@@ -156,16 +158,21 @@ public class DataListViewResourceImpl
 		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
 			dataDefinitionId);
 
-		DEDataListView deDataListView =
+		dataListView = _toDataListView(
 			_deDataListViewLocalService.addDEDataListView(
 				ddmStructure.getGroupId(), contextCompany.getCompanyId(),
 				PrincipalThreadLocal.getUserId(),
 				MapUtil.toString(dataListView.getAppliedFilters()),
 				dataDefinitionId, Arrays.toString(dataListView.getFieldNames()),
 				LocalizedValueUtil.toLocaleStringMap(dataListView.getName()),
-				dataListView.getSortField());
+				dataListView.getSortField()));
 
-		dataListView.setId(deDataListView.getPrimaryKey());
+		for (String fieldName : dataListView.getFieldNames()) {
+			_deDataDefinitionFieldLinkLocalService.addDEDataDefinitionFieldLink(
+				dataListView.getSiteId(),
+				_portal.getClassNameId(DEDataListView.class),
+				dataListView.getId(), ddmStructure.getStructureId(), fieldName);
+		}
 
 		return dataListView;
 	}
@@ -246,9 +253,16 @@ public class DataListViewResourceImpl
 	private DDMStructureLocalService _ddmStructureLocalService;
 
 	@Reference
+	private DEDataDefinitionFieldLinkLocalService
+		_deDataDefinitionFieldLinkLocalService;
+
+	@Reference
 	private DEDataListViewLocalService _deDataListViewLocalService;
 
 	@Reference
 	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Portal _portal;
 
 }

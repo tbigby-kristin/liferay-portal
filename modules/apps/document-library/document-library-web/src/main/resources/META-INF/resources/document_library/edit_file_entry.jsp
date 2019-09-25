@@ -305,7 +305,7 @@ if (portletTitleBasedNavigation) {
 													title: '<liferay-ui:message arguments="folder" key="select-x" />',
 
 													<liferay-portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-														<portlet:param name="mvcRenderCommandName" value='<%= "/document_library/select_folder" %>' />
+														<portlet:param name="mvcRenderCommandName" value="/document_library/select_folder" />
 													</liferay-portlet:renderURL>
 
 													uri: '<%= selectFolderURL.toString() %>'
@@ -452,16 +452,22 @@ if (portletTitleBasedNavigation) {
 					</c:otherwise>
 				</c:choose>
 
-				<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page-template">
-					<liferay-asset:select-asset-display-page
-						classNameId="<%= PortalUtil.getClassNameId(DLFileEntry.class) %>"
-						classPK="<%= (fileEntry != null) ? fileEntry.getFileEntryId() : 0 %>"
-						classTypeId="<%= (fileEntryTypeId < 0) ? DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT : fileEntryTypeId %>"
-						groupId="<%= scopeGroupId %>"
-						showPortletLayouts="<%= true %>"
-						showViewInContextLink="<%= true %>"
-					/>
-				</aui:fieldset>
+				<%
+				Group scopeGroup = themeDisplay.getScopeGroup();
+				%>
+
+				<c:if test="<%= !scopeGroup.isCompany() %>">
+					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page-template">
+						<liferay-asset:select-asset-display-page
+							classNameId="<%= PortalUtil.getClassNameId(DLFileEntry.class) %>"
+							classPK="<%= (fileEntry != null) ? fileEntry.getFileEntryId() : 0 %>"
+							classTypeId="<%= (fileEntryTypeId < 0) ? DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT : fileEntryTypeId %>"
+							groupId="<%= scopeGroupId %>"
+							showPortletLayouts="<%= true %>"
+							showViewInContextLink="<%= true %>"
+						/>
+					</aui:fieldset>
+				</c:if>
 
 				<c:if test="<%= (folder == null) || folder.isSupportsMetadata() %>">
 					<liferay-expando:custom-attributes-available

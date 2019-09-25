@@ -29,6 +29,35 @@ public class GitWorkingDirectoryFactory {
 		String upstreamBranchName, File gitRepositoryDir,
 		String gitRepositoryName) {
 
+		if ((gitRepositoryDir == null) && (gitRepositoryName == null)) {
+			throw new IllegalArgumentException(
+				"Git repository directory and Git repository name are null");
+		}
+
+		if (gitRepositoryDir == null) {
+			if (gitRepositoryName.equals("liferay-portal") &&
+				!upstreamBranchName.equals("master")) {
+
+				gitRepositoryName += "-ee";
+
+				gitRepositoryDir = new File(
+					JenkinsResultsParserUtil.getBaseGitRepositoryDir(),
+					"liferay-portal-" + upstreamBranchName);
+			}
+
+			if (gitRepositoryName.startsWith("com-liferay-") &&
+				!gitRepositoryName.endsWith("-private")) {
+
+				gitRepositoryDir = new File(
+					JenkinsResultsParserUtil.getBaseGitRepositoryDir(),
+					gitRepositoryName + "-private");
+			}
+
+			gitRepositoryDir = new File(
+				JenkinsResultsParserUtil.getBaseGitRepositoryDir(),
+				gitRepositoryName);
+		}
+
 		if (!gitRepositoryDir.exists()) {
 			throw new RuntimeException(
 				"Directory path not found " + gitRepositoryDir);
@@ -99,31 +128,28 @@ public class GitWorkingDirectoryFactory {
 			gitRepositoryName);
 	}
 
+	public static GitWorkingDirectory newJenkinsGitWorkingDirectory() {
+		return newGitWorkingDirectory(
+			"master",
+			new File(
+				JenkinsResultsParserUtil.getBaseGitRepositoryDir(),
+				"liferay-jenkins-ee"),
+			"liferay-jenkins-ee");
+	}
+
+	public static PortalGitWorkingDirectory newPortalGitWorkingDirectory(
+		String upstreamBranchName) {
+
+		return (PortalGitWorkingDirectory)newGitWorkingDirectory(
+			upstreamBranchName, (File)null, "liferay-portal");
+	}
+
 	public static SubrepositoryGitWorkingDirectory
 		newSubrepositoryGitWorkingDirectory(
-			String upstreamBranchName, String repositoryName) {
+			String upstreamBranchName, String gitRepositoryName) {
 
-		String gitRepositoryDirName = repositoryName;
-		String gitRepositoryName = repositoryName;
-
-		if (!gitRepositoryDirName.endsWith("-private")) {
-			gitRepositoryDirName += "-private";
-		}
-
-		File gitRepositoryDir = new File(
-			JenkinsResultsParserUtil.getBaseGitRepositoryDir(),
-			gitRepositoryDirName);
-
-		GitWorkingDirectory gitWorkingDirectory = newGitWorkingDirectory(
-			upstreamBranchName, gitRepositoryDir, gitRepositoryName);
-
-		if (!(gitWorkingDirectory instanceof
-				SubrepositoryGitWorkingDirectory)) {
-
-			throw new RuntimeException("Invalid Git working directory");
-		}
-
-		return (SubrepositoryGitWorkingDirectory)gitWorkingDirectory;
+		return (SubrepositoryGitWorkingDirectory)newGitWorkingDirectory(
+			upstreamBranchName, (File)null, gitRepositoryName);
 	}
 
 	private static final Map<String, GitWorkingDirectory>

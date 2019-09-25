@@ -53,6 +53,15 @@ public class DEDataDefinitionFieldLinkLocalServiceUtil {
 			deDataDefinitionFieldLink);
 	}
 
+	public static com.liferay.data.engine.model.DEDataDefinitionFieldLink
+		addDEDataDefinitionFieldLink(
+			long groupId, long classNameId, long classPK, long ddmStructureId,
+			String fieldName) {
+
+		return getService().addDEDataDefinitionFieldLink(
+			groupId, classNameId, classPK, ddmStructureId, fieldName);
+	}
+
 	/**
 	 * Creates a new de data definition field link with the primary key. Does not add the de data definition field link to the database.
 	 *

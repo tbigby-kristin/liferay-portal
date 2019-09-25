@@ -65,34 +65,21 @@ public abstract class PortalAcceptanceTestSuiteJob
 	}
 
 	@Override
-	public String getPoshiQuery(String testBatchName) {
-		String[] propertyNames = {
-			JenkinsResultsParserUtil.combine(
-				"test.batch.run.property.query[", testBatchName, "][",
-				_testSuiteName, "]"),
-			JenkinsResultsParserUtil.combine(
-				"test.batch.run.property.query[", testBatchName, "]")
-		};
-
-		Properties jobProperties = getJobProperties();
-
-		for (String propertyName : propertyNames) {
-			if (jobProperties.containsKey(propertyName)) {
-				String propertyValue = JenkinsResultsParserUtil.getProperty(
-					jobProperties, propertyName);
-
-				if ((propertyValue != null) && !propertyValue.isEmpty()) {
-					return propertyValue;
-				}
-			}
-		}
-
-		return null;
+	public String getTestSuiteName() {
+		return _testSuiteName;
 	}
 
 	@Override
-	public String getTestSuiteName() {
-		return _testSuiteName;
+	public boolean isUsePreBuiltBundles() {
+		String preBuiltBundles = JenkinsResultsParserUtil.getProperty(
+			getJobProperties(), "test.batch.dist.pre.built.bundles",
+			getTestSuiteName());
+
+		if ((preBuiltBundles != null) && preBuiltBundles.equals("true")) {
+			return true;
+		}
+
+		return false;
 	}
 
 	private final String _testSuiteName;

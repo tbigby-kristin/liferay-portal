@@ -55,18 +55,13 @@ public abstract class BaseFieldType implements FieldType {
 		SPIDataDefinitionField spiDataDefinitionField =
 			new SPIDataDefinitionField();
 
-		spiDataDefinitionField.setCustomProperties(
-			new HashMap<String, Object>() {
-				{
-					put("showLabel", jsonObject.getBoolean("showLabel"));
-				}
-			});
 		spiDataDefinitionField.setDefaultValue(
 			LocalizedValueUtil.toLocalizedValues(
 				jsonObject.getJSONObject("defaultValue")));
 		spiDataDefinitionField.setFieldType(jsonObject.getString("type"));
 		spiDataDefinitionField.setIndexable(
 			jsonObject.getBoolean("indexable", true));
+		spiDataDefinitionField.setIndexType(jsonObject.getString("indexType"));
 		spiDataDefinitionField.setLabel(
 			LocalizedValueUtil.toLocalizedValues(
 				Optional.ofNullable(
@@ -100,8 +95,12 @@ public abstract class BaseFieldType implements FieldType {
 					SPIDataDefinitionField.class));
 		}
 
+		spiDataDefinitionField.setReadOnly(jsonObject.getBoolean("readOnly"));
 		spiDataDefinitionField.setRepeatable(
-			jsonObject.getBoolean("repeatable", false));
+			jsonObject.getBoolean("repeatable"));
+		spiDataDefinitionField.setRequired(jsonObject.getBoolean("required"));
+		spiDataDefinitionField.setShowlabel(
+			jsonObject.getBoolean("showLabel", true));
 		spiDataDefinitionField.setTip(
 			LocalizedValueUtil.toLocalizedValues(
 				Optional.ofNullable(
@@ -109,6 +108,8 @@ public abstract class BaseFieldType implements FieldType {
 				).orElse(
 					JSONFactoryUtil.createJSONObject()
 				)));
+		spiDataDefinitionField.setVisible(
+			jsonObject.getBoolean("visible", true));
 
 		return spiDataDefinitionField;
 	}
@@ -126,6 +127,7 @@ public abstract class BaseFieldType implements FieldType {
 			LanguageUtil.get(httpServletRequest, LanguageConstants.KEY_DIR));
 		context.put("fieldName", spiDataDefinitionField.getName());
 		context.put("indexable", spiDataDefinitionField.getIndexable());
+		context.put("indexType", spiDataDefinitionField.getIndexType());
 		context.put(
 			"label",
 			MapUtil.getString(
@@ -141,32 +143,17 @@ public abstract class BaseFieldType implements FieldType {
 			LocalizedValueUtil.getLocalizedValue(
 				httpServletRequest.getLocale(),
 				spiDataDefinitionField.getDefaultValue()));
-		context.put(
-			"readOnly",
-			MapUtil.getBoolean(
-				spiDataDefinitionField.getCustomProperties(), "readOnly",
-				false));
+		context.put("readOnly", spiDataDefinitionField.getReadOnly());
 		context.put("repeatable", spiDataDefinitionField.getRepeatable());
-		context.put(
-			"required",
-			MapUtil.getBoolean(
-				spiDataDefinitionField.getCustomProperties(), "required",
-				false));
-		context.put(
-			"showLabel",
-			MapUtil.getBoolean(
-				spiDataDefinitionField.getCustomProperties(), "showLabel",
-				true));
+		context.put("required", spiDataDefinitionField.getRequired());
+		context.put("showLabel", spiDataDefinitionField.getShowLabel());
 		context.put(
 			"tip",
 			MapUtil.getString(
 				spiDataDefinitionField.getTip(),
 				LocaleUtil.toLanguageId(httpServletRequest.getLocale())));
 		context.put("type", spiDataDefinitionField.getFieldType());
-		context.put(
-			"visible",
-			MapUtil.getBoolean(
-				spiDataDefinitionField.getCustomProperties(), "visible", true));
+		context.put("visible", spiDataDefinitionField.getVisible());
 
 		includeContext(
 			context, httpServletRequest, httpServletResponse,
@@ -200,6 +187,8 @@ public abstract class BaseFieldType implements FieldType {
 		).put(
 			"indexable", spiDataDefinitionField.getIndexable()
 		).put(
+			"indexType", spiDataDefinitionField.getIndexType()
+		).put(
 			"label",
 			LocalizedValueUtil.toJSONObject(spiDataDefinitionField.getLabel())
 		).put(
@@ -218,14 +207,18 @@ public abstract class BaseFieldType implements FieldType {
 						fieldTypeTracker, nestedSPIDataDefinitionField);
 				})
 		).put(
+			"readOnly", spiDataDefinitionField.getReadOnly()
+		).put(
 			"repeatable", spiDataDefinitionField.getRepeatable()
 		).put(
-			"showLabel",
-			MapUtil.getBoolean(
-				spiDataDefinitionField.getCustomProperties(), "showLabel", true)
+			"required", spiDataDefinitionField.getRequired()
+		).put(
+			"showLabel", spiDataDefinitionField.getShowLabel()
 		).put(
 			"tip",
 			LocalizedValueUtil.toJSONObject(spiDataDefinitionField.getTip())
+		).put(
+			"visible", spiDataDefinitionField.getVisible()
 		).put(
 			"type", type
 		);

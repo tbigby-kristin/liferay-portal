@@ -36,6 +36,7 @@ import {
 	getItemMoveDirection,
 	getItemPath,
 	getTargetBorder,
+	getWidget,
 	itemIsInPath
 } from '../../utils/FragmentsEditorGetUtils.es';
 import {
@@ -60,6 +61,22 @@ import {updateActiveItemAction} from '../../actions/updateActiveItem.es';
  * @review
  */
 class FragmentEntryLink extends Component {
+	/**
+	 * @inheritdoc
+	 */
+	created() {
+		this._handleFloatingToolbarButtonClicked = this._handleFloatingToolbarButtonClicked.bind(
+			this
+		);
+	}
+
+	/**
+	 * @inheritdoc
+	 */
+	disposed() {
+		this._disposeFloatingToolbar();
+	}
+
 	/**
 	 * @inheritdoc
 	 * @param {object} state
@@ -90,22 +107,6 @@ class FragmentEntryLink extends Component {
 				sidebarPanel => sidebarPanel.sidebarPanelId === 'comments'
 			)
 		};
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	created() {
-		this._handleFloatingToolbarButtonClicked = this._handleFloatingToolbarButtonClicked.bind(
-			this
-		);
-	}
-
-	/**
-	 * @inheritdoc
-	 */
-	disposed() {
-		this._disposeFloatingToolbar();
 	}
 
 	/**
@@ -210,8 +211,7 @@ class FragmentEntryLink extends Component {
 			.dispatch(
 				duplicateFragmentEntryLinkAction(
 					this.fragmentEntryLinkId,
-					this.rowType,
-					this.content
+					this.rowType
 				)
 			)
 			.dispatch(updateLastSaveDateAction())
@@ -238,9 +238,17 @@ class FragmentEntryLink extends Component {
 	_getFloatingToolbarButtons() {
 		const buttons = [];
 
-		buttons.push(FLOATING_TOOLBAR_BUTTONS.removeFragment);
+		const fragmentEntryLink = this.fragmentEntryLinks[
+			this.fragmentEntryLinkId
+		];
 
-		buttons.push(FLOATING_TOOLBAR_BUTTONS.duplicateFragment);
+		const widget =
+			fragmentEntryLink.portletId &&
+			getWidget(this.widgets, fragmentEntryLink.portletId);
+
+		if (!widget || widget.instanceable) {
+			buttons.push(FLOATING_TOOLBAR_BUTTONS.duplicateFragment);
+		}
 
 		if (this._shouldShowConfigPanel()) {
 			buttons.push(FLOATING_TOOLBAR_BUTTONS.fragmentConfiguration);
@@ -258,16 +266,7 @@ class FragmentEntryLink extends Component {
 	_handleFloatingToolbarButtonClicked(event, data) {
 		const {panelId} = data;
 
-		if (panelId === FLOATING_TOOLBAR_BUTTONS.removeFragment.panelId) {
-			event.preventDefault();
-
-			removeItem(
-				this.store,
-				removeFragmentEntryLinkAction(this.fragmentEntryLinkId)
-			);
-		} else if (
-			panelId === FLOATING_TOOLBAR_BUTTONS.duplicateFragment.panelId
-		) {
+		if (panelId === FLOATING_TOOLBAR_BUTTONS.duplicateFragment.panelId) {
 			event.preventDefault();
 
 			this._duplicateFragmentEntryLink();
@@ -346,6 +345,20 @@ class FragmentEntryLink extends Component {
 			type: UPDATE_SELECTED_SIDEBAR_PANEL_ID,
 			value: 'comments'
 		});
+	}
+
+	/**
+	 * Callback executed when the fragment remove button is clicked.
+	 * @param {Object} event
+	 * @private
+	 */
+	_handleFragmentRemoveButtonClick(event) {
+		event.stopPropagation();
+
+		removeItem(
+			this.store,
+			removeFragmentEntryLinkAction(this.fragmentEntryLinkId)
+		);
 	}
 
 	/**
@@ -477,7 +490,8 @@ const ConnectedFragmentEntryLink = getConnectedComponent(FragmentEntryLink, [
 	'selectedMappingTypes',
 	'selectedSidebarPanelId',
 	'sidebarPanels',
-	'spritemap'
+	'spritemap',
+	'widgets'
 ]);
 
 Soy.register(ConnectedFragmentEntryLink, templates);

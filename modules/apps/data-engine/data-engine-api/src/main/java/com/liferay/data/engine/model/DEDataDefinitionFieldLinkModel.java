@@ -160,13 +160,14 @@ public interface DEDataDefinitionFieldLinkModel
 	 *
 	 * @return the field name of this de data definition field link
 	 */
-	public long getFieldName();
+	@AutoEscape
+	public String getFieldName();
 
 	/**
 	 * Sets the field name of this de data definition field link.
 	 *
 	 * @param fieldName the field name of this de data definition field link
 	 */
-	public void setFieldName(long fieldName);
+	public void setFieldName(String fieldName);
 
 }

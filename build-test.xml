@@ -25,7 +25,17 @@
 	<property file="${project.dir}/test.properties" />
 
 	<propertycopy from="app.server.${app.server.type}.start.executable" name="app.server.start.executable" />
-	<propertycopy from="app.server.${app.server.type}.start.executable.arg.line" name="app.server.start.executable.arg.line" />
+
+	<if>
+		<os family="windows" />
+		<then>
+			<propertycopy from="app.server.${app.server.type}.start.executable.arg.line.windows" name="app.server.start.executable.arg.line" />
+		</then>
+		<else>
+			<propertycopy from="app.server.${app.server.type}.start.executable.arg.line" name="app.server.start.executable.arg.line" />
+		</else>
+	</if>
+
 	<propertycopy from="app.server.${app.server.type}.stop.executable" name="app.server.stop.executable" />
 	<propertycopy from="app.server.${app.server.type}.stop.executable.arg.line" name="app.server.stop.executable.arg.line" />
 
@@ -1769,6 +1779,7 @@ jdbc.default.password=${database.password}</echo>
 	<macrodef name="prepare-elasticsearch-configuration">
 		<sequential>
 			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch6.configuration.ElasticsearchConfiguration.config">logExceptionsOnly="false"</echo>
+			<echo file="${liferay.home}/osgi/configs/com.liferay.portal.search.elasticsearch7.configuration.ElasticsearchConfiguration.config">logExceptionsOnly="false"</echo>
 		</sequential>
 	</macrodef>
 
@@ -7015,20 +7026,20 @@ osb.lcs.portlet.oauth.consumer.secret=${osb.lcs.portlet.oauth.consumer.secret}</
 	</category>
 </log4j:configuration>]]></echo>
 
-		<echo file="${liferay.home}/osgi/log4j/com.liferay.portal.search.elasticsearch-log4j-ext.xml"><![CDATA[<?xml version="1.0"?>
-<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
-
-<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-	<category name="com.liferay.portal.search.elasticsearch.internal.connection.EmbeddedElasticsearchConnection">
-		<priority value="ERROR" />
-	</category>
-</log4j:configuration>]]></echo>
-
 		<echo file="${liferay.home}/osgi/log4j/com.liferay.portal.search.elasticsearch6.impl-log4j-ext.xml"><![CDATA[<?xml version="1.0"?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 	<category name="com.liferay.portal.search.elasticsearch6.internal.connection.EmbeddedElasticsearchConnection">
+		<priority value="ERROR" />
+	</category>
+</log4j:configuration>]]></echo>
+
+		<echo file="${liferay.home}/osgi/log4j/com.liferay.portal.search.elasticsearch7.impl-log4j-ext.xml"><![CDATA[<?xml version="1.0"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<category name="com.liferay.portal.search.elasticsearch7.internal.connection.EmbeddedElasticsearchConnection">
 		<priority value="ERROR" />
 	</category>
 </log4j:configuration>]]></echo>
@@ -10937,16 +10948,25 @@ module.framework.properties.blacklist.portal.profile.names=${blacklist.portal.pr
 			</then>
 		</if>
 
-		<get-testcase-property property.name="portal.suite.search.engine" />
 		<get-testcase-property property.name="remote.elasticsearch.enabled" />
 
 		<if>
 			<equals arg1="${remote.elasticsearch.enabled}" arg2="true" />
 			<then>
 				<if>
-					<contains string="${portal.suite.search.engine}" substring="elasticsearch7" />
+					<isset property="env.CI_TEST_SUITE" />
 					<then>
-						<ant antfile="build-test-elasticsearch7.xml" target="start-elasticsearch" />
+						<propertycopy from="search.engine[${env.CI_TEST_SUITE}]" name="suite.search.engine" silent="true" />
+
+						<if>
+							<equals arg1="${suite.search.engine}" arg2="elasticsearch7" />
+							<then>
+								<ant antfile="build-test-elasticsearch7.xml" target="start-elasticsearch" />
+							</then>
+							<else>
+								<ant antfile="build-test-elasticsearch6.xml" target="start-elasticsearch" />
+							</else>
+						</if>
 					</then>
 					<else>
 						<ant antfile="build-test-elasticsearch6.xml" target="start-elasticsearch" />
@@ -11340,16 +11360,25 @@ module.framework.properties.blacklist.portal.profile.names=${blacklist.portal.pr
 			</then>
 		</if>
 
-		<get-testcase-property property.name="portal.suite.search.engine" />
 		<get-testcase-property property.name="remote.elasticsearch.enabled" />
 
 		<if>
 			<equals arg1="${remote.elasticsearch.enabled}" arg2="true" />
 			<then>
 				<if>
-					<contains string="${portal.suite.search.engine}" substring="elasticsearch7" />
+					<isset property="env.CI_TEST_SUITE" />
 					<then>
-						<ant antfile="build-test-elasticsearch7.xml" target="stop-elasticsearch" />
+						<propertycopy from="search.engine[${env.CI_TEST_SUITE}]" name="suite.search.engine" silent="true" />
+
+						<if>
+							<equals arg1="${suite.search.engine}" arg2="elasticsearch7" />
+							<then>
+								<ant antfile="build-test-elasticsearch7.xml" target="stop-elasticsearch" />
+							</then>
+							<else>
+								<ant antfile="build-test-elasticsearch6.xml" target="stop-elasticsearch" />
+							</else>
+						</if>
 					</then>
 					<else>
 						<ant antfile="build-test-elasticsearch6.xml" target="stop-elasticsearch" />

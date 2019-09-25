@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
@@ -140,6 +142,17 @@ public class SegmentsExperimentLocalServiceImpl
 	}
 
 	@Override
+	public SegmentsExperiment deleteSegmentsExperiment(
+			long segmentsExperimentId)
+		throws PortalException {
+
+		return deleteSegmentsExperiment(
+			segmentsExperimentPersistence.findByPrimaryKey(
+				segmentsExperimentId),
+			false);
+	}
+
+	@Override
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public SegmentsExperiment deleteSegmentsExperiment(
 			SegmentsExperiment segmentsExperiment)
@@ -197,7 +210,8 @@ public class SegmentsExperimentLocalServiceImpl
 
 		List<SegmentsExperiment> segmentsExperiments =
 			segmentsExperimentFinder.findByS_C_C_S(
-				segmentsExperienceId, classNameId, classPK, statuses, 0, 1);
+				segmentsExperienceId, classNameId, classPK, statuses, 0, 1,
+				null);
 
 		if (segmentsExperiments.isEmpty()) {
 			return null;
@@ -270,10 +284,12 @@ public class SegmentsExperimentLocalServiceImpl
 	@Override
 	public List<SegmentsExperiment> getSegmentsExperiments(
 		long segmentsExperienceId, long classNameId, long classPK,
-		int[] statuses, int start, int end) {
+		int[] statuses,
+		OrderByComparator<SegmentsExperiment> orderByComparator) {
 
 		return segmentsExperimentFinder.findByS_C_C_S(
-			segmentsExperienceId, classNameId, classPK, statuses, start, end);
+			segmentsExperienceId, classNameId, classPK, statuses,
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS, orderByComparator);
 	}
 
 	@Override
@@ -493,19 +509,17 @@ public class SegmentsExperimentLocalServiceImpl
 		SegmentsExperimentConstants.Status statusObject =
 			SegmentsExperimentConstants.Status.valueOf(status);
 
-		if ((winnerSegmentsExperienceId !=
-				segmentsExperiment.getSegmentsExperienceId()) &&
-			(statusObject == SegmentsExperimentConstants.Status.COMPLETED)) {
+		if ((segmentsExperiment.getSegmentsExperienceId() !=
+				SegmentsExperienceConstants.ID_DEFAULT) &&
+			(statusObject == SegmentsExperimentConstants.Status.COMPLETED) &&
+			(winnerSegmentsExperienceId !=
+				segmentsExperiment.getSegmentsExperienceId())) {
+
+			_segmentsExperienceLocalService.updateSegmentsExperienceActive(
+				segmentsExperiment.getSegmentsExperienceId(), false);
 
 			_segmentsExperienceLocalService.updateSegmentsExperienceActive(
 				winnerSegmentsExperienceId, true);
-
-			if (segmentsExperiment.getSegmentsExperienceId() !=
-					SegmentsExperienceConstants.ID_DEFAULT) {
-
-				_segmentsExperienceLocalService.updateSegmentsExperienceActive(
-					segmentsExperiment.getSegmentsExperienceId(), false);
-			}
 		}
 
 		return segmentsExperiment;

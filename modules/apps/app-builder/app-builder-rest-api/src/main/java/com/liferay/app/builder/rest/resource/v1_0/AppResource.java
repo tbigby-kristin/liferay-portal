@@ -14,6 +14,7 @@
 
 package com.liferay.app.builder.rest.resource.v1_0;
 
+import com.liferay.app.builder.rest.constant.v1_0.DeploymentAction;
 import com.liferay.app.builder.rest.dto.v1_0.App;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
@@ -27,6 +28,7 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.osgi.annotation.versioning.ProviderType;
@@ -48,6 +50,10 @@ public interface AppResource {
 	public App getApp(Long appId) throws Exception;
 
 	public App putApp(Long appId, App app) throws Exception;
+
+	public Response putAppDeployment(
+			Long appId, DeploymentAction deploymentAction)
+		throws Exception;
 
 	public Page<App> getDataDefinitionAppsPage(
 			Long dataDefinitionId, String keywords, Pagination pagination,

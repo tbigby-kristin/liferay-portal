@@ -363,6 +363,106 @@ public class CTSQLTransformerTest {
 	}
 
 	@Test
+	public void testLeftJoin() throws Exception {
+		_assertQuery(
+			"left_join_in.sql", "left_join_out.sql", 0,
+			ps -> {
+			},
+			rs -> Assert.assertEquals(3, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(4, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(5, rs.getLong("mainTableId")));
+	}
+
+	@Test
+	public void testLeftJoinAdd() throws Exception {
+		_assertQuery(
+			"left_join_in.sql", "left_join_out_ct_add.sql",
+			_getCTCollectionId(1),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(3, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(4, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(5, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(6, rs.getLong("mainTableId")));
+	}
+
+	@Test
+	public void testLeftJoinModify() throws Exception {
+		_assertQuery(
+			"left_join_in.sql", "left_join_out_ct_modify.sql",
+			_getCTCollectionId(2),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(3, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(4, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(5, rs.getLong("mainTableId")));
+	}
+
+	@Test
+	public void testLeftJoinRemove() throws Exception {
+		_assertQuery(
+			"left_join_in.sql", "left_join_out_ct_remove.sql",
+			_getCTCollectionId(4),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(3, rs.getLong("mainTableId")),
+			rs -> Assert.assertEquals(5, rs.getLong("mainTableId")));
+	}
+
+	@Test
+	public void testSelfJoin() throws Exception {
+		_assertQuery(
+			"self_join_in.sql", "self_join_out.sql", 0,
+			ps -> {
+			},
+			rs -> {
+				Assert.assertEquals(5, rs.getLong("mainTableId"));
+				Assert.assertEquals(0, rs.getLong("ctCollectionId"));
+			});
+	}
+
+	@Test
+	public void testSelfJoinAdd() throws Exception {
+		long ctCollectionId = _getCTCollectionId(1);
+
+		_assertQuery(
+			"self_join_in.sql", "self_join_out_ct_add.sql", ctCollectionId,
+			ps -> {
+			},
+			rs -> {
+				Assert.assertEquals(6, rs.getLong("mainTableId"));
+				Assert.assertEquals(
+					ctCollectionId, rs.getLong("ctCollectionId"));
+			});
+	}
+
+	@Test
+	public void testSelfJoinModify() throws Exception {
+		_assertQuery(
+			"self_join_in.sql", "self_join_out_ct_modify.sql",
+			_getCTCollectionId(2),
+			ps -> {
+			},
+			rs -> {
+				Assert.assertEquals(5, rs.getLong("mainTableId"));
+				Assert.assertEquals(0, rs.getLong("ctCollectionId"));
+			});
+	}
+
+	@Test
+	public void testSelfJoinRemove() throws Exception {
+		_assertQuery(
+			"self_join_in.sql", "self_join_out_ct_remove.sql",
+			_getCTCollectionId(4),
+			ps -> {
+			},
+			rs -> {
+				Assert.assertEquals(5, rs.getLong("mainTableId"));
+				Assert.assertEquals(0, rs.getLong("ctCollectionId"));
+			});
+	}
+
+	@Test
 	public void testSimpleCount() throws Exception {
 		_assertQuery(
 			"simple_count_in.sql", "simple_count_out.sql", 0,
@@ -791,6 +891,68 @@ public class CTSQLTransformerTest {
 		_assertQuery(
 			"subquery_select_in.sql", "subquery_select_out_ct_remove.sql",
 			ctCollectionId, ps -> ps.setString(1, "rt5 v1"));
+	}
+
+	@Test
+	public void testUnionCount() throws Exception {
+		_assertQuery(
+			"union_select_count_in.sql", "union_select_count_out.sql", 0,
+			ps -> {
+			},
+			rs -> Assert.assertEquals(5, rs.getLong(1)),
+			rs -> Assert.assertEquals(5, rs.getLong(1)));
+
+		_assertQuery(
+			"union_select_count_in.sql", "union_select_count_out.sql",
+			_getCTCollectionId(6),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(5, rs.getLong(1)),
+			rs -> Assert.assertEquals(5, rs.getLong(1)));
+	}
+
+	@Test
+	public void testUnionCountAdd() throws Exception {
+		_assertQuery(
+			"union_select_count_in.sql", "union_select_count_out_ct_add.sql",
+			_getCTCollectionId(1),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(6, rs.getLong(1)),
+			rs -> Assert.assertEquals(6, rs.getLong(1)));
+	}
+
+	@Test
+	public void testUnionCountModify() throws Exception {
+		_assertQuery(
+			"union_select_count_in.sql", "union_select_count_out_ct_modify.sql",
+			_getCTCollectionId(2),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(5, rs.getLong(1)),
+			rs -> Assert.assertEquals(5, rs.getLong(1)));
+	}
+
+	@Test
+	public void testUnionCountMoved() throws Exception {
+		_assertQuery(
+			"union_select_count_in.sql", "union_select_count_out_ct_modify.sql",
+			_getCTCollectionId(3),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(5, rs.getLong(1)),
+			rs -> Assert.assertEquals(5, rs.getLong(1)));
+	}
+
+	@Test
+	public void testUnionCountRemove() throws Exception {
+		_assertQuery(
+			"union_select_count_in.sql", "union_select_count_out_ct_remove.sql",
+			_getCTCollectionId(4),
+			ps -> {
+			},
+			rs -> Assert.assertEquals(4, rs.getLong(1)),
+			rs -> Assert.assertEquals(4, rs.getLong(1)));
 	}
 
 	@Test

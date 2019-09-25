@@ -349,25 +349,25 @@
 						A.one('#fm').on(
 							'submit',
 							function(event) {
+								var form = document.fm;
+
 								if ((adminEmailAddress && (adminEmailAddress.val() != '')) && (adminFirstName && (adminFirstName.val() != '')) && (adminLastName && (adminLastName.val() != '')) && (companyName && (companyName.val() != '')) && (jdbcDefaultDriverClassName && (jdbcDefaultDriverClassName.val() != '')) && (jdbcDefaultURL && (jdbcDefaultURL.val() != ''))) {
 									if (defaultDatabase.val() == 'true') {
 										startInstall();
 
 										command.val('<%= Constants.UPDATE %>');
 
-										submitForm(document.fm);
+										submitForm(form);
 									}
 									else {
 										command.val('<%= Constants.TEST %>');
 
-										var body = new URLSearchParams(new FormData(document.fm));
-
 										startInstall();
 
 										Liferay.Util.fetch(
-											setupForm.get('action'),
+											form.action,
 											{
-												body: body,
+												body: new FormData(form),
 												method: 'POST'
 											}
 										).then(
@@ -384,7 +384,7 @@
 													loadingMask.hide();
 												}
 												else {
-													submitForm(document.fm);
+													submitForm(form);
 												}
 											}
 										).catch(

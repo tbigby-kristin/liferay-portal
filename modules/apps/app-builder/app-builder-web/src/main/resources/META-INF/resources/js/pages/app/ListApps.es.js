@@ -12,12 +12,13 @@
  * details.
  */
 
-import ClayLabel from '@clayui/label';
 import moment from 'moment';
 import React from 'react';
+import {Link} from 'react-router-dom';
+import ClayLabel from '@clayui/label';
+import Button from '../../components/button/Button.es';
 import ListView from '../../components/list-view/ListView.es';
 import {confirmDelete} from '../../utils/client.es';
-import Button from '../../components/button/Button.es';
 
 const DEPLOYMENT_STATUS = {
 	deployed: Liferay.Language.get('deployed'),
@@ -117,7 +118,13 @@ export default ({
 				dateCreated: moment(item.dateCreated).fromNow(),
 				dateModified: moment(item.dateModified).fromNow(),
 				id: item.id,
-				name: item.name.en_US,
+				name: (
+					<Link
+						to={`/custom-object/${dataDefinitionId}/apps/${item.id}`}
+					>
+						{item.name.en_US}
+					</Link>
+				),
 				status: (
 					<ClayLabel
 						displayType={
@@ -129,7 +136,9 @@ export default ({
 						{DEPLOYMENT_STATUS[item.status.toLowerCase()]}
 					</ClayLabel>
 				),
-				type: concatTypes(item.settings.deploymentTypes)
+				type: concatTypes(
+					item.appDeployments.map(deployment => deployment.type)
+				)
 			})}
 		</ListView>
 	);

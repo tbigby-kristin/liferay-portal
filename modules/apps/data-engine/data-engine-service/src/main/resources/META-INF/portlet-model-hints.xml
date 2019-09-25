@@ -8,7 +8,7 @@
 		<field name="classNameId" type="long" />
 		<field name="classPK" type="long" />
 		<field name="ddmStructureId" type="long" />
-		<field name="fieldName" type="long" />
+		<field name="fieldName" type="String" />
 	</model>
 	<model name="com.liferay.data.engine.model.DEDataListView">
 		<field name="uuid" type="String" />

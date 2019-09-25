@@ -6,10 +6,7 @@
 
 <#assign userModel = dataFactory.guestUserModel />
 
-<@insertGroup
-	_groupModel=dataFactory.newGroupModel(userModel)
-	_publicPageCount=0
-/>
+<@insertGroup _groupModel=dataFactory.newGroupModel(userModel) />
 
 <#assign
 	groupIds = [dataFactory.guestGroupModel.groupId]
@@ -36,10 +33,7 @@
 
 <@insertLayout _layoutModel=layoutModel />
 
-<@insertGroup
-	_groupModel=userGroupModel
-	_publicPageCount=1
-/>
+<@insertGroup _groupModel=userGroupModel />
 
 <#assign
 	groupIds = dataFactory.getSequence(dataFactory.maxGroupCount)

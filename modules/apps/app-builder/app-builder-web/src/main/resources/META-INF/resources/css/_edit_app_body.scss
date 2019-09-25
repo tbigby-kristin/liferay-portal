@@ -1,0 +1,12 @@
+.selectable-active {
+	font-weight: bold;
+}
+
+.selectable-row:hover {
+	cursor: pointer;
+}
+
+.scrollable-container {
+	max-height: 25em;
+	overflow-y: scroll;
+}

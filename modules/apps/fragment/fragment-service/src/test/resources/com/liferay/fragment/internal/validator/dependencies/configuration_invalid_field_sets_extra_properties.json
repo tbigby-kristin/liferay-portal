@@ -8,7 +8,7 @@
 					"defaultValue": "light",
 					"description": "this-is-the-style-that-will-be-applied",
 					"label": "applied-style",
-					"name": "appliedStyle",
+					"name": "appliedStyleTop",
 					"type": "select",
 					"typeOptions": {
 						"validValues": [
@@ -31,7 +31,7 @@
 					"defaultValue": "light",
 					"description": "this-is-the-style-that-will-be-applied",
 					"label": "applied-style",
-					"name": "appliedStyle",
+					"name": "appliedStyleBottom",
 					"type": "select",
 					"typeOptions": {
 						"validValues": [

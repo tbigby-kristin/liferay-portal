@@ -60,6 +60,10 @@ components:
                 id:
                     format: int64
                     type: integer
+                indexType:
+                    default: "all"
+                    enum: [all, keyword, none, text]
+                    type: string
                 indexable:
                     type: boolean
                 label:
@@ -75,12 +79,20 @@ components:
                         $ref: '#/components/schemas/DataDefinitionField'
                     type:
                         array
+                readOnly:
+                    type: boolean
                 repeatable:
+                    type: boolean
+                required:
+                    type: boolean
+                showLabel:
                     type: boolean
                 tip:
                     additionalProperties:
                         type: object
                     type: object
+                visible:
+                    type: boolean
             type: object
         DataDefinitionPermission:
             properties:

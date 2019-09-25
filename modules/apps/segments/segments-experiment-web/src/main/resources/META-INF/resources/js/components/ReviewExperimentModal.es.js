@@ -12,10 +12,17 @@
  * details.
  */
 
-import React, {useContext, useState, useEffect, useRef} from 'react';
+import React, {
+	useCallback,
+	useContext,
+	useState,
+	useEffect,
+	useRef
+} from 'react';
 import PropTypes from 'prop-types';
-import ClayModal, {useModal} from '@clayui/modal';
 import ClayButton from '@clayui/button';
+import ClayLoadingIndicator from '@clayui/loading-indicator';
+import ClayModal, {useModal} from '@clayui/modal';
 import {SplitPicker} from './SplitPicker/SplitPicker.es';
 import {SliderWithLabel} from './SliderWithLabel.es';
 import {SegmentsVariantType} from '../types.es';
@@ -27,23 +34,31 @@ import {
 } from '../util/percentages.es';
 import BusyButton from './BusyButton/BusyButton.es';
 import SegmentsExperimentContext from '../context.es';
+import {StateContext} from '../state/context.es';
+import {useDebounceCallback} from '../util/hooks.es';
+import {SUCCESS_ANIMATION_FILE_NAME} from '../util/contants.es';
 
-const SUCCESS_ANIMATION_PATH = '/success.gif';
+const TIME_ESTIMATION_THROTTLE_TIME_MS = 1000;
 
 function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 	const [busy, setBusy] = useState(false);
 	const [success, setSuccess] = useState(false);
+	const [estimation, setEstimation] = useState({
+		days: null,
+		loading: true
+	});
 	const [confidenceLevel, setConfidenceLevel] = useState(
 		INITIAL_CONFIDENCE_LEVEL
 	);
 	const [draftVariants, setDraftVariants] = useState(
 		variants.map((variant, index) => {
+			const remainingSplit = 100 % variants.length;
 			const splitValue = parseInt(100 / variants.length, 10);
 
 			let split;
 
-			if (index === variants.length - 1) {
-				split = 100 - splitValue * (variants.length - 1);
+			if (index === 0 && remainingSplit > 0) {
+				split = splitValue + remainingSplit;
 			} else {
 				split = splitValue;
 			}
@@ -51,7 +66,8 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 			return {...variant, split};
 		})
 	);
-	const {assetsPath} = useContext(SegmentsExperimentContext);
+	const {assetsPath, APIService} = useContext(SegmentsExperimentContext);
+	const {experiment} = useContext(StateContext);
 
 	const {observer, onClose} = useModal({
 		onClose: () => setVisible(false)
@@ -66,7 +82,55 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 		};
 	});
 
-	const successAnimationPath = `${assetsPath}${SUCCESS_ANIMATION_PATH}`;
+	const successAnimationPath = `${assetsPath}${SUCCESS_ANIMATION_FILE_NAME}`;
+
+	const [getEstimation] = useDebounceCallback(body => {
+		APIService.getEstimatedTime(body)
+			.then(({segmentsExperimentEstimatedDaysDuration}) => {
+				if (mounted.current) {
+					setEstimation({
+						days: segmentsExperimentEstimatedDaysDuration,
+						loading: false
+					});
+				}
+			})
+			.catch(_error => {
+				if (mounted.current) {
+					setEstimation({
+						days: null,
+						loading: false
+					});
+				}
+			});
+	}, TIME_ESTIMATION_THROTTLE_TIME_MS);
+
+	useEffect(() => {
+		setEstimation({loading: true});
+
+		getEstimation({
+			confidenceLevel,
+			segmentsExperimentId: experiment.segmentsExperimentId,
+			segmentsExperimentRels: JSON.stringify(
+				_variantsToSplitVariantsMap(draftVariants)
+			)
+		});
+	}, [
+		draftVariants,
+		confidenceLevel,
+		getEstimation,
+		experiment.segmentsExperimentId
+	]);
+
+	const [height, setHeight] = useState(0);
+
+	const measureHeight = useCallback(
+		node => {
+			if (node !== null && !success) {
+				setHeight(node.getBoundingClientRect().height);
+			}
+		},
+		[setHeight, success]
+	);
 
 	return (
 		visible && (
@@ -78,7 +142,10 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 				</ClayModal.Header>
 				<ClayModal.Body>
 					{success ? (
-						<div className="text-center">
+						<div
+							className="text-center"
+							style={{height: height + 'px'}}
+						>
 							<img
 								alt=""
 								className="mb-4 mt-3"
@@ -90,7 +157,7 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 							</h3>
 						</div>
 					) : (
-						<>
+						<div ref={measureHeight}>
 							<h3 className="sheet-subtitle border-bottom-0 text-secondary">
 								{Liferay.Language.get('traffic-split')}
 							</h3>
@@ -117,7 +184,35 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 								onValueChange={setConfidenceLevel}
 								value={confidenceLevel}
 							/>
-						</>
+
+							<hr />
+							<div>
+								<div className="d-flex">
+									<label className="w-100">
+										{Liferay.Language.get(
+											'estimated-time-to-declare-winner'
+										)}
+									</label>
+
+									<p className="mb-0 text-nowrap">
+										{estimation.loading ? (
+											<ClayLoadingIndicator
+												className="my-0"
+												small
+											/>
+										) : (
+											estimation.days &&
+											_getDaysMessage(estimation.days)
+										)}
+									</p>
+								</div>
+								<p className="small text-secondary">
+									{Liferay.Language.get(
+										'time-depends-on-confidence-level-and-traffic-to-the-variants'
+									)}
+								</p>
+							</div>
+						</div>
 					)}
 				</ClayModal.Body>
 
@@ -161,12 +256,7 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 	 * and bubbles up `onRun` with `confidenceLevel` and `splitVariantsMap`
 	 */
 	function _handleRun() {
-		const splitVariantsMap = draftVariants.reduce((acc, v) => {
-			return {
-				...acc,
-				[v.segmentsExperimentRelId]: percentageNumberToIndex(v.split)
-			};
-		}, {});
+		const splitVariantsMap = _variantsToSplitVariantsMap(draftVariants);
 
 		setBusy(true);
 
@@ -180,6 +270,21 @@ function ReviewExperimentModal({onRun, variants, visible, setVisible}) {
 			}
 		});
 	}
+}
+
+function _variantsToSplitVariantsMap(variants) {
+	return variants.reduce((acc, v) => {
+		return {
+			...acc,
+			[v.segmentsExperimentRelId]: percentageNumberToIndex(v.split)
+		};
+	}, {});
+}
+
+function _getDaysMessage(days) {
+	if (days === 1)
+		return Liferay.Util.sub(Liferay.Language.get('x-day'), days);
+	else return Liferay.Util.sub(Liferay.Language.get('x-days'), days);
 }
 
 ReviewExperimentModal.propTypes = {

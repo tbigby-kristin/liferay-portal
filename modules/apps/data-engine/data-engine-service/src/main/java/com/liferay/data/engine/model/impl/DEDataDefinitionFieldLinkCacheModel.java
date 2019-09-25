@@ -103,7 +103,13 @@ public class DEDataDefinitionFieldLinkCacheModel
 		deDataDefinitionFieldLinkImpl.setClassNameId(classNameId);
 		deDataDefinitionFieldLinkImpl.setClassPK(classPK);
 		deDataDefinitionFieldLinkImpl.setDdmStructureId(ddmStructureId);
-		deDataDefinitionFieldLinkImpl.setFieldName(fieldName);
+
+		if (fieldName == null) {
+			deDataDefinitionFieldLinkImpl.setFieldName("");
+		}
+		else {
+			deDataDefinitionFieldLinkImpl.setFieldName(fieldName);
+		}
 
 		deDataDefinitionFieldLinkImpl.resetOriginalValues();
 
@@ -123,8 +129,7 @@ public class DEDataDefinitionFieldLinkCacheModel
 		classPK = objectInput.readLong();
 
 		ddmStructureId = objectInput.readLong();
-
-		fieldName = objectInput.readLong();
+		fieldName = objectInput.readUTF();
 	}
 
 	@Override
@@ -146,7 +151,12 @@ public class DEDataDefinitionFieldLinkCacheModel
 
 		objectOutput.writeLong(ddmStructureId);
 
-		objectOutput.writeLong(fieldName);
+		if (fieldName == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(fieldName);
+		}
 	}
 
 	public String uuid;
@@ -155,6 +165,6 @@ public class DEDataDefinitionFieldLinkCacheModel
 	public long classNameId;
 	public long classPK;
 	public long ddmStructureId;
-	public long fieldName;
+	public String fieldName;
 
 }

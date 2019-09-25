@@ -120,9 +120,22 @@ public class FreeMarkerTool {
 	}
 
 	public String getGraphQLArguments(
-		List<JavaMethodParameter> javaMethodParameters) {
+		List<JavaMethodParameter> javaMethodParameters, String schemaVarName) {
 
-		return OpenAPIParserUtil.getArguments(javaMethodParameters);
+		String arguments = OpenAPIParserUtil.getArguments(javaMethodParameters);
+
+		arguments = arguments.replace(
+			"filter",
+			"_filterBiFunction.apply(" + schemaVarName +
+				"Resource, filterString)");
+		arguments = arguments.replace(
+			"pageSize,page", "Pagination.of(page, pageSize)");
+		arguments = arguments.replace(
+			"sorts",
+			"_sortsBiFunction.apply(" + schemaVarName +
+				"Resource, sortsString)");
+
+		return arguments;
 	}
 
 	public List<JavaMethodSignature> getGraphQLJavaMethodSignatures(
@@ -153,7 +166,9 @@ public class FreeMarkerTool {
 	}
 
 	public String getGraphQLMethodJavadoc(
-		JavaMethodSignature javaMethodSignature, OpenAPIYAML openAPIYAML) {
+		JavaMethodSignature javaMethodSignature,
+		List<JavaMethodSignature> javaMethodSignatures,
+		OpenAPIYAML openAPIYAML) {
 
 		StringBuilder sb = new StringBuilder();
 
@@ -161,7 +176,9 @@ public class FreeMarkerTool {
 		sb.append("curl -H 'Content-Type: text/plain; charset=utf-8' ");
 		sb.append("-X 'POST' 'http://localhost:8080/o/graphql' ");
 		sb.append("-d $'");
-		sb.append(_getGraphQLBody(javaMethodSignature, openAPIYAML));
+		sb.append(
+			_getGraphQLBody(
+				javaMethodSignature, javaMethodSignatures, openAPIYAML));
 		sb.append("' -u 'test@liferay.com:test'");
 
 		return sb.toString();
@@ -177,14 +194,36 @@ public class FreeMarkerTool {
 		List<JavaMethodParameter> javaMethodParameters, Operation operation,
 		boolean annotation) {
 
-		return GraphQLOpenAPIParser.getParameters(
+		String parameters = GraphQLOpenAPIParser.getParameters(
 			javaMethodParameters, operation, annotation);
+
+		parameters = parameters.replace(
+			"com.liferay.portal.kernel.search.filter.Filter filter",
+			"String filterString");
+
+		parameters = parameters.replace(
+			"com.liferay.portal.kernel.search.Sort[] sorts",
+			"String sortsString");
+
+		parameters = parameters.replace(
+			"Long siteId",
+			"Long siteId, @GraphQLName(\"siteKey\") String siteKey");
+
+		return parameters;
 	}
 
 	public String getGraphQLPropertyName(
-		JavaMethodSignature javaMethodSignature) {
+		JavaMethodSignature javaMethodSignature,
+		List<JavaMethodSignature> javaMethodSignatures) {
 
 		String methodName = javaMethodSignature.getMethodName();
+
+		if (!methodName.equals("getSite") &&
+			!_hasMethodWithSameName(
+				methodName.replaceFirst("Site", ""), javaMethodSignatures)) {
+
+			methodName = methodName.replaceFirst("Site", "");
+		}
 
 		methodName = methodName.replaceFirst("get", "");
 
@@ -195,10 +234,6 @@ public class FreeMarkerTool {
 
 			methodName = methodName.substring(
 				0, methodName.lastIndexOf("Page"));
-		}
-
-		if (!methodName.equals("Site")) {
-			methodName = methodName.replaceFirst("Site", "");
 		}
 
 		return StringUtil.lowerCaseFirstLetter(methodName);
@@ -271,9 +306,11 @@ public class FreeMarkerTool {
 	}
 
 	public String getGraphQLRelationName(
-		JavaMethodSignature javaMethodSignature) {
+		JavaMethodSignature javaMethodSignature,
+		List<JavaMethodSignature> javaMethodSignatures) {
 
-		String methodName = getGraphQLPropertyName(javaMethodSignature);
+		String methodName = getGraphQLPropertyName(
+			javaMethodSignature, javaMethodSignatures);
 
 		return StringUtil.lowerCaseFirstLetter(
 			methodName.replaceFirst(
@@ -594,11 +631,14 @@ public class FreeMarkerTool {
 	}
 
 	private String _getGraphQLBody(
-		JavaMethodSignature javaMethodSignature, OpenAPIYAML openAPIYAML) {
+		JavaMethodSignature javaMethodSignature,
+		List<JavaMethodSignature> javaMethodSignatures,
+		OpenAPIYAML openAPIYAML) {
 
 		StringBuilder sb = new StringBuilder("{\"query\": \"query {");
 
-		sb.append(getGraphQLPropertyName(javaMethodSignature));
+		sb.append(
+			getGraphQLPropertyName(javaMethodSignature, javaMethodSignatures));
 
 		Set<String> javaMethodParameterNames = new TreeSet<>();
 
@@ -711,7 +751,9 @@ public class FreeMarkerTool {
 					schema.getPropertySchemas();
 
 				if (propertySchemas.containsKey(
-						getGraphQLRelationName(relationJavaMethodSignature))) {
+						getGraphQLRelationName(
+							relationJavaMethodSignature,
+							javaMethodSignatures))) {
 
 					return null;
 				}
@@ -806,6 +848,18 @@ public class FreeMarkerTool {
 		Components components = openAPIYAML.getComponents();
 
 		return components.getSchemas();
+	}
+
+	private boolean _hasMethodWithSameName(
+		String methodName, List<JavaMethodSignature> javaMethodSignatures) {
+
+		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
+			if (methodName.equals(javaMethodSignature.getMethodName())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private boolean _isGraphQLPropertyRelation(

@@ -24,9 +24,10 @@ definition {
 	}
 
 	@description = "This test ensures that when a user sets a custom canonical URL at the page level, it will overwrite system level settings."
-	@ignore = "true"
 	@priority = "5"
 	test SetCustomURLAtPageLevel {
+		property test.name.skip.portal.instance = "CanonicalURL#SetCustomURLAtPageLevel";
+
 		var portalURL = PropsUtil.get("portal.url");
 
 		JSONLayout.addPublicLayout(
@@ -56,7 +57,7 @@ definition {
 			locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
 		Type(
-			key_fieldLabel = "Custom Canonical URL",
+			key_fieldLabel = "Canonical URL",
 			locator1 = "TextInput#GENERIC_TEXT_INPUT",
 			value1 = "http://mycustomizedurl.com/mydesiredurl");
 
@@ -69,9 +70,10 @@ definition {
 		Page.assertCanonicalURL(portalURL = "http://mycustomizedurl.com/mydesiredurl");
 	}
 
-	@ignore = "true"
 	@priority = "5"
 	test SetDefaultURLAtSystemLevel {
+		property test.name.skip.portal.instance = "CanonicalURL#SetDefaultURLAtSystemLevel";
+
 		var portalURL = PropsUtil.get("portal.url");
 
 		User.logoutPG();
@@ -110,9 +112,10 @@ definition {
 			portalURL = "${portalURL}");
 	}
 
-	@ignore = "true"
 	@priority = "5"
 	test SetLocalizedURLAtSystemLevel {
+		property test.name.skip.portal.instance = "CanonicalURL#SetLocalizedURLAtSystemLevel";
+
 		var portalURL = PropsUtil.get("portal.url");
 
 		User.logoutPG();

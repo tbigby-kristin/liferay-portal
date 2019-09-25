@@ -26,19 +26,20 @@ import org.osgi.service.component.annotations.Deactivate;
 
 /**
  * @author Jeyvison Nascimento
+ * @author Gabriel Albuquerque
  */
 @Component(immediate = true, service = AppDeployerTracker.class)
 public class AppDeployerTrackerImpl implements AppDeployerTracker {
 
 	@Override
-	public AppDeployer getAppDeployer(String deploymentType) {
-		return _serviceTrackerMap.getService(deploymentType);
+	public AppDeployer getAppDeployer(String type) {
+		return _serviceTrackerMap.getService(type);
 	}
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-			bundleContext, AppDeployer.class, "com.app.builder.deploy.type");
+			bundleContext, AppDeployer.class, "app.builder.deploy.type");
 	}
 
 	@Deactivate

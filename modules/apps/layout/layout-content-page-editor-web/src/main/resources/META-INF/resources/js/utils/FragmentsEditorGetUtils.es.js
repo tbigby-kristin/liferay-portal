@@ -82,6 +82,9 @@ function editableIsMappedToAssetEntry(editableValues) {
  * Checks if the given editable should be highlighted
  * @param {string} activeItemId
  * @param {string} activeItemType
+ * @param {string} fragmentEntryLinkId
+ * @param {string} hoveredItemId
+ * @param {string} hoveredItemType
  * @param {object} structure
  * @private
  * @return {boolean}
@@ -91,6 +94,8 @@ function editableShouldBeHighlighted(
 	activeItemId,
 	activeItemType,
 	fragmentEntryLinkId,
+	hoveredItemId,
+	hoveredItemType,
 	structure
 ) {
 	const parentFragmentIsInActiveItemPath = itemIsInPath(
@@ -99,7 +104,15 @@ function editableShouldBeHighlighted(
 		FRAGMENTS_EDITOR_ITEM_TYPES.fragment
 	);
 
-	return parentFragmentIsInActiveItemPath;
+	const parentFragmentIsInHoveredItemPath = itemIsInPath(
+		getItemPath(hoveredItemId, hoveredItemType, structure),
+		fragmentEntryLinkId,
+		FRAGMENTS_EDITOR_ITEM_TYPES.fragment
+	);
+
+	return (
+		parentFragmentIsInActiveItemPath || parentFragmentIsInHoveredItemPath
+	);
 }
 
 /**
@@ -145,8 +158,8 @@ function getDropRowPosition(structure, targetRowId, targetBorder) {
  * @param {string} itemId
  * @param {string} itemType
  */
-function getFragmentEntryLinkListElement(itemId, itemType) {
-	return document.querySelector(
+function getFragmentEntryLinkListElements(itemId, itemType) {
+	return document.querySelectorAll(
 		`.fragment-entry-link-list [data-fragments-editor-item-id="${itemId}"][data-fragments-editor-item-type="${itemType}"]`
 	);
 }
@@ -446,7 +459,7 @@ export {
 	editableShouldBeHighlighted,
 	getColumn,
 	getDropRowPosition,
-	getFragmentEntryLinkListElement,
+	getFragmentEntryLinkListElements,
 	getItemPath,
 	getFragmentColumn,
 	getFragmentRowIndex,

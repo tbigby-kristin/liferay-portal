@@ -147,7 +147,7 @@ public class ServicePreAction extends Action {
 		stopWatch.start();
 
 		try {
-			_servicePre(httpServletRequest, httpServletResponse);
+			servicePre(httpServletRequest, httpServletResponse, true);
 		}
 		catch (Exception e) {
 			throw new ActionException(e);
@@ -155,6 +155,53 @@ public class ServicePreAction extends Action {
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Running takes " + stopWatch.getTime() + " ms");
+		}
+	}
+
+	public void servicePre(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse,
+			boolean initPermissionChecker)
+		throws Exception {
+
+		// Service context
+
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			httpServletRequest);
+
+		ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+		// Theme display
+
+		ThemeDisplay themeDisplay = _initThemeDisplay(
+			httpServletRequest, httpServletResponse, initPermissionChecker);
+
+		if (themeDisplay == null) {
+			return;
+		}
+
+		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+
+		// Ajaxable render
+
+		if (PropsValues.LAYOUT_AJAX_RENDER_ENABLE) {
+			boolean portletAjaxRender = ParamUtil.getBoolean(
+				httpServletRequest, "p_p_ajax", true);
+
+			httpServletRequest.setAttribute(
+				WebKeys.PORTLET_AJAX_RENDER, portletAjaxRender);
+		}
+
+		// Parallel render
+
+		if (PropsValues.LAYOUT_PARALLEL_RENDER_ENABLE &&
+			ServerDetector.isTomcat()) {
+
+			boolean portletParallelRender = ParamUtil.getBoolean(
+				httpServletRequest, "p_p_parallel", true);
+
+			httpServletRequest.setAttribute(
+				WebKeys.PORTLET_PARALLEL_RENDER, portletParallelRender);
 		}
 	}
 
@@ -757,7 +804,8 @@ public class ServicePreAction extends Action {
 
 	private ThemeDisplay _initThemeDisplay(
 			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
+			HttpServletResponse httpServletResponse,
+			boolean initPermissionChecker)
 		throws Exception {
 
 		HttpSession session = httpServletRequest.getSession();
@@ -920,7 +968,7 @@ public class ServicePreAction extends Action {
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 
-		if ((permissionChecker == null) ||
+		if ((initPermissionChecker && (permissionChecker == null)) ||
 			(permissionChecker.getUserId() != user.getUserId())) {
 
 			permissionChecker = PermissionCheckerFactoryUtil.create(user);
@@ -1898,52 +1946,6 @@ public class ServicePreAction extends Action {
 			_log.debug("Current group id " + currentGroupId);
 			_log.debug("Recent group id " + recentGroupId);
 			_log.debug("Previous group id " + previousGroupId);
-		}
-	}
-
-	private void _servicePre(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse)
-		throws Exception {
-
-		// Service context
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			httpServletRequest);
-
-		ServiceContextThreadLocal.pushServiceContext(serviceContext);
-
-		// Theme display
-
-		ThemeDisplay themeDisplay = _initThemeDisplay(
-			httpServletRequest, httpServletResponse);
-
-		if (themeDisplay == null) {
-			return;
-		}
-
-		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
-
-		// Ajaxable render
-
-		if (PropsValues.LAYOUT_AJAX_RENDER_ENABLE) {
-			boolean portletAjaxRender = ParamUtil.getBoolean(
-				httpServletRequest, "p_p_ajax", true);
-
-			httpServletRequest.setAttribute(
-				WebKeys.PORTLET_AJAX_RENDER, portletAjaxRender);
-		}
-
-		// Parallel render
-
-		if (PropsValues.LAYOUT_PARALLEL_RENDER_ENABLE &&
-			ServerDetector.isTomcat()) {
-
-			boolean portletParallelRender = ParamUtil.getBoolean(
-				httpServletRequest, "p_p_parallel", true);
-
-			httpServletRequest.setAttribute(
-				WebKeys.PORTLET_PARALLEL_RENDER, portletParallelRender);
 		}
 	}
 

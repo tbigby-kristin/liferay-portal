@@ -37,7 +37,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Gabriel Albuquerque
  */
 @Component(
-	immediate = true, property = "com.app.builder.deploy.type=widget",
+	immediate = true, property = "app.builder.deploy.type=widget",
 	service = AppDeployer.class
 )
 public class WidgetAppDeployer implements AppDeployer {
@@ -104,8 +104,8 @@ public class WidgetAppDeployer implements AppDeployer {
 					put("javax.portlet.init-param.view-template", "/view.jsp");
 					put(
 						"javax.portlet.security-role-ref",
-						"administrator,guest,power-user,user ");
-					put("javax.portlet.supports.mime-type", "text/html ");
+						"administrator,guest,power-user,user");
+					put("javax.portlet.supports.mime-type", "text/html");
 				}
 			});
 	}

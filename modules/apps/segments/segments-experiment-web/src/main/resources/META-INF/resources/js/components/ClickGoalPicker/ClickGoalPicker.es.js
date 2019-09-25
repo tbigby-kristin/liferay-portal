@@ -16,6 +16,7 @@ import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import ClayLink from '@clayui/link';
 import classNames from 'classnames';
+import {useEventListener} from 'frontend-js-react-web';
 import {throttle} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React from 'react';
@@ -26,7 +27,6 @@ import {
 	getTargetableElements,
 	stopImmediatePropagation,
 	getRootElementGeometry,
-	useEventListener,
 	getElementGeometry
 } from './utils.es';
 
@@ -126,9 +126,9 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 					{Liferay.Language.get('click-goal')}
 				</h4>
 
-				<dl className="mb-2">
+				<dl className="mb-0">
 					<div className="d-flex">
-						<dt>{Liferay.Language.get('target')}:</dt>
+						<dt>{Liferay.Language.get('element')}:</dt>
 						{state.selectedTarget ? (
 							<dd className="ml-2 text-truncate">
 								<ClayLink
@@ -157,8 +157,8 @@ function ClickGoalPicker({allowEdit = true, onSelectClickGoalTarget, target}) {
 						small
 					>
 						{state.selectedTarget
-							? Liferay.Language.get('edit-target')
-							: Liferay.Language.get('set-target')}
+							? Liferay.Language.get('edit-element')
+							: Liferay.Language.get('set-element')}
 					</ClayButton>
 				)}
 

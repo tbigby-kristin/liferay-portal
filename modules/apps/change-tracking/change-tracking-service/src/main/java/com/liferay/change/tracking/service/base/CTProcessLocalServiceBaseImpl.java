@@ -63,7 +63,7 @@ import org.osgi.service.component.annotations.Reference;
  */
 public abstract class CTProcessLocalServiceBaseImpl
 	extends BaseLocalServiceImpl
-	implements CTProcessLocalService, AopService, IdentifiableOSGiService {
+	implements AopService, CTProcessLocalService, IdentifiableOSGiService {
 
 	/**
 	 * NOTE FOR DEVELOPERS:
@@ -115,13 +115,10 @@ public abstract class CTProcessLocalServiceBaseImpl
 	 *
 	 * @param ctProcess the ct process
 	 * @return the ct process that was removed
-	 * @throws PortalException
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public CTProcess deleteCTProcess(CTProcess ctProcess)
-		throws PortalException {
-
+	public CTProcess deleteCTProcess(CTProcess ctProcess) {
 		return ctProcessPersistence.remove(ctProcess);
 	}
 

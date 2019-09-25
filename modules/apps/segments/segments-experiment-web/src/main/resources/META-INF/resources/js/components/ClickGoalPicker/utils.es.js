@@ -13,7 +13,6 @@
  */
 
 import PropTypes from 'prop-types';
-import {useEffect} from 'react';
 
 const TARGET_OFFSET = 10;
 
@@ -64,20 +63,6 @@ function _isVisible(element) {
 		display === 'none' || opacity === 0 || visibility !== 'visible';
 
 	return !hidden;
-}
-
-/**
- * Convenience hook for adding an event listener on mount and removing it on
- * unmount.
- */
-export function useEventListener(eventName, handler, phase, target) {
-	useEffect(() => {
-		target.addEventListener(eventName, handler, phase);
-
-		return () => {
-			target.removeEventListener(eventName, handler, phase);
-		};
-	}, [eventName, handler, phase, target]);
 }
 
 /**

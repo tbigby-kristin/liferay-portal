@@ -14,8 +14,6 @@
 
 import {createContext} from 'react';
 
-const SearchContext = createContext();
-
 const reducer = (state, action) => {
 	switch (action.type) {
 		case 'CHANGE_PAGE':
@@ -62,6 +60,7 @@ const reducer = (state, action) => {
 	}
 };
 
-export default SearchContext;
+const SearchContext = createContext();
 
 export {reducer};
+export default SearchContext;

@@ -4036,6 +4036,7 @@ AUI.add(
 					var currentLocale = repeatedField.get('displayLocale');
 
 					var localizations = Object.keys(totalLocalizations);
+
 					localizations.push(currentLocale);
 
 					localizations.forEach(function(localization) {

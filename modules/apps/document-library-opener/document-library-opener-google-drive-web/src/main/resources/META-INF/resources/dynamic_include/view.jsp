@@ -53,10 +53,9 @@ DLOpenerGoogleDriveFileReference dlOpenerGoogleDriveFileReference = (DLOpenerGoo
 			}
 
 			function polling() {
-				fetch(
+				Liferay.Util.fetch(
 					'<%= googleDriveBackgroundTaskStatusURL %>',
 					{
-						credentials: 'include',
 						method: 'POST'
 					}
 				)
@@ -111,7 +110,7 @@ DLOpenerGoogleDriveFileReference dlOpenerGoogleDriveFileReference = (DLOpenerGoo
 		if (cmd.equals(Constants.ADD)) {
 			messageKey = "you-are-being-redirected-to-an-external-editor-to-create-this-document";
 		}
-			%>
+		%>
 
 			Liferay.Util.openWindow(
 				{

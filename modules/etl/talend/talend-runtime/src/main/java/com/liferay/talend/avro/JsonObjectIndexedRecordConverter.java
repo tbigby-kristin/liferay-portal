@@ -17,6 +17,8 @@ package com.liferay.talend.avro;
 import com.liferay.talend.avro.exception.ConverterException;
 import com.liferay.talend.common.json.JsonFinder;
 
+import java.math.BigDecimal;
+
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +91,12 @@ public class JsonObjectIndexedRecordConverter {
 		return record;
 	}
 
+	private BigDecimal _asBigDecimal(JsonValue jsonValue) {
+		JsonNumber jsonNumber = _asJsonNumber(jsonValue);
+
+		return jsonNumber.bigDecimalValue();
+	}
+
 	private Boolean _asBoolean(JsonValue jsonValue) {
 		if (jsonValue == JsonValue.TRUE) {
 			return Boolean.TRUE;
@@ -152,6 +160,9 @@ public class JsonObjectIndexedRecordConverter {
 		}
 		else if (AvroUtils.isSameType(fieldSchema, AvroUtils._bytes())) {
 			return avroConverter.convertToAvro(_asText(jsonValue));
+		}
+		else if (AvroUtils.isSameType(fieldSchema, AvroUtils._decimal())) {
+			return _asBigDecimal(jsonValue);
 		}
 		else if (AvroUtils.isSameType(fieldSchema, AvroUtils._double())) {
 			return _asDouble(jsonValue);

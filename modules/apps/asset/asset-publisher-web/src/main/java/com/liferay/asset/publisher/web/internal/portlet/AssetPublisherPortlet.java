@@ -108,7 +108,8 @@ import org.osgi.service.component.annotations.Reference;
 		"javax.portlet.supported-public-render-parameter=categoryId",
 		"javax.portlet.supported-public-render-parameter=resetCur",
 		"javax.portlet.supported-public-render-parameter=tag",
-		"javax.portlet.supported-public-render-parameter=tags"
+		"javax.portlet.supported-public-render-parameter=tags",
+		"javax.portlet.version=3.0"
 	},
 	service = {AssetPublisherPortlet.class, Portlet.class}
 )
@@ -407,7 +408,7 @@ public class AssetPublisherPortlet extends MVCPortlet {
 	protected Portal portal;
 
 	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.asset.publisher.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=1.1.0))))"
+		target = "(&(release.bundle.symbolic.name=com.liferay.asset.publisher.web)(&(release.schema.version>=1.0.0)(!(release.schema.version>=2.0.0))))"
 	)
 	protected Release release;
 

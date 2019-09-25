@@ -71,6 +71,10 @@ public interface DEDataDefinitionFieldLinkLocalService
 	public DEDataDefinitionFieldLink addDEDataDefinitionFieldLink(
 		DEDataDefinitionFieldLink deDataDefinitionFieldLink);
 
+	public DEDataDefinitionFieldLink addDEDataDefinitionFieldLink(
+		long groupId, long classNameId, long classPK, long ddmStructureId,
+		String fieldName);
+
 	/**
 	 * Creates a new de data definition field link with the primary key. Does not add the de data definition field link to the database.
 	 *

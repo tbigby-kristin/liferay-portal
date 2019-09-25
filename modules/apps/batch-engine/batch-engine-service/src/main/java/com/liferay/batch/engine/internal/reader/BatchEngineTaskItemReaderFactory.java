@@ -15,37 +15,56 @@
 package com.liferay.batch.engine.internal.reader;
 
 import com.liferay.batch.engine.BatchEngineTaskContentType;
+import com.liferay.batch.engine.internal.BatchEngineTaskMethodRegistry;
+import com.liferay.batch.engine.model.BatchEngineTask;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.sql.Blob;
 
 /**
  * @author Shuyang Zhou
+ * @author Ivica Cardic
  */
 public class BatchEngineTaskItemReaderFactory {
 
-	public static <T> BatchEngineTaskItemReader<T> create(
-			BatchEngineTaskContentType batchEngineTaskContentType,
-			InputStream inputStream, Class<T> itemClass)
-		throws IOException {
+	public BatchEngineTaskItemReaderFactory(
+		BatchEngineTaskMethodRegistry batchEngineTaskMethodRegistry) {
+
+		_batchEngineTaskMethodRegistry = batchEngineTaskMethodRegistry;
+	}
+
+	public BatchEngineTaskItemReader create(BatchEngineTask batchEngineTask)
+		throws Exception {
+
+		BatchEngineTaskContentType batchEngineTaskContentType =
+			BatchEngineTaskContentType.valueOf(
+				batchEngineTask.getContentType());
+		Blob content = batchEngineTask.getContent();
+
+		Class<?> itemClass = _batchEngineTaskMethodRegistry.getItemClass(
+			batchEngineTask.getClassName());
 
 		if (batchEngineTaskContentType == BatchEngineTaskContentType.CSV) {
-			return new CSVBatchEngineTaskItemReader<>(inputStream, itemClass);
+			return new CSVBatchEngineTaskItemReader(
+				content.getBinaryStream(), itemClass);
 		}
 
 		if (batchEngineTaskContentType == BatchEngineTaskContentType.JSON) {
-			return new JSONBatchEngineTaskItemReader<>(inputStream, itemClass);
+			return new JSONBatchEngineTaskItemReader(
+				content.getBinaryStream(), itemClass);
 		}
 
 		if ((batchEngineTaskContentType == BatchEngineTaskContentType.XLS) ||
 			(batchEngineTaskContentType == BatchEngineTaskContentType.XLSX)) {
 
-			return new XLSBatchEngineTaskItemReader<>(inputStream, itemClass);
+			return new XLSBatchEngineTaskItemReader(
+				content.getBinaryStream(), itemClass);
 		}
 
 		throw new IllegalArgumentException(
 			"Unknown batch engine task content type " +
 				batchEngineTaskContentType);
 	}
+
+	private final BatchEngineTaskMethodRegistry _batchEngineTaskMethodRegistry;
 
 }

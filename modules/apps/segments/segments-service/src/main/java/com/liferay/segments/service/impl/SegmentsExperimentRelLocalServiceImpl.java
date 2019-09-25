@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsExperimentConstants;
 import com.liferay.segments.exception.LockedSegmentsExperimentException;
 import com.liferay.segments.exception.SegmentsExperimentRelNameException;
@@ -40,14 +41,16 @@ import org.osgi.service.component.annotations.Reference;
  * The implementation of the segments experiment rel local service.
  *
  * <p>
- * All custom service methods should be put in this class. Whenever methods are added, rerun ServiceBuilder to copy their definitions into the <code>com.liferay.segments.service.SegmentsExperimentRelLocalService</code> interface.
- *
- * <p>
- * This is a local service. Methods of this service will not have security checks based on the propagated JAAS credentials because this service can only be accessed from within the same VM.
+ * All custom service methods should be put in this class. Whenever methods are
+ * added, rerun ServiceBuilder to copy their definitions into the
+ * <code>com.liferay.segments.service.SegmentsExperimentRelLocalService</code>
+ * interface.  <p> This is a local service. Methods of this service will not
+ * have security checks based on the propagated JAAS credentials because this
+ * service can only be accessed from within the same VM.
  * </p>
  *
  * @author Eduardo García
- * @see SegmentsExperimentRelLocalServiceBaseImpl
+ * @see    SegmentsExperimentRelLocalServiceBaseImpl
  */
 @Component(
 	property = "model.class.name=com.liferay.segments.model.SegmentsExperimentRel",
@@ -123,7 +126,10 @@ public class SegmentsExperimentRelLocalServiceImpl
 
 		// Segments experience
 
-		if (force || !segmentsExperimentRel.isActive()) {
+		if ((force || !segmentsExperimentRel.isActive()) &&
+			(segmentsExperimentRel.getSegmentsExperienceId() !=
+				SegmentsExperienceConstants.ID_DEFAULT)) {
+
 			_segmentsExperienceLocalService.deleteSegmentsExperience(
 				segmentsExperimentRel.getSegmentsExperienceId());
 		}

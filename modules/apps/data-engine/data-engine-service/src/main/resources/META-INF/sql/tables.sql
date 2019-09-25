@@ -5,7 +5,7 @@ create table DEDataDefinitionFieldLink (
 	classNameId LONG,
 	classPK LONG,
 	ddmStructureId LONG,
-	fieldName LONG
+	fieldName VARCHAR(75) null
 );
 
 create table DEDataListView (

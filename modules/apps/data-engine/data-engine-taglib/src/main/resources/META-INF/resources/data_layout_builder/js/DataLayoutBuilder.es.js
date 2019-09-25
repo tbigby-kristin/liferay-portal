@@ -57,60 +57,57 @@ class DataLayoutBuilder extends Component {
 		this.refs.layoutProvider.dispatch(event, payload);
 	}
 
-	getDefinitionAndLayout(pages) {
-		const {availableLanguageIds, defaultLanguageId} = this.props;
-		const columnDefinitions = [];
-		const pagesVisitor = new PagesVisitor(pages);
+	getDefinitionField({settingsContext}) {
+		const fieldConfig = {
+			customProperties: {}
+		};
+		const settingsContextVisitor = new PagesVisitor(settingsContext.pages);
 
-		const newPages = pagesVisitor.mapFields(
-			({fieldName, settingsContext}) => {
-				const columnConfig = {
-					customProperties: {}
-				};
-				const settingsContextVisitor = new PagesVisitor(
-					settingsContext.pages
-				);
+		settingsContextVisitor.mapFields(
+			({fieldName, localizable, localizedValue, value}) => {
+				if (fieldName === 'predefinedValue') {
+					fieldName = 'defaultValue';
+				} else if (fieldName === 'type') {
+					fieldName = 'fieldType';
+				}
 
-				settingsContextVisitor.mapFields(
-					({fieldName, localizable, localizedValue, value}) => {
-						if (fieldName === 'predefinedValue') {
-							fieldName = 'defaultValue';
-						} else if (fieldName === 'type') {
-							fieldName = 'fieldType';
-						}
-
-						if (localizable) {
-							if (this._isCustomProperty(fieldName)) {
-								columnConfig.customProperties[
-									fieldName
-								] = localizedValue;
-							} else {
-								columnConfig[fieldName] = localizedValue;
-							}
-						} else {
-							if (this._isCustomProperty(fieldName)) {
-								columnConfig.customProperties[
-									fieldName
-								] = value;
-							} else {
-								columnConfig[fieldName] = value;
-							}
-						}
-					},
-					false
-				);
-
-				columnDefinitions.push(columnConfig);
-
-				return fieldName;
+				if (localizable) {
+					if (this._isCustomProperty(fieldName)) {
+						fieldConfig.customProperties[
+							fieldName
+						] = localizedValue;
+					} else {
+						fieldConfig[fieldName] = localizedValue;
+					}
+				} else {
+					if (this._isCustomProperty(fieldName)) {
+						fieldConfig.customProperties[fieldName] = value;
+					} else {
+						fieldConfig[fieldName] = value;
+					}
+				}
 			},
 			false
 		);
 
+		return fieldConfig;
+	}
+
+	getDefinitionAndLayout(pages) {
+		const {availableLanguageIds, defaultLanguageId} = this.props;
+		const fieldDefinitions = [];
+		const pagesVisitor = new PagesVisitor(pages);
+
+		const newPages = pagesVisitor.mapFields(field => {
+			fieldDefinitions.push(this.getDefinitionField(field));
+
+			return field.fieldName;
+		}, false);
+
 		return {
 			definition: {
 				availableLanguageIds,
-				dataDefinitionFields: columnDefinitions,
+				dataDefinitionFields: fieldDefinitions,
 				defaultLanguageId
 			},
 			layout: {
@@ -136,6 +133,34 @@ class DataLayoutBuilder extends Component {
 				}),
 				paginationMode: 'wizard'
 			}
+		};
+	}
+
+	getFieldSettingsContext(dataDefinitionField) {
+		const fieldTypes = this.getFieldTypes();
+		const fieldType = fieldTypes.find(({name}) => {
+			return name === dataDefinitionField.fieldType;
+		});
+		const {settingsContext} = fieldType;
+		const visitor = new PagesVisitor(settingsContext.pages);
+
+		return {
+			...settingsContext,
+			pages: visitor.mapFields(field => {
+				const {fieldName} = field;
+				const propertyName = this._getDataDefinitionFieldPropertyName(
+					fieldName
+				);
+				const propertyValue = this._getDataDefinitionFieldPropertyValue(
+					dataDefinitionField,
+					propertyName
+				);
+
+				return {
+					...field,
+					value: propertyValue || field.value
+				};
+			})
 		};
 	}
 
@@ -250,6 +275,24 @@ class DataLayoutBuilder extends Component {
 		];
 
 		return fields.indexOf(name) === -1;
+	}
+
+	_getDataDefinitionFieldPropertyName(propertyName) {
+		const map = {
+			fieldName: 'name',
+			predefinedValue: 'defaultValue',
+			type: 'fieldType'
+		};
+
+		return map[propertyName] || propertyName;
+	}
+
+	_getDataDefinitionFieldPropertyValue(dataDefinitionField, propertyName) {
+		if (this._isCustomProperty(propertyName)) {
+			return dataDefinitionField.customProperties[propertyName];
+		}
+
+		return dataDefinitionField[propertyName];
 	}
 
 	_setContext(context) {

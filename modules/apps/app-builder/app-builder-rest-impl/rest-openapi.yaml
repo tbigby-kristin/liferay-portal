@@ -2,6 +2,10 @@ components:
     schemas:
         App:
             properties:
+                appDeployments:
+                    items:
+                        $ref: "#/components/schemas/AppDeployment"
+                    type: array
                 dataDefinitionId:
                     format: int64
                     type: integer
@@ -24,10 +28,6 @@ components:
                     additionalProperties:
                         type: object
                     type: object
-                settings:
-                    additionalProperties:
-                        type: object
-                    type: object
                 siteId:
                     format: int64
                     type: integer
@@ -37,6 +37,18 @@ components:
                     format: int64
                     type: integer
             type: object
+        AppDeployment:
+            properties:
+                settings:
+                    additionalProperties:
+                        type: object
+                    type: object
+                type:
+                    type: string
+            type: object
+        DeploymentAction:
+            enum: [deploy, undeploy]
+            type: string
 info:
     description: ""
     license:
@@ -109,6 +121,25 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/App"
                     description: ""
+            tags: ["App"]
+    "/apps/{appId}/deployment":
+        put:
+            operationId: putAppDeployment
+            parameters:
+                - in: path
+                  name: appId
+                  required: true
+                  schema:
+                      format: int64
+                      type: integer
+                - in: query
+                  name: deploymentAction
+                  required: true
+                  schema:
+                      $ref: "#/components/schemas/DeploymentAction"
+            responses:
+                200:
+                    description: "OK"
             tags: ["App"]
     "/data-definitions/{dataDefinitionId}/apps":
         get:

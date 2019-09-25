@@ -24,6 +24,8 @@ import com.liferay.oauth2.provider.scope.spi.prefix.handler.PrefixHandlerFactory
 import com.liferay.oauth2.provider.scope.spi.scope.finder.ScopeFinder;
 import com.liferay.oauth2.provider.scope.spi.scope.mapper.ScopeMapper;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
+import com.liferay.oauth2.provider.service.OAuth2ApplicationScopeAliasesLocalService;
+import com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalService;
 import com.liferay.oauth2.provider.shortcut.internal.constants.OAuth2ProviderShortcutConstants;
 import com.liferay.oauth2.provider.shortcut.internal.spi.scope.finder.OAuth2ProviderShortcutScopeFinder;
 import com.liferay.oauth2.provider.util.OAuth2SecureRandomGenerator;
@@ -183,6 +185,8 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 		_oAuth2ApplicationLocalService.updateIcon(
 			oAuth2Application.getOAuth2ApplicationId(), inputStream);
 
+		_createOAuth2ScopeGrants(oAuth2Application);
+
 		return oAuth2Application;
 	}
 
@@ -249,6 +253,23 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 		}
 	}
 
+	private void _createOAuth2ScopeGrants(OAuth2Application oAuth2Application)
+		throws PortalException {
+
+		for (String scope : _SEGMENTS_ASAH_DEFAULT_OAUTH2_SCOPE_GRANTS) {
+			_oAuth2ScopeGrantLocalService.createOAuth2ScopeGrant(
+				oAuth2Application.getCompanyId(),
+				oAuth2Application.getOAuth2ApplicationScopeAliasesId(),
+				"Liferay.Segments.Asah.REST",
+				"com.liferay.segments.asah.rest.impl", scope,
+				Collections.singletonList(
+					"Liferay.Segments.Asah.REST.everything"));
+		}
+
+		_oAuth2ApplicationLocalService.updateOAuth2Application(
+			oAuth2Application);
+	}
+
 	private static final String _APPLICATION_NAME = "Analytics Cloud";
 
 	private static final String[][] _SAP_ENTRY_OBJECT_ARRAYS = {
@@ -294,6 +315,10 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 		}
 	};
 
+	private static final String[] _SEGMENTS_ASAH_DEFAULT_OAUTH2_SCOPE_GRANTS = {
+		"DELETE", "GET", "POST"
+	};
+
 	@Reference(
 		target = "(indexer.class.name=com.liferay.document.library.kernel.model.DLFileEntry)"
 	)
@@ -301,6 +326,13 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 
 	@Reference
 	private OAuth2ApplicationLocalService _oAuth2ApplicationLocalService;
+
+	@Reference
+	private OAuth2ApplicationScopeAliasesLocalService
+		_oAuth2ApplicationScopeAliasesLocalService;
+
+	@Reference
+	private OAuth2ScopeGrantLocalService _oAuth2ScopeGrantLocalService;
 
 	@Reference
 	private Portal _portal;

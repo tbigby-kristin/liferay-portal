@@ -21,7 +21,6 @@ import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.service.FragmentCollectionLocalServiceUtil;
-import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
 import com.liferay.fragment.service.FragmentEntryServiceUtil;
 import com.liferay.fragment.util.comparator.FragmentCollectionContributorNameComparator;
 import com.liferay.fragment.web.internal.constants.FragmentTypeConstants;
@@ -310,16 +309,31 @@ public class FragmentDisplayContext {
 			"exportFragmentCollectionsURL",
 			exportFragmentCollectionsURL.toString());
 
-		PortletURL viewFragmentCollectionsURL =
+		PortletURL viewExportFragmentCollectionsURL =
 			_renderResponse.createRenderURL();
 
-		viewFragmentCollectionsURL.setParameter(
+		viewExportFragmentCollectionsURL.setParameter(
 			"mvcRenderCommandName", "/fragment/view_fragment_collections");
-		viewFragmentCollectionsURL.setWindowState(LiferayWindowState.POP_UP);
+		viewExportFragmentCollectionsURL.setParameter(
+			"includeGlobalFragmentCollections", Boolean.TRUE.toString());
+		viewExportFragmentCollectionsURL.setWindowState(
+			LiferayWindowState.POP_UP);
 
 		context.put(
-			"viewFragmentCollectionsURL",
-			viewFragmentCollectionsURL.toString());
+			"viewExportFragmentCollectionsURL",
+			viewExportFragmentCollectionsURL.toString());
+
+		PortletURL viewDeleteFragmentCollectionsURL =
+			_renderResponse.createRenderURL();
+
+		viewDeleteFragmentCollectionsURL.setParameter(
+			"mvcRenderCommandName", "/fragment/view_fragment_collections");
+		viewDeleteFragmentCollectionsURL.setWindowState(
+			LiferayWindowState.POP_UP);
+
+		context.put(
+			"viewDeleteFragmentCollectionsURL",
+			viewDeleteFragmentCollectionsURL.toString());
 
 		PortletURL viewImportURL = _renderResponse.createRenderURL();
 
@@ -421,28 +435,6 @@ public class FragmentDisplayContext {
 		_fragmentEntriesSearchContainer = fragmentEntriesSearchContainer;
 
 		return _fragmentEntriesSearchContainer;
-	}
-
-	public FragmentEntry getFragmentEntry() {
-		if (_fragmentEntry != null) {
-			return _fragmentEntry;
-		}
-
-		_fragmentEntry = FragmentEntryLocalServiceUtil.fetchFragmentEntry(
-			getFragmentEntryId());
-
-		return _fragmentEntry;
-	}
-
-	public long getFragmentEntryId() {
-		if (Validator.isNotNull(_fragmentEntryId)) {
-			return _fragmentEntryId;
-		}
-
-		_fragmentEntryId = ParamUtil.getLong(
-			_httpServletRequest, "fragmentEntryId");
-
-		return _fragmentEntryId;
 	}
 
 	public String getFragmentType() {
@@ -763,8 +755,6 @@ public class FragmentDisplayContext {
 	private Long _fragmentCollectionId;
 	private String _fragmentCollectionKey;
 	private SearchContainer _fragmentEntriesSearchContainer;
-	private FragmentEntry _fragmentEntry;
-	private Long _fragmentEntryId;
 	private final HttpServletRequest _httpServletRequest;
 	private String _keywords;
 	private String _navigation;

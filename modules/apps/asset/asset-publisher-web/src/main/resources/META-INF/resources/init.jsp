@@ -53,7 +53,7 @@ page import="com.liferay.asset.publisher.util.AssetPublisherHelper" %><%@
 page import="com.liferay.asset.publisher.web.internal.display.context.AssetPublisherDisplayContext" %><%@
 page import="com.liferay.asset.publisher.web.internal.display.context.AssetPublisherViewContentDisplayContext" %><%@
 page import="com.liferay.asset.publisher.web.internal.display.context.ItemSelectorViewDisplayContext" %><%@
-page import="com.liferay.asset.publisher.web.internal.server.taglib.util.AssetEntryActionDropdownItemsProvider" %><%@
+page import="com.liferay.asset.publisher.web.internal.servlet.taglib.util.AssetEntryActionDropdownItemsProvider" %><%@
 page import="com.liferay.asset.publisher.web.internal.util.AssetPublisherWebUtil" %><%@
 page import="com.liferay.asset.publisher.web.internal.util.AssetRendererUtil" %><%@
 page import="com.liferay.asset.util.AssetHelper" %><%@
@@ -113,7 +113,8 @@ page import="com.liferay.portal.util.PropsValues" %><%@
 page import="com.liferay.portlet.usersadmin.search.GroupSearch" %><%@
 page import="com.liferay.rss.util.RSSUtil" %><%@
 page import="com.liferay.site.item.selector.criteria.SiteItemSelectorReturnType" %><%@
-page import="com.liferay.site.item.selector.criterion.SiteItemSelectorCriterion" %>
+page import="com.liferay.site.item.selector.criterion.SiteItemSelectorCriterion" %><%@
+page import="com.liferay.taglib.aui.AUIUtil" %>
 
 <%@ page import="java.io.Serializable" %>
 

@@ -17,6 +17,8 @@ package com.liferay.gradle.plugins.defaults;
 import aQute.bnd.osgi.Constants;
 import aQute.bnd.version.Version;
 
+import com.gradle.publish.PublishPlugin;
+
 import com.liferay.gradle.plugins.JspCDefaultsPlugin;
 import com.liferay.gradle.plugins.LiferayBasePlugin;
 import com.liferay.gradle.plugins.LiferayOSGiPlugin;
@@ -24,6 +26,7 @@ import com.liferay.gradle.plugins.baseline.BaselinePlugin;
 import com.liferay.gradle.plugins.cache.CacheExtension;
 import com.liferay.gradle.plugins.cache.CachePlugin;
 import com.liferay.gradle.plugins.cache.task.TaskCache;
+import com.liferay.gradle.plugins.defaults.internal.BaselineDefaultsPlugin;
 import com.liferay.gradle.plugins.defaults.internal.FindSecurityBugsPlugin;
 import com.liferay.gradle.plugins.defaults.internal.JSDocDefaultsPlugin;
 import com.liferay.gradle.plugins.defaults.internal.JaCoCoPlugin;
@@ -1693,6 +1696,7 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 			GradleUtil.applyPlugin(project, XSDBuilderPlugin.class);
 		}
 
+		BaselineDefaultsPlugin.INSTANCE.apply(project);
 		FindSecurityBugsPlugin.INSTANCE.apply(project);
 		JSDocDefaultsPlugin.INSTANCE.apply(project);
 		PublishPluginDefaultsPlugin.INSTANCE.apply(project);
@@ -1922,7 +1926,9 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 				Dependency.ARCHIVES_CONFIGURATION, jarSourcesTask);
 		}
 
-		if (FileUtil.hasSourceFiles(jarSourcesCommercialTask, spec)) {
+		if (!GradleUtil.hasPlugin(project, PublishPlugin.class) &&
+			FileUtil.hasSourceFiles(jarSourcesCommercialTask, spec)) {
+
 			artifactHandler.add(
 				Dependency.ARCHIVES_CONFIGURATION, jarSourcesCommercialTask);
 		}

@@ -1038,7 +1038,6 @@
 		<column name="themeId" type="String" />
 		<column name="colorSchemeId" type="String" />
 		<column name="css" type="String" />
-		<column name="pageCount" type="int" />
 		<column name="settings" type="String" />
 		<column name="layoutSetPrototypeUuid" type="String" />
 		<column name="layoutSetPrototypeLinkEnabled" type="boolean" />
@@ -1054,6 +1053,10 @@
 		<finder name="G_P" return-type="LayoutSet" unique="true">
 			<finder-column name="groupId" />
 			<finder-column name="privateLayout" />
+		</finder>
+		<finder name="C_L" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="layoutSetPrototypeUuid" />
 		</finder>
 		<finder name="P_L" return-type="Layout">
 			<finder-column name="privateLayout" />

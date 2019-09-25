@@ -12,29 +12,52 @@
  * details.
  */
 
-import React, {useState} from 'react';
-import EditAppFooter from './EditAppFooter.es';
-import MultiStepNav from './MultiStepNav.es';
+import React, {useEffect, useState, useReducer} from 'react';
+import DeployApp from './DeployApp.es';
 import EditAppBody from './EditAppBody.es';
+import EditAppContext, {reducer, UPDATE_APP} from './EditAppContext.es';
+import EditAppFooter from './EditAppFooter.es';
+import EditAppHeader from './EditAppHeader.es';
+import MultiStepNav from './MultiStepNav.es';
 import ControlMenu from '../../components/control-menu/ControlMenu.es';
-import {UpperToolbarInput} from '../../components/upper-toolbar/UpperToolbar.es';
-import {addItem, updateItem} from '../../utils/client.es';
+import {Loading} from '../../components/loading/Loading.es';
+import {getItem} from '../../utils/client.es';
 
 export default ({
-	history,
 	match: {
 		params: {dataDefinitionId, appId}
 	}
 }) => {
-	const [app, setApp] = useState({
-		dataLayoutId: null,
-		dataListViewId: null,
-		name: {
-			en_US: ''
+	const [currentStep, setCurrentStep] = useState(0);
+	const [isLoading, setLoading] = useState(false);
+
+	const [state, dispatch] = useReducer(reducer, {
+		app: {
+			appDeployments: [],
+			dataLayoutId: null,
+			dataListViewId: null,
+			name: {
+				en_US: ''
+			},
+			status: 'deployed'
 		}
 	});
 
-	const [currentStep, setCurrentStep] = useState(0);
+	useEffect(() => {
+		if (appId) {
+			setLoading(true);
+
+			getItem(`/o/app-builder/v1.0/apps/${appId}`)
+				.then(app => {
+					dispatch({
+						app,
+						type: UPDATE_APP
+					});
+					setLoading(false);
+				})
+				.catch(_ => setLoading(false));
+		}
+	}, [appId]);
 
 	let title = Liferay.Language.get('new-app');
 
@@ -42,116 +65,85 @@ export default ({
 		title = Liferay.Language.get('edit-app');
 	}
 
-	const onAppNameChange = event => {
-		const name = event.target.value;
-
-		setApp(prevApp => ({
-			...prevApp,
-			name: {
-				en_US: name
-			}
-		}));
+	const getEmptyState = (description, title) => {
+		return {
+			description,
+			title
+		};
 	};
 
-	const onCancel = () => {
-		history.push(`/custom-object/${dataDefinitionId}/apps`);
+	const onCurrentStepChange = step => {
+		setCurrentStep(step);
 	};
-
-	const onDeploy = () => {
-		if (app.name.en_US === '') {
-			return;
-		}
-
-		if (appId) {
-			updateItem(`/o/app-builder/v1.0/apps/${appId}`, app).then(onCancel);
-		} else {
-			addItem(
-				`/o/app-builder/v1.0/data-definitions/${dataDefinitionId}/apps`,
-				app
-			).then(onCancel);
-		}
-	};
-
-	const onDataLayoutIdChange = dataLayoutId => {
-		setApp(prevApp => ({
-			...prevApp,
-			dataLayoutId
-		}));
-	};
-
-	const onDataListViewIdChange = dataListViewId => {
-		setApp(prevApp => ({
-			...prevApp,
-			dataListViewId
-		}));
-	};
-
-	const {
-		dataLayoutId,
-		dataListViewId,
-		name: {en_US: appName}
-	} = app;
 
 	return (
 		<>
 			<ControlMenu backURL="../" title={title} />
 
-			<div className="container-fluid container-fluid-max-lg mt-4">
-				<div className="card card-root">
-					<div className="card-header align-items-center d-flex justify-content-between bg-transparent">
-						<UpperToolbarInput
-							onInput={onAppNameChange}
-							placeholder={Liferay.Language.get('untitled-app')}
-							value={appName}
-						/>
-					</div>
+			<Loading isLoading={isLoading}>
+				<EditAppContext.Provider value={{dispatch, state}}>
+					<div className="container-fluid container-fluid-max-lg mt-4">
+						<div className="card card-root shadowless-card mb-0">
+							<EditAppHeader />
 
-					<h4 className="card-divider mb-4"></h4>
+							<div className="card-body shadowless-card-body p-0">
+								<div className="autofit-row">
+									<div className="col-md-12">
+										<MultiStepNav
+											currentStep={currentStep}
+										/>
+									</div>
+								</div>
 
-					<div className="card-body p-0">
-						<div className="autofit-row">
-							<div className="col-md-12">
-								<MultiStepNav currentStep={currentStep} />
+								{currentStep == 0 && (
+									<EditAppBody
+										emptyState={getEmptyState(
+											Liferay.Language.get(
+												'create-one-or-more-forms-to-display-the-data-held-in-your-data-object'
+											),
+											Liferay.Language.get(
+												'there-are-no-form-views-yet'
+											)
+										)}
+										endpoint={`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-layouts`}
+										itemType="DATA_LAYOUT"
+										title={Liferay.Language.get(
+											'select-a-form-view'
+										)}
+									/>
+								)}
+
+								{currentStep == 1 && (
+									<EditAppBody
+										emptyState={getEmptyState(
+											Liferay.Language.get(
+												'create-one-or-more-tables-to-display-the-data-held-in-your-data-object'
+											),
+											Liferay.Language.get(
+												'there-are-no-table-views-yet'
+											)
+										)}
+										endpoint={`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-list-views`}
+										itemType="DATA_LIST_VIEW"
+										title={Liferay.Language.get(
+											'select-a-table-view'
+										)}
+									/>
+								)}
+
+								{currentStep == 2 && <DeployApp />}
 							</div>
+
+							<h4 className="card-divider"></h4>
+
+							<EditAppFooter
+								currentStep={currentStep}
+								onCurrentStepChange={onCurrentStepChange}
+							/>
 						</div>
-
-						{currentStep == 0 && (
-							<EditAppBody
-								endpoint={`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-layouts`}
-								itemId={dataLayoutId}
-								onItemIdChange={onDataLayoutIdChange}
-								title={Liferay.Language.get(
-									'select-a-form-view'
-								)}
-							/>
-						)}
-
-						{currentStep == 1 && (
-							<EditAppBody
-								endpoint={`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-list-views`}
-								itemId={dataListViewId}
-								onItemIdChange={onDataListViewIdChange}
-								title={Liferay.Language.get(
-									'select-a-table-view'
-								)}
-							/>
-						)}
-
-						{currentStep == 2 && (
-							<div className="autofit-row">
-								<div className="col-md-12">Deploy</div>
-							</div>
-						)}
 					</div>
-
-					<EditAppFooter
-						currentStep={currentStep}
-						onCancel={onCancel}
-						onDeploy={onDeploy}
-						onStepChange={step => setCurrentStep(step)}
-					/>
-				</div>
-			</div>
+				</EditAppContext.Provider>
+			</Loading>
 		</>
 	);
 };

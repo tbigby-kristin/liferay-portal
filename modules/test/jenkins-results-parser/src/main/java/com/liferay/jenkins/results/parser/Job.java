@@ -35,6 +35,8 @@ public interface Job {
 
 	public String getJobProperty(String key);
 
+	public boolean isUsePreBuiltBundles();
+
 	public void readJobProperties();
 
 }

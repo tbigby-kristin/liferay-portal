@@ -16,6 +16,7 @@ package com.liferay.data.engine.rest.internal.dto.v1_0.util;
 
 import com.liferay.data.engine.rest.dto.v1_0.DataDefinitionField;
 import com.liferay.data.engine.spi.dto.SPIDataDefinitionField;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.vulcan.util.TransformUtil;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Leonardo Barros
@@ -58,6 +60,8 @@ public class DataDefinitionFieldUtil {
 				fieldType = spiDataDefinitionField.getFieldType();
 				id = spiDataDefinitionField.getId();
 				indexable = spiDataDefinitionField.getIndexable();
+				indexType = IndexType.create(
+					spiDataDefinitionField.getIndexType());
 				label = spiDataDefinitionField.getLabel();
 				localizable = spiDataDefinitionField.getLocalizable();
 				name = spiDataDefinitionField.getName();
@@ -65,8 +69,12 @@ public class DataDefinitionFieldUtil {
 					spiDataDefinitionField.getNestedSPIDataDefinitionFields(),
 					DataDefinitionFieldUtil::toDataDefinitionField,
 					DataDefinitionField.class);
+				readOnly = spiDataDefinitionField.getReadOnly();
 				repeatable = spiDataDefinitionField.getRepeatable();
+				required = spiDataDefinitionField.getRequired();
+				showLabel = spiDataDefinitionField.getShowLabel();
 				tip = spiDataDefinitionField.getTip();
+				visible = spiDataDefinitionField.getVisible();
 			}
 		};
 	}
@@ -86,6 +94,14 @@ public class DataDefinitionFieldUtil {
 			GetterUtil.getLong(dataDefinitionField.getId()));
 		spiDataDefinitionField.setIndexable(
 			GetterUtil.getBoolean(dataDefinitionField.getIndexable()));
+		spiDataDefinitionField.setIndexType(
+			Optional.ofNullable(
+				dataDefinitionField.getIndexType()
+			).map(
+				DataDefinitionField.IndexType::getValue
+			).orElseGet(
+				() -> StringPool.BLANK
+			));
 		spiDataDefinitionField.setLabel(dataDefinitionField.getLabel());
 		spiDataDefinitionField.setLocalizable(
 			GetterUtil.getBoolean(dataDefinitionField.getLocalizable()));
@@ -101,9 +117,17 @@ public class DataDefinitionFieldUtil {
 					SPIDataDefinitionField.class));
 		}
 
+		spiDataDefinitionField.setReadOnly(
+			GetterUtil.getBoolean(dataDefinitionField.getReadOnly()));
 		spiDataDefinitionField.setRepeatable(
 			GetterUtil.getBoolean(dataDefinitionField.getRepeatable()));
+		spiDataDefinitionField.setRequired(
+			GetterUtil.getBoolean(dataDefinitionField.getRequired()));
+		spiDataDefinitionField.setShowlabel(
+			GetterUtil.getBoolean(dataDefinitionField.getShowLabel(), true));
 		spiDataDefinitionField.setTip(dataDefinitionField.getTip());
+		spiDataDefinitionField.setVisible(
+			GetterUtil.getBoolean(dataDefinitionField.getVisible(), true));
 
 		return spiDataDefinitionField;
 	}

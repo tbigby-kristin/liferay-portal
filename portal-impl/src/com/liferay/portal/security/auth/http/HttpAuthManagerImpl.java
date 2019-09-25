@@ -198,6 +198,12 @@ public class HttpAuthManagerImpl implements HttpAuthManager {
 				httpServletRequest, authorization, authorizationParts);
 		}
 		else if (StringUtil.equalsIgnoreCase(
+					scheme, HttpAuthorizationHeader.SCHEME_BEARER)) {
+
+			return new HttpAuthorizationHeader(
+				HttpAuthorizationHeader.SCHEME_BEARER);
+		}
+		else if (StringUtil.equalsIgnoreCase(
 					scheme, HttpAuthorizationHeader.SCHEME_DIGEST)) {
 
 			return parseDigest(

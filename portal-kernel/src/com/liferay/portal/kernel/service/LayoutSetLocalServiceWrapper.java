@@ -14,7 +14,6 @@
 
 package com.liferay.portal.kernel.service;
 
-
 /**
  * Provides a wrapper for {@link LayoutSetLocalService}.
  *
@@ -326,6 +325,11 @@ public class LayoutSetLocalServiceWrapper
 	}
 
 	@Override
+	public int getPageCount(long groupId, boolean privateLayout) {
+		return _layoutSetLocalService.getPageCount(groupId, privateLayout);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
 			java.io.Serializable primaryKeyObj)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -425,14 +429,6 @@ public class LayoutSetLocalServiceWrapper
 
 		_layoutSetLocalService.updateLookAndFeel(
 			groupId, themeId, colorSchemeId, css);
-	}
-
-	@Override
-	public com.liferay.portal.kernel.model.LayoutSet updatePageCount(
-			long groupId, boolean privateLayout)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _layoutSetLocalService.updatePageCount(groupId, privateLayout);
 	}
 
 	@Override

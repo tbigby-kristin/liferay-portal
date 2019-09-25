@@ -360,7 +360,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 
 		if (className.equals(Group.class.getName())) {
 			if (!site && (liveGroupId == 0) &&
-				!(groupKey.equals(GroupConstants.CONTROL_PANEL) ||
+				!(StringUtil.startsWith(groupKey, GroupConstants.APP) ||
+				  groupKey.equals(GroupConstants.CONTROL_PANEL) ||
 				  groupKey.equals(GroupConstants.FORMS))) {
 
 				throw new IllegalArgumentException();
@@ -1964,36 +1965,6 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	@Override
 	public List<Group> getLiveGroups() {
 		return groupFinder.findByLiveGroups();
-	}
-
-	/**
-	 * Returns a range of all non-system groups of a specified type (className)
-	 * that have no layouts.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param  className the entity's class name
-	 * @param  privateLayout whether to include groups with private layout sets
-	 *         or non-private layout sets
-	 * @param  start the lower bound of the range of groups to return
-	 * @param  end the upper bound of the range of groups to return (not
-	 *         inclusive)
-	 * @return the range of matching groups
-	 */
-	@Override
-	public List<Group> getNoLayoutsGroups(
-		String className, boolean privateLayout, int start, int end) {
-
-		return groupFinder.findByNoLayouts(
-			classNameLocalService.getClassNameId(className), privateLayout,
-			start, end);
 	}
 
 	/**
@@ -3787,6 +3758,8 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	public Group updateGroup(long groupId, String typeSettings)
 		throws PortalException {
 
+		_validateGroupKeyChange(groupId, typeSettings);
+
 		Group group = groupPersistence.findByPrimaryKey(groupId);
 
 		UnicodeProperties typeSettingsProperties = new UnicodeProperties(true);
@@ -3828,13 +3801,7 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 				if ((nameMap != null) &&
 					Validator.isNotNull(nameMap.get(defaultLocale))) {
 
-					String groupKey = nameMap.get(defaultLocale);
-
-					validateGroupKey(
-						group.getGroupId(), group.getCompanyId(), groupKey,
-						group.isSite());
-
-					group.setGroupKey(groupKey);
+					group.setGroupKey(nameMap.get(defaultLocale));
 				}
 			}
 
@@ -5198,6 +5165,31 @@ public class GroupLocalServiceImpl extends GroupLocalServiceBaseImpl {
 	}
 
 	protected File publicLARFile;
+
+	private void _validateGroupKeyChange(long groupId, String typeSettings)
+		throws PortalException {
+
+		Group group = groupPersistence.findByPrimaryKey(groupId);
+
+		UnicodeProperties typeSettingsProperties = new UnicodeProperties(true);
+
+		typeSettingsProperties.fastLoad(typeSettings);
+
+		String defaultLanguageId = typeSettingsProperties.getProperty(
+			"languageId", LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
+
+		Locale defaultLocale = LocaleUtil.fromLanguageId(defaultLanguageId);
+
+		Map<Locale, String> nameMap = group.getNameMap();
+
+		if ((nameMap != null) &&
+			Validator.isNotNull(nameMap.get(defaultLocale))) {
+
+			validateGroupKey(
+				group.getGroupId(), group.getCompanyId(),
+				nameMap.get(defaultLocale), group.isSite());
+		}
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		GroupLocalServiceImpl.class);

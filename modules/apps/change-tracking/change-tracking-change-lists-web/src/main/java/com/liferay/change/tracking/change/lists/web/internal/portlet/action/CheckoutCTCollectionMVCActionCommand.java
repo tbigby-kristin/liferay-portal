@@ -16,7 +16,10 @@ package com.liferay.change.tracking.change.lists.web.internal.portlet.action;
 
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.constants.CTPortletKeys;
-import com.liferay.change.tracking.engine.CTEngineManager;
+import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.change.tracking.model.CTPreferences;
+import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.change.tracking.service.CTPreferencesLocalService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionMessages;
@@ -46,17 +49,30 @@ public class CheckoutCTCollectionMVCActionCommand extends BaseMVCActionCommand {
 
 	@Override
 	protected void doProcessAction(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
+		ActionRequest actionRequest, ActionResponse actionResponse) {
 
 		long ctCollectionId = ParamUtil.getLong(
 			actionRequest, "ctCollectionId");
 
-		_ctEngineManager.checkoutCTCollection(
-			themeDisplay.getUserId(), ctCollectionId);
+		if (ctCollectionId != CTConstants.CT_COLLECTION_ID_PRODUCTION) {
+			CTCollection ctCollection =
+				_ctCollectionLocalService.fetchCTCollection(ctCollectionId);
+
+			if (ctCollection == null) {
+				return;
+			}
+		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		CTPreferences ctPreferences =
+			_ctPreferencesLocalService.getCTPreferences(
+				themeDisplay.getCompanyId(), themeDisplay.getUserId());
+
+		ctPreferences.setCtCollectionId(ctCollectionId);
+
+		_ctPreferencesLocalService.updateCTPreferences(ctPreferences);
 
 		if (ctCollectionId == CTConstants.CT_COLLECTION_ID_PRODUCTION) {
 			SessionMessages.add(
@@ -67,7 +83,10 @@ public class CheckoutCTCollectionMVCActionCommand extends BaseMVCActionCommand {
 	}
 
 	@Reference
-	private CTEngineManager _ctEngineManager;
+	private CTCollectionLocalService _ctCollectionLocalService;
+
+	@Reference
+	private CTPreferencesLocalService _ctPreferencesLocalService;
 
 	@Reference
 	private Portal _portal;

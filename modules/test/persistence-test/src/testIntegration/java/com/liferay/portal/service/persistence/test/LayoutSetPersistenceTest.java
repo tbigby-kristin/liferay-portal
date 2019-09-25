@@ -142,8 +142,6 @@ public class LayoutSetPersistenceTest {
 
 		newLayoutSet.setCss(RandomTestUtil.randomString());
 
-		newLayoutSet.setPageCount(RandomTestUtil.nextInt());
-
 		newLayoutSet.setSettings(RandomTestUtil.randomString());
 
 		newLayoutSet.setLayoutSetPrototypeUuid(RandomTestUtil.randomString());
@@ -182,8 +180,6 @@ public class LayoutSetPersistenceTest {
 			newLayoutSet.getColorSchemeId());
 		Assert.assertEquals(existingLayoutSet.getCss(), newLayoutSet.getCss());
 		Assert.assertEquals(
-			existingLayoutSet.getPageCount(), newLayoutSet.getPageCount());
-		Assert.assertEquals(
 			existingLayoutSet.getSettings(), newLayoutSet.getSettings());
 		Assert.assertEquals(
 			existingLayoutSet.getLayoutSetPrototypeUuid(),
@@ -215,6 +211,15 @@ public class LayoutSetPersistenceTest {
 			RandomTestUtil.nextLong(), RandomTestUtil.randomBoolean());
 
 		_persistence.countByG_P(0L, RandomTestUtil.randomBoolean());
+	}
+
+	@Test
+	public void testCountByC_L() throws Exception {
+		_persistence.countByC_L(RandomTestUtil.nextLong(), "");
+
+		_persistence.countByC_L(0L, "null");
+
+		_persistence.countByC_L(0L, (String)null);
 	}
 
 	@Test
@@ -253,8 +258,8 @@ public class LayoutSetPersistenceTest {
 			"LayoutSet", "mvccVersion", true, "layoutSetId", true, "groupId",
 			true, "companyId", true, "createDate", true, "modifiedDate", true,
 			"privateLayout", true, "logoId", true, "themeId", true,
-			"colorSchemeId", true, "pageCount", true, "layoutSetPrototypeUuid",
-			true, "layoutSetPrototypeLinkEnabled", true);
+			"colorSchemeId", true, "layoutSetPrototypeUuid", true,
+			"layoutSetPrototypeLinkEnabled", true);
 	}
 
 	@Test
@@ -520,8 +525,6 @@ public class LayoutSetPersistenceTest {
 		layoutSet.setColorSchemeId(RandomTestUtil.randomString());
 
 		layoutSet.setCss(RandomTestUtil.randomString());
-
-		layoutSet.setPageCount(RandomTestUtil.nextInt());
 
 		layoutSet.setSettings(RandomTestUtil.randomString());
 

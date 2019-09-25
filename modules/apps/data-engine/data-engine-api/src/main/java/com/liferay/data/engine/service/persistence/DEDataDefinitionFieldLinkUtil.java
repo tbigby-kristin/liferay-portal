@@ -380,7 +380,8 @@ public class DEDataDefinitionFieldLinkUtil {
 	 * @throws NoSuchDataDefinitionFieldLinkException if a matching de data definition field link could not be found
 	 */
 	public static DEDataDefinitionFieldLink findByC_C_D_F(
-			long classNameId, long classPK, long ddmStructureId, long fieldName)
+			long classNameId, long classPK, long ddmStructureId,
+			String fieldName)
 		throws com.liferay.data.engine.exception.
 			NoSuchDataDefinitionFieldLinkException {
 
@@ -398,7 +399,7 @@ public class DEDataDefinitionFieldLinkUtil {
 	 * @return the matching de data definition field link, or <code>null</code> if a matching de data definition field link could not be found
 	 */
 	public static DEDataDefinitionFieldLink fetchByC_C_D_F(
-		long classNameId, long classPK, long ddmStructureId, long fieldName) {
+		long classNameId, long classPK, long ddmStructureId, String fieldName) {
 
 		return getPersistence().fetchByC_C_D_F(
 			classNameId, classPK, ddmStructureId, fieldName);
@@ -415,7 +416,7 @@ public class DEDataDefinitionFieldLinkUtil {
 	 * @return the matching de data definition field link, or <code>null</code> if a matching de data definition field link could not be found
 	 */
 	public static DEDataDefinitionFieldLink fetchByC_C_D_F(
-		long classNameId, long classPK, long ddmStructureId, long fieldName,
+		long classNameId, long classPK, long ddmStructureId, String fieldName,
 		boolean useFinderCache) {
 
 		return getPersistence().fetchByC_C_D_F(
@@ -432,7 +433,8 @@ public class DEDataDefinitionFieldLinkUtil {
 	 * @return the de data definition field link that was removed
 	 */
 	public static DEDataDefinitionFieldLink removeByC_C_D_F(
-			long classNameId, long classPK, long ddmStructureId, long fieldName)
+			long classNameId, long classPK, long ddmStructureId,
+			String fieldName)
 		throws com.liferay.data.engine.exception.
 			NoSuchDataDefinitionFieldLinkException {
 
@@ -450,7 +452,7 @@ public class DEDataDefinitionFieldLinkUtil {
 	 * @return the number of matching de data definition field links
 	 */
 	public static int countByC_C_D_F(
-		long classNameId, long classPK, long ddmStructureId, long fieldName) {
+		long classNameId, long classPK, long ddmStructureId, String fieldName) {
 
 		return getPersistence().countByC_C_D_F(
 			classNameId, classPK, ddmStructureId, fieldName);

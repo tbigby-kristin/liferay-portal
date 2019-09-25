@@ -142,7 +142,17 @@ if (journalContentDisplayContext.isShowArticle()) {
 						</c:choose>
 					</c:when>
 					<c:when test="<%= articleDisplay != null %>">
-						<div class="<%= journalContentDisplayContext.isPreview() ? "p-1 preview-asset-entry" : StringPool.BLANK %>">
+
+						<%
+						AssetRenderer<JournalArticle> assetRenderer = assetRendererFactory.getAssetRenderer(article.getResourcePrimKey());
+
+						Map<String, Object> data = new HashMap<>();
+
+						data.put("fragments-editor-item-id", PortalUtil.getClassNameId(JournalArticle.class) + "-" + assetRenderer.getClassPK());
+						data.put("fragments-editor-item-type", "fragments-editor-mapped-item");
+						%>
+
+						<div class="<%= journalContentDisplayContext.isPreview() ? "p-1 preview-asset-entry" : StringPool.BLANK %>" <%= AUIUtil.buildData(data) %>>
 							<liferay-journal:journal-article-display
 								articleDisplay="<%= articleDisplay %>"
 							/>
@@ -155,7 +165,7 @@ if (journalContentDisplayContext.isShowArticle()) {
 
 								<liferay-ui:page-iterator
 									cur="<%= articleDisplay.getCurrentPage() %>"
-									curParam='<%= "page" %>'
+									curParam="page"
 									delta="<%= 1 %>"
 									id="articleDisplayPages"
 									maxPages="<%= 25 %>"

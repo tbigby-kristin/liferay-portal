@@ -32,6 +32,7 @@ import {
 	StateContext
 } from '../state/context.es';
 import {
+	archiveExperiment,
 	closeCreationModal,
 	closeEditionModal,
 	openEditionModal,
@@ -40,8 +41,11 @@ import {
 	updateSegmentsExperiment,
 	addVariant
 } from '../state/actions.es';
+import {STATUS_COMPLETED, STATUS_TERMINATED} from '../util/statuses.es';
+import {openErrorToast, openSuccessToast} from '../util/toasts.es';
 
 function SegmentsExperimentsSidebar({
+	initialExperimentHistory,
 	initialGoals,
 	initialSegmentsExperiences,
 	initialSegmentsVariants,
@@ -53,6 +57,7 @@ function SegmentsExperimentsSidebar({
 	const [state, dispatch] = useReducer(
 		reducer,
 		{
+			initialExperimentHistory,
 			initialSegmentsExperiment,
 			initialSegmentsVariants,
 			initialSelectedSegmentsExperienceId,
@@ -137,14 +142,20 @@ function SegmentsExperimentsSidebar({
 		dispatch(closeEditionModal());
 	}
 
-	function _handleDeleteSegmentsExperiment() {
+	function _handleDeleteSegmentsExperiment(experimentId) {
 		const body = {
-			segmentsExperimentId: experiment.segmentsExperimentId
+			segmentsExperimentId: experimentId
 		};
 
-		APIService.deleteExperiment(body).then(() => {
-			navigateToExperience(initialSelectedSegmentsExperienceId);
-		});
+		APIService.deleteExperiment(body)
+			.then(() => {
+				openSuccessToast();
+
+				navigateToExperience(initialSelectedSegmentsExperienceId);
+			})
+			.catch(_error => {
+				openErrorToast();
+			});
 	}
 
 	function _handleExperimentCreation(experimentData) {
@@ -185,6 +196,8 @@ function SegmentsExperimentsSidebar({
 					status
 				} = segmentsExperiment;
 
+				openSuccessToast();
+
 				dispatch(addVariant(segmentsExperimentRel));
 
 				dispatch(closeCreationModal());
@@ -224,13 +237,23 @@ function SegmentsExperimentsSidebar({
 		APIService.editExperimentStatus(body)
 			.then(function _successCallback(objectResponse) {
 				const {editable, status} = objectResponse.segmentsExperiment;
-
-				dispatch(
-					updateSegmentsExperiment({
-						editable,
-						status
-					})
-				);
+				if (
+					status.value === STATUS_TERMINATED ||
+					status.value === STATUS_COMPLETED
+				) {
+					dispatch(
+						archiveExperiment({
+							status
+						})
+					);
+				} else {
+					dispatch(
+						updateSegmentsExperiment({
+							editable,
+							status
+						})
+					);
+				}
 			})
 			.catch(function _errorCallback() {
 				Liferay.Util.openToast({
@@ -325,17 +348,25 @@ function SegmentsExperimentsSidebar({
 			segmentsExperimentId: experiment.segmentsExperimentId
 		};
 
-		APIService.editExperiment(body).then(() => {
-			dispatch(
-				updateSegmentsExperiment({
-					goal: {...experiment.goal, target: selector}
-				})
-			);
-		});
+		APIService.editExperiment(body)
+			.then(() => {
+				openSuccessToast();
+
+				dispatch(
+					updateSegmentsExperiment({
+						goal: {...experiment.goal, target: selector}
+					})
+				);
+			})
+			.catch(_error => {
+				openErrorToast();
+			});
 	}
 }
 
 SegmentsExperimentsSidebar.propTypes = {
+	initialExperimentHistory: PropTypes.arrayOf(SegmentsExperimentType)
+		.isRequired,
 	initialGoals: PropTypes.arrayOf(SegmentsExperimentGoal),
 	initialSegmentsExperiences: PropTypes.arrayOf(SegmentsExperienceType),
 	initialSegmentsExperiment: SegmentsExperimentType,

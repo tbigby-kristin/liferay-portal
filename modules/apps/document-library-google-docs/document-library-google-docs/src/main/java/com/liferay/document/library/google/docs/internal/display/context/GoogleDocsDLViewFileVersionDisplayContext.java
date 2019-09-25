@@ -20,6 +20,7 @@ import com.liferay.document.library.google.docs.internal.util.GoogleDocsConstant
 import com.liferay.document.library.google.docs.internal.util.GoogleDocsMetadataHelper;
 import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.servlet.taglib.ui.Menu;
 import com.liferay.portal.kernel.servlet.taglib.ui.MenuItem;
@@ -87,6 +88,10 @@ public class GoogleDocsDLViewFileVersionDisplayContext
 	@Override
 	public Menu getMenu() throws PortalException {
 		Menu menu = super.getMenu();
+
+		if (!isActionsVisible()) {
+			return menu;
+		}
 
 		// See LPS-79987
 
@@ -161,7 +166,7 @@ public class GoogleDocsDLViewFileVersionDisplayContext
 
 		printWriter.write("<div class=\"alert alert-info\">");
 		printWriter.write(
-			ResourceBundleUtil.getString(
+			LanguageUtil.get(
 				resourceBundle,
 				"google-docs-does-not-provide-a-preview-for-this-document"));
 		printWriter.write("</div>");

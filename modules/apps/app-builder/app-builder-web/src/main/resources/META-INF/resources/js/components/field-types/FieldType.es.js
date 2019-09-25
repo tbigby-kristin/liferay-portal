@@ -19,6 +19,7 @@ import {useDrag} from 'react-dnd';
 import classnames from 'classnames';
 import {getEmptyImage} from 'react-dnd-html5-backend';
 import FieldTypeDragPreview from './FieldTypeDragPreview.es';
+import {DRAG_FIELD_TYPE} from '../../utils/dragTypes.es';
 
 const ICONS = {
 	checkbox_multiple: 'select-from-list',
@@ -30,8 +31,11 @@ const ICONS = {
 
 export default props => {
 	const {
+		className,
 		description,
 		disabled,
+		dragAlignment = 'left',
+		dragType = DRAG_FIELD_TYPE,
 		icon,
 		label,
 		name,
@@ -44,9 +48,9 @@ export default props => {
 			dragging: monitor.isDragging()
 		}),
 		item: {
-			...props,
+			data: {...props},
 			preview: () => <FieldTypeDragPreview {...props} />,
-			type: 'fieldType'
+			type: dragType
 		}
 	});
 
@@ -67,12 +71,10 @@ export default props => {
 	return (
 		<div
 			className={classnames(
+				className,
 				'autofit-row',
 				'autofit-row-center',
 				'field-type',
-				'p-0',
-				'pb-3',
-				'pt-3',
 				{
 					disabled,
 					dragging
@@ -82,10 +84,17 @@ export default props => {
 			onDoubleClick={() => handleOnAddColumn(label)}
 			ref={drag}
 		>
-			<div className="autofit-col pl-2 pr-2">
-				<ClayIcon symbol="drag" />
-			</div>
-			<div className="autofit-col pr-2">
+			{dragAlignment === 'left' && (
+				<div className="autofit-col pl-2 pr-2">
+					<ClayIcon symbol="drag" />
+				</div>
+			)}
+
+			<div
+				className={classnames('autofit-col', 'pr-2', {
+					'pl-2': dragAlignment === 'right'
+				})}
+			>
 				<ClaySticker
 					className="app-builder-field-sticker"
 					displayType="light"
@@ -94,16 +103,24 @@ export default props => {
 					<ClayIcon symbol={fieldIcon} />
 				</ClaySticker>
 			</div>
+
 			<div className="autofit-col autofit-col-expand pr-2">
 				<h4 className="list-group-title text-truncate">
 					<span>{label}</span>
 				</h4>
+
 				{description && (
 					<p className="list-group-subtitle text-truncate">
 						<small>{description}</small>
 					</p>
 				)}
 			</div>
+
+			{dragAlignment === 'right' && (
+				<div className="autofit-col pr-2">
+					<ClayIcon symbol="drag" />
+				</div>
+			)}
 		</div>
 	);
 };

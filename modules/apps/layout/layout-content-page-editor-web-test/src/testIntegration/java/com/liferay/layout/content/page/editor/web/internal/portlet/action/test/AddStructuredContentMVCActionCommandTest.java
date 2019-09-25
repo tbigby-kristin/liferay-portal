@@ -177,7 +177,15 @@ public class AddStructuredContentMVCActionCommandTest {
 		throws Exception {
 
 		_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
-			"bmp", ContentTypes.IMAGE_BMP);
+			"bmp", ContentTypes.IMAGE_BMP, true);
+	}
+
+	@Test
+	public void testAddStructuredContentValidStructureWithFieldImageDocumentLibraryBmpAbsoluteURL()
+		throws Exception {
+
+		_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
+			"bmp", ContentTypes.IMAGE_BMP, false);
 	}
 
 	@Test
@@ -185,7 +193,7 @@ public class AddStructuredContentMVCActionCommandTest {
 		throws Exception {
 
 		_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
-			"gif", ContentTypes.IMAGE_GIF);
+			"gif", ContentTypes.IMAGE_GIF, true);
 	}
 
 	@Test
@@ -193,7 +201,7 @@ public class AddStructuredContentMVCActionCommandTest {
 		throws Exception {
 
 		_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
-			"jpeg", ContentTypes.IMAGE_JPEG);
+			"jpeg", ContentTypes.IMAGE_JPEG, true);
 	}
 
 	@Test
@@ -201,7 +209,7 @@ public class AddStructuredContentMVCActionCommandTest {
 		throws Exception {
 
 		_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
-			"jpg", ContentTypes.IMAGE_JPEG);
+			"jpg", ContentTypes.IMAGE_JPEG, true);
 	}
 
 	@Test
@@ -209,7 +217,7 @@ public class AddStructuredContentMVCActionCommandTest {
 		throws Exception {
 
 		_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
-			"png", ContentTypes.IMAGE_PNG);
+			"png", ContentTypes.IMAGE_PNG, true);
 	}
 
 	@Test
@@ -249,6 +257,20 @@ public class AddStructuredContentMVCActionCommandTest {
 			StringUtil.randomString(10),
 			actualFieldValue -> Assert.assertEquals(
 				fieldValue, actualFieldValue));
+	}
+
+	@Test
+	public void testAddTwoStructuredContentsValidStructureWithFieldImageSameFieldNameSameTitle()
+		throws Exception {
+
+		String fieldName = StringUtil.randomString(10);
+		String fieldValue = _read("liferay_base_64_bmp.txt");
+		String title = StringUtil.randomString(10);
+
+		_testAddStructuredContentValidStructureWithFieldImage(
+			fieldValue, fieldValue.split("base64,")[1], fieldName, title);
+		_testAddStructuredContentValidStructureWithFieldImage(
+			fieldValue, fieldValue.split("base64,")[1], fieldName, title);
 	}
 
 	private DDMStructure _addDDMStructure(DDMFormField... ddmFormFields)
@@ -355,7 +377,10 @@ public class AddStructuredContentMVCActionCommandTest {
 		themeDisplay.setCompany(_company);
 		themeDisplay.setPermissionChecker(
 			PermissionThreadLocal.getPermissionChecker());
+		themeDisplay.setRequest(new MockHttpServletRequest());
 		themeDisplay.setScopeGroupId(_group.getGroupId());
+		themeDisplay.setServerName("localhost");
+		themeDisplay.setServerPort(8080);
 		themeDisplay.setSiteGroupId(_group.getGroupId());
 		themeDisplay.setUser(TestPropsValues.getUser());
 
@@ -406,7 +431,7 @@ public class AddStructuredContentMVCActionCommandTest {
 		_testAddStructuredContentInvalidStructureWithField(
 			DDMFormFieldType.IMAGE, fieldName, fieldValue, title,
 			jsonObject -> Assert.assertEquals(
-				"the-web-content-article-could-not-be-created",
+				"image-content-is-invalid-for-field-x",
 				jsonObject.getString("errorMessage")));
 	}
 
@@ -452,8 +477,15 @@ public class AddStructuredContentMVCActionCommandTest {
 			String fieldValue, String expectedFieldValue)
 		throws Exception {
 
-		String fieldName = StringUtil.randomString(10);
-		String title = StringUtil.randomString(10);
+		_testAddStructuredContentValidStructureWithFieldImage(
+			fieldValue, expectedFieldValue, StringUtil.randomString(10),
+			StringUtil.randomString(10));
+	}
+
+	private void _testAddStructuredContentValidStructureWithFieldImage(
+			String fieldValue, String expectedFieldValue, String fieldName,
+			String title)
+		throws Exception {
 
 		_testAddStructuredContentValidStructureWithField(
 			DDMFormFieldType.IMAGE, fieldName, fieldValue, title,
@@ -466,8 +498,9 @@ public class AddStructuredContentMVCActionCommandTest {
 
 				String expectedTitle = title + " - " + fieldName;
 
-				Assert.assertEquals(
-					expectedTitle, jsonObject.getString("title"));
+				String actualTitle = jsonObject.getString("title");
+
+				Assert.assertTrue(actualTitle.startsWith(expectedTitle));
 
 				Assert.assertEquals(
 					_group.getGroupId(), jsonObject.getLong("groupId"));
@@ -477,7 +510,9 @@ public class AddStructuredContentMVCActionCommandTest {
 						jsonObject.getString("uuid"),
 						jsonObject.getLong("groupId"));
 
-				Assert.assertEquals(expectedTitle, fileEntry.getTitle());
+				String fileEntryTitle = fileEntry.getTitle();
+
+				Assert.assertTrue(fileEntryTitle.startsWith(expectedTitle));
 
 				Assert.assertEquals(
 					expectedFieldValue,
@@ -488,7 +523,7 @@ public class AddStructuredContentMVCActionCommandTest {
 
 	private void
 			_testAddStructuredContentValidStructureWithFieldImageDocumentLibrary(
-				String imageType, String contentType)
+				String imageType, String contentType, boolean useRootRelative)
 		throws Exception {
 
 		User user = UserTestUtil.getAdminUser(_company.getCompanyId());
@@ -511,7 +546,11 @@ public class AddStructuredContentMVCActionCommandTest {
 
 		String fieldValue = portalURL + previewURL;
 
-		URL url = new URL(fieldValue);
+		if (useRootRelative) {
+			fieldValue = previewURL;
+		}
+
+		URL url = new URL(portalURL + previewURL);
 
 		_testAddStructuredContentValidStructureWithFieldImage(
 			fieldValue, Base64.encode(FileUtil.getBytes(url.openStream())));

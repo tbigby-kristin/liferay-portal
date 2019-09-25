@@ -14,6 +14,7 @@
 
 import React, {useContext, useState} from 'react';
 import PropTypes from 'prop-types';
+import {openErrorToast, openSuccessToast} from '../../util/toasts.es';
 import ClayButton from '@clayui/button';
 import ClayModal, {useModal} from '@clayui/modal';
 import VariantList from './internal/VariantList.es';
@@ -22,7 +23,7 @@ import {
 	addVariant,
 	updateVariant,
 	updateVariants,
-	updateSegmentsExperiment
+	archiveExperiment
 } from '../../state/actions.es';
 import {DispatchContext, StateContext} from '../../state/context.es';
 import SegmentsExperimentsContext from '../../context.es';
@@ -136,22 +137,29 @@ function Variants({selectedSegmentsExperienceId}) {
 			segmentsExperimentRelId: variantId
 		};
 
-		return APIService.deleteVariant(body).then(() => {
-			let variantExperienceId = null;
+		return APIService.deleteVariant(body)
+			.then(() => {
+				openSuccessToast();
 
-			const newVariants = variants.filter(variant => {
-				if (variant.segmentsExperimentRelId !== variantId) return true;
+				let variantExperienceId = null;
 
-				variantExperienceId = variant.segmentsExperienceId;
-				return false;
+				const newVariants = variants.filter(variant => {
+					if (variant.segmentsExperimentRelId !== variantId)
+						return true;
+
+					variantExperienceId = variant.segmentsExperienceId;
+					return false;
+				});
+
+				if (variantExperienceId === selectedSegmentsExperienceId) {
+					navigateToExperience(experiment.segmentsExperienceId);
+				} else {
+					dispatch(updateVariants(newVariants));
+				}
+			})
+			.catch(_error => {
+				openErrorToast();
 			});
-
-			if (variantExperienceId === selectedSegmentsExperienceId) {
-				navigateToExperience(experiment.segmentsExperienceId);
-			} else {
-				dispatch(updateVariants(newVariants));
-			}
-		});
 	}
 
 	function _handleVariantEdition({name, variantId}) {
@@ -171,6 +179,8 @@ function Variants({selectedSegmentsExperienceId}) {
 		};
 
 		return APIService.editVariant(body).then(({segmentsExperimentRel}) => {
+			openSuccessToast();
+
 			dispatch(
 				updateVariant({
 					changes: {
@@ -189,9 +199,19 @@ function Variants({selectedSegmentsExperienceId}) {
 			winnerSegmentsExperienceId: experienceId
 		};
 
-		APIService.publishExperience(body).then(({segmentsExperiment}) => {
-			dispatch(updateSegmentsExperiment(segmentsExperiment));
-		});
+		APIService.publishExperience(body)
+			.then(({segmentsExperiment}) => {
+				openSuccessToast();
+
+				dispatch(
+					archiveExperiment({
+						status: segmentsExperiment.status
+					})
+				);
+			})
+			.catch(_error => {
+				openErrorToast();
+			});
 	}
 
 	function _handleVariantCreation({name}) {
@@ -202,8 +222,8 @@ function Variants({selectedSegmentsExperienceId}) {
 			segmentsExperimentId: experiment.segmentsExperimentId
 		};
 
-		return APIService.createVariant(body).then(
-			({segmentsExperimentRel}) => {
+		return APIService.createVariant(body)
+			.then(({segmentsExperimentRel}) => {
 				const {
 					name,
 					segmentsExperienceId,
@@ -211,6 +231,8 @@ function Variants({selectedSegmentsExperienceId}) {
 					segmentsExperimentRelId,
 					split
 				} = segmentsExperimentRel;
+
+				openSuccessToast();
 
 				dispatch(
 					addVariant({
@@ -222,8 +244,10 @@ function Variants({selectedSegmentsExperienceId}) {
 						split
 					})
 				);
-			}
-		);
+			})
+			.catch(_error => {
+				openErrorToast();
+			});
 	}
 }
 
