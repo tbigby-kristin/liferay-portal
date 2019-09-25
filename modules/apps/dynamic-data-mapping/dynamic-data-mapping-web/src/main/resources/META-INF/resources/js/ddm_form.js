@@ -875,6 +875,14 @@ AUI.add(
 				repeat() {
 					var instance = this;
 
+					var definition = instance.get('definition');
+
+					definition.fields.forEach(function(field) {
+						if (field.type === 'select') {
+							field.options.shift();
+						}
+					});
+
 					instance._getTemplate(function(fieldTemplate) {
 						var field = instance.createField(fieldTemplate);
 
@@ -3595,7 +3603,17 @@ AUI.add(
 
 					var fieldOptions = fieldDefinition.options;
 
-					fieldOptions.unshift(instance._getPlaceholderOption());
+					if (fieldOptions && fieldOptions[0]) {
+						if (fieldOptions[0].value === '') {
+							var displayLocale = instance.get('displayLocale');
+
+							fieldOptions[0].label[displayLocale] = '';
+						} else {
+							fieldOptions.unshift(
+								instance._getPlaceholderOption()
+							);
+						}
+					}
 
 					return fieldOptions;
 				},

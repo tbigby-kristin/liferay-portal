@@ -287,7 +287,7 @@ public class AppResourceImpl
 
 		for (AppDeployment appDeployment : app.getAppDeployments()) {
 			_appBuilderAppDeploymentLocalService.addAppBuilderAppDeployment(
-				app.getId(), _toJSONString(appDeployment.getSettings()),
+				appId, _toJSONString(appDeployment.getSettings()),
 				appDeployment.getType());
 
 			AppDeployer appDeployer = _appDeployerTracker.getAppDeployer(

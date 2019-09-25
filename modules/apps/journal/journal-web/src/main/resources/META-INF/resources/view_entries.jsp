@@ -17,15 +17,13 @@
 <%@ include file="/init.jsp" %>
 
 <%
-JournalManagementToolbarDisplayContext journalManagementToolbarDisplayContext = (JournalManagementToolbarDisplayContext)request.getAttribute("view.jsp-journalManagementToolbarDisplayContext");
-
 String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
 %>
 
 <liferay-ui:search-container
 	emptyResultsMessage="no-web-content-was-found"
 	id="articles"
-	searchContainer="<%= journalDisplayContext.getSearchContainer(false) %>"
+	searchContainer="<%= journalDisplayContext.getSearchContainer() %>"
 >
 	<liferay-ui:search-container-row
 		className="Object"
@@ -53,7 +51,7 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 				<%
 				Map<String, Object> rowData = new HashMap<String, Object>();
 
-				rowData.put("actions", journalManagementToolbarDisplayContext.getAvailableActions(curArticle));
+				rowData.put("actions", journalDisplayContext.getAvailableActions(curArticle));
 				rowData.put("draggable", !BrowserSnifferUtil.isMobile(request) && (JournalArticlePermission.contains(permissionChecker, curArticle, ActionKeys.DELETE) || JournalArticlePermission.contains(permissionChecker, curArticle, ActionKeys.UPDATE)));
 
 				String title = curArticle.getTitle(locale);
@@ -253,7 +251,7 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 				<%
 				Map<String, Object> rowData = new HashMap<String, Object>();
 
-				rowData.put("actions", journalManagementToolbarDisplayContext.getAvailableActions(curFolder));
+				rowData.put("actions", journalDisplayContext.getAvailableActions(curFolder));
 				rowData.put("draggable", !BrowserSnifferUtil.isMobile(request) && (JournalFolderPermission.contains(permissionChecker, curFolder, ActionKeys.DELETE) || JournalFolderPermission.contains(permissionChecker, curFolder, ActionKeys.UPDATE)));
 				rowData.put("folder", true);
 				rowData.put("folder-id", curFolder.getFolderId());
@@ -405,3 +403,28 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 	context="<%= journalDisplayContext.getComponentContext() %>"
 	module="js/ElementsDefaultEventHandler.es"
 />
+
+<aui:script use="liferay-journal-navigation">
+	var journalNavigation = new Liferay.Portlet.JournalNavigation(
+		{
+			editEntryUrl: '<portlet:actionURL />',
+			form: {
+				method: 'POST',
+				node: A.one(document.<portlet:namespace />fm)
+			},
+			moveEntryUrl: '<portlet:renderURL><portlet:param name="mvcPath" value="/move_entries.jsp" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>',
+			namespace: '<portlet:namespace />',
+			searchContainerId: 'articles'
+		}
+	);
+
+	var clearJournalNavigationHandles = function(event) {
+		if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {
+			journalNavigation.destroy();
+
+			Liferay.detach('destroyPortlet', clearJournalNavigationHandles);
+		}
+	};
+
+	Liferay.on('destroyPortlet', clearJournalNavigationHandles);
+</aui:script>

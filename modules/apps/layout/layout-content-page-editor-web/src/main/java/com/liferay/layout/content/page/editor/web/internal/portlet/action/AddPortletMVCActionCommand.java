@@ -80,17 +80,68 @@ public class AddPortletMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
+		JSONObject jsonObject = _processAddPortlet(
+			actionRequest, actionResponse);
+
+		hideDefaultSuccessMessage(actionRequest);
+
+		JSONPortletResponseUtil.writeJSON(
+			actionRequest, actionResponse, jsonObject);
+	}
+
+	private String _getPortletFragmentEntryLinkHTML(
+			HttpServletRequest httpServletRequest,
+			HttpServletResponse httpServletResponse, String portletId,
+			String instanceId)
+		throws Exception {
+
+		return _fragmentPortletRenderer.renderPortlet(
+			httpServletRequest, httpServletResponse, portletId, instanceId,
+			StringPool.BLANK);
+	}
+
+	private String _getPortletInstanceId(
+			Layout layout, String portletId, long segmentsExperienceId)
+		throws PortletIdException {
+
+		Portlet portlet = _portletLocalService.getPortletById(portletId);
+
+		if (portlet.isInstanceable()) {
+			return SegmentsExperiencePortletUtil.setSegmentsExperienceId(
+				PortletIdCodec.generateInstanceId(), segmentsExperienceId);
+		}
+
+		String instanceId =
+			SegmentsExperiencePortletUtil.setSegmentsExperienceId(
+				String.valueOf(CharPool.NUMBER_0), segmentsExperienceId);
+
+		String checkPortletId =
+			SegmentsExperiencePortletUtil.setSegmentsExperienceId(
+				PortletIdCodec.encode(portletId, instanceId),
+				segmentsExperienceId);
+
+		long count = _portletPreferencesLocalService.getPortletPreferencesCount(
+			PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
+			checkPortletId);
+
+		if (count > 0) {
+			throw new PortletIdException(
+				"Unable to add uninstanceable portlet more than once");
+		}
+
+		return instanceId;
+	}
+
+	private JSONObject _processAddPortlet(
+			ActionRequest actionRequest, ActionResponse actionResponse)
+		throws Exception {
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
-		long classNameId = ParamUtil.getLong(actionRequest, "classNameId");
-
 		long classPK = ParamUtil.getLong(actionRequest, "classPK");
-
-		long segmentsExperienceId = ParamUtil.getLong(
-			actionRequest, "segmentsExperienceId");
 
 		Layout layout = _layoutLocalService.getLayout(classPK);
 
@@ -105,37 +156,11 @@ public class AddPortletMVCActionCommand extends BaseMVCActionCommand {
 			actionRequest);
 
 		try {
-			String instanceId = StringPool.BLANK;
+			long classNameId = ParamUtil.getLong(actionRequest, "classNameId");
 
-			Portlet portlet = _portletLocalService.getPortletById(portletId);
-
-			if (portlet.isInstanceable()) {
-				instanceId =
-					SegmentsExperiencePortletUtil.setSegmentsExperienceId(
-						PortletIdCodec.generateInstanceId(),
-						segmentsExperienceId);
-			}
-			else {
-				instanceId =
-					SegmentsExperiencePortletUtil.setSegmentsExperienceId(
-						String.valueOf(CharPool.NUMBER_0),
-						segmentsExperienceId);
-
-				String checkPortletId =
-					SegmentsExperiencePortletUtil.setSegmentsExperienceId(
-						PortletIdCodec.encode(portletId, instanceId),
-						segmentsExperienceId);
-
-				long count =
-					_portletPreferencesLocalService.getPortletPreferencesCount(
-						PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
-						checkPortletId);
-
-				if (count > 0) {
-					throw new PortletIdException(
-						"Unable to add uninstanceable portlet more than once");
-				}
-			}
+			String instanceId = _getPortletInstanceId(
+				layout, portletId,
+				ParamUtil.getLong(actionRequest, "segmentsExperienceId"));
 
 			String html = _getPortletFragmentEntryLinkHTML(
 				serviceContext.getRequest(),
@@ -193,7 +218,9 @@ public class AddPortletMVCActionCommand extends BaseMVCActionCommand {
 			SessionMessages.add(actionRequest, "fragmentEntryLinkAdded");
 		}
 		catch (PortalException pe) {
-			_log.error(pe, pe);
+			if (_log.isWarnEnabled()) {
+				_log.warn(pe, pe);
+			}
 
 			String errorMessage = "an-unexpected-error-occurred";
 
@@ -202,21 +229,7 @@ public class AddPortletMVCActionCommand extends BaseMVCActionCommand {
 				LanguageUtil.get(themeDisplay.getRequest(), errorMessage));
 		}
 
-		hideDefaultSuccessMessage(actionRequest);
-
-		JSONPortletResponseUtil.writeJSON(
-			actionRequest, actionResponse, jsonObject);
-	}
-
-	private String _getPortletFragmentEntryLinkHTML(
-			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, String portletId,
-			String instanceId)
-		throws Exception {
-
-		return _fragmentPortletRenderer.renderPortlet(
-			httpServletRequest, httpServletResponse, portletId, instanceId,
-			StringPool.BLANK);
+		return jsonObject;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -73,56 +73,39 @@ AUI.add(
 
 					var form = instance.get('form');
 
-					const body = new URLSearchParams(new FormData(form));
-
 					Liferay.Util.fetch(
 						instance.get('deactivateSimulationUrl'),
 						{
-							body,
+							body: new FormData(form),
 							method: 'POST'
 						}
-					)
-						.then(response => {
-							return response.text();
-						})
-						.then(() => {
-							A.all('#' + form.id + ' input').set(
-								'checked',
-								false
-							);
-						});
+					).then(() => {
+						A.all('#' + form.id + ' input').set('checked', false);
+					});
 				},
 
 				_simulateSegmentsEntries() {
 					var instance = this;
 
-					const body = new URLSearchParams(
-						new FormData(instance.get('form'))
-					);
-
 					Liferay.Util.fetch(
 						instance.get('simulateSegmentsEntriesUrl'),
 						{
-							body,
+							body: new FormData(instance.get('form')),
 							method: 'POST'
 						}
-					)
-						.then(response => {
-							return response.text();
-						})
-						.then(() => {
-							const iframe = A.one('#simulationDeviceIframe');
+					).then(() => {
+						const iframe = A.one('#simulationDeviceIframe');
 
-							if (iframe) {
-								const iframeWindow = A.Node.getDOMNode(
-									iframe.get('contentWindow')
-								);
+						if (iframe) {
+							const iframeWindow = A.Node.getDOMNode(
+								iframe.get('contentWindow')
+							);
 
-								if (iframeWindow) {
-									iframeWindow.location.reload();
-								}
+							if (iframeWindow) {
+								iframeWindow.location.reload();
 							}
-						});
+						}
+					});
 				},
 
 				destructor() {

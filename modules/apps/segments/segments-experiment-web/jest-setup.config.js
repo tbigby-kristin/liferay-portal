@@ -12,28 +12,18 @@
  * details.
  */
 
-import ClayDropDown from '@clayui/drop-down';
-import React from 'react';
+const REGEX_SUB = /(?<=-|^)x(?=-|\s)/g;
 
-const {Divider, Item} = ClayDropDown;
-
-export default ({action: {action, name}, item, setActive}) => {
-	if (name === 'divider') {
-		return <Divider />;
+window.Liferay.Util.sub = function(string, data) {
+	if (
+		arguments.length > 2 ||
+		(typeof data !== 'object' && typeof data !== 'function')
+	) {
+		data = Array.prototype.slice.call(arguments, 1);
 	}
-
-	return (
-		<Item
-			onClick={event => {
-				event.preventDefault();
-				setActive(false);
-
-				if (action) {
-					action(item);
-				}
-			}}
-		>
-			{name}
-		</Item>
-	);
+	return string.replace(REGEX_SUB, function(match, key) {
+		return data[key] === undefined ? match : data[key];
+	});
 };
+
+window.Liferay.Util.openToast = () => true;

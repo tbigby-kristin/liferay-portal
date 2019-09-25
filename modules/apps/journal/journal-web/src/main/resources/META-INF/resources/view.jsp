@@ -17,7 +17,20 @@
 <%@ include file="/init.jsp" %>
 
 <%
-JournalManagementToolbarDisplayContext journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+JournalManagementToolbarDisplayContext journalManagementToolbarDisplayContext = null;
+
+if (!journalDisplayContext.isSearch() || journalDisplayContext.isWebContentTabSelected()) {
+	journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+}
+else if (journalDisplayContext.isVersionsTabSelected()) {
+	journalManagementToolbarDisplayContext = new JournalArticleVersionsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+}
+else if (journalDisplayContext.isCommentsTabSelected()) {
+	journalManagementToolbarDisplayContext = new JournalArticleCommentsManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+}
+else {
+	journalManagementToolbarDisplayContext = new JournalManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, journalDisplayContext, trashHelper);
+}
 
 String title = journalDisplayContext.getFolderTitle();
 
@@ -74,10 +87,6 @@ if (Validator.isNotNull(title)) {
 			<aui:input name="groupId" type="hidden" value="<%= scopeGroupId %>" />
 			<aui:input name="newFolderId" type="hidden" />
 
-			<%
-			request.setAttribute("view.jsp-journalManagementToolbarDisplayContext", journalManagementToolbarDisplayContext);
-			%>
-
 			<c:choose>
 				<c:when test="<%= !journalDisplayContext.isSearch() %>">
 					<liferay-util:include page="/view_entries.jsp" servletContext="<%= application %>" />
@@ -117,13 +126,13 @@ if (Validator.isNotNull(title)) {
 					/>
 
 					<c:choose>
-						<c:when test='<%= Objects.equals(journalDisplayContext.getTabs1(), "web-content") || (journalDisplayContext.hasResults() && Validator.isNull(journalDisplayContext.getTabs1())) %>'>
+						<c:when test="<%= journalDisplayContext.isWebContentTabSelected() %>">
 							<liferay-util:include page="/view_entries.jsp" servletContext="<%= application %>" />
 						</c:when>
-						<c:when test='<%= Objects.equals(journalDisplayContext.getTabs1(), "versions") || (journalDisplayContext.hasVersionsResults() && Validator.isNull(journalDisplayContext.getTabs1())) %>'>
+						<c:when test="<%= journalDisplayContext.isVersionsTabSelected() %>">
 							<liferay-util:include page="/view_versions.jsp" servletContext="<%= application %>" />
 						</c:when>
-						<c:when test='<%= Objects.equals(journalDisplayContext.getTabs1(), "comments") || (journalDisplayContext.hasCommentsResults() && Validator.isNull(journalDisplayContext.getTabs1())) %>'>
+						<c:when test="<%= journalDisplayContext.isCommentsTabSelected() %>">
 							<liferay-util:include page="/view_comments.jsp" servletContext="<%= application %>" />
 						</c:when>
 						<c:otherwise>
@@ -135,28 +144,3 @@ if (Validator.isNotNull(title)) {
 		</aui:form>
 	</div>
 </div>
-
-<aui:script use="liferay-journal-navigation">
-	var journalNavigation = new Liferay.Portlet.JournalNavigation(
-		{
-			editEntryUrl: '<portlet:actionURL />',
-			form: {
-				method: 'POST',
-				node: A.one(document.<portlet:namespace />fm)
-			},
-			moveEntryUrl: '<portlet:renderURL><portlet:param name="mvcPath" value="/move_entries.jsp" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>',
-			namespace: '<portlet:namespace />',
-			searchContainerId: 'articles'
-		}
-	);
-
-	var clearJournalNavigationHandles = function(event) {
-		if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {
-			journalNavigation.destroy();
-
-			Liferay.detach('destroyPortlet', clearJournalNavigationHandles);
-		}
-	};
-
-	Liferay.on('destroyPortlet', clearJournalNavigationHandles);
-</aui:script>
