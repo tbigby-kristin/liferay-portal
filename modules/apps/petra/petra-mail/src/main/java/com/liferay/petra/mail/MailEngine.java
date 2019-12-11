@@ -270,6 +270,10 @@ public class MailEngine {
 
 			message.addHeader(
 				"X-Auto-Response-Suppress", "AutoReply, DR, NDR, NRN, OOF, RN");
+			message.addHeader(
+				"Auto-Submitted", "auto-generated");
+			message.addHeader(
+				"Precedence", "list");
 
 			message.setFrom(from);
 
