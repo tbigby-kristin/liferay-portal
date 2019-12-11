@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -52,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -1188,7 +1190,7 @@ public class SharingEntryLocalServiceTest {
 
 		_sharingEntryLocalService.updateSharingEntry(
 			_fromUser.getUserId(), sharingEntry.getSharingEntryId(),
-			ListUtil.toList((SharingEntryAction[])null), true, null,
+			ListUtil.fromArray((SharingEntryAction[])null), true, null,
 			serviceContext);
 	}
 
@@ -1229,16 +1231,21 @@ public class SharingEntryLocalServiceTest {
 	private final class DisableSchedulerDestination implements AutoCloseable {
 
 		public DisableSchedulerDestination() {
-			_destination = _messageBus.removeDestination(
-				DestinationNames.SCHEDULER_DISPATCH, false);
+			_destinations = ReflectionTestUtil.getFieldValue(
+				_messageBus, "_destinations");
+
+			_destination = _destinations.remove(
+				DestinationNames.SCHEDULER_DISPATCH);
 		}
 
 		@Override
 		public void close() {
-			_messageBus.addDestination(_destination);
+			_destinations.put(
+				DestinationNames.SCHEDULER_DISPATCH, _destination);
 		}
 
 		private final Destination _destination;
+		private final Map<String, Destination> _destinations;
 
 	}
 

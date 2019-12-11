@@ -13,9 +13,17 @@
  */
 
 import React from 'react';
+
 import FieldType from './FieldType.es';
 
-export default ({fieldTypes, keywords, onAddColumn}) => {
+export default ({
+	deleteLabel,
+	fieldTypes,
+	keywords,
+	onClick,
+	onDelete,
+	onDoubleClick
+}) => {
 	const regex = new RegExp(keywords, 'ig');
 
 	return fieldTypes
@@ -30,8 +38,11 @@ export default ({fieldTypes, keywords, onAddColumn}) => {
 		.map((fieldType, index) => (
 			<FieldType
 				{...fieldType}
+				deleteLabel={deleteLabel}
 				key={`${fieldType.name}_${index}`}
-				onAddColumn={onAddColumn}
+				onClick={onClick}
+				onDelete={onDelete}
+				onDoubleClick={onDoubleClick}
 			/>
 		));
 };

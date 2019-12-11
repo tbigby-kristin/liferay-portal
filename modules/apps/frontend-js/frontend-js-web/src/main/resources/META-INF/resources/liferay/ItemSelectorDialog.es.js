@@ -34,60 +34,80 @@ class ItemSelectorDialog extends Component {
 		this._selectedItem = null;
 
 		const eventName = this.eventName;
-		const zIndex = this.zIndex;
+
+		const dialogConfig = this._getDialogConfig();
+
+		const dialogEvents = {
+			on: {
+				click: event => {
+					event.domEvent.preventDefault();
+				},
+				visibleChange: event => {
+					if (!event.newVal) {
+						this.selectedItem = this._selectedItem;
+
+						this.emit('selectedItemChange', {
+							selectedItem: this.selectedItem
+						});
+					}
+
+					this.emit('visibleChange', {visible: event.newVal});
+				}
+			}
+		};
 
 		Liferay.Util.selectEntity(
 			{
-				dialog: {
-					constrain: true,
-					cssClass: this.dialogClasses,
-					destroyOnHide: true,
-					modal: true,
-					on: {
-						visibleChange: event => {
-							if (!event.newVal) {
-								this.selectedItem = this._selectedItem;
-
-								this.emit('selectedItemChange', {
-									selectedItem: this.selectedItem
-								});
-							}
-						}
-					},
-					'toolbars.footer': [
-						{
-							cssClass: 'btn-link close-modal',
-							id: 'cancelButton',
-							label: this.buttonCancelLabel,
-							on: {
-								click: () => {
-									this.close();
-								}
-							}
-						},
-						{
-							cssClass: 'btn-primary',
-							disabled: true,
-							id: 'addButton',
-							label: this.buttonAddLabel,
-							on: {
-								click: () => {
-									this._selectedItem = this._currentItem;
-									this.close();
-								}
-							}
-						}
-					],
-					zIndex
-				},
+				dialog: {...dialogConfig, ...dialogEvents},
 				eventName,
 				id: eventName,
-				stack: !zIndex,
+				stack: !this.zIndex,
 				title: this.title,
 				uri: this.url
 			},
 			this._onItemSelected.bind(this)
 		);
+	}
+
+	_getDialogConfig() {
+		const dialogConfig = {
+			constrain: true,
+			cssClass: this.dialogClasses,
+			destroyOnHide: true,
+			modal: true,
+			zIndex: this.zIndex
+		};
+
+		if (!this.singleSelect) {
+			const dialogFooter = [
+				{
+					cssClass: 'btn-link close-modal',
+					id: 'cancelButton',
+					label: this.buttonCancelLabel,
+					on: {
+						click: () => {
+							this.close();
+						}
+					}
+				},
+				{
+					cssClass: 'btn-primary',
+					disabled: true,
+					id: 'addButton',
+					label: this.buttonAddLabel,
+					on: {
+						click: () => {
+							this._selectedItem = this._currentItem;
+							this.close();
+						}
+					}
+				}
+			];
+
+			dialogConfig['toolbars.footer'] = dialogFooter;
+		}
+
+		return dialogConfig;
 	}
 
 	/**
@@ -100,14 +120,19 @@ class ItemSelectorDialog extends Component {
 	_onItemSelected(event) {
 		const currentItem = event.data;
 
-		const dialog = Liferay.Util.getWindow(this.eventName);
+		if (this.singleSelect) {
+			this._selectedItem = currentItem;
+			this.close();
+		} else {
+			const dialog = Liferay.Util.getWindow(this.eventName);
 
-		const addButton = dialog
-			.getToolbar('footer')
-			.get('boundingBox')
-			.one('#addButton');
+			const addButton = dialog
+				.getToolbar('footer')
+				.get('boundingBox')
+				.one('#addButton');
 
-		Liferay.Util.toggleDisabled(addButton, !currentItem);
+			Liferay.Util.toggleDisabled(addButton, !currentItem);
+		}
 
 		this._currentItem = currentItem;
 	}
@@ -167,6 +192,13 @@ ItemSelectorDialog.STATE = {
 		Config.object(),
 		Config.arrayOf(Config.object())
 	]),
+
+	/**
+	 * Enables single selection of item.
+	 * @type {boolean}
+	 */
+
+	singleSelect: Config.bool().value(false),
 
 	/**
 	 * Dialog's title.

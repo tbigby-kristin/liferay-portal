@@ -24,12 +24,12 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -54,8 +54,6 @@ public class CheckboxMultipleDDMFormFieldContextHelper {
 		List<Object> options = new ArrayList<>();
 
 		for (String optionValue : _ddmFormFieldOptions.getOptionsValues()) {
-			Map<String, String> optionMap = new HashMap<>();
-
 			LocalizedValue optionLabel = _ddmFormFieldOptions.getOptionLabels(
 				optionValue);
 
@@ -65,9 +63,11 @@ public class CheckboxMultipleDDMFormFieldContextHelper {
 				optionLabelString = HtmlUtil.extractText(optionLabelString);
 			}
 
-			optionMap.put("label", optionLabelString);
-
-			optionMap.put("value", optionValue);
+			Map<String, String> optionMap = HashMapBuilder.put(
+				"label", optionLabelString
+			).put(
+				"value", optionValue
+			).build();
 
 			options.add(optionMap);
 		}

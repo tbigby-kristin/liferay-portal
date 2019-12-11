@@ -90,7 +90,7 @@ public abstract class BaseContentStructureResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's content structures. Results can be paginated, filtered, searched, and sorted."
+		description = "Retrieves the site's content structures. Results can be paginated, filtered, searched, and sorted."
 	)
 	@Parameters(
 		value = {

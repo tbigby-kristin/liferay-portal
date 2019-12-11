@@ -30,22 +30,24 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @author Eduardo García
- * @deprecated As of Mueller (7.2.x), replaced by {@link com.liferay.layout.admin.kernel.util.SitemapURLProviderRegistryUtil}
+ * @author     Eduardo García
+ * @deprecated As of Mueller (7.2.x), replaced by {@link
+ *             com.liferay.layout.admin.kernel.util.SitemapURLProviderRegistryUtil}
  */
 @Deprecated
 public class SitemapURLProviderRegistryUtil {
 
 	public static SitemapURLProvider getSitemapURLProvider(String className) {
-		return _instance._getSitemapURLProvider(className);
+		return _sitemapURLProviderRegistryUtil._getSitemapURLProvider(
+			className);
 	}
 
 	public static List<SitemapURLProvider> getSitemapURLProviders() {
-		return _instance._getSitemapURLProviders();
+		return _sitemapURLProviderRegistryUtil._getSitemapURLProviders();
 	}
 
 	public static void register(SitemapURLProvider sitemapURLProvider) {
-		_instance._register(sitemapURLProvider);
+		_sitemapURLProviderRegistryUtil._register(sitemapURLProvider);
 	}
 
 	public static void unregister(
@@ -57,7 +59,7 @@ public class SitemapURLProviderRegistryUtil {
 	}
 
 	public static void unregister(SitemapURLProvider sitemapURLProvider) {
-		_instance._unregister(sitemapURLProvider);
+		_sitemapURLProviderRegistryUtil._unregister(sitemapURLProvider);
 	}
 
 	private SitemapURLProviderRegistryUtil() {
@@ -99,8 +101,8 @@ public class SitemapURLProviderRegistryUtil {
 		}
 	}
 
-	private static final SitemapURLProviderRegistryUtil _instance =
-		new SitemapURLProviderRegistryUtil();
+	private static final SitemapURLProviderRegistryUtil
+		_sitemapURLProviderRegistryUtil = new SitemapURLProviderRegistryUtil();
 
 	private final ServiceRegistrationMap<SitemapURLProvider>
 		_serviceRegistrations = new ServiceRegistrationMapImpl<>();

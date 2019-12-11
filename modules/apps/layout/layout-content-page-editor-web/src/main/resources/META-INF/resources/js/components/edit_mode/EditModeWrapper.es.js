@@ -14,10 +14,11 @@
 
 import Component from 'metal-component';
 import {Config} from 'metal-state';
-import {FRAGMENTS_EDITOR_ITEM_TYPES} from '../../utils/constants';
-import getConnectedComponent from '../../store/ConnectedComponent.es';
+
 import {UPDATE_SELECTED_SIDEBAR_PANEL_ID} from '../../actions/actions.es';
 import {updateActiveItemAction} from '../../actions/updateActiveItem.es';
+import getConnectedComponent from '../../store/ConnectedComponent.es';
+import {FRAGMENTS_EDITOR_ITEM_TYPES} from '../../utils/constants';
 
 const WRAPPER_CLASSES = {
 	default: 'fragment-entry-link-list-wrapper',
@@ -36,6 +37,8 @@ class EditModeWrapper extends Component {
 	 * @review
 	 */
 	created() {
+		this._url = new URL(location.href);
+
 		requestAnimationFrame(() => {
 			this._handleMessageIdURLParameter();
 
@@ -228,13 +231,10 @@ EditModeWrapper.STATE = {
 	 * Internal URL object
 	 * @default new URL
 	 * @memberof EditModeWrapper
-	 * @private
 	 * @review
 	 * @type {URL}
 	 */
-	_url: Config.instanceOf(URL)
-		.internal()
-		.value(new URL(location.href))
+	_url: Config.instanceOf(URL).internal()
 };
 
 const ConnectedEditModeWrapper = getConnectedComponent(EditModeWrapper, [

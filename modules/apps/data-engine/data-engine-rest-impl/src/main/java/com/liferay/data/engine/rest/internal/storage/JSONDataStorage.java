@@ -14,7 +14,6 @@
 
 package com.liferay.data.engine.rest.internal.storage;
 
-import com.liferay.data.engine.field.type.FieldTypeTracker;
 import com.liferay.data.engine.rest.dto.v1_0.DataRecord;
 import com.liferay.data.engine.rest.dto.v1_0.DataRecordCollection;
 import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataDefinitionUtil;
@@ -22,6 +21,7 @@ import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataRecordCollectionU
 import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataRecordValuesUtil;
 import com.liferay.data.engine.storage.DataStorage;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.model.DDMContent;
 import com.liferay.dynamic.data.mapping.service.DDMContentLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
@@ -63,8 +63,8 @@ public class JSONDataStorage implements DataStorage {
 
 		return DataRecordValuesUtil.toDataRecordValues(
 			DataDefinitionUtil.toDataDefinition(
-				_ddmStructureLocalService.getStructure(dataDefinitionId),
-				_fieldTypeTracker),
+				_ddmFormFieldTypeServicesTracker,
+				_ddmStructureLocalService.getStructure(dataDefinitionId)),
 			ddmContent.getData());
 	}
 
@@ -83,9 +83,9 @@ public class JSONDataStorage implements DataStorage {
 			DataRecord.class.getName(), null,
 			DataRecordValuesUtil.toJSON(
 				DataDefinitionUtil.toDataDefinition(
+					_ddmFormFieldTypeServicesTracker,
 					_ddmStructureLocalService.getStructure(
-						dataRecordCollection.getDataDefinitionId()),
-					_fieldTypeTracker),
+						dataRecordCollection.getDataDefinitionId())),
 				dataRecordValues),
 			new ServiceContext() {
 				{
@@ -104,9 +104,9 @@ public class JSONDataStorage implements DataStorage {
 	private DDMContentLocalService _ddmContentLocalService;
 
 	@Reference
-	private DDMStructureLocalService _ddmStructureLocalService;
+	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
 
 	@Reference
-	private FieldTypeTracker _fieldTypeTracker;
+	private DDMStructureLocalService _ddmStructureLocalService;
 
 }

@@ -37,6 +37,12 @@ body {
 	}
 }
 
+.pages-tree {
+	.tree-node-selected {
+		font-weight: bold;
+	}
+}
+
 .product-menu {
 	background-color: $product-menu-body-bg;
 
@@ -61,17 +67,15 @@ body {
 }
 
 .product-menu {
-	.form-control {
+	.form-control-sm {
 		background-color: #1b2228;
-		border-radius: 0;
+		border-radius: $border-radius;
 		border-width: 0;
 		box-shadow: none;
-		color: #869cad;
-		height: 40px;
-		padding: 8px 12px;
+		width: 100%;
 
 		@include placeholder {
-			color: #869cad;
+			color: white;
 		}
 
 		&:focus {
@@ -83,6 +87,15 @@ body {
 				color: #fff;
 			}
 		}
+	}
+
+	select.form-control-sm {
+		border: 1px solid #6b6c7e;
+		color: white;
+	}
+
+	.page-type-selector {
+		padding: 20px 16px 8px 16px;
 	}
 }
 
@@ -358,9 +371,21 @@ body {
 			}
 
 			.category-name,
-			.user-name,
-			.site-name {
+			.depot-type,
+			.site-name,
+			.user-name {
 				color: $product-menu-panel-title-color;
+			}
+
+			.depot-type,
+			.site-name {
+				line-height: 1.25;
+			}
+
+			.depot-type {
+				font-size: 0.75rem;
+				font-weight: normal;
+				text-transform: uppercase;
 			}
 		}
 	}
@@ -399,6 +424,17 @@ body {
 
 		position: absolute;
 		right: 46px;
+		top: 9px;
+		z-index: 1;
+	}
+
+	.icon-pages-tree {
+		a {
+			color: $product-menu-panel-title-color;
+		}
+
+		position: absolute;
+		right: 76px;
 		top: 9px;
 		z-index: 1;
 	}

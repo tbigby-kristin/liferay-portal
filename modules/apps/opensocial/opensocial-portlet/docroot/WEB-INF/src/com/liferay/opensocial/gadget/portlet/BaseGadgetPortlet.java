@@ -34,11 +34,11 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 
 import java.io.IOException;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.portlet.PortletException;
@@ -98,20 +98,18 @@ public abstract class BaseGadgetPortlet extends MVCPortlet {
 				expandoTable.getTableId(), columnName,
 				ExpandoColumnConstants.STRING);
 
-			Map<Long, String[]> roleIdsToActionIds = new HashMap<>();
-
 			Role guestRole = RoleLocalServiceUtil.getRole(
 				expandoColumn.getCompanyId(), RoleConstants.GUEST);
-
-			roleIdsToActionIds.put(
-				guestRole.getRoleId(), new String[] {ActionKeys.VIEW});
 
 			Role userRole = RoleLocalServiceUtil.getRole(
 				expandoColumn.getCompanyId(), RoleConstants.USER);
 
-			roleIdsToActionIds.put(
+			Map<Long, String[]> roleIdsToActionIds = HashMapBuilder.put(
+				guestRole.getRoleId(), new String[] {ActionKeys.VIEW}
+			).put(
 				userRole.getRoleId(),
-				new String[] {ActionKeys.UPDATE, ActionKeys.VIEW});
+				new String[] {ActionKeys.UPDATE, ActionKeys.VIEW}
+			).build();
 
 			ResourcePermissionLocalServiceUtil.setResourcePermissions(
 				expandoColumn.getCompanyId(), ExpandoColumn.class.getName(),

@@ -14,22 +14,14 @@
 
 package com.liferay.gradle.plugins.node.tasks;
 
-import com.liferay.gradle.plugins.node.internal.util.DigestUtil;
-import com.liferay.gradle.plugins.node.internal.util.FileUtil;
 import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
 
 import java.io.File;
 
-import java.nio.charset.StandardCharsets;
-
 import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Optional;
 
 /**
  * @author Peter Shin
@@ -38,64 +30,136 @@ public class PackageRunBuildTask extends PackageRunTask {
 
 	public PackageRunBuildTask() {
 		setScriptName("build");
-
-		_patternFilterable.exclude(_EXCLUDE_DIR_NAMES);
-		_patternFilterable.include(_INCLUDES);
 	}
 
+	public File getDestinationDir() {
+		return GradleUtil.toFile(getProject(), _destinationDir);
+	}
+
+	@InputFile
+	@Optional
+	public File getNpmBridgeRCFile() {
+		return _getExistentFile(".npmbridgerc");
+	}
+
+	@InputFile
+	@Optional
+	public File getNpmBundlerRCFile() {
+		return _getExistentFile(".npmbundlerrc");
+	}
+
+	@InputFile
+	@Optional
+	public File getNpmScriptsConfigJSFile() {
+		return _getExistentFile("npmscripts.config.js");
+	}
+
+	@InputFile
+	public File getPackageJsonFile() {
+		Project project = getProject();
+
+		return project.file("package.json");
+	}
+
+	@InputFile
+	@Optional
+	public File getPackageLockJsonFile() {
+		return _getExistentFile("package-lock.json");
+	}
+
+	@InputFile
+	@Optional
 	@Override
-	public void executeNode() throws Exception {
-		String digest = DigestUtil.getDigest(getSourceFiles());
-
-		super.executeNode();
-
-		File digestFile = getDigestFile();
-
-		FileUtil.write(digestFile, digest.getBytes(StandardCharsets.UTF_8));
+	public File getScriptFile() {
+		return _getExistentFile(super.getScriptFile());
 	}
 
-	@OutputFile
-	public File getDigestFile() {
-		Project project = getProject();
-
-		return new File(
-			project.getBuildDir(), "node/" + getName() + "/.digest");
+	@InputDirectory
+	@Optional
+	public File getSourceDir() {
+		return GradleUtil.toFile(getProject(), _sourceDir);
 	}
 
-	@Input
-	public String getNodeVersion() {
-		return GradleUtil.toString(_nodeVersion);
+	@InputFile
+	@Optional
+	public File getWebpackConfigJSFile() {
+		return _getExistentFile("webpack.config.js");
 	}
 
-	@InputFiles
-	public FileCollection getSourceFiles() {
-		Project project = getProject();
+	@InputFile
+	@Optional
+	public File getYarnLockFile() {
+		return _getExistentYarnFile("yarn.lock");
+	}
 
-		FileTree fileTree = project.fileTree(project.getProjectDir());
+	@InputFile
+	@Optional
+	public File getYarnNpmScriptsConfigJSFile() {
+		return _getExistentYarnFile("npmscripts.config.js");
+	}
 
-		FileCollection fileCollection = fileTree.matching(_patternFilterable);
+	@InputFile
+	@Optional
+	public File getYarnPackageJsonFile() {
+		return _getExistentYarnFile("package.json");
+	}
 
-		if (fileCollection.isEmpty()) {
+	@InputDirectory
+	@Optional
+	public File getYarnProjectNodeModulesDir() {
+		if (isUseNpm()) {
 			return null;
 		}
 
-		return fileCollection;
+		return _getExistentFile("node_modules");
 	}
 
-	public void setNodeVersion(Object nodeVersion) {
-		_nodeVersion = nodeVersion;
+	public File getYarnWorkingDir() {
+		return GradleUtil.toFile(getProject(), _yarnWorkingDir);
 	}
 
-	private static final String[] _EXCLUDE_DIR_NAMES = {
-		"bin", "build", "classes", "node_modules", "node_modules_cache",
-		"test-classes", "tmp"
-	};
+	public void setDestinationDir(Object destinationDir) {
+		_destinationDir = destinationDir;
+	}
 
-	private static final String[] _INCLUDES = {
-		"**/*.*rc", "**/*.css", "**/*.js", "**/*.json", "**/*.jsx", "**/*.soy"
-	};
+	public void setSourceDir(Object sourceDir) {
+		_sourceDir = sourceDir;
+	}
 
-	private Object _nodeVersion;
-	private final PatternFilterable _patternFilterable = new PatternSet();
+	public void setYarnWorkingDir(Object yarnWorkingDir) {
+		_yarnWorkingDir = yarnWorkingDir;
+	}
+
+	private File _getExistentFile(Object path) {
+		Project project = getProject();
+
+		File file = project.file(path);
+
+		if (!file.exists()) {
+			file = null;
+		}
+
+		return file;
+	}
+
+	private File _getExistentYarnFile(String fileName) {
+		File yarnWorkingDir = getYarnWorkingDir();
+
+		if (yarnWorkingDir == null) {
+			return null;
+		}
+
+		File file = new File(yarnWorkingDir, fileName);
+
+		if (!file.exists()) {
+			file = null;
+		}
+
+		return file;
+	}
+
+	private Object _destinationDir;
+	private Object _sourceDir;
+	private Object _yarnWorkingDir;
 
 }

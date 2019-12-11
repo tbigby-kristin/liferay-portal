@@ -18,6 +18,7 @@ import com.liferay.knowledge.base.model.KBArticle;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class KBArticleCacheModel
-	implements CacheModel<KBArticle>, Externalizable {
+	implements CacheModel<KBArticle>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object obj) {
@@ -47,7 +48,9 @@ public class KBArticleCacheModel
 
 		KBArticleCacheModel kbArticleCacheModel = (KBArticleCacheModel)obj;
 
-		if (kbArticleId == kbArticleCacheModel.kbArticleId) {
+		if ((kbArticleId == kbArticleCacheModel.kbArticleId) &&
+			(mvccVersion == kbArticleCacheModel.mvccVersion)) {
+
 			return true;
 		}
 
@@ -56,14 +59,28 @@ public class KBArticleCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, kbArticleId);
+		int hashCode = HashUtil.hash(0, kbArticleId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
 		StringBundler sb = new StringBundler(59);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", kbArticleId=");
 		sb.append(kbArticleId);
@@ -103,8 +120,6 @@ public class KBArticleCacheModel
 		sb.append(priority);
 		sb.append(", sections=");
 		sb.append(sections);
-		sb.append(", viewCount=");
-		sb.append(viewCount);
 		sb.append(", latest=");
 		sb.append(latest);
 		sb.append(", main=");
@@ -129,6 +144,8 @@ public class KBArticleCacheModel
 	@Override
 	public KBArticle toEntityModel() {
 		KBArticleImpl kbArticleImpl = new KBArticleImpl();
+
+		kbArticleImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			kbArticleImpl.setUuid("");
@@ -207,7 +224,6 @@ public class KBArticleCacheModel
 			kbArticleImpl.setSections(sections);
 		}
 
-		kbArticleImpl.setViewCount(viewCount);
 		kbArticleImpl.setLatest(latest);
 		kbArticleImpl.setMain(main);
 
@@ -249,6 +265,7 @@ public class KBArticleCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 
 		kbArticleId = objectInput.readLong();
@@ -281,8 +298,6 @@ public class KBArticleCacheModel
 		priority = objectInput.readDouble();
 		sections = objectInput.readUTF();
 
-		viewCount = objectInput.readInt();
-
 		latest = objectInput.readBoolean();
 
 		main = objectInput.readBoolean();
@@ -298,6 +313,8 @@ public class KBArticleCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF("");
 		}
@@ -372,8 +389,6 @@ public class KBArticleCacheModel
 			objectOutput.writeUTF(sections);
 		}
 
-		objectOutput.writeInt(viewCount);
-
 		objectOutput.writeBoolean(latest);
 
 		objectOutput.writeBoolean(main);
@@ -401,6 +416,7 @@ public class KBArticleCacheModel
 		objectOutput.writeLong(statusDate);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long kbArticleId;
 	public long resourcePrimKey;
@@ -421,7 +437,6 @@ public class KBArticleCacheModel
 	public String description;
 	public double priority;
 	public String sections;
-	public int viewCount;
 	public boolean latest;
 	public boolean main;
 	public String sourceURL;

@@ -39,20 +39,20 @@ public class BlogsEntryModelVisibilityContributor
 	@Override
 	public boolean isVisible(long classPK, int status) {
 		try {
-			BlogsEntry entry = blogsEntryLocalService.getEntry(classPK);
+			BlogsEntry entry = _blogsEntryLocalService.getEntry(classPK);
 
-			return isVisible(entry.getStatus(), status);
+			return _isVisible(entry.getStatus(), status);
 		}
 		catch (PortalException pe) {
 			if (_log.isWarnEnabled()) {
 				_log.warn("Unable to check visibility for blogs entry ", pe);
 			}
-		}
 
-		return false;
+			return false;
+		}
 	}
 
-	protected boolean isVisible(int entryStatus, int queryStatus) {
+	private boolean _isVisible(int entryStatus, int queryStatus) {
 		if (((queryStatus != WorkflowConstants.STATUS_ANY) &&
 			 (entryStatus == queryStatus)) ||
 			(entryStatus != WorkflowConstants.STATUS_IN_TRASH)) {
@@ -63,10 +63,10 @@ public class BlogsEntryModelVisibilityContributor
 		return false;
 	}
 
-	@Reference
-	protected BlogsEntryLocalService blogsEntryLocalService;
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		BlogsEntryModelVisibilityContributor.class);
+
+	@Reference
+	private BlogsEntryLocalService _blogsEntryLocalService;
 
 }

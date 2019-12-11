@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.generic.BooleanQueryImpl;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.search.groupby.GroupByRequest;
 import com.liferay.portal.search.groupby.GroupByRequestFactory;
 import com.liferay.portal.search.groupby.GroupByResponse;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -189,12 +189,11 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 
 	@Test
 	public void testGroupByDocsStart() throws Exception {
-		Map<String, Integer> map1 = new HashMap<String, Integer>() {
-			{
-				put("one", 1);
-				put("two", 2);
-			}
-		};
+		Map<String, Integer> map1 = HashMapBuilder.put(
+			"one", 1
+		).put(
+			"two", 2
+		).build();
 
 		map1.forEach((key, value) -> indexDuplicates(key, value));
 
@@ -228,21 +227,29 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 
 	@Test
 	public void testGroupByTermsSizeDefault() throws Exception {
-		Map<String, Integer> map1 = new HashMap<String, Integer>() {
-			{
-				put("one", 1);
-				put("two", 2);
-				put("three", 2);
-				put("four", 2);
-				put("five", 2);
-				put("six", 2);
-				put("seven", 2);
-				put("eight", 2);
-				put("nine", 2);
-				put("ten", 2);
-				put("eleven", 2);
-			}
-		};
+		Map<String, Integer> map1 = HashMapBuilder.put(
+			"eight", 2
+		).put(
+			"eleven", 2
+		).put(
+			"five", 2
+		).put(
+			"four", 2
+		).put(
+			"nine", 2
+		).put(
+			"one", 1
+		).put(
+			"seven", 2
+		).put(
+			"six", 2
+		).put(
+			"ten", 2
+		).put(
+			"three", 2
+		).put(
+			"two", 2
+		).build();
 
 		map1.forEach((key, value) -> indexDuplicates(key, value));
 
@@ -317,21 +324,29 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 
 	@Test
 	public void testGroupByTermsSizeMoreThanDefault() throws Exception {
-		Map<String, Integer> map1 = new HashMap<String, Integer>() {
-			{
-				put("one", 1);
-				put("two", 2);
-				put("three", 2);
-				put("four", 2);
-				put("five", 2);
-				put("six", 2);
-				put("seven", 2);
-				put("eight", 2);
-				put("nine", 2);
-				put("ten", 2);
-				put("eleven", 2);
-			}
-		};
+		Map<String, Integer> map1 = HashMapBuilder.put(
+			"eight", 2
+		).put(
+			"eleven", 2
+		).put(
+			"five", 2
+		).put(
+			"four", 2
+		).put(
+			"nine", 2
+		).put(
+			"one", 1
+		).put(
+			"seven", 2
+		).put(
+			"six", 2
+		).put(
+			"ten", 2
+		).put(
+			"three", 2
+		).put(
+			"two", 2
+		).build();
 
 		map1.forEach((key, value) -> indexDuplicates(key, value));
 
@@ -428,14 +443,15 @@ public abstract class BaseGroupByTestCase extends BaseIndexingTestCase {
 						searchContext.setGroupBy(groupBy);
 					});
 
-				BooleanQueryImpl booleanQuery = new BooleanQueryImpl();
+				BooleanQueryImpl booleanQueryImpl = new BooleanQueryImpl();
 
-				booleanQuery.addExactTerm(SORT_FIELD, "3");
-				booleanQuery.addExactTerm(SORT_FIELD, "2");
+				booleanQueryImpl.addExactTerm(SORT_FIELD, "3");
+				booleanQueryImpl.addExactTerm(SORT_FIELD, "2");
 
-				booleanQuery.add(getDefaultQuery(), BooleanClauseOccur.MUST);
+				booleanQueryImpl.add(
+					getDefaultQuery(), BooleanClauseOccur.MUST);
 
-				indexingTestHelper.setQuery(booleanQuery);
+				indexingTestHelper.setQuery(booleanQueryImpl);
 
 				indexingTestHelper.search();
 

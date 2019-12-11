@@ -44,8 +44,10 @@ public class AssetEntryAssetCategoryRelWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put(
 			"assetEntryAssetCategoryRelId", getAssetEntryAssetCategoryRelId());
+		attributes.put("companyId", getCompanyId());
 		attributes.put("assetEntryId", getAssetEntryId());
 		attributes.put("assetCategoryId", getAssetCategoryId());
 		attributes.put("priority", getPriority());
@@ -55,11 +57,23 @@ public class AssetEntryAssetCategoryRelWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long assetEntryAssetCategoryRelId = (Long)attributes.get(
 			"assetEntryAssetCategoryRelId");
 
 		if (assetEntryAssetCategoryRelId != null) {
 			setAssetEntryAssetCategoryRelId(assetEntryAssetCategoryRelId);
+		}
+
+		Long companyId = (Long)attributes.get("companyId");
+
+		if (companyId != null) {
+			setCompanyId(companyId);
 		}
 
 		Long assetEntryId = (Long)attributes.get("assetEntryId");
@@ -109,6 +123,26 @@ public class AssetEntryAssetCategoryRelWrapper
 	@Override
 	public long getAssetEntryId() {
 		return model.getAssetEntryId();
+	}
+
+	/**
+	 * Returns the company ID of this asset entry asset category rel.
+	 *
+	 * @return the company ID of this asset entry asset category rel
+	 */
+	@Override
+	public long getCompanyId() {
+		return model.getCompanyId();
+	}
+
+	/**
+	 * Returns the mvcc version of this asset entry asset category rel.
+	 *
+	 * @return the mvcc version of this asset entry asset category rel
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -171,6 +205,26 @@ public class AssetEntryAssetCategoryRelWrapper
 	@Override
 	public void setAssetEntryId(long assetEntryId) {
 		model.setAssetEntryId(assetEntryId);
+	}
+
+	/**
+	 * Sets the company ID of this asset entry asset category rel.
+	 *
+	 * @param companyId the company ID of this asset entry asset category rel
+	 */
+	@Override
+	public void setCompanyId(long companyId) {
+		model.setCompanyId(companyId);
+	}
+
+	/**
+	 * Sets the mvcc version of this asset entry asset category rel.
+	 *
+	 * @param mvccVersion the mvcc version of this asset entry asset category rel
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**

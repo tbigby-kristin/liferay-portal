@@ -14,15 +14,16 @@
 
 import ClayDropDown, {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import React, {useContext, useState} from 'react';
 import classNames from 'classnames';
-import SearchContext from './SearchContext.es';
+import React, {useContext, useState} from 'react';
+
 import Button from '../../../components/button/Button.es';
+import SearchContext from './SearchContext.es';
 
 const {Group, Item, ItemList} = ClayDropDown;
 
 export default ({columns, disabled}) => {
-	const {dispatch} = useContext(SearchContext);
+	const [, dispatch] = useContext(SearchContext);
 	columns = columns.filter(column => column.sortable);
 
 	let defaultColumn = columns.find(column =>

@@ -19,128 +19,221 @@ import com.liferay.data.engine.rest.dto.v1_0.DataLayout;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayoutColumn;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayoutPage;
 import com.liferay.data.engine.rest.dto.v1_0.DataLayoutRow;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayoutColumn;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayoutPage;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayoutRow;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Jeyvison Nascimento
  */
 public class DataLayoutUtil {
 
-	public static DataLayout toDataLayout(String json) throws Exception {
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(json);
-
+	public static DataLayout toDataLayout(DDMFormLayout ddmFormLayout) {
 		return new DataLayout() {
 			{
-				dataLayoutPages = JSONUtil.toArray(
-					jsonObject.getJSONArray("pages"),
-					pageJSONObject -> _toDataLayoutPage(pageJSONObject),
-					DataLayoutPage.class);
-				paginationMode = jsonObject.getString("paginationMode");
+				dataLayoutPages = _toDataLayoutPages(
+					ddmFormLayout.getDDMFormLayoutPages());
+				paginationMode = ddmFormLayout.getPaginationMode();
 			}
 		};
 	}
 
-	public static String toJSON(DataLayout dataLayout) throws Exception {
-		if (!Objects.equals(dataLayout.getPaginationMode(), "pagination") &&
-			!Objects.equals(dataLayout.getPaginationMode(), "wizard")) {
+	public static DDMFormLayout toDDMFormLayout(DataLayout dataLayout) {
+		DDMFormLayout ddmFormLayout = new DDMFormLayout();
 
-			throw new Exception(
-				"Pagination mode must be \"pagination\" or \"wizard\"");
-		}
+		ddmFormLayout.setDDMFormLayoutPages(
+			_toDDMFormLayoutPages(dataLayout.getDataLayoutPages()));
+		ddmFormLayout.setPaginationMode(dataLayout.getPaginationMode());
 
-		return JSONUtil.put(
-			"pages",
-			JSONUtil.toJSONArray(
-				dataLayout.getDataLayoutPages(),
-				dataLayoutPage -> _toJSONObject(dataLayoutPage))
-		).put(
-			"paginationMode", dataLayout.getPaginationMode()
-		).toString();
+		return ddmFormLayout;
 	}
 
-	private static DataLayoutColumn _toDataLayoutColumn(JSONObject jsonObject) {
+	private static DataLayoutColumn _toDataLayoutColumn(
+		DDMFormLayoutColumn ddmFormLayoutColumn) {
+
 		return new DataLayoutColumn() {
 			{
-				columnSize = jsonObject.getInt("columnSize");
-				fieldNames = JSONUtil.toStringArray(
-					jsonObject.getJSONArray("fieldNames"));
+				columnSize = ddmFormLayoutColumn.getSize();
+				fieldNames = ArrayUtil.toStringArray(
+					ddmFormLayoutColumn.getDDMFormFieldNames());
 			}
 		};
 	}
 
-	private static DataLayoutPage _toDataLayoutPage(JSONObject jsonObject)
-		throws Exception {
+	private static DataLayoutColumn[] _toDataLayoutColumns(
+		List<DDMFormLayoutColumn> ddmFormLayoutColumns) {
+
+		if (ListUtil.isEmpty(ddmFormLayoutColumns)) {
+			return new DataLayoutColumn[0];
+		}
+
+		Stream<DDMFormLayoutColumn> stream = ddmFormLayoutColumns.stream();
+
+		return stream.map(
+			DataLayoutUtil::_toDataLayoutColumn
+		).collect(
+			Collectors.toList()
+		).toArray(
+			new DataLayoutColumn[0]
+		);
+	}
+
+	private static DataLayoutPage _toDataLayoutPage(
+		DDMFormLayoutPage ddmFormLayoutPage) {
 
 		return new DataLayoutPage() {
 			{
-				dataLayoutRows = JSONUtil.toArray(
-					jsonObject.getJSONArray("rows"),
-					rowJSONObject -> _toDataLayoutRow(rowJSONObject),
-					DataLayoutRow.class);
-				description = LocalizedValueUtil.toLocalizedValues(
-					jsonObject.getJSONObject("description"));
-				title = LocalizedValueUtil.toLocalizedValues(
-					jsonObject.getJSONObject("title"));
+				dataLayoutRows = _toDataLayoutRows(
+					ddmFormLayoutPage.getDDMFormLayoutRows());
+				description = LocalizedValueUtil.toLocalizedValuesMap(
+					ddmFormLayoutPage.getDescription());
+				title = LocalizedValueUtil.toLocalizedValuesMap(
+					ddmFormLayoutPage.getTitle());
 			}
 		};
 	}
 
-	private static DataLayoutRow _toDataLayoutRow(JSONObject jsonObject)
-		throws Exception {
+	private static DataLayoutPage[] _toDataLayoutPages(
+		List<DDMFormLayoutPage> ddmFormLayoutPages) {
+
+		if (ListUtil.isEmpty(ddmFormLayoutPages)) {
+			return new DataLayoutPage[0];
+		}
+
+		Stream<DDMFormLayoutPage> stream = ddmFormLayoutPages.stream();
+
+		return stream.map(
+			DataLayoutUtil::_toDataLayoutPage
+		).collect(
+			Collectors.toList()
+		).toArray(
+			new DataLayoutPage[0]
+		);
+	}
+
+	private static DataLayoutRow _toDataLayoutRow(
+		DDMFormLayoutRow ddmFormLayoutRow) {
 
 		return new DataLayoutRow() {
 			{
-				dataLayoutColumns = JSONUtil.toArray(
-					jsonObject.getJSONArray("columns"),
-					columnJSONObject -> _toDataLayoutColumn(columnJSONObject),
-					DataLayoutColumn.class);
+				dataLayoutColumns = _toDataLayoutColumns(
+					ddmFormLayoutRow.getDDMFormLayoutColumns());
 			}
 		};
 	}
 
-	private static JSONObject _toJSONObject(DataLayoutColumn dataLayoutColumn)
-		throws Exception {
+	private static DataLayoutRow[] _toDataLayoutRows(
+		List<DDMFormLayoutRow> ddmFormLayoutRows) {
 
-		return JSONUtil.put(
-			"columnSize", dataLayoutColumn.getColumnSize()
-		).put(
-			"fieldNames", JSONUtil.put(dataLayoutColumn.getFieldNames())
-		);
-	}
-
-	private static JSONObject _toJSONObject(DataLayoutPage dataLayoutPage)
-		throws Exception {
-
-		if (MapUtil.isEmpty(dataLayoutPage.getTitle())) {
-			throw new Exception("Title is required");
+		if (ListUtil.isEmpty(ddmFormLayoutRows)) {
+			return new DataLayoutRow[0];
 		}
 
-		return JSONUtil.put(
-			"description",
-			LocalizedValueUtil.toJSONObject(dataLayoutPage.getDescription())
-		).put(
-			"rows",
-			JSONUtil.toJSONArray(
-				dataLayoutPage.getDataLayoutRows(),
-				dataLayoutRow -> _toJSONObject(dataLayoutRow))
-		).put(
-			"title", LocalizedValueUtil.toJSONObject(dataLayoutPage.getTitle())
+		Stream<DDMFormLayoutRow> stream = ddmFormLayoutRows.stream();
+
+		return stream.map(
+			DataLayoutUtil::_toDataLayoutRow
+		).collect(
+			Collectors.toList()
+		).toArray(
+			new DataLayoutRow[0]
 		);
 	}
 
-	private static JSONObject _toJSONObject(DataLayoutRow dataLayoutRow)
-		throws Exception {
+	private static DDMFormLayoutColumn _toDDMFormLayoutColumn(
+		DataLayoutColumn dataLayoutColumn) {
 
-		return JSONUtil.put(
-			"columns",
-			JSONUtil.toJSONArray(
-				dataLayoutRow.getDataLayoutColumns(),
-				dataLayoutColumn -> _toJSONObject(dataLayoutColumn)));
+		DDMFormLayoutColumn ddmFormLayoutColumn = new DDMFormLayoutColumn();
+
+		ddmFormLayoutColumn.setDDMFormFieldNames(
+			Arrays.asList(dataLayoutColumn.getFieldNames()));
+		ddmFormLayoutColumn.setSize(dataLayoutColumn.getColumnSize());
+
+		return ddmFormLayoutColumn;
+	}
+
+	private static List<DDMFormLayoutColumn> _toDDMFormLayoutColumns(
+		DataLayoutColumn[] dataLayoutColumns) {
+
+		if (ArrayUtil.isEmpty(dataLayoutColumns)) {
+			return Collections.emptyList();
+		}
+
+		return Stream.of(
+			dataLayoutColumns
+		).map(
+			DataLayoutUtil::_toDDMFormLayoutColumn
+		).collect(
+			Collectors.toList()
+		);
+	}
+
+	private static DDMFormLayoutPage _toDDMFormLayoutPage(
+		DataLayoutPage dataLayoutPage) {
+
+		DDMFormLayoutPage ddmFormLayoutPage = new DDMFormLayoutPage();
+
+		ddmFormLayoutPage.setDDMFormLayoutRows(
+			_toDDMFormLayoutRows(dataLayoutPage.getDataLayoutRows()));
+		ddmFormLayoutPage.setDescription(
+			LocalizedValueUtil.toLocalizedValue(
+				dataLayoutPage.getDescription()));
+		ddmFormLayoutPage.setTitle(
+			LocalizedValueUtil.toLocalizedValue(dataLayoutPage.getTitle()));
+
+		return ddmFormLayoutPage;
+	}
+
+	private static List<DDMFormLayoutPage> _toDDMFormLayoutPages(
+		DataLayoutPage[] dataLayoutPages) {
+
+		if (ArrayUtil.isEmpty(dataLayoutPages)) {
+			return Collections.emptyList();
+		}
+
+		return Stream.of(
+			dataLayoutPages
+		).map(
+			DataLayoutUtil::_toDDMFormLayoutPage
+		).collect(
+			Collectors.toList()
+		);
+	}
+
+	private static DDMFormLayoutRow _toDDMFormLayoutRow(
+		DataLayoutRow dataLayoutRow) {
+
+		DDMFormLayoutRow ddmFormLayoutRow = new DDMFormLayoutRow();
+
+		ddmFormLayoutRow.setDDMFormLayoutColumns(
+			_toDDMFormLayoutColumns(dataLayoutRow.getDataLayoutColumns()));
+
+		return ddmFormLayoutRow;
+	}
+
+	private static List<DDMFormLayoutRow> _toDDMFormLayoutRows(
+		DataLayoutRow[] dataLayoutRows) {
+
+		if (ArrayUtil.isEmpty(dataLayoutRows)) {
+			return Collections.emptyList();
+		}
+
+		return Stream.of(
+			dataLayoutRows
+		).map(
+			DataLayoutUtil::_toDDMFormLayoutRow
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 }

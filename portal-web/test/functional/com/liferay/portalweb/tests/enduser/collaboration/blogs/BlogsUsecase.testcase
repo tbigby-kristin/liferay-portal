@@ -3,7 +3,6 @@ definition {
 
 	property portal.release = "true";
 	property portal.upstream = "true";
-	property custom.properties = "default.layout.template.id=1_column";
 	property testray.main.component.name = "Blogs";
 	var pageName = "Blogs Page";
 
@@ -215,7 +214,7 @@ definition {
 
 		Button.clickPublish();
 
-		Pause(locator1 = "30000");
+		Pause(locator1 = "10000");
 
 		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
 
@@ -236,10 +235,6 @@ definition {
 		Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
 
 		SelectFrameTop(value1 = "relative=top");
-
-		AssertClick(
-			locator1 = "ItemSelector#ADD_BUTTON",
-			value1 = "Add");
 
 		PortletEntry.publish();
 
@@ -358,7 +353,7 @@ definition {
 			entryContent = "Blogs Entry1 Content",
 			entryTitle = "Blogs Entry1 Title");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "[...] Blogs Entry2 Content [...] Read More",
 			userFullName = "Test Test");
@@ -448,7 +443,7 @@ definition {
 			entryContent = "Blogs Entry3 Content",
 			entryTitle = "Blogs Entry3 Title");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "[...] Blogs Entry4 Content [...] Read More",
 			entryContent = "Blogs Entry3 Content",
@@ -516,7 +511,7 @@ definition {
 			entryContent = "Blogs Entry5 Content",
 			entryTitle = "Blogs Entry5 Title");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "[...] Blogs Entry6 Content [...] Read More",
 			userFullName = "Test Test");
@@ -556,7 +551,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntryComment.add(entryComment = "Blogs Entry Comment");
+		Comments.addPG(entryComment = "Blogs Entry Comment");
 
 		Navigator.gotoPage(pageName = "Blogs Page");
 
@@ -564,7 +559,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "Blogs Entry Comment",
 			userFullName = "Test Test");
@@ -597,7 +592,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "Blogs Entry Comment",
 			userFullName = "Test Test");
@@ -955,8 +950,6 @@ definition {
 
 		Navigator.gotoPage(pageName = "Documents and Media Page");
 
-		Portlet.addPG(portletName = "Documents and Media");
-
 		DMFolder.addPG(
 			dmFolderDescription = "DM Folder 1 Description",
 			dmFolderName = "DM Folder 1 Name");
@@ -1052,7 +1045,7 @@ definition {
 
 		Button.clickPublish();
 
-		Pause(locator1 = "30000");
+		Pause(locator1 = "10000");
 
 		Navigator.gotoPage(pageName = "Blogs Page");
 
@@ -1254,6 +1247,8 @@ definition {
 
 		SelectFrameTop(value1 = "relative=top");
 
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
 		AssertClick(
 			locator1 = "ItemSelector#ADD_BUTTON",
 			value1 = "Add");
@@ -1361,8 +1356,6 @@ definition {
 			entryContentEdit = "Blogs Entry Content Draft",
 			entryTitle = "Blogs Entry Title",
 			entryTitleEdit = "Blogs Entry Title Draft");
-
-		Click(locator1 = "Icon#BACK");
 
 		Navigator.gotoNavItem(navItem = "Not Published (1)");
 

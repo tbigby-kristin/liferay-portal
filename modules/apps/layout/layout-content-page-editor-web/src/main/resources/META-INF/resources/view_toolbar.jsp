@@ -20,9 +20,11 @@
 ContentPageEditorDisplayContext contentPageEditorDisplayContext = (ContentPageEditorDisplayContext)request.getAttribute(ContentPageEditorWebKeys.LIFERAY_SHARED_CONTENT_PAGE_EDITOR_DISPLAY_CONTEXT);
 %>
 
-<soy:component-renderer
-	componentId='<%= PortalUtil.getPortletNamespace(ContentPageEditorPortletKeys.CONTENT_PAGE_EDITOR_PORTLET) + "toolbar" %>'
-	context="<%= contentPageEditorDisplayContext.getFragmentsEditorToolbarSoyContext() %>"
-	module="js/components/toolbar/FragmentsEditorToolbar.es"
-	templateNamespace="com.liferay.layout.content.page.editor.web.FragmentsEditorToolbar.render"
-/>
+<c:choose>
+	<c:when test='<%= Objects.equals(contentPageEditorDisplayContext.getEditorType(), "react") %>'>
+		<liferay-util:include page="/view_react_toolbar.jsp" servletContext="<%= application %>" />
+	</c:when>
+	<c:otherwise>
+		<liferay-util:include page="/view_soy_toolbar.jsp" servletContext="<%= application %>" />
+	</c:otherwise>
+</c:choose>

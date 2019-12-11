@@ -35,7 +35,7 @@ public interface Job {
 
 	public String getJobProperty(String key);
 
-	public boolean isUsePreBuiltBundles();
+	public String getJobURL(JenkinsMaster jenkinsMaster);
 
 	public void readJobProperties();
 

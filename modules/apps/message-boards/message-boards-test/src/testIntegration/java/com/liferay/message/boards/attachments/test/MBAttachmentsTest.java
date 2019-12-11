@@ -374,18 +374,9 @@ public class MBAttachmentsTest {
 				MBTestUtil.getInputStreamOVPs(
 					"OSX_Test.docx", getClass(), StringPool.BLANK);
 
-			List<String> existingFiles = new ArrayList<>();
-
-			List<FileEntry> fileEntries = _message.getAttachmentsFileEntries();
-
-			for (FileEntry fileEntry : fileEntries) {
-				existingFiles.add(String.valueOf(fileEntry.getFileEntryId()));
-			}
-
 			_message = MBMessageLocalServiceUtil.updateMessage(
 				TestPropsValues.getUserId(), _message.getMessageId(), "Subject",
-				"Body", objectValuePairs, existingFiles, 0, false,
-				serviceContext);
+				"Body", objectValuePairs, 0, false, serviceContext);
 		}
 	}
 
@@ -431,7 +422,7 @@ public class MBAttachmentsTest {
 
 		_message = MBMessageLocalServiceUtil.updateMessage(
 			TestPropsValues.getUserId(), _message.getMessageId(), "Subject",
-			"Body", objectValuePairs, existingFiles, 0, false, serviceContext);
+			"Body", objectValuePairs, 0, false, serviceContext);
 
 		Assert.assertEquals(
 			initialNotInTrashCount + 1,

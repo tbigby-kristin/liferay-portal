@@ -80,15 +80,22 @@ public class LiferayWriter
 	}
 
 	@Override
-	public Result close() throws IOException {
+	public Result close() {
 		return _result;
 	}
 
 	public void doDelete(IndexedRecord indexedRecord) throws IOException {
 		URI resourceURI = _tLiferayOutputProperties.resource.getEndpointURI();
 
-		_liferaySink.doDeleteRequest(
-			_runtimeContainer, resourceURI.toASCIIString());
+		try {
+			_liferaySink.doDeleteRequest(
+				_runtimeContainer, resourceURI.toASCIIString());
+		}
+		catch (Exception e) {
+			_indexedRecordJsonObjectConverter.reject(indexedRecord, e);
+
+			return;
+		}
 
 		_handleSuccessRecord(indexedRecord);
 	}
@@ -129,8 +136,13 @@ public class LiferayWriter
 			return;
 		}
 
-		_handleSuccessRecord(
-			_jsonObjectIndexedRecordConverter.toIndexedRecord(jsonObject));
+		if (jsonObject != null) {
+			_handleSuccessRecord(
+				_jsonObjectIndexedRecordConverter.toIndexedRecord(jsonObject));
+		}
+		else {
+			_handleSuccessRecord(indexedRecord);
+		}
 	}
 
 	@Override
@@ -167,8 +179,6 @@ public class LiferayWriter
 
 		if (Action.Delete == action) {
 			doDelete(indexedRecord);
-
-			_handleSuccessRecord(indexedRecord);
 		}
 		else if (Action.Insert == action) {
 			doInsert(indexedRecord);

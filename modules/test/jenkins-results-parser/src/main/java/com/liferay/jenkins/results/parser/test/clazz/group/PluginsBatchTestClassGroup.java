@@ -38,7 +38,7 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 
 	@Override
 	public int getAxisCount() {
-		if (testRelevantIntegrationUnitOnly) {
+		if (!isStableTestSuiteBatch() && testRelevantIntegrationUnitOnly) {
 			return 0;
 		}
 
@@ -93,6 +93,22 @@ public class PluginsBatchTestClassGroup extends BatchTestClassGroup {
 			getPathMatchers(
 				getFirstPropertyValue("test.batch.plugin.names.includes"),
 				_pluginsGitWorkingDirectory.getWorkingDirectory()));
+
+		if (includeStableTestSuite && isStableTestSuiteBatch()) {
+			excludesPathMatchers.addAll(
+				getPathMatchers(
+					getFirstPropertyValue(
+						"test.batch.plugin.names.excludes", batchName,
+						NAME_STABLE_TEST_SUITE),
+					_pluginsGitWorkingDirectory.getWorkingDirectory()));
+
+			includesPathMatchers.addAll(
+				getPathMatchers(
+					getFirstPropertyValue(
+						"test.batch.plugin.names.includes", batchName,
+						NAME_STABLE_TEST_SUITE),
+					_pluginsGitWorkingDirectory.getWorkingDirectory()));
+		}
 
 		setTestClasses();
 

@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-ddm-form',
-	function(A) {
+	A => {
 		var AArray = A.Array;
 
 		var AObject = A.Object;
@@ -256,7 +256,7 @@ AUI.add(
 
 				var fields = [];
 
-				instance.getFieldNodes().each(function(item) {
+				instance.getFieldNodes().each(item => {
 					fields.push(instance._getField(item));
 				});
 
@@ -338,7 +338,7 @@ AUI.add(
 
 				var root;
 
-				instance.eachParent(function(parent) {
+				instance.eachParent(parent => {
 					root = parent;
 				});
 
@@ -429,7 +429,7 @@ AUI.add(
 						originalField
 					});
 
-					newField.get('fields').forEach(function(item) {
+					newField.get('fields').forEach(item => {
 						var name = item.get('name');
 
 						var originalChildField = originalField.getFirstFieldByName(
@@ -530,7 +530,7 @@ AUI.add(
 				_removeFieldValidation(field) {
 					var instance = this;
 
-					field.get('fields').forEach(function(item) {
+					field.get('fields').forEach(item => {
 						instance._removeFieldValidation(item);
 					});
 
@@ -680,7 +680,7 @@ AUI.add(
 						fields = definition.fields;
 					}
 
-					return AArray.find(fields, function(item) {
+					return AArray.find(fields, item => {
 						return item.name === name;
 					});
 				},
@@ -698,7 +698,7 @@ AUI.add(
 				getFirstFieldByName(name) {
 					var instance = this;
 
-					return AArray.find(instance.get('fields'), function(item) {
+					return AArray.find(instance.get('fields'), item => {
 						return item.get('name') === name;
 					});
 				},
@@ -768,7 +768,7 @@ AUI.add(
 				getRepeatedSiblings() {
 					var instance = this;
 
-					return instance.getSiblings().filter(function(item) {
+					return instance.getSiblings().filter(item => {
 						return item.get('name') === instance.get('name');
 					});
 				},
@@ -792,7 +792,13 @@ AUI.add(
 
 					var inputNode = instance.getInputNode();
 
-					return Lang.String.unescapeHTML(inputNode.val());
+					var value = '';
+
+					if (inputNode) {
+						value = Lang.String.unescapeHTML(inputNode.val());
+					}
+
+					return value;
 				},
 
 				initializer() {
@@ -859,9 +865,10 @@ AUI.add(
 
 					if (instance.get('repeatable')) {
 						instance.renderRepeatableUI();
-						instance.syncLabel(instance.get('displayLocale'));
 						instance.syncRepeatablelUI();
 					}
+
+					instance.syncLabel(instance.get('displayLocale'));
 
 					instance.syncValueUI();
 
@@ -875,15 +882,13 @@ AUI.add(
 				repeat() {
 					var instance = this;
 
-					var definition = instance.get('definition');
+					var field = instance.getFieldDefinition();
 
-					definition.fields.forEach(function(field) {
-						if (field.type === 'select') {
-							field.options.shift();
-						}
-					});
+					if (field.type === 'select') {
+						field.options.shift();
+					}
 
-					instance._getTemplate(function(fieldTemplate) {
+					instance._getTemplate(fieldTemplate => {
 						var field = instance.createField(fieldTemplate);
 
 						var displayLocale = instance.get('displayLocale');
@@ -1181,7 +1186,7 @@ AUI.add(
 						zIndex: 65535
 					}).render();
 
-					colorPicker.on('select', function(event) {
+					colorPicker.on('select', event => {
 						selectorInput.setStyle('backgroundColor', event.color);
 
 						valueField.val(event.color);
@@ -1189,7 +1194,7 @@ AUI.add(
 						instance.validateField(valueField);
 					});
 
-					colorPicker.after('visibleChange', function(event) {
+					colorPicker.after('visibleChange', event => {
 						if (!event.newVal) {
 							instance.validateField(valueField);
 						}
@@ -1278,14 +1283,14 @@ AUI.add(
 				repeat() {
 					var instance = this;
 
-					instance._getTemplate(function(fieldTemplate) {
+					instance._getTemplate(fieldTemplate => {
 						var field = instance.createField(fieldTemplate);
 
 						var inputNode = field.getInputNode();
 
 						Liferay.after(
 							inputNode.attr('id') + 'DatePicker:registered',
-							function() {
+							() => {
 								field.renderUI();
 							}
 						);
@@ -1367,31 +1372,43 @@ AUI.add(
 
 					var portletNamespace = instance.get('portletNamespace');
 
-					var itemSelectorDialog = new A.LiferayItemSelectorDialog({
-						eventName: portletNamespace + 'selectDocumentLibrary',
-						on: {
-							selectedItemChange(event) {
-								var selectedItem = event.newVal;
-
-								if (selectedItem) {
-									var itemValue = JSON.parse(
-										selectedItem.value
-									);
-
-									instance.setValue({
-										classPK: itemValue.fileEntryId,
-										groupId: itemValue.groupId,
-										title: itemValue.title,
-										type: itemValue.type,
-										uuid: itemValue.uuid
-									});
+					Liferay.Loader.require(
+						'frontend-js-web/liferay/ItemSelectorDialog.es',
+						ItemSelectorDialog => {
+							var itemSelectorDialog = new ItemSelectorDialog.default(
+								{
+									eventName:
+										portletNamespace +
+										'selectDocumentLibrary',
+									singleSelect: true,
+									url: instance.getDocumentLibrarySelectorURL()
 								}
-							}
-						},
-						url: instance.getDocumentLibrarySelectorURL()
-					});
+							);
 
-					itemSelectorDialog.open();
+							itemSelectorDialog.on(
+								'selectedItemChange',
+								event => {
+									var selectedItem = event.selectedItem;
+
+									if (selectedItem) {
+										var itemValue = JSON.parse(
+											selectedItem.value
+										);
+
+										instance.setValue({
+											classPK: itemValue.fileEntryId,
+											groupId: itemValue.groupId,
+											title: itemValue.title,
+											type: itemValue.type,
+											uuid: itemValue.uuid
+										});
+									}
+								}
+							);
+
+							itemSelectorDialog.open();
+						}
+					);
 				},
 
 				_validateField(fieldNode) {
@@ -1631,7 +1648,7 @@ AUI.add(
 							title: Liferay.Language.get('journal-article'),
 							uri: instance.getWebContentSelectorURL()
 						},
-						function(event) {
+						event => {
 							if (event.details.length > 0) {
 								var selectedWebContent = event.details[0];
 
@@ -2513,7 +2530,7 @@ AUI.add(
 
 					listNode.empty();
 
-					layouts.forEach(function(layout) {
+					layouts.forEach(layout => {
 						var selected =
 							selectedLayout &&
 							layout.layoutId === selectedLayout.layoutId;
@@ -2595,7 +2612,7 @@ AUI.add(
 						instance._requestSiblingLayouts(
 							groupId,
 							privateLayout,
-							function(layouts) {
+							layouts => {
 								var key = [
 									instance._currentParentLayoutId,
 									groupId,
@@ -3147,7 +3164,43 @@ AUI.add(
 								'PreviewContainer a',
 							preloadAllImages: false,
 							zIndex: Liferay.zIndex.OVERLAY
-						}).render();
+						});
+
+						instance.viewer.TPL_CLOSE = instance.viewer.TPL_CLOSE.replace(
+							/<\s*span[^>]*>(.*?)<\s*\/\s*span>/,
+							Liferay.Util.getLexiconIconTpl(
+								'times',
+								'icon-monospaced'
+							)
+						);
+
+						var TPL_PLAYER_PAUSE =
+							'<span>' +
+							Liferay.Util.getLexiconIconTpl(
+								'pause',
+								'glyphicon'
+							) +
+							'</span>';
+
+						var TPL_PLAYER_PLAY =
+							'<span>' +
+							Liferay.Util.getLexiconIconTpl(
+								'play',
+								'glyphicon'
+							) +
+							'</span>';
+
+						instance.viewer.TPL_PLAYER = TPL_PLAYER_PLAY;
+
+						instance.viewer._syncPlaying = function() {
+							if (this.get('playing')) {
+								this._player.setHTML(TPL_PLAYER_PAUSE);
+							} else {
+								this._player.setHTML(TPL_PLAYER_PLAY);
+							}
+						};
+
+						instance.viewer.render();
 					}
 
 					var imagePreviewURL = instance._getImagePreviewURL();
@@ -3372,7 +3425,7 @@ AUI.add(
 					var instance = this;
 
 					Liferay.componentReady(instance.getInputName()).then(
-						function(map) {
+						map => {
 							map.on(
 								'positionChange',
 								instance.onPositionChange,
@@ -3546,7 +3599,7 @@ AUI.add(
 
 					var fieldDefinition = instance.getFieldDefinition();
 
-					container.all('label').each(function(item, index) {
+					container.all('label').each((item, index) => {
 						var optionDefinition = fieldDefinition.options[index];
 
 						var inputNode = item.one('input');
@@ -3668,7 +3721,7 @@ AUI.add(
 					instance
 						.getInputNode()
 						.all('option')
-						.each(function(item, index) {
+						.each((item, index) => {
 							var optionDefinition = options[index];
 
 							var optionLabel =
@@ -3698,7 +3751,7 @@ AUI.add(
 					instance
 						.getInputNode()
 						.all('option')
-						.each(function(item) {
+						.each(item => {
 							item.set(
 								'selected',
 								value.indexOf(item.val()) > -1
@@ -3802,7 +3855,7 @@ AUI.add(
 
 					var oldIndex = -1;
 
-					parentField.get('fields').some(function(item, index) {
+					parentField.get('fields').some((item, index) => {
 						oldIndex = index;
 
 						return (
@@ -3887,6 +3940,10 @@ AUI.add(
 				_onSubmitForm() {
 					var instance = this;
 
+					instance.toJSON();
+
+					instance.fillEmptyLocales();
+
 					instance.finalizeRepeatableFieldLocalizations();
 
 					instance.updateDDMFormInputValue();
@@ -3921,7 +3978,7 @@ AUI.add(
 						'availableLanguageIds'
 					);
 
-					availableLanguageIds.forEach(function(item) {
+					availableLanguageIds.forEach(item => {
 						if (currentAvailableLanguageIds.indexOf(item) == -1) {
 							currentAvailableLanguageIds.push(item);
 						}
@@ -3986,11 +4043,34 @@ AUI.add(
 
 					instance.eventHandlers = null;
 
-					A.each(instance.repeatableInstances, function(item) {
+					A.each(instance.repeatableInstances, item => {
 						item.destroy();
 					});
 
 					instance.repeatableInstances = null;
+				},
+
+				fillEmptyLocales() {
+					var instance = this;
+
+					instance.get('fields').forEach(field => {
+						if (!field.get('localizable')) {
+							return;
+						}
+
+						var localizationMap = field.get('localizationMap');
+
+						var defaultLocale = instance.getDefaultLocale();
+
+						instance.get('availableLanguageIds').forEach(locale => {
+							if (!localizationMap[locale]) {
+								localizationMap[locale] =
+									localizationMap[defaultLocale];
+							}
+						});
+
+						field.set('localizationMap', localizationMap);
+					});
 				},
 
 				finalizeRepeatableFieldLocalizations() {
@@ -3998,26 +4078,24 @@ AUI.add(
 
 					var defaultLocale = instance.getDefaultLocale();
 
-					Object.keys(instance.newRepeatableInstances).forEach(
-						function(x) {
-							var field = instance.newRepeatableInstances[x];
+					Object.keys(instance.newRepeatableInstances).forEach(x => {
+						var field = instance.newRepeatableInstances[x];
 
-							if (!field.get('localizable')) {
-								return;
-							}
-
-							instance.populateBlankLocalizationMap(
-								defaultLocale,
-								field.originalField,
-								field
-							);
-							instance.populateBlankLocalizationMap(
-								defaultLocale,
-								field,
-								field.originalField
-							);
+						if (!field.get('localizable')) {
+							return;
 						}
-					);
+
+						instance.populateBlankLocalizationMap(
+							defaultLocale,
+							field.originalField,
+							field
+						);
+						instance.populateBlankLocalizationMap(
+							defaultLocale,
+							field,
+							field.originalField
+						);
+					});
 				},
 
 				initializer() {
@@ -4032,9 +4110,23 @@ AUI.add(
 				},
 
 				moveField(parentField, oldIndex, newIndex) {
+					var instance = this;
+
 					var fields = parentField.get('fields');
 
 					fields.splice(newIndex, 0, fields.splice(oldIndex, 1)[0]);
+
+					var field = fields[newIndex];
+
+					var fieldDefinition = field.getFieldDefinition();
+
+					if (fieldDefinition) {
+						var type = fieldDefinition.type;
+
+						if (type === 'ddm-text-html') {
+							instance.recreateEditor(field);
+						}
+					}
 				},
 
 				populateBlankLocalizationMap(
@@ -4047,9 +4139,14 @@ AUI.add(
 					var newFieldLocalizations = repeatedField.get(
 						'localizationMap'
 					);
-					var totalLocalizations = originalField.get(
-						'localizationMap'
-					);
+
+					var totalLocalizations = {};
+
+					if (originalField) {
+						totalLocalizations = originalField.get(
+							'localizationMap'
+						);
+					}
 
 					var currentLocale = repeatedField.get('displayLocale');
 
@@ -4057,7 +4154,7 @@ AUI.add(
 
 					localizations.push(currentLocale);
 
-					localizations.forEach(function(localization) {
+					localizations.forEach(localization => {
 						if (!newFieldLocalizations[localization]) {
 							var localizationValue = '';
 
@@ -4081,7 +4178,12 @@ AUI.add(
 					repeatedField.set('localizationMap', newFieldLocalizations);
 
 					var newNestedFields = repeatedField.get('fields');
-					var originalNestedFields = originalField.get('fields');
+
+					var originalNestedFields = [];
+
+					if (originalField) {
+						originalNestedFields = originalField.get('fields');
+					}
 
 					for (var i = 0; i < newNestedFields.length; i++) {
 						instance.populateBlankLocalizationMap(
@@ -4089,6 +4191,32 @@ AUI.add(
 							originalNestedFields[i],
 							newNestedFields[i]
 						);
+					}
+				},
+
+				recreateEditor(field) {
+					var usingCKEditor =
+						CKEDITOR &&
+						CKEDITOR.instances &&
+						CKEDITOR.instances[field.getInputName() + 'Editor'];
+
+					var editor = field.getEditor();
+
+					var nativeEditor = editor.getNativeEditor();
+
+					var usingAlloyEditor =
+						nativeEditor &&
+						nativeEditor._editor &&
+						nativeEditor._editor.window.$.AlloyEditor;
+
+					if (usingCKEditor && !usingAlloyEditor) {
+						var html = editor.getHTML();
+
+						editor.dispose();
+
+						editor.create();
+
+						editor.setHTML(html);
 					}
 				},
 
@@ -4293,7 +4421,6 @@ AUI.add(
 			'aui-sortable-list',
 			'json',
 			'liferay-form',
-			'liferay-item-selector-dialog',
 			'liferay-layouts-tree',
 			'liferay-layouts-tree-radio',
 			'liferay-layouts-tree-selectable',

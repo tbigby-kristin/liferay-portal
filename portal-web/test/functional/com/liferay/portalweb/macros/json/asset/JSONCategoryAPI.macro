@@ -17,7 +17,11 @@ definition {
 				-d categoryProperties=
 		''';
 
-		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
+		var categoryId = JSONCurlUtil.post("${curl}", "$.categoryId");
+		var categoryId = StringUtil.replace("${categoryId}", "[&quot;", "");
+		var categoryId = StringUtil.replace("${categoryId}", "&quot;]", "");
+
+		return "${categoryId}";
 	}
 
 	@summary = "Directly calls the JSON WS API to add a vocabulary"
@@ -88,6 +92,26 @@ definition {
 		}
 
 		return "${vocabularyId}";
+	}
+
+	@summary = "Directly calls the JSON WS API to update a category"
+	macro _updateCategory {
+		Variables.assertDefined(parameterList = "${categoryId},${parentCategoryId},${titleMap},${descriptionMap},${vocabularyId}");
+
+		var portalURL = JSONCompany.getPortalURL();
+
+		var curl = '''
+			${portalURL}/api/jsonws/assetcategory/update-category \
+				-u test@liferay.com:test \
+				-d categoryId=${categoryId} \
+				-d parentCategoryId=${parentCategoryId} \
+				-d titleMap=${titleMap} \
+				-d descriptionMap=${descriptionMap} \
+				-d vocabularyId=${vocabularyId} \
+				-d categoryProperties=
+		''';
+
+		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
 	}
 
 }

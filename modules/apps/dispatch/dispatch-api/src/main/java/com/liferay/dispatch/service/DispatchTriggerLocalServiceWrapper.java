@@ -1,0 +1,309 @@
+/**
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 2.1 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ */
+
+package com.liferay.dispatch.service;
+
+import com.liferay.portal.kernel.service.ServiceWrapper;
+
+/**
+ * Provides a wrapper for {@link DispatchTriggerLocalService}.
+ *
+ * @author Alessio Antonio Rendina
+ * @see DispatchTriggerLocalService
+ * @generated
+ */
+public class DispatchTriggerLocalServiceWrapper
+	implements DispatchTriggerLocalService,
+			   ServiceWrapper<DispatchTriggerLocalService> {
+
+	public DispatchTriggerLocalServiceWrapper(
+		DispatchTriggerLocalService dispatchTriggerLocalService) {
+
+		_dispatchTriggerLocalService = dispatchTriggerLocalService;
+	}
+
+	/**
+	 * Adds the dispatch trigger to the database. Also notifies the appropriate model listeners.
+	 *
+	 * @param dispatchTrigger the dispatch trigger
+	 * @return the dispatch trigger that was added
+	 */
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger addDispatchTrigger(
+		com.liferay.dispatch.model.DispatchTrigger dispatchTrigger) {
+
+		return _dispatchTriggerLocalService.addDispatchTrigger(dispatchTrigger);
+	}
+
+	/**
+	 * Creates a new dispatch trigger with the primary key. Does not add the dispatch trigger to the database.
+	 *
+	 * @param dispatchTriggerId the primary key for the new dispatch trigger
+	 * @return the new dispatch trigger
+	 */
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger createDispatchTrigger(
+		long dispatchTriggerId) {
+
+		return _dispatchTriggerLocalService.createDispatchTrigger(
+			dispatchTriggerId);
+	}
+
+	/**
+	 * Deletes the dispatch trigger from the database. Also notifies the appropriate model listeners.
+	 *
+	 * @param dispatchTrigger the dispatch trigger
+	 * @return the dispatch trigger that was removed
+	 */
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger deleteDispatchTrigger(
+		com.liferay.dispatch.model.DispatchTrigger dispatchTrigger) {
+
+		return _dispatchTriggerLocalService.deleteDispatchTrigger(
+			dispatchTrigger);
+	}
+
+	/**
+	 * Deletes the dispatch trigger with the primary key from the database. Also notifies the appropriate model listeners.
+	 *
+	 * @param dispatchTriggerId the primary key of the dispatch trigger
+	 * @return the dispatch trigger that was removed
+	 * @throws PortalException if a dispatch trigger with the primary key could not be found
+	 */
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger deleteDispatchTrigger(
+			long dispatchTriggerId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dispatchTriggerLocalService.deleteDispatchTrigger(
+			dispatchTriggerId);
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel deletePersistedModel(
+			com.liferay.portal.kernel.model.PersistedModel persistedModel)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dispatchTriggerLocalService.deletePersistedModel(
+			persistedModel);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery() {
+		return _dispatchTriggerLocalService.dynamicQuery();
+	}
+
+	/**
+	 * Performs a dynamic query on the database and returns the matching rows.
+	 *
+	 * @param dynamicQuery the dynamic query
+	 * @return the matching rows
+	 */
+	@Override
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
+
+		return _dispatchTriggerLocalService.dynamicQuery(dynamicQuery);
+	}
+
+	/**
+	 * Performs a dynamic query on the database and returns a range of the matching rows.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.dispatch.model.impl.DispatchTriggerModelImpl</code>.
+	 * </p>
+	 *
+	 * @param dynamicQuery the dynamic query
+	 * @param start the lower bound of the range of model instances
+	 * @param end the upper bound of the range of model instances (not inclusive)
+	 * @return the range of matching rows
+	 */
+	@Override
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
+		int end) {
+
+		return _dispatchTriggerLocalService.dynamicQuery(
+			dynamicQuery, start, end);
+	}
+
+	/**
+	 * Performs a dynamic query on the database and returns an ordered range of the matching rows.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.dispatch.model.impl.DispatchTriggerModelImpl</code>.
+	 * </p>
+	 *
+	 * @param dynamicQuery the dynamic query
+	 * @param start the lower bound of the range of model instances
+	 * @param end the upper bound of the range of model instances (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching rows
+	 */
+	@Override
+	public <T> java.util.List<T> dynamicQuery(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery, int start,
+		int end,
+		com.liferay.portal.kernel.util.OrderByComparator<T> orderByComparator) {
+
+		return _dispatchTriggerLocalService.dynamicQuery(
+			dynamicQuery, start, end, orderByComparator);
+	}
+
+	/**
+	 * Returns the number of rows matching the dynamic query.
+	 *
+	 * @param dynamicQuery the dynamic query
+	 * @return the number of rows matching the dynamic query
+	 */
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery) {
+
+		return _dispatchTriggerLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	 * Returns the number of rows matching the dynamic query.
+	 *
+	 * @param dynamicQuery the dynamic query
+	 * @param projection the projection to apply to the query
+	 * @return the number of rows matching the dynamic query
+	 */
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection) {
+
+		return _dispatchTriggerLocalService.dynamicQueryCount(
+			dynamicQuery, projection);
+	}
+
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger fetchDispatchTrigger(
+		long dispatchTriggerId) {
+
+		return _dispatchTriggerLocalService.fetchDispatchTrigger(
+			dispatchTriggerId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
+		getActionableDynamicQuery() {
+
+		return _dispatchTriggerLocalService.getActionableDynamicQuery();
+	}
+
+	/**
+	 * Returns the dispatch trigger with the primary key.
+	 *
+	 * @param dispatchTriggerId the primary key of the dispatch trigger
+	 * @return the dispatch trigger
+	 * @throws PortalException if a dispatch trigger with the primary key could not be found
+	 */
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger getDispatchTrigger(
+			long dispatchTriggerId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dispatchTriggerLocalService.getDispatchTrigger(
+			dispatchTriggerId);
+	}
+
+	/**
+	 * Returns a range of all the dispatch triggers.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.dispatch.model.impl.DispatchTriggerModelImpl</code>.
+	 * </p>
+	 *
+	 * @param start the lower bound of the range of dispatch triggers
+	 * @param end the upper bound of the range of dispatch triggers (not inclusive)
+	 * @return the range of dispatch triggers
+	 */
+	@Override
+	public java.util.List<com.liferay.dispatch.model.DispatchTrigger>
+		getDispatchTriggers(int start, int end) {
+
+		return _dispatchTriggerLocalService.getDispatchTriggers(start, end);
+	}
+
+	/**
+	 * Returns the number of dispatch triggers.
+	 *
+	 * @return the number of dispatch triggers
+	 */
+	@Override
+	public int getDispatchTriggersCount() {
+		return _dispatchTriggerLocalService.getDispatchTriggersCount();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery
+		getIndexableActionableDynamicQuery() {
+
+		return _dispatchTriggerLocalService.
+			getIndexableActionableDynamicQuery();
+	}
+
+	/**
+	 * Returns the OSGi service identifier.
+	 *
+	 * @return the OSGi service identifier
+	 */
+	@Override
+	public String getOSGiServiceIdentifier() {
+		return _dispatchTriggerLocalService.getOSGiServiceIdentifier();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.PersistedModel getPersistedModel(
+			java.io.Serializable primaryKeyObj)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dispatchTriggerLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	 * Updates the dispatch trigger in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
+	 *
+	 * @param dispatchTrigger the dispatch trigger
+	 * @return the dispatch trigger that was updated
+	 */
+	@Override
+	public com.liferay.dispatch.model.DispatchTrigger updateDispatchTrigger(
+		com.liferay.dispatch.model.DispatchTrigger dispatchTrigger) {
+
+		return _dispatchTriggerLocalService.updateDispatchTrigger(
+			dispatchTrigger);
+	}
+
+	@Override
+	public DispatchTriggerLocalService getWrappedService() {
+		return _dispatchTriggerLocalService;
+	}
+
+	@Override
+	public void setWrappedService(
+		DispatchTriggerLocalService dispatchTriggerLocalService) {
+
+		_dispatchTriggerLocalService = dispatchTriggerLocalService;
+	}
+
+	private DispatchTriggerLocalService _dispatchTriggerLocalService;
+
+}

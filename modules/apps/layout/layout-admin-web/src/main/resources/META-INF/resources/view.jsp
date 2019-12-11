@@ -17,22 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <%
-Group scopeGroup = themeDisplay.getScopeGroup();
-
 portletDisplay.setShowStagingIcon(false);
 %>
 
-<c:choose>
-	<c:when test='<%= Objects.equals(layoutsAdminDisplayContext.getTabs1(), "display-page-templates") %>'>
-		<liferay-util:include page="/view_display_pages.jsp" servletContext="<%= application %>" />
-	</c:when>
-	<c:when test='<%= Objects.equals(layoutsAdminDisplayContext.getTabs1(), "pages") %>'>
-		<liferay-util:include page="/view_layouts.jsp" servletContext="<%= application %>" />
-	</c:when>
-	<c:when test='<%= Objects.equals(layoutsAdminDisplayContext.getTabs1(), "page-templates") && !scopeGroup.isCompany() %>'>
-		<liferay-util:include page="/view_layout_page_template_collections.jsp" servletContext="<%= application %>" />
-	</c:when>
-	<c:when test='<%= Objects.equals(layoutsAdminDisplayContext.getTabs1(), "page-templates") && scopeGroup.isCompany() %>'>
-		<liferay-util:include page="/view_layout_prototypes.jsp" servletContext="<%= application %>" />
-	</c:when>
-</c:choose>
+<liferay-util:include page="/view_layouts.jsp" servletContext="<%= application %>" />

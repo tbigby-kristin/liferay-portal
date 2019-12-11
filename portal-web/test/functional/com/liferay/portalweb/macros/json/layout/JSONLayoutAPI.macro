@@ -2,7 +2,7 @@ definition {
 
 	@summary = "Directly calls the JSON WS API to add a layout"
 	macro _addLayout {
-		Variables.assertDefined(parameterList = "${groupId},${privateLayout},${parentLayoutId},${layoutName}");
+		Variables.assertDefined(parameterList = "${friendlyURL},${groupId},${privateLayout},${parentLayoutId},${layoutName},${serviceContext}");
 
 		var portalURL = JSONCompany.getPortalURL();
 
@@ -17,7 +17,8 @@ definition {
 				-d description= \
 				-d type=${type} \
 				-d hidden=false \
-				-d friendlyURL=
+				-d friendlyURL=${friendlyURL} \
+				-d serviceContext=${serviceContext}
 		''';
 
 		com.liferay.poshi.runner.util.JSONCurlUtil.post("${curl}");
@@ -69,6 +70,29 @@ definition {
 		}
 
 		return "${typeSettings}";
+	}
+
+	@summary = "Directly calls the JavaScript API to update typeSettings"
+	macro _updateTypeSettings {
+		Variables.assertDefined(parameterList = "${groupId},${privateLayout},${layoutId},${typeSettings}");
+
+		var javaScript =
+		'''Liferay.Service(
+			'/layout/update-layout',
+			{
+				groupId: ${groupId},
+				privateLayout: ${privateLayout},
+				layoutId: ${layoutId},
+				typeSettings: '${typeSettings}'
+			},
+			function(obj) {
+				console.log(obj);
+			}
+		);''';
+
+		var JSON = selenium.getEval("${javaScript}");
+
+		return "${JSON}";
 	}
 
 }

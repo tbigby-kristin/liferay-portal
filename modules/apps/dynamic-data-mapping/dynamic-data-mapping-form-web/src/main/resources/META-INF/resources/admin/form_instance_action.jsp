@@ -83,12 +83,11 @@ FormInstancePermissionCheckerHelper formInstancePermissionCheckerHelper = ddmFor
 		</liferay-portlet:resourceURL>
 
 		<%
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(5);
 
 		sb.append("javascript:");
 		sb.append(renderResponse.getNamespace());
-		sb.append("exportFormInstance");
-		sb.append("('");
+		sb.append("exportFormInstance('");
 		sb.append(exportFormInstanceURL);
 		sb.append("');");
 		%>

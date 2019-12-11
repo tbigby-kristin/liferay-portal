@@ -291,10 +291,6 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			boolean branchingPrivate, ServiceContext serviceContext)
 		throws PortalException {
 
-		if (StagingUtil.isChangeTrackingEnabled(liveGroup.getCompanyId())) {
-			return;
-		}
-
 		if (liveGroup.isLayout()) {
 			enableLocalStaging(
 				userId, liveGroup.getParentGroup(), branchingPublic,
@@ -381,10 +377,6 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			long remoteGroupId, ServiceContext serviceContext)
 		throws PortalException {
 
-		if (StagingUtil.isChangeTrackingEnabled(stagingGroup.getCompanyId())) {
-			return;
-		}
-
 		groupLocalService.validateRemote(
 			stagingGroup.getGroupId(), remoteAddress, remotePort,
 			remotePathContext, secureConnection, remoteGroupId);
@@ -467,19 +459,6 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 			stagingGroup.getGroupId(), typeSettingsProperties.toString());
 
 		updateStagedPortlets(remoteURL, remoteGroupId, typeSettingsProperties);
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public MissingReferences publishStagingRequest(
-			long userId, long stagingRequestId, boolean privateLayout,
-			Map<String, String[]> parameterMap)
-		throws PortalException {
-
-		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -605,19 +584,6 @@ public class StagingLocalServiceImpl extends StagingLocalServiceBaseImpl {
 		finally {
 			IndexStatusManagerThreadLocal.setIndexReadOnly(indexReadOnly);
 		}
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #publishStagingRequest(long, long, boolean, Map)}
-	 */
-	@Deprecated
-	@Override
-	public MissingReferences validateStagingRequest(
-		long userId, long stagingRequestId, boolean privateLayout,
-		Map<String, String[]> parameterMap) {
-
-		return new MissingReferences();
 	}
 
 	protected void addDefaultLayoutSetBranch(

@@ -55,15 +55,15 @@ import org.openqa.selenium.safari.SafariDriver;
 public class WebDriverUtil extends PropsValues {
 
 	public static WebDriver getWebDriver() {
-		return _instance._getWebDriver();
+		return _webDriverUtil._getWebDriver();
 	}
 
 	public static void startWebDriver() {
-		_instance._startWebDriver();
+		_webDriverUtil._startWebDriver();
 	}
 
 	public static void stopWebDriver() {
-		_instance._stopWebDriver();
+		_webDriverUtil._stopWebDriver();
 	}
 
 	private WebDriver _getAndroidDriver() {
@@ -144,7 +144,8 @@ public class WebDriverUtil extends PropsValues {
 		chromeOptions.setExperimentalOption("prefs", preferences);
 
 		if (Validator.isNotNull(PropsValues.BROWSER_CHROME_BIN_ARGS)) {
-			chromeOptions.addArguments(PropsValues.BROWSER_CHROME_BIN_ARGS);
+			chromeOptions.addArguments(
+				PropsValues.BROWSER_CHROME_BIN_ARGS.split("\\s+"));
 		}
 
 		if (Validator.isNotNull(PropsValues.BROWSER_CHROME_BIN_FILE)) {
@@ -359,7 +360,7 @@ public class WebDriverUtil extends PropsValues {
 		_webDriver = null;
 	}
 
-	private static final WebDriverUtil _instance = new WebDriverUtil();
+	private static final WebDriverUtil _webDriverUtil = new WebDriverUtil();
 
 	private WebDriver _webDriver;
 

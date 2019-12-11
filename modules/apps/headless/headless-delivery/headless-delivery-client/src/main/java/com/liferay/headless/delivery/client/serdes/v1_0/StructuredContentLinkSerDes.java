@@ -55,6 +55,20 @@ public class StructuredContentLinkSerDes {
 
 		sb.append("{");
 
+		if (structuredContentLink.getContentType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(structuredContentLink.getContentType()));
+
+			sb.append("\"");
+		}
+
 		if (structuredContentLink.getId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -100,6 +114,15 @@ public class StructuredContentLinkSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		if (structuredContentLink.getContentType() == null) {
+			map.put("contentType", null);
+		}
+		else {
+			map.put(
+				"contentType",
+				String.valueOf(structuredContentLink.getContentType()));
+		}
+
 		if (structuredContentLink.getId() == null) {
 			map.put("id", null);
 		}
@@ -135,7 +158,13 @@ public class StructuredContentLinkSerDes {
 			StructuredContentLink structuredContentLink,
 			String jsonParserFieldName, Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "id")) {
+			if (Objects.equals(jsonParserFieldName, "contentType")) {
+				if (jsonParserFieldValue != null) {
+					structuredContentLink.setContentType(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					structuredContentLink.setId(
 						Long.valueOf((String)jsonParserFieldValue));
@@ -158,9 +187,11 @@ public class StructuredContentLinkSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

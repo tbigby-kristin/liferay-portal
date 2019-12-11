@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -267,12 +268,6 @@ public class ItemSelectorImpl implements ItemSelector {
 		String itemSelectedEventName,
 		ItemSelectorCriterion... itemSelectorCriteria) {
 
-		Map<String, String[]> parameters = new HashMap<>();
-
-		parameters.put(
-			PARAMETER_ITEM_SELECTED_EVENT_NAME,
-			new String[] {itemSelectedEventName});
-
 		StringBundler sb = new StringBundler(itemSelectorCriteria.length * 2);
 
 		for (ItemSelectorCriterion itemSelectorCriterion :
@@ -289,7 +284,12 @@ public class ItemSelectorImpl implements ItemSelector {
 			sb.setIndex(sb.index() - 1);
 		}
 
-		parameters.put(PARAMETER_CRITERIA, new String[] {sb.toString()});
+		Map<String, String[]> parameters = HashMapBuilder.put(
+			PARAMETER_CRITERIA, new String[] {sb.toString()}
+		).put(
+			PARAMETER_ITEM_SELECTED_EVENT_NAME,
+			new String[] {itemSelectedEventName}
+		).build();
 
 		for (int i = 0; i < itemSelectorCriteria.length; i++) {
 			ItemSelectorCriterion itemSelectorCriterion =

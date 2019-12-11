@@ -19,7 +19,7 @@
 <div class="taglib-social-activities">
 	<c:if test="<%= feedEnabled && !activityDescriptors.isEmpty() %>">
 		<div class="clearfix">
-			<div class="pull-right">
+			<div class="float-right">
 				<liferay-rss:rss
 					delta="<%= feedDelta %>"
 					displayStyle="<%= feedDisplayStyle %>"
@@ -89,7 +89,7 @@
 
 		<li class="list-group-item">
 			<div class="card card-horizontal">
-				<div class="card-row card-row-padded">
+				<div class="card-body">
 					<div class="card-col-field">
 						<liferay-ui:user-portrait
 							userId="<%= activityDescriptor.getUserId() %>"

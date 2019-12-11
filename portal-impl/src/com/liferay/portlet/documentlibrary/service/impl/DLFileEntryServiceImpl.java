@@ -99,23 +99,6 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		return dlFileEntryLocalService.cancelCheckOut(getUserId(), fileEntryId);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #checkInFileEntry(long, DLVersionNumberIncrease, String,
-	 *             ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public void checkInFileEntry(
-			long fileEntryId, boolean major, String changeLog,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		dlFileEntryService.checkInFileEntry(
-			fileEntryId, DLVersionNumberIncrease.fromMajorVersion(major),
-			changeLog, serviceContext);
-	}
-
 	@Override
 	public void checkInFileEntry(
 			long fileEntryId, DLVersionNumberIncrease dlVersionNumberIncrease,
@@ -352,7 +335,8 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 	@Override
 	public int getFileEntriesCount(long groupId, long folderId, int status) {
 		return dlFileEntryFinder.filterCountByG_F(
-			groupId, ListUtil.toList(folderId), new QueryDefinition<>(status));
+			groupId, ListUtil.fromArray(folderId),
+			new QueryDefinition<>(status));
 	}
 
 	@Override
@@ -376,7 +360,7 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		long groupId, long folderId, String[] mimeTypes, int status) {
 
 		return dlFileEntryFinder.filterCountByG_U_F_M(
-			groupId, 0, ListUtil.toList(folderId), mimeTypes,
+			groupId, 0, ListUtil.fromArray(folderId), mimeTypes,
 			new QueryDefinition<>(status));
 	}
 
@@ -593,40 +577,6 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		return dlFileEntryLocalService.isFileEntryCheckedOut(fileEntryId);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean isKeepFileVersionLabel(
-			long fileEntryId, boolean majorVersion,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		_fileEntryModelResourcePermission.check(
-			getPermissionChecker(), fileEntryId, ActionKeys.VIEW);
-
-		return dlFileEntryLocalService.isKeepFileVersionLabel(
-			fileEntryId, majorVersion, serviceContext);
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #isKeepFileVersionLabel(long, boolean, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public boolean isKeepFileVersionLabel(
-			long fileEntryId, ServiceContext serviceContext)
-		throws PortalException {
-
-		_fileEntryModelResourcePermission.check(
-			getPermissionChecker(), fileEntryId, ActionKeys.VIEW);
-
-		return dlFileEntryLocalService.isKeepFileVersionLabel(
-			fileEntryId, serviceContext);
-	}
-
 	@Override
 	public DLFileEntry moveFileEntry(
 			long fileEntryId, long newFolderId, ServiceContext serviceContext)
@@ -684,28 +634,6 @@ public class DLFileEntryServiceImpl extends DLFileEntryServiceBaseImpl {
 		return dlFileEntryLocalService.search(
 			groupId, getUserId(), creatorUserId, folderId, mimeTypes, status,
 			start, end);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #updateFileEntry(long, String, String, String, String,
-	 *             String, DLVersionNumberIncrease, long, Map, File,
-	 *             InputStream, long, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DLFileEntry updateFileEntry(
-			long fileEntryId, String sourceFileName, String mimeType,
-			String title, String description, String changeLog,
-			boolean majorVersion, long fileEntryTypeId,
-			Map<String, DDMFormValues> ddmFormValuesMap, File file,
-			InputStream is, long size, ServiceContext serviceContext)
-		throws PortalException {
-
-		return dlFileEntryService.updateFileEntry(
-			fileEntryId, sourceFileName, mimeType, title, description,
-			changeLog, DLVersionNumberIncrease.fromMajorVersion(majorVersion),
-			fileEntryTypeId, ddmFormValuesMap, file, is, size, serviceContext);
 	}
 
 	@Override

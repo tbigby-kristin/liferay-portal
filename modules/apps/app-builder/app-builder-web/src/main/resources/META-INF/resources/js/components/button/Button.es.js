@@ -19,8 +19,8 @@ import {Link} from 'react-router-dom';
 
 const Button = props => {
 	const {
-		className,
 		children,
+		className,
 		forwardRef,
 		href,
 		symbol,

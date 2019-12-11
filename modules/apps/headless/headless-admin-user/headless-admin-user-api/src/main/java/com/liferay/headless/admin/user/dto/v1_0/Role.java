@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -74,11 +76,14 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of languages for which the role has a translation."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String[] availableLanguages;
 
 	@Schema(description = "The role's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -102,7 +107,7 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The role's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
@@ -130,7 +135,7 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The role's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -160,7 +165,9 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The last time any of the role's fields were changed."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -188,7 +195,7 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The role's description.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String description;
 
@@ -214,7 +221,7 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The role's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -240,7 +247,7 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The role's name.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String name;
 
@@ -268,7 +275,7 @@ public class Role {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The role's type.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String roleType;
 
@@ -420,6 +427,12 @@ public class Role {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.user.dto.v1_0.Role",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

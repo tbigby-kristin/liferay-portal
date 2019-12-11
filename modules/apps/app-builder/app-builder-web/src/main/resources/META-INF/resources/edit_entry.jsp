@@ -16,28 +16,61 @@
 
 <%@ include file="/init.jsp" %>
 
+<%
+AppBuilderApp appBuilderApp = (AppBuilderApp)request.getAttribute(AppBuilderWebKeys.APP);
+%>
+
 <div class="app-builder-root">
-	<aui:form>
-		<liferay-data-engine:data-layout-renderer
-			containerId='<%= renderResponse.getNamespace() + "container" %>'
-			dataLayoutId='<%= ParamUtil.getLong(request, "dataLayoutId") %>'
-			namespace="<%= renderResponse.getNamespace() %>"
-		/>
+	<div class="container edit-entry">
+		<div class="justify-content-center row">
+			<div class="col-lg-12">
+				<div class="card card-root mb-0 mt-4 shadowless-card">
+					<div class="card-body pt-0">
+						<aui:form>
+							<liferay-data-engine:data-layout-renderer
+								containerId='<%= renderResponse.getNamespace() + "container" %>'
+								dataLayoutId="<%= appBuilderApp.getDdmStructureLayoutId() %>"
+								dataRecordId='<%= ParamUtil.getLong(request, "dataRecordId") %>'
+								namespace="<%= renderResponse.getNamespace() %>"
+							/>
 
-		<div id="<portlet:namespace />-app-builder-edit-entry">
+							<div id="<portlet:namespace />-edit-entry-app">
 
-			<%
-			Map<String, Object> data = new HashMap<>();
+								<%
+								Map<String, Object> data = HashMapBuilder.<String, Object>put(
+									"appDeploymentType", request.getAttribute(AppBuilderWebKeys.APP_DEPLOYMENT_TYPE)
+								).put(
+									"appId", appBuilderApp.getAppBuilderAppId()
+								).put(
+									"basePortletURL", String.valueOf(renderResponse.createRenderURL())
+								).put(
+									"dataDefinitionId", appBuilderApp.getDdmStructureId()
+								).put(
+									"dataLayoutId", appBuilderApp.getDdmStructureLayoutId()
+								).put(
+									"dataListViewId", appBuilderApp.getDeDataListViewId()
+								).put(
+									"dataRecordId", ParamUtil.getLong(request, "dataRecordId")
+								).put(
+									"editEntryContainerElementId", renderResponse.getNamespace() + "container"
+								).put(
+									"redirect", ParamUtil.getString(request, "redirect")
+								).put(
+									"showFormView", request.getAttribute(AppBuilderWebKeys.SHOW_FORM_VIEW)
+								).put(
+									"showTableView", request.getAttribute(AppBuilderWebKeys.SHOW_TABLE_VIEW)
+								).build();
+								%>
 
-			data.put("basePortletURL", String.valueOf(renderResponse.createRenderURL()));
-			data.put("dataDefinitionId", ParamUtil.getLong(request, "dataDefinitionId"));
-			data.put("editEntryContainerElementId", renderResponse.getNamespace() + "container");
-			%>
-
-			<react:component
-				data="<%= data %>"
-				module="js/pages/entry/EditEntryApp.es"
-			/>
+								<react:component
+									data="<%= data %>"
+									module="js/pages/entry/EditEntryApp.es"
+								/>
+							</div>
+						</aui:form>
+					</div>
+				</div>
+			</div>
 		</div>
-	</aui:form>
+	</div>
 </div>

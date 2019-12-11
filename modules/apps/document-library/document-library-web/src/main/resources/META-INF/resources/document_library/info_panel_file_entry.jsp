@@ -98,7 +98,7 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 							<div class="autofit-col autofit-col-expand">
 								<div class="component-title h4 username">
 									<c:if test="<%= owner != null %>">
-										<a href="<%= owner.isDefaultUser() ? StringPool.BLANK : owner.getDisplayURL(themeDisplay) %>"><%= owner.getFullName() %></a>
+										<a href="<%= owner.isDefaultUser() ? StringPool.BLANK : owner.getDisplayURL(themeDisplay) %>"><%= HtmlUtil.escape(owner.getFullName()) %></a>
 									</c:if>
 								</div>
 
@@ -126,7 +126,7 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 										<c:when test="<%= conversions.length > 0 %>">
 											<div class="btn-group-item" data-analytics-file-entry-id="<%= String.valueOf(fileEntry.getFileEntryId()) %>">
 												<clay:dropdown-menu
-													dropdownItems="<%=
+													dropdownItems='<%=
 														new JSPDropdownItemList(pageContext) {
 															{
 																ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(WebKeys.THEME_DISPLAY);
@@ -164,10 +164,10 @@ long assetClassPK = DLAssetHelperUtil.getAssetClassPK(fileEntry, fileVersion);
 
 															}
 														}
-													%>"
+													%>'
+													label='<%= LanguageUtil.get(request, "download") %>'
 													style="primary"
 													triggerCssClasses="btn-sm"
-													label="<%= LanguageUtil.get(request, "download") %>"
 												/>
 											</div>
 										</c:when>

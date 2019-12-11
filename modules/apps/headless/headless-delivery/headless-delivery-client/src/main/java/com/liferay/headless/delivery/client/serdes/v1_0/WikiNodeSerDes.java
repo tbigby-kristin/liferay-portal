@@ -157,6 +157,16 @@ public class WikiNodeSerDes {
 			sb.append(wikiNode.getSiteId());
 		}
 
+		if (wikiNode.getSubscribed() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(wikiNode.getSubscribed());
+		}
+
 		if (wikiNode.getViewableBy() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -244,6 +254,13 @@ public class WikiNodeSerDes {
 			map.put("siteId", String.valueOf(wikiNode.getSiteId()));
 		}
 
+		if (wikiNode.getSubscribed() == null) {
+			map.put("subscribed", null);
+		}
+		else {
+			map.put("subscribed", String.valueOf(wikiNode.getSubscribed()));
+		}
+
 		if (wikiNode.getViewableBy() == null) {
 			map.put("viewableBy", null);
 		}
@@ -316,6 +333,11 @@ public class WikiNodeSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "subscribed")) {
+				if (jsonParserFieldValue != null) {
+					wikiNode.setSubscribed((Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "viewableBy")) {
 				if (jsonParserFieldValue != null) {
 					wikiNode.setViewableBy(
@@ -334,9 +356,11 @@ public class WikiNodeSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

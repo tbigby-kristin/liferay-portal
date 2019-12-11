@@ -14,7 +14,6 @@
 
 package com.liferay.fragment.internal.renderer;
 
-import com.liferay.fragment.internal.configuration.ContentObjectConfiguration;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
@@ -24,35 +23,28 @@ import com.liferay.info.display.contributor.InfoDisplayContributorTracker;
 import com.liferay.info.display.contributor.InfoDisplayObjectProvider;
 import com.liferay.info.item.renderer.InfoItemRenderer;
 import com.liferay.info.item.renderer.InfoItemRendererTracker;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.info.item.renderer.InfoItemTemplatedRenderer;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsWebKeys;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Jorge Ferrer
  */
-@Component(
-	configurationPid = "com.liferay.fragment.internal.configuration.ContentObjectConfiguration",
-	service = FragmentRenderer.class
-)
+@Component(service = FragmentRenderer.class)
 public class ContentObjectFragmentRenderer implements FragmentRenderer {
 
 	@Override
@@ -89,15 +81,6 @@ public class ContentObjectFragmentRenderer implements FragmentRenderer {
 	}
 
 	@Override
-	public boolean isSelectable(HttpServletRequest httpServletRequest) {
-		if (_contentObjectConfiguration.enabled()) {
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
 	public void render(
 		FragmentRendererContext fragmentRendererContext,
 		HttpServletRequest httpServletRequest,
@@ -130,9 +113,12 @@ public class ContentObjectFragmentRenderer implements FragmentRenderer {
 			return;
 		}
 
-		InfoItemRenderer infoItemRenderer = _getInfoItemRenderer(
+		Tuple tuple = _getTuple(
 			displayObject.getClass(), fragmentRendererContext,
 			httpServletRequest);
+
+		InfoItemRenderer infoItemRenderer = (InfoItemRenderer)tuple.getObject(
+			0);
 
 		if (infoItemRenderer == null) {
 			if (FragmentRendererUtil.isEditMode(httpServletRequest)) {
@@ -145,15 +131,18 @@ public class ContentObjectFragmentRenderer implements FragmentRenderer {
 			return;
 		}
 
-		infoItemRenderer.render(
-			displayObject, httpServletRequest, httpServletResponse);
-	}
+		if (infoItemRenderer instanceof InfoItemTemplatedRenderer) {
+			InfoItemTemplatedRenderer infoItemTemplatedRenderer =
+				(InfoItemTemplatedRenderer)infoItemRenderer;
 
-	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
-		_contentObjectConfiguration = ConfigurableUtil.createConfigurable(
-			ContentObjectConfiguration.class, properties);
+			infoItemTemplatedRenderer.render(
+				displayObject, (String)tuple.getObject(1), httpServletRequest,
+				httpServletResponse);
+		}
+		else {
+			infoItemRenderer.render(
+				displayObject, httpServletRequest, httpServletResponse);
+		}
 	}
 
 	private Object _getDisplayObject(String className, long classPK) {
@@ -194,7 +183,7 @@ public class ContentObjectFragmentRenderer implements FragmentRenderer {
 			"itemSelector");
 	}
 
-	private InfoItemRenderer _getInfoItemRenderer(
+	private Tuple _getTuple(
 		Class<?> displayObjectClass,
 		FragmentRendererContext fragmentRendererContext,
 		HttpServletRequest httpServletRequest) {
@@ -213,25 +202,29 @@ public class ContentObjectFragmentRenderer implements FragmentRenderer {
 			fragmentRendererContext, httpServletRequest);
 
 		if (jsonObject == null) {
-			return defaultInfoItemRenderer;
+			return new Tuple(defaultInfoItemRenderer);
 		}
 
-		String template = jsonObject.getString("template");
+		JSONObject templateJSONObject = jsonObject.getJSONObject("template");
 
-		if (Validator.isNull(template)) {
-			return defaultInfoItemRenderer;
+		if (templateJSONObject == null) {
+			return new Tuple(defaultInfoItemRenderer);
 		}
 
-		for (InfoItemRenderer infoItemRenderer : infoItemRenderers) {
-			if (Objects.equals(infoItemRenderer.getKey(), template)) {
-				return infoItemRenderer;
-			}
+		String templateKey = templateJSONObject.getString("templateKey");
+
+		String infoItemRendererKey = templateJSONObject.getString(
+			"infoItemRendererKey");
+
+		InfoItemRenderer infoItemRenderer =
+			_infoItemRendererTracker.getInfoItemRenderer(infoItemRendererKey);
+
+		if (infoItemRenderer != null) {
+			return new Tuple(infoItemRenderer, templateKey);
 		}
 
-		return defaultInfoItemRenderer;
+		return new Tuple(defaultInfoItemRenderer);
 	}
-
-	private volatile ContentObjectConfiguration _contentObjectConfiguration;
 
 	@Reference
 	private InfoDisplayContributorTracker _infoDisplayContributorTracker;

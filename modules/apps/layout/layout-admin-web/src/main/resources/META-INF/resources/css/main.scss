@@ -1,6 +1,6 @@
 @import './miller_columns/Layout';
-
 @import './miller_columns/LayoutColumn';
+@import './seo';
 
 .portlet-layouts-admin {
 	.customization-settings #main-content {
@@ -30,10 +30,6 @@
 		.input-group-item-shrink {
 			max-width: 50%;
 		}
-	}
-
-	.layout-type-img {
-		width: 100%;
 	}
 
 	.searchcontainer-content .breadcrumb {

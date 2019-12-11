@@ -1,10 +1,11 @@
 @component-name = "portal-document-management"
 definition {
 
-	property portal.release = "false";
+	property portal.release = "true";
 	property portal.upstream = "true";
 	property test.run.environment = "EE";
 	property testray.main.component.name = "Online Editing";
+	property testray.component.name = "OneDrive";
 	var pageName = "Documents and Media Page";
 	var portletName = "Documents and Media";
 
@@ -192,6 +193,36 @@ definition {
 			value1 = "Add Word Doc Title");
 	}
 
+	@description = "This test covers LPS-102478. It ensures that an Office 365 document automatically checks in after the lock is expired."
+	@priority = "4"
+	test AutoCheckinDocumentAfterLockExpiration {
+		property test.name.skip.portal.instance = "OneDrive#AutoCheckinDocumentAfterLockExpiration";
+
+		property custom.properties = "lock.expiration.time.com.liferay.document.library.kernel.model.DLFileEntry=80000";
+
+		OneDrive.deleteDocument(dmDocumentTitle = "Auto Checkin Word Doc Title");
+
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "Word");
+
+		OneDrive.AddDocument(
+			dmDocumentTitle = "Auto Checkin Word Doc Title",
+			key_documentTitle = "Auto Checkin Word Doc Title.docx");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		Pause(locator1 = "100000");
+
+		Refresh();
+
+		AssertElementNotPresent(
+			key_dmDocumentTitle = "Auto Checkin Word Doc Title",
+			locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_TITLE");
+	}
+
 	@description = "This test ensures that a Word Document is autotagged once checked in."
 	@priority = "4"
 	test AutoTagWordDocument {
@@ -223,6 +254,33 @@ definition {
 		DMDocument.viewPG(
 			dmDocumentTitle = "Auto Tagging Word Doc Title",
 			tagNameList = "adventures");
+	}
+
+	@description = "This test ensures that no residual data is left in the Portal UI after canceling checkout under site admin on an Excel document during creation."
+	@priority = "4"
+	test CancelCheckoutOnExcelSheet {
+		property test.name.skip.portal.instance = "OneDrive#CancelCheckoutOnExcelSheet";
+
+		OneDrive.deleteDocument(dmDocumentTitle = "Cancel Checkout Excel Sheet Title");
+
+		Navigator.openURL();
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		DMNavigator.gotoAddDocumentTypePG(dmDocumentTypeName = "Excel");
+
+		OneDrive.AddDocument(
+			dmDocumentTitle = "Cancel Checkout Excel Sheet Title",
+			key_documentTitle = "Cancel Checkout Excel Sheet Title.xlsx");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.cancelCheckoutCP(dmDocumentTitle = "Cancel Checkout Excel Sheet Title");
+
+		AssertElementNotPresent(
+			key_rowEntry = "Cancel Checkout Excel Sheet Title",
+			locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME",
+			value1 = "Cancel Checkout Excel Sheet Title");
 	}
 
 	@description = "This test ensures that no residual data is left in the Portal UI after canceling checkout on a Word document during creation."

@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -45,6 +47,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class AppDeployment {
 
 	@Schema
+	@Valid
 	public Map<String, Object> getSettings() {
 		return settings;
 	}
@@ -153,6 +156,12 @@ public class AppDeployment {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.app.builder.rest.dto.v1_0.AppDeployment",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

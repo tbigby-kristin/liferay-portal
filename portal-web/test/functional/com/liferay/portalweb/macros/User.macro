@@ -37,12 +37,24 @@ definition {
 	}
 
 	macro acceptEndUserLicenseAgreement {
-		if (IsElementPresent(locator1 = "Button#I_AGREE", value1 = "I Agree")) {
+		if (IsElementPresent(locator1 = "Button#I_AGREE")) {
 			AssertClick(
 				locator1 = "Button#I_AGREE",
 				value1 = "I Agree");
 
 			AssertElementNotPresent(locator1 = "Button#I_AGREE");
+		}
+	}
+
+	macro acceptEndUserLicenseAgreementLocalized {
+		var key_localizedAgree = "${localizedAgree}";
+
+		if (IsElementPresent(locator1 = "Button#I_AGREE_LOCALIZED")) {
+			AssertClick(
+				locator1 = "Button#I_AGREE_LOCALIZED",
+				value1 = "${localizedAgree}");
+
+			AssertElementNotPresent(locator1 = "Button#I_AGREE_LOCALIZED");
 		}
 	}
 
@@ -677,14 +689,28 @@ definition {
 	macro answerPasswordReminder {
 		Pause(locator1 = "3000");
 
-		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#ANSWER")) {
+		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#REMINDER_QUERY")) {
 			Type(
-				locator1 = "TextInput#ANSWER",
+				locator1 = "TextInput#REMINDER_QUERY",
 				value1 = "test");
 
-			Button.clickSave();
+			Click(locator1 = "Button#SUBMIT");
+		}
+	}
 
-			AssertElementNotPresent(locator1 = "Button#SAVE");
+	macro answerPasswordReminderLocalized {
+		Pause(locator1 = "3000");
+
+		var key_localizedAnswer = "${localizedAnswer}";
+
+		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#ANSWER_LOCALIZED")) {
+			Type(
+				locator1 = "TextInput#ANSWER_LOCALIZED",
+				value1 = "test");
+
+			Button.click(button = "${localizedSaveButton}");
+
+			Button.viewNotPresent(button = "${localizedSaveButton}");
 		}
 	}
 
@@ -702,7 +728,7 @@ definition {
 		var key_roleTitle = "${roleTitle}";
 
 		AssertTextEquals(
-			locator1 = "Permissions#CONTENT_PERMISSIONS_ROLE_NAME",
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_ROLE_NAME",
 			value1 = "${roleTitle}");
 
 		AssertClick(
@@ -712,7 +738,7 @@ definition {
 		SelectFrame(value1 = "relative=top");
 
 		AssertTextEquals(
-			locator1 = "Permissions#CONTENT_PERMISSIONS_ROLE_NAME",
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_ROLE_NAME",
 			value1 = "${roleTitle}");
 
 		PortletEntry.save();
@@ -734,17 +760,17 @@ definition {
 		var key_roleTitle = "${roleTitle}";
 
 		AssertTextEquals(
-			locator1 = "Permissions#CONTENT_PERMISSIONS_ROLE_NAME",
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_ROLE_NAME",
 			value1 = "${roleTitle}");
 
 		AssertClick(
-			locator1 = "UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_SELECT_CHOOSE_BUTTON",
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_REGULAR_SELECT_CHOOSE_BUTTON",
 			value1 = "Choose");
 
 		SelectFrame(value1 = "relative=top");
 
 		AssertTextEquals(
-			locator1 = "Permissions#CONTENT_PERMISSIONS_ROLE_NAME",
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_ROLE_NAME",
 			value1 = "${roleTitle}");
 
 		PortletEntry.save();
@@ -769,7 +795,7 @@ definition {
 			value1 = "${siteRoleName}");
 
 		AssertClick(
-			locator1 = "UsersAndOrganizationsEditUser#ROLES_ORGANIZATION_SELECT_CHOOSE_BUTTON",
+			locator1 = "UsersAndOrganizationsEditUser#ROLES_REGULAR_SELECT_CHOOSE_BUTTON",
 			value1 = "Choose");
 
 		SelectFrame(value1 = "relative=top");
@@ -1179,6 +1205,40 @@ definition {
 		PortletEntry.save();
 	}
 
+	macro editDetailsViaProfile {
+		Click(locator1 = "Profile#JOB_TITLE_FIELD");
+
+		SelectFrame(locator1 = "IFrame#PROFILE_DETAILS");
+
+		AssertElementPresent.assertElementPresent(locator1 = "TextInput#FIRST_NAME");
+
+		if (isSet(userFirstNameEdit)) {
+			Type(
+				locator1 = "TextInput#FIRST_NAME",
+				value1 = "${userFirstNameEdit}");
+		}
+
+		if (isSet(userLastNameEdit)) {
+			Type(
+				locator1 = "TextInput#LAST_NAME",
+				value1 = "${userLastNameEdit}");
+		}
+
+		if (isSet(userMiddleNameEdit)) {
+			Type(
+				locator1 = "TextInput#MIDDLE_NAME",
+				value1 = "${userMiddleNameEdit}");
+		}
+
+		if (isSet(userScreenNameEdit)) {
+			Type(
+				locator1 = "TextInput#SCREEN_NAME",
+				value1 = "${userScreenNameEdit}");
+		}
+
+		Button.clickSave();
+	}
+
 	macro editDisplaySettingsCP {
 		User.searchCP(searchTerm = "${userScreenName}");
 
@@ -1504,6 +1564,19 @@ definition {
 		PortletEntry.save();
 	}
 
+	macro exportPersonalDataCP {
+		Search.searchCP(searchTerm = "${userFirstName}");
+
+		LexiconEntry.gotoEntryMenuItemNoError(
+			menuItem = "Export Personal Data",
+			rowEntry = "${userFirstName}");
+
+		AssertElementPresent(
+			key_firstName = "${userFirstName}",
+			key_lastName = "${userLastName}",
+			locator1 = "ExportPersonalData#HEADER");
+	}
+
 	@summary = "Log into Liferay Portal as '${userEmailAddress}' using the password '${password}'; if not logged in as '${userEmailAddress}', then log out first"
 	macro firstLoginPG {
 		if (isSet(virtualHostsURL)) {
@@ -1521,6 +1594,9 @@ definition {
 		else {
 			User.loginPG(
 				localization = "${localization}",
+				localizedAgree = "${localizedAgree}",
+				localizedAnswer = "${localizedAnswer}",
+				localizedSaveButton = "${localizedSaveButton}",
 				samlEnabled = "${samlEnabled}",
 				setupWizardEnabled = "${setupWizardEnabled}",
 				specificURL = "${virtualHostsURL}",
@@ -1558,6 +1634,10 @@ definition {
 
 	macro impersonateCP {
 		Pause(locator1 = "1000");
+
+		if (isSet(userName)) {
+			var userScreenName = "${userName}";
+		}
 
 		Search.searchCP(searchTerm = "${userScreenName}");
 
@@ -1600,7 +1680,7 @@ definition {
 			Alert.closePortalLocalizationWarning();
 		}
 
-		if (!("${samlEnabled}" == "true")) {
+		if ("${samlEnabled}" != "true") {
 			User.loginLocalizationPG(localization = "${localization}");
 		}
 
@@ -1631,8 +1711,6 @@ definition {
 		if ((isSet(rememberMeChecked)) && ("${rememberMeChecked}" == "true")) {
 			Check(locator1 = "Checkbox#REMEMBER_ME");
 		}
-
-		takeScreenshot();
 
 		if (isSet(localization)) {
 			var localizedSignIn = User._signInLocalization(localization = "${localization}");
@@ -1666,14 +1744,26 @@ definition {
 
 		Button.viewNotPresent(button = "Sign In");
 
-		User.acceptEndUserLicenseAgreement();
+		if (isSet(localizedAgree)) {
+			User.acceptEndUserLicenseAgreementLocalized(localizedAgree = "${localizedAgree}");
+		}
+		else {
+			User.acceptEndUserLicenseAgreement();
+		}
 
 		User.resetPassword(
 			resetPassword = "${resetPassword}",
 			setupWizardEnabled = "${setupWizardEnabled}",
 			syntaxCheckingEnabled = "${syntaxCheckingEnabled}");
 
-		User.answerPasswordReminder();
+		if (isSet(localizedAnswer)) {
+			User.answerPasswordReminderLocalized(
+				localizedAnswer = "${localizedAnswer}",
+				localizedSaveButton = "${localizedSaveButton}");
+		}
+		else {
+			User.answerPasswordReminder();
+		}
 
 		AssertElementPresent(locator1 = "UserBar#USER_AVATAR_IMAGE");
 	}
@@ -1691,8 +1781,8 @@ definition {
 			var maxLoginAttempts = "0";
 		}
 
-		while (!("${count}" == "${loginAttempts}")) {
-			var count = MathUtil.sum("${count}", "1");
+		while ("${count}" != "${loginAttempts}") {
+			var count = ${count} + 1;
 
 			User._login(
 				password = "${password}",
@@ -1736,7 +1826,7 @@ definition {
 
 		Type(
 			locator1 = "CAS#PASSWORD_FIELD",
-			value1 = "${userScreenName}");
+			value1 = "${userPassword}");
 
 		AssertClick(
 			locator1 = "CAS#LOGIN_BUTTON",
@@ -1975,35 +2065,35 @@ definition {
 		if (IsElementPresent.pauseIsElementPresent(locator1 = "TextInput#PASSWORD")) {
 			if ((isSet(syntaxCheckingEnabled)) && ("${syntaxCheckingEnabled}" == "true")) {
 				Type(
-					locator1 = "TextInput#PASSWORD",
+					locator1 = "TextInput#PASSWORD_1",
 					value1 = "${resetPassword}");
 
 				Type(
-					locator1 = "TextInput#ENTER_AGAIN",
+					locator1 = "TextInput#PASSWORD_2",
 					value1 = "${resetPassword}");
 			}
 			else {
 				if ((isSet(setupWizardEnabled)) && ("${setupWizardEnabled}" == "true")) {
 					Type(
-						locator1 = "TextInput#PASSWORD",
+						locator1 = "TextInput#PASSWORD_1",
 						value1 = "test2");
 
 					Type(
-						locator1 = "TextInput#ENTER_AGAIN",
+						locator1 = "TextInput#PASSWORD_2",
 						value1 = "test2");
 				}
 				else {
 					Type(
-						locator1 = "TextInput#PASSWORD",
+						locator1 = "TextInput#PASSWORD_1",
 						value1 = "test");
 
 					Type(
-						locator1 = "TextInput#ENTER_AGAIN",
+						locator1 = "TextInput#PASSWORD_2",
 						value1 = "test");
 				}
 			}
 
-			Button.clickSave();
+			Button.clickSubmitButton();
 
 			AssertElementNotPresent(locator1 = "TextInput#ENTER_AGAIN");
 		}
@@ -2028,7 +2118,7 @@ definition {
 
 		Button.clickSave();
 
-		if (!("${newPassword1}" == "${newPassword2}")) {
+		if ("${newPassword1}" != "${newPassword2}") {
 			AssertTextEquals.assertPartialText(
 				locator1 = "TextInput#ALERT",
 				value1 = "Please enter the same value again.");
@@ -2308,8 +2398,8 @@ definition {
 			if (isSet(addressCount)) {
 				var i = "0";
 
-				while (!("${i}" == "${addressCount}")) {
-					var i = MathUtil.sum("${i}", "1");
+				while ("${i}" != "${addressCount}") {
+					var i = ${i} + 1;
 
 					AssertTextEquals.assertPartialText(
 						locator1 = "UsersAndOrganizations#USER_CONTACT_INFORMATION_CONTAINER_TABLE",
@@ -2555,7 +2645,7 @@ definition {
 		}
 		else {
 			AssertTextEquals(
-				locator1 = "Permissions#CONTENT_PERMISSIONS_ROLE_NAME",
+				locator1 = "UsersAndOrganizationsEditUser#ROLES_SELECT_ROLE_NAME",
 				value1 = "${roleTitle}");
 		}
 	}

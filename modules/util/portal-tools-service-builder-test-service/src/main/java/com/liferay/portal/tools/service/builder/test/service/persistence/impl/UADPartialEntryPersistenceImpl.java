@@ -14,6 +14,7 @@
 
 package com.liferay.portal.tools.service.builder.test.service.persistence.impl;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
 import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -24,7 +25,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.spring.extender.service.ServiceReference;
 import com.liferay.portal.tools.service.builder.test.exception.NoSuchUADPartialEntryException;
 import com.liferay.portal.tools.service.builder.test.model.UADPartialEntry;
@@ -34,10 +34,6 @@ import com.liferay.portal.tools.service.builder.test.service.persistence.UADPart
 
 import java.io.Serializable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,6 +72,10 @@ public class UADPartialEntryPersistenceImpl
 
 	public UADPartialEntryPersistenceImpl() {
 		setModelClass(UADPartialEntry.class);
+
+		setModelImplClass(UADPartialEntryImpl.class);
+		setModelPKClass(long.class);
+		setEntityCacheEnabled(UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED);
 	}
 
 	/**
@@ -156,6 +156,19 @@ public class UADPartialEntryPersistenceImpl
 			entityCache.removeResult(
 				UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
 				UADPartialEntryImpl.class, uadPartialEntry.getPrimaryKey());
+		}
+	}
+
+	@Override
+	public void clearCache(Set<Serializable> primaryKeys) {
+		finderCache.clearCache(FINDER_CLASS_NAME_ENTITY);
+		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITH_PAGINATION);
+		finderCache.clearCache(FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION);
+
+		for (Serializable primaryKey : primaryKeys) {
+			entityCache.removeResult(
+				UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
+				UADPartialEntryImpl.class, primaryKey);
 		}
 	}
 
@@ -347,163 +360,12 @@ public class UADPartialEntryPersistenceImpl
 	/**
 	 * Returns the uad partial entry with the primary key or returns <code>null</code> if it could not be found.
 	 *
-	 * @param primaryKey the primary key of the uad partial entry
-	 * @return the uad partial entry, or <code>null</code> if a uad partial entry with the primary key could not be found
-	 */
-	@Override
-	public UADPartialEntry fetchByPrimaryKey(Serializable primaryKey) {
-		Serializable serializable = entityCache.getResult(
-			UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
-			UADPartialEntryImpl.class, primaryKey);
-
-		if (serializable == nullModel) {
-			return null;
-		}
-
-		UADPartialEntry uadPartialEntry = (UADPartialEntry)serializable;
-
-		if (uadPartialEntry == null) {
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				uadPartialEntry = (UADPartialEntry)session.get(
-					UADPartialEntryImpl.class, primaryKey);
-
-				if (uadPartialEntry != null) {
-					cacheResult(uadPartialEntry);
-				}
-				else {
-					entityCache.putResult(
-						UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
-						UADPartialEntryImpl.class, primaryKey, nullModel);
-				}
-			}
-			catch (Exception e) {
-				entityCache.removeResult(
-					UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
-					UADPartialEntryImpl.class, primaryKey);
-
-				throw processException(e);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return uadPartialEntry;
-	}
-
-	/**
-	 * Returns the uad partial entry with the primary key or returns <code>null</code> if it could not be found.
-	 *
 	 * @param uadPartialEntryId the primary key of the uad partial entry
 	 * @return the uad partial entry, or <code>null</code> if a uad partial entry with the primary key could not be found
 	 */
 	@Override
 	public UADPartialEntry fetchByPrimaryKey(long uadPartialEntryId) {
 		return fetchByPrimaryKey((Serializable)uadPartialEntryId);
-	}
-
-	@Override
-	public Map<Serializable, UADPartialEntry> fetchByPrimaryKeys(
-		Set<Serializable> primaryKeys) {
-
-		if (primaryKeys.isEmpty()) {
-			return Collections.emptyMap();
-		}
-
-		Map<Serializable, UADPartialEntry> map =
-			new HashMap<Serializable, UADPartialEntry>();
-
-		if (primaryKeys.size() == 1) {
-			Iterator<Serializable> iterator = primaryKeys.iterator();
-
-			Serializable primaryKey = iterator.next();
-
-			UADPartialEntry uadPartialEntry = fetchByPrimaryKey(primaryKey);
-
-			if (uadPartialEntry != null) {
-				map.put(primaryKey, uadPartialEntry);
-			}
-
-			return map;
-		}
-
-		Set<Serializable> uncachedPrimaryKeys = null;
-
-		for (Serializable primaryKey : primaryKeys) {
-			Serializable serializable = entityCache.getResult(
-				UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
-				UADPartialEntryImpl.class, primaryKey);
-
-			if (serializable != nullModel) {
-				if (serializable == null) {
-					if (uncachedPrimaryKeys == null) {
-						uncachedPrimaryKeys = new HashSet<Serializable>();
-					}
-
-					uncachedPrimaryKeys.add(primaryKey);
-				}
-				else {
-					map.put(primaryKey, (UADPartialEntry)serializable);
-				}
-			}
-		}
-
-		if (uncachedPrimaryKeys == null) {
-			return map;
-		}
-
-		StringBundler query = new StringBundler(
-			uncachedPrimaryKeys.size() * 2 + 1);
-
-		query.append(_SQL_SELECT_UADPARTIALENTRY_WHERE_PKS_IN);
-
-		for (Serializable primaryKey : uncachedPrimaryKeys) {
-			query.append((long)primaryKey);
-
-			query.append(",");
-		}
-
-		query.setIndex(query.index() - 1);
-
-		query.append(")");
-
-		String sql = query.toString();
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			Query q = session.createQuery(sql);
-
-			for (UADPartialEntry uadPartialEntry :
-					(List<UADPartialEntry>)q.list()) {
-
-				map.put(uadPartialEntry.getPrimaryKeyObj(), uadPartialEntry);
-
-				cacheResult(uadPartialEntry);
-
-				uncachedPrimaryKeys.remove(uadPartialEntry.getPrimaryKeyObj());
-			}
-
-			for (Serializable primaryKey : uncachedPrimaryKeys) {
-				entityCache.putResult(
-					UADPartialEntryModelImpl.ENTITY_CACHE_ENABLED,
-					UADPartialEntryImpl.class, primaryKey, nullModel);
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-
-		return map;
 	}
 
 	/**
@@ -520,7 +382,7 @@ public class UADPartialEntryPersistenceImpl
 	 * Returns a range of all the uad partial entries.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>UADPartialEntryModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>UADPartialEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of uad partial entries
@@ -536,7 +398,7 @@ public class UADPartialEntryPersistenceImpl
 	 * Returns an ordered range of all the uad partial entries.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>UADPartialEntryModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>UADPartialEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of uad partial entries
@@ -556,7 +418,7 @@ public class UADPartialEntryPersistenceImpl
 	 * Returns an ordered range of all the uad partial entries.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>UADPartialEntryModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>UADPartialEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of uad partial entries
@@ -571,14 +433,11 @@ public class UADPartialEntryPersistenceImpl
 		OrderByComparator<UADPartialEntry> orderByComparator,
 		boolean useFinderCache) {
 
-		boolean pagination = true;
 		FinderPath finderPath = null;
 		Object[] finderArgs = null;
 
 		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
 			(orderByComparator == null)) {
-
-			pagination = false;
 
 			if (useFinderCache) {
 				finderPath = _finderPathWithoutPaginationFindAll;
@@ -615,9 +474,7 @@ public class UADPartialEntryPersistenceImpl
 			else {
 				sql = _SQL_SELECT_UADPARTIALENTRY;
 
-				if (pagination) {
-					sql = sql.concat(UADPartialEntryModelImpl.ORDER_BY_JPQL);
-				}
+				sql = sql.concat(UADPartialEntryModelImpl.ORDER_BY_JPQL);
 			}
 
 			Session session = null;
@@ -627,18 +484,8 @@ public class UADPartialEntryPersistenceImpl
 
 				Query q = session.createQuery(sql);
 
-				if (!pagination) {
-					list = (List<UADPartialEntry>)QueryUtil.list(
-						q, getDialect(), start, end, false);
-
-					Collections.sort(list);
-
-					list = Collections.unmodifiableList(list);
-				}
-				else {
-					list = (List<UADPartialEntry>)QueryUtil.list(
-						q, getDialect(), start, end);
-				}
+				list = (List<UADPartialEntry>)QueryUtil.list(
+					q, getDialect(), start, end);
 
 				cacheResult(list);
 
@@ -710,6 +557,21 @@ public class UADPartialEntryPersistenceImpl
 	}
 
 	@Override
+	protected EntityCache getEntityCache() {
+		return entityCache;
+	}
+
+	@Override
+	protected String getPKDBName() {
+		return "uadPartialEntryId";
+	}
+
+	@Override
+	protected String getSelectSQL() {
+		return _SQL_SELECT_UADPARTIALENTRY;
+	}
+
+	@Override
 	protected Map<String, Integer> getTableColumnsMap() {
 		return UADPartialEntryModelImpl.TABLE_COLUMNS_MAP;
 	}
@@ -753,9 +615,6 @@ public class UADPartialEntryPersistenceImpl
 
 	private static final String _SQL_SELECT_UADPARTIALENTRY =
 		"SELECT uadPartialEntry FROM UADPartialEntry uadPartialEntry";
-
-	private static final String _SQL_SELECT_UADPARTIALENTRY_WHERE_PKS_IN =
-		"SELECT uadPartialEntry FROM UADPartialEntry uadPartialEntry WHERE uadPartialEntryId IN (";
 
 	private static final String _SQL_COUNT_UADPARTIALENTRY =
 		"SELECT COUNT(uadPartialEntry) FROM UADPartialEntry uadPartialEntry";

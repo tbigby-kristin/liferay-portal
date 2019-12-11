@@ -22,9 +22,9 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -48,11 +48,9 @@ public class ValidationDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put("value", getValue(ddmFormFieldRenderingContext));
-
-		return parameters;
+		return HashMapBuilder.<String, Object>put(
+			"value", getValue(ddmFormFieldRenderingContext)
+		).build();
 	}
 
 	protected Map<String, Object> getValue(
@@ -65,19 +63,14 @@ public class ValidationDDMFormFieldTemplateContextContributor
 				JSONObject valueJSONObject = jsonFactory.createJSONObject(
 					valueString);
 
-				return new HashMap() {
-					{
-						put(
-							"errorMessage",
-							valueJSONObject.getJSONObject("errorMessage"));
-						put(
-							"expression",
-							valueJSONObject.getJSONObject("expression"));
-						put(
-							"parameter",
-							valueJSONObject.getJSONObject("parameter"));
-					}
-				};
+				return HashMapBuilder.<String, Object>put(
+					"errorMessage",
+					valueJSONObject.getJSONObject("errorMessage")
+				).put(
+					"expression", valueJSONObject.getJSONObject("expression")
+				).put(
+					"parameter", valueJSONObject.getJSONObject("parameter")
+				).build();
 			}
 			catch (JSONException jsone) {
 				if (_log.isWarnEnabled()) {
@@ -86,13 +79,13 @@ public class ValidationDDMFormFieldTemplateContextContributor
 			}
 		}
 
-		return new HashMap() {
-			{
-				put("errorMessage", jsonFactory.createJSONObject());
-				put("expression", jsonFactory.createJSONObject());
-				put("parameter", jsonFactory.createJSONObject());
-			}
-		};
+		return HashMapBuilder.<String, Object>put(
+			"errorMessage", jsonFactory.createJSONObject()
+		).put(
+			"expression", jsonFactory.createJSONObject()
+		).put(
+			"parameter", jsonFactory.createJSONObject()
+		).build();
 	}
 
 	@Reference

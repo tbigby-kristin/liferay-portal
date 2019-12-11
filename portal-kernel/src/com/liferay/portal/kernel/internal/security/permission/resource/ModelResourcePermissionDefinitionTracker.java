@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.model.GroupedModel;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionLogic;
 import com.liferay.portal.kernel.security.permission.resource.definition.ModelResourcePermissionDefinition;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.registry.Registry;
 import com.liferay.registry.RegistryUtil;
 import com.liferay.registry.ServiceReference;
@@ -26,7 +27,6 @@ import com.liferay.registry.ServiceTracker;
 import com.liferay.registry.ServiceTrackerCustomizer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,12 +90,15 @@ public class ModelResourcePermissionDefinitionTracker {
 			ModelResourcePermission<?> modelResourcePermission = _create(
 				modelResourcePermissionDefinition);
 
-			Map<String, Object> properties = new HashMap<>();
+			Map<String, Object> properties = HashMapBuilder.<String, Object>put(
+				"model.class.name",
+				() -> {
+					Class<?> modelClass =
+						modelResourcePermissionDefinition.getModelClass();
 
-			Class<?> modelClass =
-				modelResourcePermissionDefinition.getModelClass();
-
-			properties.put("model.class.name", modelClass.getName());
+					return modelClass.getName();
+				}
+			).build();
 
 			Object serviceRanking = serviceReference.getProperty(
 				"service.ranking");

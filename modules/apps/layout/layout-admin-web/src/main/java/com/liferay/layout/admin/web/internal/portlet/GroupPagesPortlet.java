@@ -17,18 +17,18 @@ package com.liferay.layout.admin.web.internal.portlet;
 import com.liferay.application.list.GroupProvider;
 import com.liferay.application.list.constants.ApplicationListWebKeys;
 import com.liferay.asset.kernel.exception.AssetCategoryException;
-import com.liferay.info.constants.InfoDisplayWebKeys;
-import com.liferay.info.display.contributor.InfoDisplayContributorTracker;
+import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
-import com.liferay.layout.admin.web.internal.configuration.LayoutAdminWebConfiguration;
 import com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration;
 import com.liferay.layout.admin.web.internal.constants.LayoutAdminWebKeys;
+import com.liferay.layout.admin.web.internal.display.context.LayoutsAdminDisplayContext;
 import com.liferay.layout.page.template.exception.DuplicateLayoutPageTemplateCollectionException;
 import com.liferay.layout.page.template.exception.LayoutPageTemplateCollectionNameException;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
-import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.layout.seo.canonical.url.LayoutSEOCanonicalURLProvider;
+import com.liferay.layout.seo.kernel.LayoutSEOLinkManager;
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.layout.util.template.LayoutConverterRegistry;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
@@ -81,7 +81,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Jorge Ferrer
  */
 @Component(
-	configurationPid = "com.liferay.layout.admin.web.configuration.LayoutAdminWebConfiguration, com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration",
+	configurationPid = "com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration",
 	immediate = true,
 	property = {
 		"com.liferay.portlet.add-default-resource=true",
@@ -109,8 +109,6 @@ public class GroupPagesPortlet extends MVCPortlet {
 	@Activate
 	@Modified
 	protected void activate(Map<String, Object> properties) {
-		_layoutAdminWebConfiguration = ConfigurableUtil.createConfigurable(
-			LayoutAdminWebConfiguration.class, properties);
 		_layoutConverterConfiguration = ConfigurableUtil.createConfigurable(
 			LayoutConverterConfiguration.class, properties);
 	}
@@ -162,23 +160,25 @@ public class GroupPagesPortlet extends MVCPortlet {
 			}
 
 			renderRequest.setAttribute(
-				LayoutAdminWebConfiguration.class.getName(),
-				_layoutAdminWebConfiguration);
-			renderRequest.setAttribute(
 				LayoutConverterConfiguration.class.getName(),
 				_layoutConverterConfiguration);
 			renderRequest.setAttribute(
 				ApplicationListWebKeys.GROUP_PROVIDER, _groupProvider);
 			renderRequest.setAttribute(
-				InfoDisplayWebKeys.INFO_DISPLAY_CONTRIBUTOR_TRACKER,
-				_infoDisplayContributorTracker);
-			renderRequest.setAttribute(
 				LayoutAdminWebKeys.ITEM_SELECTOR, _itemSelector);
 			renderRequest.setAttribute(
-				LayoutAdminWebKeys.LAYOUT_COPY_HELPER, _layoutCopyHelper);
-			renderRequest.setAttribute(
-				LayoutAdminWebKeys.LAYOUT_TEMPLATE_CONVERTER_REGISTRY,
+				LayoutAdminWebKeys.LAYOUT_CONVERTER_REGISTRY,
 				_layoutConverterRegistry);
+			renderRequest.setAttribute(
+				LayoutAdminWebKeys.LAYOUT_COPY_HELPER, _layoutCopyHelper);
+
+			renderRequest.setAttribute(
+				LayoutAdminWebKeys.LAYOUT_PAGE_LAYOUT_ADMIN_DISPLAY_CONTEXT,
+				new LayoutsAdminDisplayContext(
+					_dlurlHelper, _layoutSEOCanonicalURLProvider,
+					_layoutSEOLinkManager,
+					_portal.getLiferayPortletRequest(renderRequest),
+					_portal.getLiferayPortletResponse(renderResponse)));
 
 			super.doDispatch(renderRequest, renderResponse);
 		}
@@ -221,15 +221,14 @@ public class GroupPagesPortlet extends MVCPortlet {
 		GroupPagesPortlet.class);
 
 	@Reference
-	private GroupProvider _groupProvider;
+	private DLURLHelper _dlurlHelper;
 
 	@Reference
-	private InfoDisplayContributorTracker _infoDisplayContributorTracker;
+	private GroupProvider _groupProvider;
 
 	@Reference
 	private ItemSelector _itemSelector;
 
-	private volatile LayoutAdminWebConfiguration _layoutAdminWebConfiguration;
 	private volatile LayoutConverterConfiguration _layoutConverterConfiguration;
 
 	@Reference
@@ -239,15 +238,17 @@ public class GroupPagesPortlet extends MVCPortlet {
 	private LayoutCopyHelper _layoutCopyHelper;
 
 	@Reference
-	private LayoutPageTemplateCollectionService
-		_layoutPageTemplateCollectionService;
-
-	@Reference
 	private LayoutPageTemplateEntryLocalService
 		_layoutPageTemplateEntryLocalService;
 
 	@Reference
 	private LayoutPrototypeLocalService _layoutPrototypeLocalService;
+
+	@Reference
+	private LayoutSEOCanonicalURLProvider _layoutSEOCanonicalURLProvider;
+
+	@Reference
+	private LayoutSEOLinkManager _layoutSEOLinkManager;
 
 	@Reference
 	private Portal _portal;

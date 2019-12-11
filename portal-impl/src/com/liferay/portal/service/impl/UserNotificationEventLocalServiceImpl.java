@@ -43,7 +43,7 @@ public class UserNotificationEventLocalServiceImpl
 
 	@Override
 	public UserNotificationEvent addUserNotificationEvent(
-			long userId, boolean actionRequired,
+			long userId, boolean delivered, boolean actionRequired,
 			NotificationEvent notificationEvent)
 		throws PortalException {
 
@@ -57,8 +57,23 @@ public class UserNotificationEventLocalServiceImpl
 			userId, notificationEvent.getType(),
 			notificationEvent.getTimestamp(),
 			notificationEvent.getDeliveryType(),
-			notificationEvent.getDeliverBy(), payloadJSONObject.toString(),
-			actionRequired, notificationEvent.isArchived(), serviceContext);
+			notificationEvent.getDeliverBy(), delivered,
+			payloadJSONObject.toString(), actionRequired,
+			notificationEvent.isArchived(), serviceContext);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
+	@Override
+	public UserNotificationEvent addUserNotificationEvent(
+			long userId, boolean actionRequired,
+			NotificationEvent notificationEvent)
+		throws PortalException {
+
+		return addUserNotificationEvent(
+			userId, true, actionRequired, notificationEvent);
 	}
 
 	@Override
@@ -72,8 +87,9 @@ public class UserNotificationEventLocalServiceImpl
 	@Override
 	public UserNotificationEvent addUserNotificationEvent(
 			long userId, String type, long timestamp, int deliveryType,
-			long deliverBy, String payload, boolean actionRequired,
-			boolean archived, ServiceContext serviceContext)
+			long deliverBy, boolean delivered, String payload,
+			boolean actionRequired, boolean archived,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
@@ -90,7 +106,7 @@ public class UserNotificationEventLocalServiceImpl
 		userNotificationEvent.setTimestamp(timestamp);
 		userNotificationEvent.setDeliveryType(deliveryType);
 		userNotificationEvent.setDeliverBy(deliverBy);
-		userNotificationEvent.setDelivered(true);
+		userNotificationEvent.setDelivered(delivered);
 		userNotificationEvent.setPayload(payload);
 		userNotificationEvent.setActionRequired(actionRequired);
 		userNotificationEvent.setArchived(archived);
@@ -98,6 +114,22 @@ public class UserNotificationEventLocalServiceImpl
 		userNotificationEventPersistence.update(userNotificationEvent);
 
 		return userNotificationEvent;
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
+	@Override
+	public UserNotificationEvent addUserNotificationEvent(
+			long userId, String type, long timestamp, int deliveryType,
+			long deliverBy, String payload, boolean actionRequired,
+			boolean archived, ServiceContext serviceContext)
+		throws PortalException {
+
+		return addUserNotificationEvent(
+			userId, type, timestamp, deliveryType, deliverBy, true, payload,
+			actionRequired, archived, serviceContext);
 	}
 
 	@Override
@@ -137,7 +169,7 @@ public class UserNotificationEventLocalServiceImpl
 
 		int userNotificationEventsCount =
 			getArchivedUserNotificationEventsCount(
-				userId, deliveryType, actionRequired, false);
+				userId, deliveryType, true, actionRequired, false);
 
 		final IntervalActionProcessor<Void> intervalActionProcessor =
 			new IntervalActionProcessor<>(userNotificationEventsCount);
@@ -146,8 +178,8 @@ public class UserNotificationEventLocalServiceImpl
 			(start, end) -> {
 				List<UserNotificationEvent> userNotificationEvents =
 					getArchivedUserNotificationEvents(
-						userId, deliveryType, actionRequired, false, start,
-						end);
+						userId, deliveryType, true, actionRequired, false,
+						start, end);
 
 				for (UserNotificationEvent userNotificationEvent :
 						userNotificationEvents) {
@@ -193,7 +225,7 @@ public class UserNotificationEventLocalServiceImpl
 	public List<UserNotificationEvent> getArchivedUserNotificationEvents(
 		long userId, boolean actionRequired, boolean archived) {
 
-		return userNotificationEventPersistence.findByU_A_A(
+		return userNotificationEventPersistence.findByU_AR_A(
 			userId, actionRequired, archived);
 	}
 
@@ -202,7 +234,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, boolean actionRequired, boolean archived, int start,
 		int end) {
 
-		return userNotificationEventPersistence.findByU_A_A(
+		return userNotificationEventPersistence.findByU_AR_A(
 			userId, actionRequired, archived, start, end);
 	}
 
@@ -227,8 +259,29 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean actionRequired,
 		boolean archived) {
 
-		return userNotificationEventPersistence.findByU_DT_A_A(
+		return userNotificationEventPersistence.findByU_DT_AR_A(
 			userId, deliveryType, actionRequired, archived);
+	}
+
+	@Override
+	public List<UserNotificationEvent> getArchivedUserNotificationEvents(
+		long userId, int deliveryType, boolean delivered,
+		boolean actionRequired, boolean archived, int start, int end) {
+
+		return userNotificationEventPersistence.findByU_DT_D_AR_A(
+			userId, deliveryType, delivered, actionRequired, archived, start,
+			end);
+	}
+
+	@Override
+	public List<UserNotificationEvent> getArchivedUserNotificationEvents(
+		long userId, int deliveryType, boolean delivered,
+		boolean actionRequired, boolean archived, int start, int end,
+		OrderByComparator<UserNotificationEvent> obc) {
+
+		return userNotificationEventPersistence.findByU_DT_D_AR_A(
+			userId, deliveryType, delivered, actionRequired, archived, start,
+			end, obc);
 	}
 
 	@Override
@@ -236,7 +289,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean actionRequired, boolean archived,
 		int start, int end) {
 
-		return userNotificationEventPersistence.findByU_DT_A_A(
+		return userNotificationEventPersistence.findByU_DT_AR_A(
 			userId, deliveryType, actionRequired, archived, start, end);
 	}
 
@@ -245,7 +298,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean actionRequired, boolean archived,
 		int start, int end, OrderByComparator<UserNotificationEvent> obc) {
 
-		return userNotificationEventPersistence.findByU_DT_A_A(
+		return userNotificationEventPersistence.findByU_DT_AR_A(
 			userId, deliveryType, actionRequired, archived, start, end, obc);
 	}
 
@@ -268,7 +321,7 @@ public class UserNotificationEventLocalServiceImpl
 	public int getArchivedUserNotificationEventsCount(
 		long userId, boolean actionRequired, boolean archived) {
 
-		return userNotificationEventPersistence.countByU_A_A(
+		return userNotificationEventPersistence.countByU_AR_A(
 			userId, actionRequired, archived);
 	}
 
@@ -285,8 +338,25 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean actionRequired,
 		boolean archived) {
 
-		return userNotificationEventPersistence.countByU_DT_A_A(
+		return userNotificationEventPersistence.countByU_DT_AR_A(
 			userId, deliveryType, actionRequired, archived);
+	}
+
+	@Override
+	public int getArchivedUserNotificationEventsCount(
+		long userId, int deliveryType, boolean delivered,
+		boolean actionRequired, boolean archived) {
+
+		return userNotificationEventPersistence.countByU_DT_D_AR_A(
+			userId, deliveryType, delivered, actionRequired, archived);
+	}
+
+	@Override
+	public int getDeliveredArchivedUserNotificationEventsCount(
+		long userId, int deliveryType, boolean delivered, boolean archived) {
+
+		return userNotificationEventPersistence.countByU_DT_D_A(
+			userId, deliveryType, delivered, archived);
 	}
 
 	@Override
@@ -300,7 +370,7 @@ public class UserNotificationEventLocalServiceImpl
 	public List<UserNotificationEvent> getDeliveredUserNotificationEvents(
 		long userId, boolean delivered, boolean actionRequired) {
 
-		return userNotificationEventPersistence.findByU_D_A(
+		return userNotificationEventPersistence.findByU_D_AR(
 			userId, delivered, actionRequired);
 	}
 
@@ -309,7 +379,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, boolean delivered, boolean actionRequired, int start,
 		int end) {
 
-		return userNotificationEventPersistence.findByU_D_A(
+		return userNotificationEventPersistence.findByU_D_AR(
 			userId, delivered, actionRequired, start, end);
 	}
 
@@ -334,7 +404,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean delivered,
 		boolean actionRequired) {
 
-		return userNotificationEventPersistence.findByU_DT_D_A(
+		return userNotificationEventPersistence.findByU_DT_D_AR(
 			userId, deliveryType, delivered, actionRequired);
 	}
 
@@ -343,7 +413,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean delivered,
 		boolean actionRequired, int start, int end) {
 
-		return userNotificationEventPersistence.findByU_DT_D_A(
+		return userNotificationEventPersistence.findByU_DT_D_AR(
 			userId, deliveryType, delivered, actionRequired, start, end);
 	}
 
@@ -353,7 +423,7 @@ public class UserNotificationEventLocalServiceImpl
 		boolean actionRequired, int start, int end,
 		OrderByComparator<UserNotificationEvent> obc) {
 
-		return userNotificationEventPersistence.findByU_DT_D_A(
+		return userNotificationEventPersistence.findByU_DT_D_AR(
 			userId, deliveryType, delivered, actionRequired, start, end, obc);
 	}
 
@@ -376,7 +446,7 @@ public class UserNotificationEventLocalServiceImpl
 	public int getDeliveredUserNotificationEventsCount(
 		long userId, boolean delivered, boolean actionRequired) {
 
-		return userNotificationEventPersistence.countByU_D_A(
+		return userNotificationEventPersistence.countByU_D_AR(
 			userId, delivered, actionRequired);
 	}
 
@@ -393,7 +463,7 @@ public class UserNotificationEventLocalServiceImpl
 		long userId, int deliveryType, boolean delivered,
 		boolean actionRequired) {
 
-		return userNotificationEventPersistence.countByU_DT_D_A(
+		return userNotificationEventPersistence.countByU_DT_D_AR(
 			userId, deliveryType, delivered, actionRequired);
 	}
 
@@ -444,6 +514,14 @@ public class UserNotificationEventLocalServiceImpl
 
 	@Override
 	public int getUserNotificationEventsCount(
+		long userId, int deliveryType, boolean delivered, boolean archived) {
+
+		return userNotificationEventPersistence.countByU_DT_D_A(
+			userId, deliveryType, delivered, archived);
+	}
+
+	@Override
+	public int getUserNotificationEventsCount(
 		long userId, String type, int deliveryType, boolean archived) {
 
 		return userNotificationEventPersistence.countByU_T_DT_D(
@@ -451,8 +529,17 @@ public class UserNotificationEventLocalServiceImpl
 	}
 
 	@Override
+	public int getUserNotificationEventsCount(
+		long userId, String type, int deliveryType, boolean delivered,
+		boolean archived) {
+
+		return userNotificationEventPersistence.countByU_T_DT_D_A(
+			userId, type, deliveryType, delivered, archived);
+	}
+
+	@Override
 	public UserNotificationEvent sendUserNotificationEvents(
-			long userId, String portletId, int deliveryType,
+			long userId, String portletId, int deliveryType, boolean delivered,
 			boolean actionRequired, JSONObject notificationEventJSONObject)
 		throws PortalException {
 
@@ -464,13 +551,24 @@ public class UserNotificationEventLocalServiceImpl
 		notificationEvent.setDeliveryType(deliveryType);
 
 		UserNotificationEvent userNotificationEvent = addUserNotificationEvent(
-			userId, actionRequired, notificationEvent);
+			userId, delivered, actionRequired, notificationEvent);
 
 		if (deliveryType == UserNotificationDeliveryConstants.TYPE_PUSH) {
 			sendPushNotification(notificationEvent);
 		}
 
 		return userNotificationEvent;
+	}
+
+	@Override
+	public UserNotificationEvent sendUserNotificationEvents(
+			long userId, String portletId, int deliveryType,
+			boolean actionRequired, JSONObject notificationEventJSONObject)
+		throws PortalException {
+
+		return sendUserNotificationEvents(
+			userId, portletId, deliveryType, true, actionRequired,
+			notificationEventJSONObject);
 	}
 
 	@Override

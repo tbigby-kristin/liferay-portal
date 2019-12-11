@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -45,6 +47,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class CustomField {
 
 	@Schema
+	@Valid
 	public CustomValue getCustomValue() {
 		return customValue;
 	}
@@ -96,7 +99,7 @@ public class CustomField {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The field type (e.g., image, text, etc.).")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String dataType;
 
@@ -124,7 +127,9 @@ public class CustomField {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The field's internal name. This is valid for comparisons and unique in the structured content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String name;
 
@@ -197,6 +202,12 @@ public class CustomField {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.user.dto.v1_0.CustomField",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

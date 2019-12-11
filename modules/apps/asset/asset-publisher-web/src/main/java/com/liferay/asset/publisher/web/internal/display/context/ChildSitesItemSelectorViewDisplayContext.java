@@ -15,6 +15,7 @@
 package com.liferay.asset.publisher.web.internal.display.context;
 
 import com.liferay.asset.publisher.util.AssetPublisherHelper;
+import com.liferay.item.selector.criteria.group.criterion.GroupItemSelectorCriterion;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
@@ -22,12 +23,12 @@ import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portlet.usersadmin.search.GroupSearch;
 import com.liferay.portlet.usersadmin.search.GroupSearchTerms;
-import com.liferay.site.item.selector.criterion.SiteItemSelectorCriterion;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -46,12 +47,12 @@ public class ChildSitesItemSelectorViewDisplayContext
 	public ChildSitesItemSelectorViewDisplayContext(
 		HttpServletRequest httpServletRequest,
 		AssetPublisherHelper assetPublisherHelper,
-		SiteItemSelectorCriterion siteItemSelectorCriterion,
+		GroupItemSelectorCriterion groupItemSelectorCriterion,
 		String itemSelectedEventName, PortletURL portletURL) {
 
 		super(
-			httpServletRequest, assetPublisherHelper, siteItemSelectorCriterion,
-			itemSelectedEventName, portletURL);
+			httpServletRequest, assetPublisherHelper,
+			groupItemSelectorCriterion, itemSelectedEventName, portletURL);
 	}
 
 	@Override
@@ -104,30 +105,32 @@ public class ChildSitesItemSelectorViewDisplayContext
 			return _groupParams;
 		}
 
-		_groupParams = new LinkedHashMap<>();
-
-		_groupParams.put("active", Boolean.TRUE);
-
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		_groupParams.put(
-			"groupsTree", ListUtil.toList(themeDisplay.getSiteGroup()));
+		_groupParams = LinkedHashMapBuilder.<String, Object>put(
+			"active", Boolean.TRUE
+		).put(
+			"groupsTree", ListUtil.fromArray(themeDisplay.getSiteGroup())
+		).put(
+			"site", Boolean.TRUE
+		).put(
+			"excludedGroupIds",
+			() -> {
+				List<Long> excludedGroupIds = new ArrayList<>();
 
-		_groupParams.put("site", Boolean.TRUE);
+				Group group = themeDisplay.getSiteGroup();
 
-		List<Long> excludedGroupIds = new ArrayList<>();
+				if (group.isStagingGroup()) {
+					excludedGroupIds.add(group.getLiveGroupId());
+				}
+				else {
+					excludedGroupIds.add(themeDisplay.getSiteGroupId());
+				}
 
-		Group group = themeDisplay.getSiteGroup();
-
-		if (group.isStagingGroup()) {
-			excludedGroupIds.add(group.getLiveGroupId());
-		}
-		else {
-			excludedGroupIds.add(themeDisplay.getSiteGroupId());
-		}
-
-		_groupParams.put("excludedGroupIds", excludedGroupIds);
+				return excludedGroupIds;
+			}
+		).build();
 
 		return _groupParams;
 	}

@@ -46,7 +46,6 @@ import com.liferay.gradle.plugins.internal.TestIntegrationDefaultsPlugin;
 import com.liferay.gradle.plugins.internal.UpgradeTableBuilderDefaultsPlugin;
 import com.liferay.gradle.plugins.internal.WSDDBuilderDefaultsPlugin;
 import com.liferay.gradle.plugins.internal.WatchOSGiPlugin;
-import com.liferay.gradle.plugins.internal.XMLFormatterDefaultsPlugin;
 import com.liferay.gradle.plugins.internal.util.FileUtil;
 import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.internal.util.IncludeResourceCompileIncludeInstruction;
@@ -72,7 +71,6 @@ import com.liferay.gradle.plugins.util.BndBuilderUtil;
 import com.liferay.gradle.plugins.wsdd.builder.BuildWSDDTask;
 import com.liferay.gradle.plugins.wsdd.builder.WSDDBuilderPlugin;
 import com.liferay.gradle.plugins.wsdl.builder.WSDLBuilderPlugin;
-import com.liferay.gradle.plugins.xml.formatter.XMLFormatterPlugin;
 import com.liferay.gradle.util.StringUtil;
 import com.liferay.gradle.util.Validator;
 
@@ -89,6 +87,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -500,15 +499,7 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 
 		Jar jar = (Jar)GradleUtil.getTask(project, JavaPlugin.JAR_TASK_NAME);
 
-		jar.doLast(
-			new Action<Task>() {
-
-				@Override
-				public void execute(Task task) {
-					directDeployTask.execute();
-				}
-
-			});
+		jar.finalizedBy(directDeployTask);
 
 		return directDeployTask;
 	}
@@ -886,6 +877,7 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 						});
 
 					copySpec.include("**/*.css");
+					copySpec.include("**/*.css.map");
 					copySpec.into(pathName);
 				}
 
@@ -938,6 +930,7 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 						});
 
 					copySpec.include("**/*.js");
+					copySpec.include("**/*.js.map");
 					copySpec.into(pathName);
 				}
 
@@ -998,7 +991,6 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 		GradleUtil.applyPlugin(project, TLDDocBuilderPlugin.class);
 		GradleUtil.applyPlugin(project, TLDFormatterPlugin.class);
 		GradleUtil.applyPlugin(project, TestIntegrationPlugin.class);
-		GradleUtil.applyPlugin(project, XMLFormatterPlugin.class);
 
 		AlloyTaglibDefaultsPlugin.INSTANCE.apply(project);
 		CSSBuilderDefaultsPlugin.INSTANCE.apply(project);
@@ -1016,7 +1008,6 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 		UpgradeTableBuilderDefaultsPlugin.INSTANCE.apply(project);
 		WSDDBuilderDefaultsPlugin.INSTANCE.apply(project);
 		WatchOSGiPlugin.INSTANCE.apply(project);
-		XMLFormatterDefaultsPlugin.INSTANCE.apply(project);
 	}
 
 	private void _configureApplication(Project project) {
@@ -1055,6 +1046,8 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 	}
 
 	private void _configureBundleExtension(Project project) {
+		Logger logger = project.getLogger();
+
 		BundleExtension bundleExtension = new BundleExtension();
 
 		ExtensionContainer extensionContainer = project.getExtensions();
@@ -1076,6 +1069,17 @@ public class LiferayOSGiPlugin implements Plugin<Project> {
 					String key = (String)keys.nextElement();
 
 					String value = utf8Properties.getProperty(key);
+
+					if (Objects.equals(key, Constants.INCLUDERESOURCE) &&
+						value.contains("[0-9]*")) {
+
+						value = value.replace("[0-9]*", "[0-9.]*");
+
+						logger.lifecycle(
+							"DEPRECATED: Update \"{}\" to \"{}\" to remove " +
+								"this message",
+							Constants.INCLUDERESOURCE, value);
+					}
 
 					bundleExtension.put(key, value);
 				}

@@ -16,6 +16,8 @@ package com.liferay.talend.connection;
 
 import com.liferay.talend.resource.BaseLiferayResourceProperties;
 
+import java.net.URI;
+
 import org.apache.avro.Schema;
 
 import org.slf4j.Logger;
@@ -32,8 +34,7 @@ import org.talend.daikon.properties.presentation.Form;
  * @author Ivica Cardic
  */
 public abstract class LiferayConnectionResourceBaseProperties
-	extends FixedConnectorsComponentProperties
-	implements LiferayConnectionPropertiesProvider {
+	extends FixedConnectorsComponentProperties {
 
 	public LiferayConnectionResourceBaseProperties(String name) {
 		super(name);
@@ -43,13 +44,14 @@ public abstract class LiferayConnectionResourceBaseProperties
 		return resource.getEndpoint();
 	}
 
-	public int getItemsPerPage() {
-		return connection.getItemsPerPage();
+	public String getEndpointURI() {
+		URI endpointURI = resource.getEndpointURI();
+
+		return endpointURI.toString();
 	}
 
-	@Override
-	public LiferayConnectionProperties getLiferayConnectionProperties() {
-		return connection;
+	public int getItemsPerPage() {
+		return connection.getItemsPerPage();
 	}
 
 	public Schema getSchema() {
@@ -113,6 +115,10 @@ public abstract class LiferayConnectionResourceBaseProperties
 	public LiferayConnectionProperties connection =
 		new LiferayConnectionProperties("connection");
 	public BaseLiferayResourceProperties resource;
+
+	protected LiferayConnectionProperties getLiferayConnectionProperties() {
+		return connection;
+	}
 
 	protected transient PropertyPathConnector mainConnector =
 		new PropertyPathConnector(Connector.MAIN_NAME, "resource.main");

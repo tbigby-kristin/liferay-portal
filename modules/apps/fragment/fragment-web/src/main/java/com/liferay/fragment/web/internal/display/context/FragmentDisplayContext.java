@@ -15,7 +15,6 @@
 package com.liferay.fragment.web.internal.display.context;
 
 import com.liferay.fragment.constants.FragmentActionKeys;
-import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorTracker;
 import com.liferay.fragment.model.FragmentCollection;
@@ -41,6 +40,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -51,7 +51,6 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -75,6 +74,7 @@ public class FragmentDisplayContext {
 
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
+
 		_httpServletRequest = httpServletRequest;
 
 		_fragmentCollectionContributorTracker =
@@ -158,30 +158,12 @@ public class FragmentDisplayContext {
 		contributedFragmentEntriesSearchContainer.setId(
 			"fragmentEntries" + getFragmentCollectionKey());
 
-		List<FragmentEntry> fragmentEntries = null;
-
 		FragmentCollectionContributor fragmentCollectionContributor =
 			_getFragmentCollectionContributor();
 
-		if (isNavigationComponents() || isNavigationSections()) {
-			int type = FragmentConstants.TYPE_SECTION;
-
-			if (isNavigationComponents()) {
-				type = FragmentConstants.TYPE_COMPONENT;
-			}
-
-			fragmentEntries = fragmentCollectionContributor.getFragmentEntries(
-				type, _themeDisplay.getLocale());
-		}
-		else {
-			fragmentEntries = fragmentCollectionContributor.getFragmentEntries(
-				FragmentConstants.TYPE_SECTION, _themeDisplay.getLocale());
-
-			fragmentEntries.addAll(
-				fragmentCollectionContributor.getFragmentEntries(
-					FragmentConstants.TYPE_COMPONENT,
-					_themeDisplay.getLocale()));
-		}
+		List<FragmentEntry> fragmentEntries =
+			fragmentCollectionContributor.getFragmentEntries(
+				_themeDisplay.getLocale());
 
 		contributedFragmentEntriesSearchContainer.setResults(
 			ListUtil.subList(
@@ -285,8 +267,6 @@ public class FragmentDisplayContext {
 	public Map<String, Object> getFragmentCollectionsViewContext()
 		throws Exception {
 
-		Map<String, Object> context = new HashMap<>();
-
 		LiferayPortletURL deleteFragmentCollectionURL =
 			_renderResponse.createActionURL();
 
@@ -294,20 +274,12 @@ public class FragmentDisplayContext {
 		deleteFragmentCollectionURL.setParameter(
 			ActionRequest.ACTION_NAME, "/fragment/delete_fragment_collection");
 
-		context.put(
-			"deleteFragmentCollectionURL",
-			deleteFragmentCollectionURL.toString());
-
 		LiferayPortletURL exportFragmentCollectionsURL =
 			(LiferayPortletURL)_renderResponse.createResourceURL();
 
 		exportFragmentCollectionsURL.setCopyCurrentRenderParameters(false);
 		exportFragmentCollectionsURL.setResourceID(
 			"/fragment/export_fragment_collections");
-
-		context.put(
-			"exportFragmentCollectionsURL",
-			exportFragmentCollectionsURL.toString());
 
 		PortletURL viewExportFragmentCollectionsURL =
 			_renderResponse.createRenderURL();
@@ -319,10 +291,6 @@ public class FragmentDisplayContext {
 		viewExportFragmentCollectionsURL.setWindowState(
 			LiferayWindowState.POP_UP);
 
-		context.put(
-			"viewExportFragmentCollectionsURL",
-			viewExportFragmentCollectionsURL.toString());
-
 		PortletURL viewDeleteFragmentCollectionsURL =
 			_renderResponse.createRenderURL();
 
@@ -331,19 +299,27 @@ public class FragmentDisplayContext {
 		viewDeleteFragmentCollectionsURL.setWindowState(
 			LiferayWindowState.POP_UP);
 
-		context.put(
-			"viewDeleteFragmentCollectionsURL",
-			viewDeleteFragmentCollectionsURL.toString());
-
 		PortletURL viewImportURL = _renderResponse.createRenderURL();
 
 		viewImportURL.setParameter(
 			"mvcRenderCommandName", "/fragment/view_import");
 		viewImportURL.setWindowState(LiferayWindowState.POP_UP);
 
-		context.put("viewImportURL", viewImportURL.toString());
-
-		return context;
+		return HashMapBuilder.<String, Object>put(
+			"deleteFragmentCollectionURL",
+			deleteFragmentCollectionURL.toString()
+		).put(
+			"exportFragmentCollectionsURL",
+			exportFragmentCollectionsURL.toString()
+		).put(
+			"viewDeleteFragmentCollectionsURL",
+			viewDeleteFragmentCollectionsURL.toString()
+		).put(
+			"viewExportFragmentCollectionsURL",
+			viewExportFragmentCollectionsURL.toString()
+		).put(
+			"viewImportURL", viewImportURL.toString()
+		).build();
 	}
 
 	public SearchContainer getFragmentEntriesSearchContainer() {
@@ -381,26 +357,7 @@ public class FragmentDisplayContext {
 			status = WorkflowConstants.STATUS_APPROVED;
 		}
 
-		if (isNavigationComponents() || isNavigationSections()) {
-			int type = FragmentConstants.TYPE_SECTION;
-
-			if (isNavigationComponents()) {
-				type = FragmentConstants.TYPE_COMPONENT;
-			}
-
-			fragmentEntries =
-				FragmentEntryServiceUtil.getFragmentEntriesByTypeAndStatus(
-					fragmentCollection.getGroupId(),
-					fragmentCollection.getFragmentCollectionId(), type, status,
-					fragmentEntriesSearchContainer.getStart(),
-					fragmentEntriesSearchContainer.getEnd(), orderByComparator);
-
-			fragmentEntriesCount =
-				FragmentEntryServiceUtil.getFragmentEntriesCountByTypeAndStatus(
-					fragmentCollection.getGroupId(),
-					fragmentCollection.getFragmentCollectionId(), type, status);
-		}
-		else if (isSearch()) {
+		if (isSearch()) {
 			fragmentEntries =
 				FragmentEntryServiceUtil.getFragmentEntriesByNameAndStatus(
 					fragmentCollection.getGroupId(),
@@ -540,22 +497,6 @@ public class FragmentDisplayContext {
 		}
 
 		return _updatePermission;
-	}
-
-	public boolean isNavigationComponents() {
-		if (Objects.equals(getNavigation(), "components")) {
-			return true;
-		}
-
-		return false;
-	}
-
-	public boolean isNavigationSections() {
-		if (Objects.equals(getNavigation(), "sections")) {
-			return true;
-		}
-
-		return false;
 	}
 
 	public boolean isSearch() {

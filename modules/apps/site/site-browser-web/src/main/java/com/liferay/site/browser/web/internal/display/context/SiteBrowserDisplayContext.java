@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -120,6 +121,8 @@ public class SiteBrowserDisplayContext {
 
 		boolean includeCompany = ParamUtil.getBoolean(
 			_httpServletRequest, "includeCompany");
+		boolean includeFormsSite = ParamUtil.getBoolean(
+			_httpServletRequest, "includeFormsSite");
 		boolean includeUserPersonalSite = ParamUtil.getBoolean(
 			_httpServletRequest, "includeUserPersonalSite");
 
@@ -128,6 +131,17 @@ public class SiteBrowserDisplayContext {
 		if (includeCompany) {
 			classNameIds = ArrayUtil.append(
 				classNameIds, PortalUtil.getClassNameId(Company.class));
+		}
+
+		if (includeFormsSite) {
+			if (groupSearch.getStart() == 0) {
+				Group formsSite = GroupLocalServiceUtil.getGroup(
+					company.getCompanyId(), GroupConstants.FORMS);
+
+				results.add(formsSite);
+			}
+
+			additionalSites++;
 		}
 
 		if (includeUserPersonalSite) {
@@ -482,9 +496,9 @@ public class SiteBrowserDisplayContext {
 			filterManageableGroups = false;
 		}
 
-		_groupParams = new LinkedHashMap<>();
-
-		_groupParams.put("active", Boolean.TRUE);
+		_groupParams = LinkedHashMapBuilder.<String, Object>put(
+			"active", Boolean.TRUE
+		).build();
 
 		if (_isManualMembership()) {
 			_groupParams.put("manualMembership", Boolean.TRUE);
@@ -493,7 +507,7 @@ public class SiteBrowserDisplayContext {
 		if (type.equals("child-sites")) {
 			Group parentGroup = GroupLocalServiceUtil.getGroup(groupId);
 
-			_groupParams.put("groupsTree", ListUtil.toList(parentGroup));
+			_groupParams.put("groupsTree", ListUtil.fromArray(parentGroup));
 		}
 		else if (filterManageableGroups) {
 			User user = themeDisplay.getUser();

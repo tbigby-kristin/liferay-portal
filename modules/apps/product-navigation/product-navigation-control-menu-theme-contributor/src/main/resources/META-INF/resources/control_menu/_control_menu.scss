@@ -117,7 +117,7 @@ a.control-menu-icon,
 	}
 
 	a,
-	button {
+	button:not(.dropdown-item) {
 		color: $control-menu-level-1-link-color;
 
 		&:focus,
@@ -125,10 +125,6 @@ a.control-menu-icon,
 			color: $control-menu-level-1-link-hover-color;
 			text-decoration: none;
 		}
-	}
-
-	.layout-finder a {
-		color: $control-menu-level-2-link-color;
 	}
 
 	.personal-menu-dropdown .dropdown-toggle {

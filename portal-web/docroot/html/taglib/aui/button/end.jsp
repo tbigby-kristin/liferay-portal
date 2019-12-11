@@ -17,13 +17,13 @@
 <%@ include file="/html/taglib/aui/button/init.jsp" %>
 
 <c:if test="<%= dropdown %>">
-	<div class="btn-group dropdown" id="<%= id %>BtnGroup">
+	<div class="btn-group btn-group-item dropdown" id="<%= id %>BtnGroup">
 </c:if>
 
 <c:choose>
 	<c:when test="<%= Validator.isNotNull(escapedHREF) %>">
 		<a
-			class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %> <%= type.equals("cancel") ? "btn-link" : "btn-default" %>"
+			class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
 			href="<%= escapedHREF %>"
 			id="<%= id %>"
 
@@ -37,7 +37,7 @@
 	</c:when>
 	<c:otherwise>
 		<button
-			class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %> <%= type.equals("cancel") ? "btn-link" : "btn-default" %>"
+			class="<%= AUIUtil.buildCss(AUIUtil.BUTTON_PREFIX, disabled, false, false, cssClass) %>"
 
 			<c:if test="<%= disabled %>">
 				disabled

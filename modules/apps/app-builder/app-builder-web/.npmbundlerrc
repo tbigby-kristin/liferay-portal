@@ -5,14 +5,5 @@
 				"/": ">=5.0.0"
 			}
 		}
-	},
-	"exclude": {
-		"react-dnd": [
-			"dist/**/*"
-		],
-		"react-dnd-html5-backend": [
-			"dist/**/*"
-		]
-	},
-	"preset": "liferay-npm-bundler-preset-liferay-dev"
+	}
 }

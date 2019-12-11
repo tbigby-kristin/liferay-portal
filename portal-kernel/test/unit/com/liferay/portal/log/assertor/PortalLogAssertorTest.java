@@ -141,14 +141,14 @@ public class PortalLogAssertorTest {
 				if (levelString.equals("ERROR") ||
 					levelString.equals("FATAL") || levelString.equals("WARN")) {
 
-					NodeList childNodelist = node.getChildNodes();
+					NodeList childNodeList = node.getChildNodes();
 
 					String message =
 						"\nPortal log assert failure, see above log for more " +
 							"information: \n";
 
-					for (int j = 0; j < childNodelist.getLength(); j++) {
-						Node childNode = childNodelist.item(j);
+					for (int j = 0; j < childNodeList.getLength(); j++) {
+						Node childNode = childNodeList.item(j);
 
 						String nodeName = childNode.getNodeName();
 

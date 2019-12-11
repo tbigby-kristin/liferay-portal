@@ -292,7 +292,7 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's knowledge base folders. Results can be paginated."
+		description = "Retrieves the site's knowledge base folders. Results can be paginated."
 	)
 	@Parameters(
 		value = {

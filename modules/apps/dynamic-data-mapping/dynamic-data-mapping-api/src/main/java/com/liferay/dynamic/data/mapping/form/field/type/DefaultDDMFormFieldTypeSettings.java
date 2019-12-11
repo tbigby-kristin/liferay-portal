@@ -82,7 +82,7 @@ public interface DefaultDDMFormFieldTypeSettings
 			"autoFocus=true", "placeholder=%enter-a-field-label",
 			"tooltip=%enter-a-descriptive-field-label-that-guides-users-to-enter-the-information-you-want"
 		},
-		type = "key_value"
+		type = "text"
 	)
 	public LocalizedValue label();
 
@@ -132,9 +132,6 @@ public interface DefaultDDMFormFieldTypeSettings
 	)
 	public DDMFormFieldValidation validation();
 
-	/**
-	 * @deprecated As of Judson (7.1.x)
-	 */
 	@DDMFormField(
 		label = "%field-visibility-expression",
 		properties = {
@@ -143,7 +140,6 @@ public interface DefaultDDMFormFieldTypeSettings
 		},
 		visibilityExpression = "FALSE"
 	)
-	@Deprecated
 	public String visibilityExpression();
 
 }

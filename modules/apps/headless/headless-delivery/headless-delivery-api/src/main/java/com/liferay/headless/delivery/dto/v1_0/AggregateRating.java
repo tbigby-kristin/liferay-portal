@@ -70,9 +70,39 @@ public class AggregateRating {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The highest possible rating (by default normalized to 1.0)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Double bestRating;
+
+	@Schema(description = "The average rating.")
+	public Double getRatingAverage() {
+		return ratingAverage;
+	}
+
+	public void setRatingAverage(Double ratingAverage) {
+		this.ratingAverage = ratingAverage;
+	}
+
+	@JsonIgnore
+	public void setRatingAverage(
+		UnsafeSupplier<Double, Exception> ratingAverageUnsafeSupplier) {
+
+		try {
+			ratingAverage = ratingAverageUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The average rating.")
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Double ratingAverage;
 
 	@Schema(description = "The number of ratings.")
 	public Integer getRatingCount() {
@@ -98,11 +128,11 @@ public class AggregateRating {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of ratings.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer ratingCount;
 
-	@Schema(description = "The average rating.")
+	@Schema(description = "The rating value.")
 	public Double getRatingValue() {
 		return ratingValue;
 	}
@@ -126,7 +156,7 @@ public class AggregateRating {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The rating value.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Double ratingValue;
 
@@ -156,7 +186,9 @@ public class AggregateRating {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The lowest possible rating (by default normalized to 0.0)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Double worstRating;
 
@@ -197,6 +229,16 @@ public class AggregateRating {
 			sb.append(bestRating);
 		}
 
+		if (ratingAverage != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"ratingAverage\": ");
+
+			sb.append(ratingAverage);
+		}
+
 		if (ratingCount != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -231,6 +273,12 @@ public class AggregateRating {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.AggregateRating",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

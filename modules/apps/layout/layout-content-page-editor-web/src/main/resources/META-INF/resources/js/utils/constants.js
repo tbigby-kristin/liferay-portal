@@ -74,6 +74,14 @@ export const COMPATIBLE_TYPES = {
 };
 
 /**
+ * Event types for creating the text editor processor
+ */
+export const CREATE_PROCESSOR_EVENT_TYPES = {
+	button: 'button',
+	editable: 'editable'
+};
+
+/**
  * Available editable field config keys
  */
 export const EDITABLE_FIELD_CONFIG_KEYS = {
@@ -231,6 +239,15 @@ export const FREEMARKER_FRAGMENT_ENTRY_PROCESSOR =
 export const MAPPING_SOURCE_TYPE_IDS = {
 	content: 'specific_content',
 	structure: 'structure'
+};
+
+/**
+ * Available page types
+ */
+export const PAGE_TYPES = {
+	content: '0',
+	display: '1',
+	master: '3'
 };
 
 /**

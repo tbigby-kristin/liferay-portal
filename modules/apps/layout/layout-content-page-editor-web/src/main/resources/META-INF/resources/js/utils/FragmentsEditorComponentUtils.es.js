@@ -12,15 +12,38 @@
  * details.
  */
 
+import {debounce} from 'frontend-js-web';
+
+/**
+ * Similar to React's useEffect hook, it allows a component to execute
+ * a callback when some group of properties has changed.
+ *
+ * @param {object} component
+ * @param {string[]} properties
+ * @param {function} callback
+ */
+const onPropertiesChanged = (component, properties, callback) => {
+	const debouncedCallback = debounce(() => {
+		if (!component.disposed_) {
+			callback();
+		}
+	}, 100);
+
+	properties.forEach(property => {
+		component.on(`${property}Changed`, debouncedCallback);
+	});
+};
+
 /**
  * Returns true if any change is different
  * @param {object} changes
+ * @param {string[]} [ignoredProperties=['events']]
  * @return {boolean}
  * @review
  */
-const shouldUpdatePureComponent = changes => {
+const shouldUpdatePureComponent = (changes, ignoredProperties = ['events']) => {
 	return Object.values(changes)
-		.filter(change => change.key !== 'events')
+		.filter(change => !ignoredProperties.includes(change.key))
 		.some(change => change.newVal !== change.prevVal);
 };
 
@@ -36,4 +59,8 @@ const shouldUpdateOnChangeProperties = (changes, properties) => {
 		.some(change => change.newVal !== change.prevVal);
 };
 
-export {shouldUpdatePureComponent, shouldUpdateOnChangeProperties};
+export {
+	onPropertiesChanged,
+	shouldUpdatePureComponent,
+	shouldUpdateOnChangeProperties
+};

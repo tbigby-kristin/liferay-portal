@@ -12,9 +12,14 @@
  * details.
  */
 
+/**
+ * @deprecated As of Athanasius(7.3.x), replaced by ItemSelectorDialog.es.js
+ * @module liferay-item-selector-dialog
+ */
+
 AUI.add(
 	'liferay-item-selector-dialog',
-	function(A) {
+	A => {
 		var Lang = A.Lang;
 
 		var Util = Liferay.Util;
@@ -80,7 +85,7 @@ AUI.add(
 						.get('boundingBox')
 						.one('#addButton');
 
-					Util.toggleDisabled(addButton, !currentItem);
+					Util.toggleDisabled(addButton, currentItem.length < 1);
 
 					instance._currentItem = currentItem;
 				},

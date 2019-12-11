@@ -74,10 +74,17 @@ public interface MessageBoardMessageResource {
 			Long messageBoardMessageId, Rating rating)
 		throws Exception;
 
+	public void putMessageBoardMessageSubscribe(Long messageBoardMessageId)
+		throws Exception;
+
+	public void putMessageBoardMessageUnsubscribe(Long messageBoardMessageId)
+		throws Exception;
+
 	public Page<MessageBoardMessage>
 			getMessageBoardMessageMessageBoardMessagesPage(
-				Long parentMessageBoardMessageId, String search, Filter filter,
-				Pagination pagination, Sort[] sorts)
+				Long parentMessageBoardMessageId, Boolean flatten,
+				String search, Filter filter, Pagination pagination,
+				Sort[] sorts)
 		throws Exception;
 
 	public MessageBoardMessage postMessageBoardMessageMessageBoardMessage(
@@ -93,6 +100,11 @@ public interface MessageBoardMessageResource {
 
 	public MessageBoardMessage postMessageBoardThreadMessageBoardMessage(
 			Long messageBoardThreadId, MessageBoardMessage messageBoardMessage)
+		throws Exception;
+
+	public Page<MessageBoardMessage> getSiteMessageBoardMessagesPage(
+			Long siteId, Boolean flatten, String search, Filter filter,
+			Pagination pagination, Sort[] sorts)
 		throws Exception;
 
 	public default void setContextAcceptLanguage(

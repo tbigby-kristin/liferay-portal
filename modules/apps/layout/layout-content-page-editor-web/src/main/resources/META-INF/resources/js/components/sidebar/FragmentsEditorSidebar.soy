@@ -4,20 +4,25 @@
  * FragmentsEditorSidebar
  */
 {template .render}
-	{@param? selectedSidebarPanelId: string}
+	{@param? _selectedSidebarPanel: [
+		icon: string,
+		label: string,
+		sidebarPanelId: string
+]}
 	{@param? store: ?}
 
 	{let $sidebarClasses kind="text"}
 		fragments-editor-sidebar
 		{sp}sidebar
 
-		{if not $selectedSidebarPanelId}
+		{if not $_selectedSidebarPanel}
 			{sp}fragments-editor-sidebar--collapsed
 		{/if}
 	{/let}
 
 	<div class="{$sidebarClasses}">
 		{call com.liferay.layout.content.page.editor.web.FragmentsEditorSidebarContent.render}
+	  {param selectedSidebarPanel: $_selectedSidebarPanel /}
 			{param store: $store /}
 		{/call}
 	</div>

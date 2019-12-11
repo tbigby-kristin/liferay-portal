@@ -59,6 +59,8 @@ import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.tree.TreeModelTasksAdapter;
 import com.liferay.portal.kernel.tree.TreePathUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -82,7 +84,6 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -409,10 +410,10 @@ public class OrganizationLocalServiceImpl
 		throws PortalException {
 
 		if (!CompanyThreadLocal.isDeleteInProcess()) {
-			LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-
-			params.put(
-				"usersOrgs", Long.valueOf(organization.getOrganizationId()));
+			LinkedHashMap<String, Object> params =
+				LinkedHashMapBuilder.<String, Object>put(
+					"usersOrgs", Long.valueOf(organization.getOrganizationId())
+				).build();
 
 			int count1 = organizationPersistence.countByC_P(
 				organization.getCompanyId(), organization.getOrganizationId());
@@ -1096,9 +1097,10 @@ public class OrganizationLocalServiceImpl
 		}
 
 		if (!ListUtil.isEmpty(organizationsTree)) {
-			LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-
-			params.put("usersOrgsTree", organizationsTree);
+			LinkedHashMap<String, Object> params =
+				LinkedHashMapBuilder.<String, Object>put(
+					"usersOrgsTree", organizationsTree
+				).build();
 
 			if (userFinder.countByUser(userId, params) > 0) {
 				return true;
@@ -2154,18 +2156,26 @@ public class OrganizationLocalServiceImpl
 
 		searchContext.setAndSearch(andSearch);
 
-		Map<String, Serializable> attributes = new HashMap<>();
-
-		attributes.put("city", city);
-		attributes.put("country", country);
-		attributes.put("name", name);
-		attributes.put("params", params);
-		attributes.put(
-			"parentOrganizationId", String.valueOf(parentOrganizationId));
-		attributes.put("region", region);
-		attributes.put("street", street);
-		attributes.put("type", type);
-		attributes.put("zip", zip);
+		Map<String, Serializable> attributes =
+			HashMapBuilder.<String, Serializable>put(
+				"city", city
+			).put(
+				"country", country
+			).put(
+				"name", name
+			).put(
+				"params", params
+			).put(
+				"parentOrganizationId", String.valueOf(parentOrganizationId)
+			).put(
+				"region", region
+			).put(
+				"street", street
+			).put(
+				"type", type
+			).put(
+				"zip", zip
+			).build();
 
 		searchContext.setAttributes(attributes);
 

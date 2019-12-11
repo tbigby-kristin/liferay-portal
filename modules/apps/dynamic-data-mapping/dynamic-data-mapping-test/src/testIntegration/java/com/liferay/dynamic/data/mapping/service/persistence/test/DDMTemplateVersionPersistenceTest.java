@@ -128,6 +128,8 @@ public class DDMTemplateVersionPersistenceTest {
 
 		newDDMTemplateVersion.setMvccVersion(RandomTestUtil.nextLong());
 
+		newDDMTemplateVersion.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newDDMTemplateVersion.setGroupId(RandomTestUtil.nextLong());
 
 		newDDMTemplateVersion.setCompanyId(RandomTestUtil.nextLong());
@@ -172,6 +174,9 @@ public class DDMTemplateVersionPersistenceTest {
 		Assert.assertEquals(
 			existingDDMTemplateVersion.getMvccVersion(),
 			newDDMTemplateVersion.getMvccVersion());
+		Assert.assertEquals(
+			existingDDMTemplateVersion.getCtCollectionId(),
+			newDDMTemplateVersion.getCtCollectionId());
 		Assert.assertEquals(
 			existingDDMTemplateVersion.getTemplateVersionId(),
 			newDDMTemplateVersion.getTemplateVersionId());
@@ -278,12 +283,12 @@ public class DDMTemplateVersionPersistenceTest {
 
 	protected OrderByComparator<DDMTemplateVersion> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"DDMTemplateVersion", "mvccVersion", true, "templateVersionId",
-			true, "groupId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "classNameId", true,
-			"classPK", true, "templateId", true, "version", true, "language",
-			true, "status", true, "statusByUserId", true, "statusByUserName",
-			true, "statusDate", true);
+			"DDMTemplateVersion", "mvccVersion", true, "ctCollectionId", true,
+			"templateVersionId", true, "groupId", true, "companyId", true,
+			"userId", true, "userName", true, "createDate", true, "classNameId",
+			true, "classPK", true, "templateId", true, "version", true,
+			"language", true, "status", true, "statusByUserId", true,
+			"statusByUserName", true, "statusDate", true);
 	}
 
 	@Test
@@ -535,6 +540,8 @@ public class DDMTemplateVersionPersistenceTest {
 		DDMTemplateVersion ddmTemplateVersion = _persistence.create(pk);
 
 		ddmTemplateVersion.setMvccVersion(RandomTestUtil.nextLong());
+
+		ddmTemplateVersion.setCtCollectionId(RandomTestUtil.nextLong());
 
 		ddmTemplateVersion.setGroupId(RandomTestUtil.nextLong());
 

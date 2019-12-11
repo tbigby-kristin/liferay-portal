@@ -17,19 +17,25 @@ import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 
 import '../floating_toolbar/fragment_configuration/FloatingToolbarFragmentConfigurationPanel.es';
+
 import './FragmentEntryLinkContent.es';
+import {
+	MOVE_FRAGMENT_ENTRY_LINK,
+	UPDATE_SELECTED_SIDEBAR_PANEL_ID
+} from '../../actions/actions.es';
+import {duplicateFragmentEntryLinkAction} from '../../actions/duplicateFragmentEntryLink.es';
+import {removeFragmentEntryLinkAction} from '../../actions/removeFragmentEntryLinks.es';
 import {
 	disableSavingChangesStatusAction,
 	enableSavingChangesStatusAction,
 	updateLastSaveDateAction
 } from '../../actions/saveChanges.es';
-import FloatingToolbar from '../floating_toolbar/FloatingToolbar.es';
-import templates from './FragmentEntryLink.soy';
-import {
-	MOVE_FRAGMENT_ENTRY_LINK,
-	UPDATE_SELECTED_SIDEBAR_PANEL_ID
-} from '../../actions/actions.es';
+import {updateActiveItemAction} from '../../actions/updateActiveItem.es';
 import {getConnectedComponent} from '../../store/ConnectedComponent.es';
+import {
+	shouldUpdatePureComponent,
+	onPropertiesChanged
+} from '../../utils/FragmentsEditorComponentUtils.es';
 import {
 	getFragmentColumn,
 	getFragmentRowIndex,
@@ -40,21 +46,19 @@ import {
 	itemIsInPath
 } from '../../utils/FragmentsEditorGetUtils.es';
 import {
+	moveItem,
+	moveRow,
+	removeItem
+} from '../../utils/FragmentsEditorUpdateUtils.es';
+import {computeConfigurationEditableValue} from '../../utils/computeValues.es';
+import {
 	FLOATING_TOOLBAR_BUTTONS,
 	FRAGMENTS_EDITOR_ITEM_TYPES,
 	FRAGMENTS_EDITOR_ROW_TYPES,
 	FREEMARKER_FRAGMENT_ENTRY_PROCESSOR
 } from '../../utils/constants';
-import {
-	moveItem,
-	moveRow,
-	removeItem
-} from '../../utils/FragmentsEditorUpdateUtils.es';
-import {prefixSegmentsExperienceId} from '../../utils/prefixSegmentsExperienceId.es';
-import {shouldUpdatePureComponent} from '../../utils/FragmentsEditorComponentUtils.es';
-import {removeFragmentEntryLinkAction} from '../../actions/removeFragmentEntryLinks.es';
-import {duplicateFragmentEntryLinkAction} from '../../actions/duplicateFragmentEntryLink.es';
-import {updateActiveItemAction} from '../../actions/updateActiveItem.es';
+import FloatingToolbar from '../floating_toolbar/FloatingToolbar.es';
+import templates from './FragmentEntryLink.soy';
 
 /**
  * FragmentEntryLink
@@ -65,6 +69,29 @@ class FragmentEntryLink extends Component {
 	 * @inheritdoc
 	 */
 	created() {
+		onPropertiesChanged(
+			this,
+			[
+				'_configurationValues',
+				'hasUpdatePermissions',
+				'fragmentEntryLinkId',
+				'fragmentEntryLinks',
+				'activeItemId',
+				'activeItemType'
+			],
+			() => {
+				if (
+					this.hasUpdatePermissions &&
+					this.fragmentEntryLinkId === this.activeItemId &&
+					this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.fragment
+				) {
+					this._createFloatingToolbar();
+				} else {
+					this._disposeFloatingToolbar();
+				}
+			}
+		);
+
 		this._handleFloatingToolbarButtonClicked = this._handleFloatingToolbarButtonClicked.bind(
 			this
 		);
@@ -111,20 +138,6 @@ class FragmentEntryLink extends Component {
 
 	/**
 	 * @inheritdoc
-	 */
-	rendered() {
-		if (
-			this.fragmentEntryLinkId === this.activeItemId &&
-			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.fragment
-		) {
-			this._createFloatingToolbar();
-		} else {
-			this._disposeFloatingToolbar();
-		}
-	}
-
-	/**
-	 * @inheritdoc
 	 * @return {boolean}
 	 * @review
 	 */
@@ -138,13 +151,6 @@ class FragmentEntryLink extends Component {
 	 */
 	syncFragmentEntryLinks() {
 		if (this.fragmentEntryLinks[this.fragmentEntryLinkId]) {
-			const defaultSegmentsExperienceId = prefixSegmentsExperienceId(
-				this.defaultSegmentsExperienceId
-			);
-			const segmentsExperienceId = prefixSegmentsExperienceId(
-				this.segmentsExperienceId
-			);
-
 			const configurationValues = this.fragmentEntryLinks[
 				this.fragmentEntryLinkId
 			].editableValues[FREEMARKER_FRAGMENT_ENTRY_PROCESSOR];
@@ -158,10 +164,10 @@ class FragmentEntryLink extends Component {
 			].defaultConfigurationValues;
 
 			if (configurationValues) {
-				const segmentedConfigurationValues =
-					configurationValues[segmentsExperienceId] ||
-					configurationValues[defaultSegmentsExperienceId] ||
-					configurationValues;
+				const segmentedConfigurationValues = computeConfigurationEditableValue(
+					configurationValues,
+					{selectedExperienceId: this.segmentsExperienceId}
+				);
 
 				this._configurationValues = {
 					...this._defaultConfigurationValues,
@@ -473,6 +479,7 @@ FragmentEntryLink.STATE = {
 const ConnectedFragmentEntryLink = getConnectedComponent(FragmentEntryLink, [
 	'activeItemId',
 	'activeItemType',
+	'defaultEditorConfigurations',
 	'defaultLanguageId',
 	'defaultSegmentsExperienceId',
 	'dropTargetItemId',
@@ -480,6 +487,7 @@ const ConnectedFragmentEntryLink = getConnectedComponent(FragmentEntryLink, [
 	'dropTargetBorder',
 	'duplicateFragmentEntryLinkURL',
 	'fragmentEntryLinks',
+	'hasUpdatePermissions',
 	'hoveredItemId',
 	'hoveredItemType',
 	'imageSelectorURL',

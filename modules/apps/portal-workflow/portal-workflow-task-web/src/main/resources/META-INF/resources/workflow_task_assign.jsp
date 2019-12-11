@@ -41,10 +41,10 @@ String redirect = ParamUtil.getString(request, "redirect");
 					<aui:select disabled="<%= !hasOtherAssignees %>" label="assign-to" name="assigneeUserId">
 
 						<%
-						for (long pooledActorId : workflowTaskDisplayContext.getActorsIds(workflowTask)) {
+						for (User pooledUsers : workflowTaskDisplayContext.getPooledUsers(workflowTask)) {
 						%>
 
-							<aui:option label="<%= workflowTaskDisplayContext.getActorName(pooledActorId) %>" selected="<%= workflowTask.getAssigneeUserId() == pooledActorId %>" value="<%= String.valueOf(pooledActorId) %>" />
+							<aui:option label="<%= pooledUsers.getFullName() %>" selected="<%= workflowTask.getAssigneeUserId() == pooledUsers.getUserId() %>" value="<%= String.valueOf(pooledUsers.getUserId()) %>" />
 
 						<%
 						}
@@ -75,22 +75,22 @@ String redirect = ParamUtil.getString(request, "redirect");
 	var done = A.one('#<portlet:namespace />done');
 
 	if (done) {
-		done.on(
-			'click',
-			function(event) {
-				var data = new FormData(document.querySelector('#<portlet:namespace />assignFm'));
+		done.on('click', function(event) {
+			var data = new FormData(
+				document.querySelector('#<portlet:namespace />assignFm')
+			);
 
-				Liferay.Util.fetch(
-					'<%= assignURL.toString() %>',
-					{
-						body: data,
-						method: 'POST'
-					}
-				).then(function() {
-					Liferay.Util.getOpener().<portlet:namespace />refreshPortlet('<%= redirect.toString() %>');
-					Liferay.Util.getWindow('<portlet:namespace />assignToDialog').destroy();
-				})
-			}
-		);
+			Liferay.Util.fetch('<%= assignURL.toString() %>', {
+				body: data,
+				method: 'POST'
+			}).then(function() {
+				Liferay.Util.getOpener().<portlet:namespace />refreshPortlet(
+					'<%= redirect.toString() %>'
+				);
+				Liferay.Util.getWindow(
+					'<portlet:namespace />assignToDialog'
+				).destroy();
+			});
+		});
 	}
 </aui:script>

@@ -64,16 +64,6 @@ public class LanguageResources {
 				return LanguageResources.getResourceBundle(locale);
 			}
 
-			/**
-			 * @deprecated As of Judson (7.1.x), replaced by {@link #loadResourceBundle(
-			 *             Locale)}
-			 */
-			@Deprecated
-			public ResourceBundle loadResourceBundle(String languageId) {
-				return ResourceBundleLoader.super.loadResourceBundle(
-					languageId);
-			}
-
 		};
 
 	public static String fixValue(String value) {
@@ -170,7 +160,7 @@ public class LanguageResources {
 
 	public void setConfig(String config) {
 		_configNames = StringUtil.split(
-			config.replace(CharPool.PERIOD, CharPool.SLASH));
+			StringUtil.replace(config, CharPool.PERIOD, CharPool.SLASH));
 	}
 
 	private static Locale _getSuperLocale(Locale locale) {

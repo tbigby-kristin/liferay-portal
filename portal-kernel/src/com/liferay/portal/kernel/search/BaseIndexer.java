@@ -14,11 +14,7 @@
 
 package com.liferay.portal.kernel.search;
 
-import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
-import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.asset.kernel.model.AssetRendererFactory;
-import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
@@ -36,7 +32,6 @@ import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.model.ResourcedModel;
-import com.liferay.portal.kernel.model.TrashedModel;
 import com.liferay.portal.kernel.model.WorkflowedModel;
 import com.liferay.portal.kernel.search.facet.Facet;
 import com.liferay.portal.kernel.search.facet.MultiValueFacet;
@@ -55,6 +50,7 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RegionServiceUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -72,7 +68,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -299,23 +294,6 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 		return sortField;
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.portal.search.sort.SortFieldBuilder
-	 *             #getSortField}
-	 */
-	@Deprecated
-	@Override
-	public String getSortField(String orderByCol, int sortType) {
-		if ((sortType == Sort.DOUBLE_TYPE) || (sortType == Sort.FLOAT_TYPE) ||
-			(sortType == Sort.INT_TYPE) || (sortType == Sort.LONG_TYPE)) {
-
-			return Field.getSortableFieldName(orderByCol);
-		}
-
-		return getSortField(orderByCol);
-	}
-
 	@Override
 	public Summary getSummary(
 			Document document, String snippet, PortletRequest portletRequest,
@@ -401,22 +379,6 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 	@Override
 	public boolean isVisible(long classPK, int status) throws Exception {
-		return true;
-	}
-
-	/**
-	 * @param      classPK
-	 * @param      status
-	 * @return
-	 * @throws     Exception
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             RelatedEntryIndexer.isVisibleRelatedEntry(long, int)}
-	 */
-	@Deprecated
-	@Override
-	public boolean isVisibleRelatedEntry(long classPK, int status)
-		throws Exception {
-
 		return true;
 	}
 
@@ -695,67 +657,6 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			new IndexerPostProcessor[0]);
 	}
 
-	/**
-	 * @param      document
-	 * @param      className
-	 * @param      classPK
-	 * @deprecated As of Judson (7.1.x), no direct replacement. Logic now
-	 *             encapsulated in {@link
-	 *             com.liferay.portal.search.internal.contributor.
-	 *             document.AssetDocumentContrbutor}
-	 */
-	@Deprecated
-	protected void addAssetFields(
-		Document document, String className, long classPK) {
-
-		AssetRendererFactory<?> assetRendererFactory =
-			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
-				className);
-
-		if ((assetRendererFactory == null) ||
-			!assetRendererFactory.isSelectable()) {
-
-			return;
-		}
-
-		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
-			className, classPK);
-
-		if (assetEntry == null) {
-			return;
-		}
-
-		if (!document.hasField(Field.CREATE_DATE)) {
-			document.addDate(Field.CREATE_DATE, assetEntry.getCreateDate());
-		}
-
-		if (assetEntry.getExpirationDate() != null) {
-			document.addDate(
-				Field.EXPIRATION_DATE, assetEntry.getExpirationDate());
-		}
-		else {
-			document.addDate(Field.EXPIRATION_DATE, new Date(Long.MAX_VALUE));
-		}
-
-		if (!document.hasField(Field.MODIFIED_DATE)) {
-			document.addDate(Field.MODIFIED_DATE, assetEntry.getModifiedDate());
-		}
-
-		document.addNumber(Field.PRIORITY, assetEntry.getPriority());
-
-		if (assetEntry.getPublishDate() != null) {
-			document.addDate(Field.PUBLISH_DATE, assetEntry.getPublishDate());
-		}
-		else {
-			document.addDate(Field.PUBLISH_DATE, new Date(0));
-		}
-
-		document.addLocalizedKeyword(
-			"localized_title",
-			populateMap(assetEntry, assetEntry.getTitleMap()), true, true);
-		document.addKeyword("visible", assetEntry.isVisible());
-	}
-
 	protected void addDefaultHighlightFieldNames(QueryConfig queryConfig) {
 		queryConfig.addHighlightFieldNames(Field.ASSET_CATEGORY_TITLES);
 
@@ -892,70 +793,6 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 		searchContext.addFacet(multiValueFacet);
 	}
 
-	/**
-	 * @param      document
-	 * @param      field
-	 * @param      assetCategories
-	 * @deprecated As of Judson (7.1.x), no direct replacement. Logic not
-	 *             encapsulated in {@link
-	 *             com.liferay.portal.search.internal.contributor.
-	 *             document.AssetCategoryDocumentContrbutor}
-	 */
-	@Deprecated
-	protected void addSearchAssetCategoryTitles(
-		Document document, String field, List<AssetCategory> assetCategories) {
-
-		Map<Locale, List<String>> assetCategoryTitles = new HashMap<>();
-
-		Locale defaultLocale = LocaleUtil.getDefault();
-
-		for (AssetCategory assetCategory : assetCategories) {
-			Map<Locale, String> titleMap = assetCategory.getTitleMap();
-
-			for (Map.Entry<Locale, String> entry : titleMap.entrySet()) {
-				String title = entry.getValue();
-
-				if (Validator.isNull(title)) {
-					continue;
-				}
-
-				Locale locale = entry.getKey();
-
-				List<String> titles = assetCategoryTitles.get(locale);
-
-				if (titles == null) {
-					titles = new ArrayList<>();
-
-					assetCategoryTitles.put(locale, titles);
-				}
-
-				titles.add(StringUtil.toLowerCase(title));
-			}
-		}
-
-		for (Map.Entry<Locale, List<String>> entry :
-				assetCategoryTitles.entrySet()) {
-
-			Locale locale = entry.getKey();
-
-			List<String> titles = entry.getValue();
-
-			String[] titlesArray = titles.toArray(new String[0]);
-
-			if (locale.equals(defaultLocale)) {
-				document.addText(field, titlesArray);
-			}
-
-			document.addText(
-				field.concat(
-					StringPool.UNDERLINE
-				).concat(
-					locale.toString()
-				),
-				titlesArray);
-		}
-	}
-
 	protected void addSearchAssetTagNames(
 			BooleanFilter queryBooleanFilter, SearchContext searchContext)
 		throws Exception {
@@ -1025,15 +862,6 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 		searchContext.addFacet(multiValueFacet);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x)
-	 */
-	@Deprecated
-	protected void addSearchGroupId(
-			BooleanFilter queryBooleanFilter, SearchContext searchContext)
-		throws Exception {
-	}
-
 	protected Map<String, Query> addSearchKeywords(
 			BooleanQuery searchQuery, SearchContext searchContext)
 		throws Exception {
@@ -1059,11 +887,9 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 			boolean like)
 		throws Exception {
 
-		Map<String, Query> queries = new HashMap<>();
-
-		Query query = addSearchTerm(searchQuery, searchContext, field, like);
-
-		queries.put(field, query);
+		Map<String, Query> queries = HashMapBuilder.<String, Query>put(
+			field, addSearchTerm(searchQuery, searchContext, field, like)
+		).build();
 
 		String localizedFieldName = Field.getLocalizedName(
 			searchContext.getLocale(), field);
@@ -1203,14 +1029,6 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 		}
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected void addTrashFields(
-		Document document, TrashedModel trashedModel) {
-	}
-
 	protected BooleanQuery createFullQuery(
 			BooleanFilter fullQueryBooleanFilter, SearchContext searchContext)
 		throws Exception {
@@ -1324,8 +1142,7 @@ public abstract class BaseIndexer<T> implements Indexer<T> {
 
 	/**
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.portal.search.contributor.sort.
-	 *             SortFieldTranslator}
+	 *             com.liferay.portal.search.contributor.sort.SortFieldTranslator}
 	 */
 	@Deprecated
 	protected String doGetSortField(String orderByCol) {

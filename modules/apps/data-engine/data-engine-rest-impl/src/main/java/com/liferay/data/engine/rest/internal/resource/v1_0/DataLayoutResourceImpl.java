@@ -29,6 +29,10 @@ import com.liferay.data.engine.rest.internal.odata.entity.v1_0.DataLayoutEntityM
 import com.liferay.data.engine.rest.internal.resource.v1_0.util.DataEnginePermissionUtil;
 import com.liferay.data.engine.rest.resource.v1_0.DataLayoutResource;
 import com.liferay.data.engine.service.DEDataDefinitionFieldLinkLocalService;
+import com.liferay.dynamic.data.mapping.io.DDMFormLayoutSerializer;
+import com.liferay.dynamic.data.mapping.io.DDMFormLayoutSerializerSerializeRequest;
+import com.liferay.dynamic.data.mapping.io.DDMFormLayoutSerializerSerializeResponse;
+import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
@@ -91,6 +95,9 @@ public class DataLayoutResourceImpl
 			ActionKeys.DELETE);
 
 		_ddmStructureLayoutLocalService.deleteDDMStructureLayout(dataLayoutId);
+
+		_deDataDefinitionFieldLinkLocalService.deleteDEDataDefinitionFieldLinks(
+			_getClassNameId(), dataLayoutId);
 	}
 
 	@Override
@@ -121,8 +128,7 @@ public class DataLayoutResourceImpl
 			return Page.of(
 				transform(
 					_ddmStructureLayoutLocalService.getStructureLayouts(
-						ddmStructure.getGroupId(),
-						_portal.getClassNameId(InternalDataLayout.class),
+						ddmStructure.getGroupId(), _getClassNameId(),
 						_getDDMStructureVersionId(dataDefinitionId),
 						pagination.getStartPosition(),
 						pagination.getEndPosition(),
@@ -131,8 +137,7 @@ public class DataLayoutResourceImpl
 					this::_toDataLayout),
 				pagination,
 				_ddmStructureLayoutLocalService.getStructureLayoutsCount(
-					ddmStructure.getGroupId(),
-					_portal.getClassNameId(InternalDataLayout.class),
+					ddmStructure.getGroupId(), _getClassNameId(),
 					_getDDMStructureVersionId(dataDefinitionId)));
 		}
 
@@ -144,8 +149,7 @@ public class DataLayoutResourceImpl
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
 				searchContext.setAttribute(
-					Field.CLASS_NAME_ID,
-					_portal.getClassNameId(InternalDataLayout.class));
+					Field.CLASS_NAME_ID, _getClassNameId());
 				searchContext.setAttribute(Field.DESCRIPTION, keywords);
 				searchContext.setAttribute(Field.NAME, keywords);
 				searchContext.setAttribute(
@@ -212,8 +216,7 @@ public class DataLayoutResourceImpl
 			return Page.of(
 				transform(
 					_ddmStructureLayoutLocalService.getStructureLayouts(
-						siteId,
-						_portal.getClassNameId(InternalDataLayout.class),
+						siteId, _getClassNameId(),
 						pagination.getStartPosition(),
 						pagination.getEndPosition(),
 						_toOrderByComparator(
@@ -221,7 +224,7 @@ public class DataLayoutResourceImpl
 					this::_toDataLayout),
 				pagination,
 				_ddmStructureLayoutLocalService.getStructureLayoutsCount(
-					siteId, _portal.getClassNameId(InternalDataLayout.class)));
+					siteId, _getClassNameId()));
 		}
 
 		return SearchUtil.search(
@@ -232,8 +235,7 @@ public class DataLayoutResourceImpl
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
 				searchContext.setAttribute(
-					Field.CLASS_NAME_ID,
-					_portal.getClassNameId(InternalDataLayout.class));
+					Field.CLASS_NAME_ID, _getClassNameId());
 				searchContext.setAttribute(Field.DESCRIPTION, keywords);
 				searchContext.setAttribute(Field.NAME, keywords);
 				searchContext.setCompanyId(contextCompany.getCompanyId());
@@ -261,7 +263,16 @@ public class DataLayoutResourceImpl
 			DataActionKeys.ADD_DATA_LAYOUT, _groupLocalService,
 			ddmStructure.getGroupId());
 
-		String dataLayoutJSON = DataLayoutUtil.toJSON(dataLayout);
+		DDMFormLayout ddmFormLayout = DataLayoutUtil.toDDMFormLayout(
+			dataLayout);
+
+		DDMFormLayoutSerializerSerializeRequest.Builder builder =
+			DDMFormLayoutSerializerSerializeRequest.Builder.newBuilder(
+				ddmFormLayout);
+
+		DDMFormLayoutSerializerSerializeResponse
+			ddmFormLayoutSerializerSerializeResponse =
+				_ddmFormLayoutSerializer.serialize(builder.build());
 
 		ServiceContext serviceContext = new ServiceContext();
 
@@ -273,7 +284,8 @@ public class DataLayoutResourceImpl
 				LocalizedValueUtil.toLocaleStringMap(dataLayout.getName()),
 				LocalizedValueUtil.toLocaleStringMap(
 					dataLayout.getDescription()),
-				dataLayoutJSON, serviceContext));
+				ddmFormLayoutSerializerSerializeResponse.getContent(),
+				serviceContext));
 
 		_resourceLocalService.addModelResources(
 			contextCompany.getCompanyId(), ddmStructure.getGroupId(),
@@ -281,16 +293,10 @@ public class DataLayoutResourceImpl
 			InternalDataLayout.class.getName(), dataLayout.getId(),
 			serviceContext.getModelPermissions());
 
-		DocumentContext documentContext = JsonPath.parse(dataLayoutJSON);
-
-		List<String> fieldNames = documentContext.read(
-			"$[\"pages\"][*][\"rows\"][*][\"columns\"][*][\"fieldNames\"][*]");
-
-		for (String fieldName : fieldNames) {
-			_deDataDefinitionFieldLinkLocalService.addDEDataDefinitionFieldLink(
-				dataLayout.getSiteId(), _getClassNameId(), dataLayout.getId(),
-				dataDefinitionId, fieldName);
-		}
+		_addDataDefinitionFieldLinks(
+			dataDefinitionId, dataLayout.getId(),
+			ddmFormLayoutSerializerSerializeResponse.getContent(),
+			dataLayout.getSiteId());
 
 		return dataLayout;
 	}
@@ -374,14 +380,36 @@ public class DataLayoutResourceImpl
 			PermissionThreadLocal.getPermissionChecker(), dataLayoutId,
 			ActionKeys.UPDATE);
 
-		return _toDataLayout(
+		DDMFormLayout ddmFormLayout = DataLayoutUtil.toDDMFormLayout(
+			dataLayout);
+
+		DDMFormLayoutSerializerSerializeRequest.Builder builder =
+			DDMFormLayoutSerializerSerializeRequest.Builder.newBuilder(
+				ddmFormLayout);
+
+		DDMFormLayoutSerializerSerializeResponse
+			ddmFormLayoutSerializerSerializeResponse =
+				_ddmFormLayoutSerializer.serialize(builder.build());
+
+		dataLayout = _toDataLayout(
 			_ddmStructureLayoutLocalService.updateStructureLayout(
 				dataLayoutId,
 				_getDDMStructureVersionId(dataLayout.getDataDefinitionId()),
 				LocalizedValueUtil.toLocaleStringMap(dataLayout.getName()),
 				LocalizedValueUtil.toLocaleStringMap(
 					dataLayout.getDescription()),
-				DataLayoutUtil.toJSON(dataLayout), new ServiceContext()));
+				ddmFormLayoutSerializerSerializeResponse.getContent(),
+				new ServiceContext()));
+
+		_deDataDefinitionFieldLinkLocalService.deleteDEDataDefinitionFieldLinks(
+			_getClassNameId(), dataLayoutId);
+
+		_addDataDefinitionFieldLinks(
+			dataLayout.getDataDefinitionId(), dataLayoutId,
+			ddmFormLayoutSerializerSerializeResponse.getContent(),
+			dataLayout.getSiteId());
+
+		return dataLayout;
 	}
 
 	@Reference(
@@ -393,6 +421,22 @@ public class DataLayoutResourceImpl
 			modelResourcePermission) {
 
 		_modelResourcePermission = modelResourcePermission;
+	}
+
+	private void _addDataDefinitionFieldLinks(
+		long dataDefinitionId, long dataLayoutId, String dataLayoutJSON,
+		long groupId) {
+
+		DocumentContext documentContext = JsonPath.parse(dataLayoutJSON);
+
+		List<String> fieldNames = documentContext.read(
+			"$[\"pages\"][*][\"rows\"][*][\"columns\"][*][\"fieldNames\"][*]");
+
+		for (String fieldName : fieldNames) {
+			_deDataDefinitionFieldLinkLocalService.addDEDataDefinitionFieldLink(
+				groupId, _getClassNameId(), dataLayoutId, dataDefinitionId,
+				fieldName);
+		}
 	}
 
 	private long _getClassNameId() {
@@ -425,7 +469,7 @@ public class DataLayoutResourceImpl
 		throws Exception {
 
 		DataLayout dataLayout = DataLayoutUtil.toDataLayout(
-			ddmStructureLayout.getDefinition());
+			ddmStructureLayout.getDDMFormLayout());
 
 		dataLayout.setDateCreated(ddmStructureLayout.getCreateDate());
 		dataLayout.setDataDefinitionId(_getDDMStructureId(ddmStructureLayout));
@@ -462,6 +506,9 @@ public class DataLayoutResourceImpl
 	}
 
 	private static final EntityModel _entityModel = new DataLayoutEntityModel();
+
+	@Reference(target = "(ddm.form.layout.serializer.type=json)")
+	private DDMFormLayoutSerializer _ddmFormLayoutSerializer;
 
 	@Reference
 	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;

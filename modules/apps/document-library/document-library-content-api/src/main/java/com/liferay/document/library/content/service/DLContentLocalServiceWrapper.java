@@ -14,7 +14,10 @@
 
 package com.liferay.document.library.content.service;
 
+import com.liferay.document.library.content.model.DLContent;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link DLContentLocalService}.
@@ -33,12 +36,12 @@ public class DLContentLocalServiceWrapper
 	}
 
 	/**
-	 * NOTE FOR DEVELOPERS:
-	 *
-	 * Never modify or reference this interface directly. Always use {@link DLContentLocalServiceUtil} to access the document library content local service. Add custom service methods to <code>com.liferay.document.library.content.service.impl.DLContentLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #addContent(long, long, String, String, InputStream)}
 	 */
+	@Deprecated
 	@Override
-	public com.liferay.document.library.content.model.DLContent addContent(
+	public DLContent addContent(
 		long companyId, long repositoryId, String path, String version,
 		byte[] bytes) {
 
@@ -47,7 +50,21 @@ public class DLContentLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.document.library.content.model.DLContent addContent(
+	public DLContent addContent(
+		long companyId, long repositoryId, String path, String version,
+		java.io.InputStream inputStream) {
+
+		return _dlContentLocalService.addContent(
+			companyId, repositoryId, path, version, inputStream);
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #addContent(long, long, String, String, InputStream)}
+	 */
+	@Deprecated
+	@Override
+	public DLContent addContent(
 		long companyId, long repositoryId, String path, String version,
 		java.io.InputStream inputStream, long size) {
 
@@ -62,9 +79,7 @@ public class DLContentLocalServiceWrapper
 	 * @return the document library content that was added
 	 */
 	@Override
-	public com.liferay.document.library.content.model.DLContent addDLContent(
-		com.liferay.document.library.content.model.DLContent dlContent) {
-
+	public DLContent addDLContent(DLContent dlContent) {
 		return _dlContentLocalService.addDLContent(dlContent);
 	}
 
@@ -75,21 +90,22 @@ public class DLContentLocalServiceWrapper
 	 * @return the new document library content
 	 */
 	@Override
-	public com.liferay.document.library.content.model.DLContent createDLContent(
-		long contentId) {
-
+	public DLContent createDLContent(long contentId) {
 		return _dlContentLocalService.createDLContent(contentId);
 	}
 
 	@Override
 	public void deleteContent(
-			long companyId, long repositoryId, String path, String version)
-		throws com.liferay.portal.kernel.exception.PortalException {
+		long companyId, long repositoryId, String path, String version) {
 
 		_dlContentLocalService.deleteContent(
 			companyId, repositoryId, path, version);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public void deleteContents(long companyId, long repositoryId, String path) {
 		_dlContentLocalService.deleteContents(companyId, repositoryId, path);
@@ -110,9 +126,7 @@ public class DLContentLocalServiceWrapper
 	 * @return the document library content that was removed
 	 */
 	@Override
-	public com.liferay.document.library.content.model.DLContent deleteDLContent(
-		com.liferay.document.library.content.model.DLContent dlContent) {
-
+	public DLContent deleteDLContent(DLContent dlContent) {
 		return _dlContentLocalService.deleteDLContent(dlContent);
 	}
 
@@ -124,8 +138,7 @@ public class DLContentLocalServiceWrapper
 	 * @throws PortalException if a document library content with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.document.library.content.model.DLContent deleteDLContent(
-			long contentId)
+	public DLContent deleteDLContent(long contentId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlContentLocalService.deleteDLContent(contentId);
@@ -164,7 +177,7 @@ public class DLContentLocalServiceWrapper
 	 * Performs a dynamic query on the database and returns a range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.document.library.content.model.impl.DLContentModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.document.library.content.model.impl.DLContentModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -184,7 +197,7 @@ public class DLContentLocalServiceWrapper
 	 * Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.document.library.content.model.impl.DLContentModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.document.library.content.model.impl.DLContentModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -233,9 +246,7 @@ public class DLContentLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.document.library.content.model.DLContent fetchDLContent(
-		long contentId) {
-
+	public DLContent fetchDLContent(long contentId) {
 		return _dlContentLocalService.fetchDLContent(contentId);
 	}
 
@@ -246,9 +257,13 @@ public class DLContentLocalServiceWrapper
 		return _dlContentLocalService.getActionableDynamicQuery();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #getContent(long, long, String, String)}
+	 */
+	@Deprecated
 	@Override
-	public com.liferay.document.library.content.model.DLContent getContent(
-			long companyId, long repositoryId, String path)
+	public DLContent getContent(long companyId, long repositoryId, String path)
 		throws com.liferay.document.library.content.exception.
 			NoSuchContentException {
 
@@ -256,7 +271,7 @@ public class DLContentLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.document.library.content.model.DLContent getContent(
+	public DLContent getContent(
 			long companyId, long repositoryId, String path, String version)
 		throws com.liferay.document.library.content.exception.
 			NoSuchContentException {
@@ -265,25 +280,29 @@ public class DLContentLocalServiceWrapper
 			companyId, repositoryId, path, version);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 #getContentsByDirectory(long, long, String)}
+	 */
+	@Deprecated
 	@Override
-	public java.util.List<com.liferay.document.library.content.model.DLContent>
-		getContents(long companyId, long repositoryId) {
+	public java.util.List<DLContent> getContents(
+		long companyId, long repositoryId) {
 
 		return _dlContentLocalService.getContents(companyId, repositoryId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.document.library.content.model.DLContent>
-		getContents(long companyId, long repositoryId, String path) {
+	public java.util.List<DLContent> getContents(
+		long companyId, long repositoryId, String path) {
 
 		return _dlContentLocalService.getContents(
 			companyId, repositoryId, path);
 	}
 
 	@Override
-	public java.util.List<com.liferay.document.library.content.model.DLContent>
-		getContentsByDirectory(
-			long companyId, long repositoryId, String dirName) {
+	public java.util.List<DLContent> getContentsByDirectory(
+		long companyId, long repositoryId, String dirName) {
 
 		return _dlContentLocalService.getContentsByDirectory(
 			companyId, repositoryId, dirName);
@@ -304,8 +323,7 @@ public class DLContentLocalServiceWrapper
 	 * @throws PortalException if a document library content with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.document.library.content.model.DLContent getDLContent(
-			long contentId)
+	public DLContent getDLContent(long contentId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _dlContentLocalService.getDLContent(contentId);
@@ -315,7 +333,7 @@ public class DLContentLocalServiceWrapper
 	 * Returns a range of all the document library contents.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.document.library.content.model.impl.DLContentModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.document.library.content.model.impl.DLContentModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of document library contents
@@ -323,9 +341,7 @@ public class DLContentLocalServiceWrapper
 	 * @return the range of document library contents
 	 */
 	@Override
-	public java.util.List<com.liferay.document.library.content.model.DLContent>
-		getDLContents(int start, int end) {
-
+	public java.util.List<DLContent> getDLContents(int start, int end) {
 		return _dlContentLocalService.getDLContents(start, end);
 	}
 
@@ -372,6 +388,11 @@ public class DLContentLocalServiceWrapper
 			companyId, repositoryId, path, version);
 	}
 
+	@Override
+	public java.io.InputStream openDataInputStream(long contentId) {
+		return _dlContentLocalService.openDataInputStream(contentId);
+	}
+
 	/**
 	 * Updates the document library content in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -379,12 +400,14 @@ public class DLContentLocalServiceWrapper
 	 * @return the document library content that was updated
 	 */
 	@Override
-	public com.liferay.document.library.content.model.DLContent updateDLContent(
-		com.liferay.document.library.content.model.DLContent dlContent) {
-
+	public DLContent updateDLContent(DLContent dlContent) {
 		return _dlContentLocalService.updateDLContent(dlContent);
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public void updateDLContent(
 		long companyId, long oldRepositoryId, long newRepositoryId,
@@ -392,6 +415,25 @@ public class DLContentLocalServiceWrapper
 
 		_dlContentLocalService.updateDLContent(
 			companyId, oldRepositoryId, newRepositoryId, oldPath, newPath);
+	}
+
+	@Override
+	public CTPersistence<DLContent> getCTPersistence() {
+		return _dlContentLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<DLContent> getModelClass() {
+		return _dlContentLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<DLContent>, R, E> updateUnsafeFunction)
+		throws E {
+
+		return _dlContentLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

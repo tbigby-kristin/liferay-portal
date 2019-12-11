@@ -97,7 +97,7 @@ if (ddlDisplayContext.isAdminPortlet()) {
 
 				<liferay-ui:icon
 					label="<%= true %>"
-					linkCssClass="btn btn-default"
+					linkCssClass="btn btn-secondary"
 					message="select"
 					url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
 				/>
@@ -165,7 +165,8 @@ if (ddlDisplayContext.isAdminPortlet()) {
 	function <portlet:namespace />openDDMStructureSelector() {
 		Liferay.Util.openDDMPortlet(
 			{
-				basePortletURL: '<%= PortletURLFactoryUtil.create(request, PortletProviderUtil.getPortletId(DDMStructure.class.getName(), PortletProvider.Action.VIEW), PortletRequest.RENDER_PHASE) %>',
+				basePortletURL:
+					'<%= PortletURLFactoryUtil.create(request, PortletProviderUtil.getPortletId(DDMStructure.class.getName(), PortletProvider.Action.VIEW), PortletRequest.RENDER_PHASE) %>',
 				classPK: <%= ddmStructureId %>,
 				dialog: {
 					destroyOnHide: true
@@ -185,13 +186,10 @@ if (ddlDisplayContext.isAdminPortlet()) {
 				title: '<%= UnicodeLanguageUtil.get(request, "data-definitions") %>'
 			},
 			function(event) {
-				Liferay.Util.setFormValues(
-					form,
-					{
-						ddmStructureId: event.ddmstructureid,
-						ddmStructureNameDisplay: Liferay.Util.unescape(event.name)
-					}
-				);
+				Liferay.Util.setFormValues(form, {
+					ddmStructureId: event.ddmstructureid,
+					ddmStructureNameDisplay: Liferay.Util.unescape(event.name)
+				});
 			}
 		);
 	}

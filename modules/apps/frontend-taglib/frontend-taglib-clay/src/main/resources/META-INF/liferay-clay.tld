@@ -454,6 +454,12 @@
 		</attribute>
 		<attribute>
 			<description></description>
+			<name>itemsIconAlignment</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<description></description>
 			<name>spritemap</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -2430,7 +2436,7 @@
 		</attribute>
 		<attribute>
 			<description></description>
-			<name>userColor</name>
+			<name>userColorCssClass</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>

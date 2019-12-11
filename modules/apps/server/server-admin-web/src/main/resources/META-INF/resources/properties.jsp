@@ -85,7 +85,7 @@ serverURL.setParameter("tabs2", tabs2);
 	}
 
 	for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-		String property = (String)entry.getKey();
+		String property = String.valueOf(entry.getKey());
 		String value = StringPool.BLANK;
 
 		boolean overriddenPropertyValue = portalPropertiesTab && (serverPortletPreferencesMap.containsKey(property) || companyPortletPreferencesMap.containsKey(property));
@@ -100,7 +100,7 @@ serverURL.setParameter("tabs2", tabs2);
 			value = companyPortletPreferences.getValue(property, StringPool.BLANK);
 		}
 		else {
-			value = (String)entry.getValue();
+			value = String.valueOf(entry.getValue());
 		}
 
 		if (Validator.isNull(keywords) || property.contains(keywords) || value.contains(keywords)) {
@@ -130,8 +130,8 @@ serverURL.setParameter("tabs2", tabs2);
 		>
 
 			<%
-			String property = (String)entry.getKey();
-			String value = (String)entry.getValue();
+			String property = String.valueOf(entry.getKey());
+			String value = String.valueOf(entry.getValue());
 
 			boolean overriddenPropertyValue = portalPropertiesTab && overriddenProperties.contains(property);
 			%>

@@ -19,6 +19,7 @@ import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutPrototype;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -27,11 +28,14 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.sites.kernel.util.Sites;
 
 import java.util.Locale;
 import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -55,7 +59,7 @@ public class LayoutServiceTest {
 	}
 
 	@Test
-	public void testUpdateLayoutFriendlyURLMap() throws Exception {
+	public void testUpdateFriendlyURLMap() throws Exception {
 		Layout layout = LayoutTestUtil.addLayout(_group);
 
 		long userId = layout.getUserId();
@@ -84,10 +88,8 @@ public class LayoutServiceTest {
 	}
 
 	@Test
-	public void testUpdateLayoutLookAndFeel() throws Exception {
+	public void testUpdateLookAndFeel() throws Exception {
 		Layout layout = LayoutTestUtil.addLayout(_group);
-
-		long userId = layout.getUserId();
 
 		layout = LayoutLocalServiceUtil.updateLookAndFeel(
 			_group.getGroupId(), false, layout.getLayoutId(),
@@ -96,9 +98,43 @@ public class LayoutServiceTest {
 		LayoutTypePortlet layoutTypePortlet =
 			(LayoutTypePortlet)layout.getLayoutType();
 
-		layoutTypePortlet.setLayoutTemplateId(userId, "1_column", false);
+		layoutTypePortlet.setLayoutTemplateId(
+			layout.getUserId(), "1_column", false);
 
-		layout = LayoutLocalServiceUtil.updateLayout(layout);
+		LayoutLocalServiceUtil.updateLayout(layout);
+	}
+
+	@Test
+	public void testUpdateTypeSettings() throws Exception {
+		LayoutPrototype layoutPrototype = LayoutTestUtil.addLayoutPrototype(
+			RandomTestUtil.randomString());
+
+		Layout layout = layoutPrototype.getLayout();
+
+		LayoutLocalServiceUtil.updateLayout(layout);
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setUserId(layout.getUserId());
+
+		LayoutLocalServiceUtil.updateLayout(
+			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+			layout.getParentLayoutId(), layout.getNameMap(),
+			layout.getTitleMap(), layout.getDescriptionMap(),
+			layout.getKeywordsMap(), layout.getRobotsMap(), layout.getType(),
+			layout.isHidden(), layout.getFriendlyURLMap(),
+			layout.getIconImage(), null, serviceContext);
+
+		Layout updatedLayout = LayoutLocalServiceUtil.getLayout(
+			layout.getPlid());
+
+		UnicodeProperties typeSettingsProperties =
+			updatedLayout.getTypeSettingsProperties();
+
+		Assert.assertFalse(
+			"Updating layout prototype should not add property \"" +
+				Sites.LAYOUT_UPDATEABLE + "\"",
+			typeSettingsProperties.containsKey(Sites.LAYOUT_UPDATEABLE));
 	}
 
 	@DeleteAfterTestRun

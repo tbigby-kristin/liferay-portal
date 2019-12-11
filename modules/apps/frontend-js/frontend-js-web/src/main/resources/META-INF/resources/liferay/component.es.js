@@ -42,7 +42,7 @@ const _createPromiseWrapper = function(value) {
 	} else {
 		let promiseResolve;
 
-		const promise = new Promise(function(resolve) {
+		const promise = new Promise(resolve => {
 			promiseResolve = resolve;
 		});
 
@@ -214,7 +214,6 @@ const component = function(id, value, componentConfig) {
 			delete componentConfigs[id];
 			delete componentPromiseWrappers[id];
 
-			// eslint-disable-next-line no-console
 			console.warn(
 				'Component with id "' +
 					id +

@@ -23,6 +23,7 @@ import com.liferay.dynamic.data.mapping.io.DDMFormLayoutSerializerSerializeReque
 import com.liferay.dynamic.data.mapping.io.DDMFormLayoutSerializerSerializeResponse;
 import com.liferay.dynamic.data.mapping.model.DDMFormLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
+import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.service.base.DDMStructureLayoutLocalServiceBaseImpl;
 import com.liferay.dynamic.data.mapping.validator.DDMFormLayoutValidator;
 import com.liferay.petra.string.StringPool;
@@ -87,26 +88,6 @@ public class DDMStructureLayoutLocalServiceImpl
 		return ddmStructureLayoutPersistence.update(structureLayout);
 	}
 
-	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 *             #addStructureLayout(long, long, long, long, Map, Map, String,
-	 *             String, ServiceContext)}
-	 */
-	@Deprecated
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public DDMStructureLayout addStructureLayout(
-			long userId, long groupId, long structureVersionId,
-			Map<Locale, String> name, Map<Locale, String> description,
-			String definition, ServiceContext serviceContext)
-		throws PortalException {
-
-		return addStructureLayout(
-			userId, groupId, 0L,
-			String.valueOf(counterLocalService.increment()), structureVersionId,
-			name, description, definition, serviceContext);
-	}
-
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDMStructureLayout addStructureLayout(
@@ -146,19 +127,31 @@ public class DDMStructureLayoutLocalServiceImpl
 	}
 
 	@Override
+	public void deleteDDMStructureLayouts(
+			long classNameId, DDMStructureVersion ddmStructureVersion)
+		throws PortalException {
+
+		List<DDMStructureLayout> ddmStructureLayouts =
+			ddmStructureLayoutPersistence.findByG_C_SV(
+				ddmStructureVersion.getGroupId(), classNameId,
+				ddmStructureVersion.getStructureVersionId());
+
+		for (DDMStructureLayout ddmStructureLayout : ddmStructureLayouts) {
+			deleteDDMStructureLayout(ddmStructureLayout);
+		}
+	}
+
+	@Override
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public void deleteStructureLayout(DDMStructureLayout structureLayout) {
-		ddmStructureLayoutPersistence.remove(structureLayout);
+		deleteDDMStructureLayout(structureLayout);
 	}
 
 	@Override
 	public void deleteStructureLayout(long structureLayoutId)
 		throws PortalException {
 
-		DDMStructureLayout structureLayout =
-			ddmStructureLayoutPersistence.findByPrimaryKey(structureLayoutId);
-
-		ddmStructureLayoutLocalService.deleteStructureLayout(structureLayout);
+		deleteDDMStructureLayout(structureLayoutId);
 	}
 
 	@Override
@@ -231,6 +224,14 @@ public class DDMStructureLayoutLocalServiceImpl
 
 		return ddmStructureLayoutPersistence.findByG_C(
 			groupId, classNameId, start, end, orderByComparator);
+	}
+
+	@Override
+	public List<DDMStructureLayout> getStructureLayouts(
+		long groupId, long classNameId, long structureVersionId) {
+
+		return ddmStructureLayoutPersistence.findByG_C_SV(
+			groupId, classNameId, structureVersionId);
 	}
 
 	@Override

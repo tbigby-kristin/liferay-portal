@@ -260,7 +260,7 @@ public class CallFunction
 			if (optionsOptional.isPresent()) {
 				setDDMFormFieldOptions(ddmFormFieldName, optionsOptional.get());
 			}
-			else if (Validator.isNull(getDDMFormFieldValue(ddmFormFieldName))) {
+			else {
 				Optional<String> valueOptional =
 					ddmDataProviderResponse.getOutputOptional(
 						outputName, String.class);

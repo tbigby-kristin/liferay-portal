@@ -38,6 +38,7 @@ import com.liferay.journal.util.comparator.FolderArticleDisplayDateComparator;
 import com.liferay.journal.util.comparator.FolderArticleModifiedDateComparator;
 import com.liferay.journal.util.comparator.FolderArticleTitleComparator;
 import com.liferay.journal.web.internal.asset.model.JournalArticleAssetRenderer;
+import com.liferay.journal.web.internal.configuration.JournalDDMEditorConfiguration;
 import com.liferay.journal.web.internal.configuration.JournalWebConfiguration;
 import com.liferay.journal.web.internal.portlet.action.ActionUtil;
 import com.liferay.journal.web.internal.search.EntriesChecker;
@@ -49,7 +50,6 @@ import com.liferay.journal.web.internal.servlet.taglib.util.JournalArticleAction
 import com.liferay.journal.web.internal.servlet.taglib.util.JournalFolderActionDropdownItems;
 import com.liferay.journal.web.internal.util.JournalArticleTranslation;
 import com.liferay.journal.web.internal.util.JournalArticleTranslationRowChecker;
-import com.liferay.journal.web.internal.util.JournalChangeTrackingHelperUtil;
 import com.liferay.journal.web.internal.util.JournalPortletUtil;
 import com.liferay.message.boards.model.MBMessage;
 import com.liferay.message.boards.service.MBMessageLocalServiceUtil;
@@ -86,7 +86,9 @@ import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -102,7 +104,6 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -132,6 +133,9 @@ public class JournalDisplayContext {
 			assetDisplayPageFriendlyURLProvider;
 		_trashHelper = trashHelper;
 
+		_journalDDMEditorConfiguration =
+			(JournalDDMEditorConfiguration)_httpServletRequest.getAttribute(
+				JournalDDMEditorConfiguration.class.getName());
 		_journalWebConfiguration =
 			(JournalWebConfiguration)_httpServletRequest.getAttribute(
 				JournalWebConfiguration.class.getName());
@@ -378,19 +382,6 @@ public class JournalDisplayContext {
 			availableActions, StringPool.COMMA);
 	}
 
-	public String getChangeListName(JournalArticle journalArticle) {
-		return JournalChangeTrackingHelperUtil.
-			getJournalArticleCTCollectionName(
-				_themeDisplay.getCompanyId(), _themeDisplay.getUserId(),
-				journalArticle.getId());
-	}
-
-	public PortletURL getChangeListURL(JournalArticle journalArticle) {
-		return JournalChangeTrackingHelperUtil.getJournalArticleCTCollectionURL(
-			_liferayPortletRequest, _themeDisplay.getCompanyId(),
-			_themeDisplay.getUserId(), journalArticle.getId());
-	}
-
 	public String[] getCharactersBlacklist() throws PortalException {
 		JournalServiceConfiguration journalServiceConfiguration =
 			ConfigurationProviderUtil.getCompanyConfiguration(
@@ -408,13 +399,10 @@ public class JournalDisplayContext {
 	}
 
 	public Map<String, Object> getComponentContext() throws Exception {
-		Map<String, Object> componentContext = new HashMap<>();
-
-		componentContext.put(
+		return HashMapBuilder.<String, Object>put(
 			"trashEnabled",
-			_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroupId()));
-
-		return componentContext;
+			_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroupId())
+		).build();
 	}
 
 	public String getDDMStructureKey() {
@@ -915,7 +903,7 @@ public class JournalDisplayContext {
 			return _searchContainer;
 		}
 
-		if (!isSearch()) {
+		if (!isSearch() || isWebContentTabSelected()) {
 			_searchContainer = _getArticlesSearchContainer();
 
 			return _searchContainer;
@@ -995,11 +983,6 @@ public class JournalDisplayContext {
 		return false;
 	}
 
-	public boolean isChangeListColumnVisible() {
-		return JournalChangeTrackingHelperUtil.hasActiveCTCollection(
-			_themeDisplay.getCompanyId(), _themeDisplay.getUserId());
-	}
-
 	public boolean isCommentsTabSelected() throws PortalException {
 		if (Objects.equals(getTabs1(), "comments") ||
 			(hasCommentsResults() && Validator.isNull(getTabs1()))) {
@@ -1008,12 +991,6 @@ public class JournalDisplayContext {
 		}
 
 		return false;
-	}
-
-	public boolean isJournalArticleInChangeList(JournalArticle journalArticle) {
-		return JournalChangeTrackingHelperUtil.isJournalArticleInChangeList(
-			_themeDisplay.getCompanyId(), _themeDisplay.getUserId(),
-			journalArticle.getId());
 	}
 
 	public boolean isNavigationHome() {
@@ -1092,6 +1069,10 @@ public class JournalDisplayContext {
 		return false;
 	}
 
+	public boolean useDataEngineEditor() {
+		return _journalDDMEditorConfiguration.useDataEngineEditor();
+	}
+
 	protected SearchContext buildSearchContext(
 		List<Long> folderIds, int start, int end, Sort sort,
 		boolean showVersions) {
@@ -1100,23 +1081,32 @@ public class JournalDisplayContext {
 
 		searchContext.setAndSearch(false);
 
-		Map<String, Serializable> attributes = new HashMap<>();
+		LinkedHashMap<String, Object> params =
+			LinkedHashMapBuilder.<String, Object>put(
+				"expandoAttributes", getKeywords()
+			).put(
+				"keywords", getKeywords()
+			).build();
 
-		attributes.put(Field.ARTICLE_ID, getKeywords());
-		attributes.put(
-			Field.CLASS_NAME_ID, JournalArticleConstants.CLASSNAME_ID_DEFAULT);
-		attributes.put(Field.CONTENT, getKeywords());
-		attributes.put(Field.DESCRIPTION, getKeywords());
-		attributes.put(Field.STATUS, getStatus());
-		attributes.put(Field.TITLE, getKeywords());
-		attributes.put("ddmStructureKey", getDDMStructureKey());
-
-		LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-
-		params.put("expandoAttributes", getKeywords());
-		params.put("keywords", getKeywords());
-
-		attributes.put("params", params);
+		Map<String, Serializable> attributes =
+			HashMapBuilder.<String, Serializable>put(
+				Field.ARTICLE_ID, getKeywords()
+			).put(
+				Field.CLASS_NAME_ID,
+				JournalArticleConstants.CLASSNAME_ID_DEFAULT
+			).put(
+				Field.CONTENT, getKeywords()
+			).put(
+				Field.DESCRIPTION, getKeywords()
+			).put(
+				Field.STATUS, getStatus()
+			).put(
+				Field.TITLE, getKeywords()
+			).put(
+				"ddmStructureKey", getDDMStructureKey()
+			).put(
+				"params", params
+			).build();
 
 		searchContext.setAttributes(attributes);
 
@@ -1549,6 +1539,7 @@ public class JournalDisplayContext {
 	private JournalFolder _folder;
 	private Long _folderId;
 	private final HttpServletRequest _httpServletRequest;
+	private final JournalDDMEditorConfiguration _journalDDMEditorConfiguration;
 	private final JournalWebConfiguration _journalWebConfiguration;
 	private String _keywords;
 	private final LiferayPortletRequest _liferayPortletRequest;

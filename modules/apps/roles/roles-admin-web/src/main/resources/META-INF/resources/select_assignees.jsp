@@ -51,6 +51,8 @@ PortletURL portletURL = editRoleAssignmentsManagementToolbarDisplayContext.getPo
 
 <clay:management-toolbar
 	clearResultsURL="<%= editRoleAssignmentsManagementToolbarDisplayContext.getClearResultsURL() %>"
+	creationMenu="<%= editRoleAssignmentsManagementToolbarDisplayContext.getCreationMenu() %>"
+	defaultEventHandler="<%= editRoleAssignmentsManagementToolbarDisplayContext.getDefaultEventHandler() %>"
 	filterDropdownItems="<%= editRoleAssignmentsManagementToolbarDisplayContext.getFilterDropdownItems() %>"
 	itemsTotal="<%= searchContainer.getTotal() %>"
 	searchActionURL="<%= editRoleAssignmentsManagementToolbarDisplayContext.getSearchActionURL() %>"
@@ -75,47 +77,55 @@ PortletURL portletURL = editRoleAssignmentsManagementToolbarDisplayContext.getPo
 	%>
 
 	<c:choose>
-		<c:when test='<%= tabs2.equals("users") %>'>
-			<liferay-util:include page="/edit_role_assignments_users.jsp" servletContext="<%= application %>" />
+		<c:when test='<%= tabs2.equals("organizations") %>'>
+			<liferay-util:include page="/edit_role_assignments_organizations.jsp" servletContext="<%= application %>" />
+		</c:when>
+		<c:when test='<%= tabs2.equals("segments") %>'>
+			<liferay-util:include page="/edit_role_assignments_segments_entry.jsp" servletContext="<%= application %>" />
 		</c:when>
 		<c:when test='<%= tabs2.equals("sites") %>'>
 			<liferay-util:include page="/edit_role_assignments_sites.jsp" servletContext="<%= application %>" />
 		</c:when>
-		<c:when test='<%= tabs2.equals("organizations") %>'>
-			<liferay-util:include page="/edit_role_assignments_organizations.jsp" servletContext="<%= application %>" />
-		</c:when>
 		<c:when test='<%= tabs2.equals("user-groups") %>'>
 			<liferay-util:include page="/edit_role_assignments_user_groups.jsp" servletContext="<%= application %>" />
+		</c:when>
+		<c:when test='<%= tabs2.equals("users") %>'>
+			<liferay-util:include page="/edit_role_assignments_users.jsp" servletContext="<%= application %>" />
 		</c:when>
 	</c:choose>
 </aui:form>
 
 <aui:script use="liferay-search-container">
-	var searchContainer = Liferay.SearchContainer.get('<portlet:namespace />assigneesSearch');
-
-	searchContainer.on(
-		'rowToggled',
-		function(event) {
-			var nodes = event.elements.currentPageSelectedElements.getDOMNodes();
-
-			var <portlet:namespace />assigneeIds = nodes.map(
-				function(node) {
-					return node.value;
-				}
-			);
-
-			var result = {};
-
-			if (<portlet:namespace />assigneeIds.length > 0) {
-				result = {
-					data: {
-						type: '<%= HtmlUtil.escapeJS(tabs2) %>',
-						value: <portlet:namespace />assigneeIds.join(',')
-					}
-				};
-			}
-
-			Liferay.Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
-		}
+	var searchContainer = Liferay.SearchContainer.get(
+		'<portlet:namespace />assigneesSearch'
 	);
+
+	searchContainer.on('rowToggled', function(event) {
+		var nodes = event.elements.currentPageSelectedElements.getDOMNodes();
+
+		var <portlet:namespace />assigneeIds = nodes.map(function(node) {
+			return node.value;
+		});
+
+		var result = {};
+
+		if (<portlet:namespace />assigneeIds.length > 0) {
+			result = {
+				data: {
+					type: '<%= HtmlUtil.escapeJS(tabs2) %>',
+					value: <portlet:namespace />assigneeIds.join(',')
+				}
+			};
+		}
+
+		Liferay.Util.getOpener().Liferay.fire(
+			'<%= HtmlUtil.escapeJS(eventName) %>',
+			result
+		);
+	});
 </aui:script>
+
+<liferay-frontend:component
+	componentId="<%= editRoleAssignmentsManagementToolbarDisplayContext.getDefaultEventHandler() %>"
+	module="js/EditRoleAssignmentsManagementToolbarDefaultEventHandler.es"
+/>

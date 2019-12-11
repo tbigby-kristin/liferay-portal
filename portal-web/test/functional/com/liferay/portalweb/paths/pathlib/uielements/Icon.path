@@ -105,7 +105,7 @@
 </tr>
 <tr>
 	<td>EDIT_PENCIL</td>
-	<td>//a[span/*[name()='svg'][contains(@class,'lexicon-icon-pencil')]]</td>
+	<td>//*[*[name()='svg'][contains(@class,'lexicon-icon-pencil')]]</td>
 	<td></td>
 </tr>
 <tr>
@@ -124,6 +124,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EYE_PREVIEW</td>
+	<td>//*[*[name()='svg'][contains(@class,'lexicon-icon-view')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>FLAG</td>
 	<td>//div[contains(@class,'taglib-flags')]</td>
 	<td></td>
@@ -131,6 +136,11 @@
 <tr>
 	<td>INFO</td>
 	<td>//*[@data-qa-id='infoButton'] | //div[contains(@class,'management-bar-default')]//a[contains(@class,'infoPanelToggler')] | //button[*[name()='svg'][contains(@class,'lexicon-icon-info')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>INFO_IE</td>
+	<td>//button[contains(@aria-label,'info-circle') and @title='Info'] | //*[@data-qa-id='infoButton']</td>
 	<td></td>
 </tr>
 <tr>
@@ -220,8 +230,18 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FRAGMENT_VERTICAL_ELLIPSIS</td>
+	<td>//*[contains(@class, 'fragments-editor-sidebar')]//*[contains(@class, 'lexicon-icon-ellipsis-v')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>HEADER_VERTICAL_ELLIPSIS</td>
 	<td>//*[@data-qa-id='header']//a[span/*[name()='svg'][contains(@class,'icon-ellipsis')]]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>HEADER_VERTICAL_ELLIPSIS_IE</td>
+	<td>//*[@data-qa-id='header']//a[@title='Options']</td>
 	<td></td>
 </tr>
 <tr>
@@ -232,6 +252,11 @@
 <tr>
 	<td>PAGE_CUSTOMIZATION_ELLIPSIS</td>
 	<td>//*[@data-qa-id='controlMenu']//div[contains(@class,'icon-menu')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REMOVE_CATEGORY</td>
+	<td>//div[@class='input-group-item']//span[contains(.,'${key_categoryName}')]//button[contains(@class,'close')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -252,6 +277,11 @@
 <tr>
 	<td>ROW_VERTICAL_ELLIPSIS_2</td>
 	<td>xPath=(//*[@data-qa-id='row' and contains(.,'${key_rowEntry}')]//a[span/*[name()='svg'][contains(@class,'icon-ellipsis')]])[2]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ROW_VERTICAL_ELLIPSIS_IE</td>
+	<td>//*[@data-qa-id='row' and contains(.,'${key_rowEntry}')]//a[contains(@class,'icon-monospaced')]/span</td>
 	<td></td>
 </tr>
 <tr>

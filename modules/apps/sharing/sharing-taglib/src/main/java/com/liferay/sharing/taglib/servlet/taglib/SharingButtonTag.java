@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.sharing.display.context.util.SharingJavaScriptFactory;
 import com.liferay.sharing.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.sharing.taglib.internal.servlet.SharingJavaScriptFactoryUtil;
-import com.liferay.taglib.util.IncludeTag;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.PageContext;
@@ -28,7 +27,7 @@ import javax.servlet.jsp.PageContext;
 /**
  * @author Alejandro Tardín
  */
-public class SharingButtonTag extends IncludeTag {
+public class SharingButtonTag extends BaseSharingTag {
 
 	public String getClassName() {
 		return _className;
@@ -82,7 +81,7 @@ public class SharingButtonTag extends IncludeTag {
 		}
 	}
 
-	private static final String _PAGE = "/sharing/page.jsp";
+	private static final String _PAGE = "/button/page.jsp";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		SharingButtonTag.class);

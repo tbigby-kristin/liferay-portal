@@ -30,10 +30,73 @@ definition {
 		}
 	}
 
+	@description = "This test covers LPS-89073. It ensures that users can add and remove tags for existing images via Gogo Shell."
+	@priority = "4"
+	test AddAndRemoveImageAutoTagViaGogoShell {
+		property test.name.skip.portal.instance = "DMAutoTagging#AddAndRemoveImageAutoTagViaGogoShell";
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		for (var documentNumber : list "_1,_2,_3") {
+			DMDocument.addCP(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentFile = "Document_4.jpg",
+				dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+			DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			DMDocument.viewCP(dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			AutoTagging.assertAutoTagPresent(tagName = "carton");
+
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		}
+
+		GogoShell.openGogoShellAdmin();
+
+		var companyId = JSONCompany.getCompanyId();
+
+		GogoShell.executeCommand(commandName = "assetAutoTagger:untagAll ${companyId}");
+
+		GogoShell.viewOutput(outputContent = "Deleted 1 tags to asset entry DM Document JPG_1 Deleted 1 tags to asset entry DM Document JPG_2 Deleted 1 tags to asset entry DM Document JPG_3");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		for (var documentNumber : list "_1,_2,_3") {
+			DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			DMDocument.viewCP(dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			AutoTagging.assertNoAutoTag(tagName = "carton");
+
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		}
+
+		GogoShell.openGogoShellAdmin();
+
+		GogoShell.executeCommand(commandName = "assetAutoTagger:tagAllUntagged ${companyId}");
+
+		GogoShell.viewOutput(outputContent = "Added 1 tags to asset entry DM Document JPG_1 Added 1 tags to asset entry DM Document JPG_2 Added 1 tags to asset entry DM Document JPG_3");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		for (var documentNumber : list "_1,_2,_3") {
+			DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			DMDocument.viewCP(dmDocumentTitle = "DM Document JPG${documentNumber}");
+
+			AutoTagging.assertAutoTagPresent(tagName = "carton");
+
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		}
+	}
+
 	@description = "This test asserts that auto-tags added to an image uploaded on a staged site gets published to Live."
 	@priority = "4"
-	test AssertAutoTagAfterPublishToLive {
-		property test.name.skip.portal.instance = "DMAutoTagging#AssertAutoTagAfterPublishToLive";
+	test AssertImageAutoTagAfterPublishToLive {
+		property test.name.skip.portal.instance = "DMAutoTagging#AssertImageAutoTagAfterPublishToLive";
 
 		JSONGroup.addGroup(groupName = "Site Name");
 
@@ -100,8 +163,8 @@ definition {
 
 	@description = "This test asserts that no auto-tag is generated when an image is uploaded to a site that has auto-tagging disabled despite the auto-tagging functionality enabled at portal level."
 	@priority = "4"
-	test ConfigureAutoTaggingPerSite {
-		property test.name.skip.portal.instance = "DMAutoTagging#ConfigureAutoTaggingPerSite";
+	test ConfigureImageAutoTaggingPerSite {
+		property test.name.skip.portal.instance = "DMAutoTagging#ConfigureImageAutoTaggingPerSite";
 
 		JSONGroup.addGroup(groupName = "Site AutoTag Enabled");
 
@@ -148,6 +211,31 @@ definition {
 		DMDocument.viewCP(dmDocumentTitle = "DM Document JPG");
 
 		AutoTagging.assertNoAutoTag(tagName = "carton");
+	}
+
+	@description = "This test covers LPS-101885. It asserts that an auto-tagged document can be deleted when OpenNLP Auto-Tagging is enabled."
+	@priority = "4"
+	test DeleteAutoTaggedDocument {
+		property test.name.skip.portal.instance = "DMAutoTagging#DeleteAutoTaggedDocument";
+
+		AutoTagging.enableOpenNLP(
+			assetType = "Document",
+			confidenceThreshold = "0.05");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Alice's Adventures in Wonderland.docx",
+			dmDocumentTitle = "DM Document DOCX");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.deleteCP(dmDocumentTitle = "DM Document DOCX");
+
+		AssertConsoleTextNotPresent(value1 = "javax.portlet.PortletException");
+
+		DMDocument.viewDefaultCP();
 	}
 
 	@description = "This test asserts that the max number of tags at the instance level cannot be greater than the max number of tags at the portal level."
@@ -244,8 +332,8 @@ definition {
 
 	@description = "This test asserts that auto-tags can be deleted."
 	@priority = "4"
-	test RemoveAutoTag {
-		property test.name.skip.portal.instance = "DMAutoTagging#RemoveAutoTag";
+	test RemoveImageAutoTag {
+		property test.name.skip.portal.instance = "DMAutoTagging#RemoveImageAutoTag";
 
 		JSONLayout.addPublicLayout(
 			groupName = "Guest",

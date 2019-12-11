@@ -144,6 +144,18 @@ public class AMImageDLPluggableContentDataHandler
 			try (InputStream inputStream = adaptiveMedia.getInputStream()) {
 				portletDataContext.addZipEntry(basePath + ".bin", inputStream);
 			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to find adaptive media for file entry ",
+							fileEntry.getFileEntryId(), " and configuration ",
+							configurationUuidOptional.get()),
+						e);
+				}
+
+				return;
+			}
 		}
 
 		portletDataContext.addZipEntry(
@@ -220,7 +232,7 @@ public class AMImageDLPluggableContentDataHandler
 
 		return firstAdaptiveMediaOptional.map(
 			adaptiveMedia -> _amImageSerializer.deserialize(
-				serializedAdaptiveMedia, () -> adaptiveMedia.getInputStream())
+				serializedAdaptiveMedia, adaptiveMedia::getInputStream)
 		).orElse(
 			null
 		);

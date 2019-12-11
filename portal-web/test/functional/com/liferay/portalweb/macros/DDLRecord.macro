@@ -264,8 +264,6 @@ definition {
 				locator1 = "TextInput#FILE",
 				value1 = "${document}");
 
-			SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_MODAL_FOOTER");
-
 			AssertClick(
 				locator1 = "ItemSelector#ADD_BUTTON",
 				value1 = "Add");
@@ -378,7 +376,7 @@ definition {
 		var i = "1";
 
 		while (IsElementPresent(locator1 = "xpath=(//div[@data-fieldname='${key_fieldName}']/a[contains(@class,'ddm-repeatable-add-button')])[${i}]")) {
-			var i = MathUtil.sum("${i}", "1");
+			var i = ${i} + 1;
 
 			if (IsElementPresent(locator1 = "xpath=(//div[@data-fieldname='${key_fieldName}']/a[contains(@class,'ddm-repeatable-add-button')])[${i}]")) {
 				Type(
@@ -449,7 +447,7 @@ definition {
 		var i = "1";
 
 		while (IsElementPresent(locator1 = "xpath=(//div[@data-fieldname='Text']//input)[${i}]")) {
-			var i = MathUtil.sum("${i}", "1");
+			var i = ${i} + 1;
 
 			if (IsElementPresent(locator1 = "xpath=(//div[@data-fieldname='Text']//input)[${i}]")) {
 				Type(
@@ -503,6 +501,7 @@ definition {
 
 	macro viewFieldCP {
 		var key_ddlRecordFieldData = "${ddlRecordFieldData}";
+		var key_ddlRecordFieldData_1 = "${ddlRecordFieldData_1}";
 		var key_fieldFieldLabel = "${fieldFieldLabel}";
 
 		if ("${ddlRecordFieldData}" == "") {
@@ -533,6 +532,13 @@ definition {
 				locator1 = "DDLRecord#FIELD",
 				value1 = "${fieldFieldLabel}${ddlRecordFieldData}");
 		}
+
+		if ("${field}" == "Date") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "DDLRecord#FIELD_1",
+				value1 = "${fieldFieldLabel} ${ddlRecordFieldData_1}");
+		}
+
 		else {
 			DDLRecord.viewPopulatedField(
 				ddlRecordFieldData = "${ddlRecordFieldData}",
@@ -584,7 +590,7 @@ definition {
 	macro viewFieldPredefinedValue {
 		var key_fieldName = "${fieldName}";
 
-		if (!("${fieldShowLabel}" == "No")) {
+		if ("${fieldShowLabel}" != "No") {
 			AssertTextEquals(
 				locator1 = "DDLEditRecord#FIELD_LABEL",
 				value1 = "${fieldFieldLabel}");
@@ -734,6 +740,13 @@ definition {
 				locator1 = "DDLRecord#FIELD_1",
 				value1 = "${ddlRecordFieldData}");
 		}
+
+		if ("${field}" == "Date") {
+			AssertTextEquals(
+				locator1 = "DDLRecord#FIELD_1",
+				value1 = "${fieldFieldLabel} ${ddlRecordFieldData_1}");
+		}
+
 		else {
 			AssertTextEquals(
 				locator1 = "DDLRecord#FIELD_1",
@@ -774,7 +787,7 @@ definition {
 
 		AssertElementPresent(locator1 = "DDLEditRecord#LINK_TO_PAGE_BREADCRUMB");
 
-		var count = MathUtil.sum("${count}", "1");
+		var count = ${count} + 1;
 		var key_number = "${count}";
 
 		AssertElementNotPresent(locator1 = "DDLEditRecord#LINK_TO_PAGE_BREADCRUMB");
@@ -965,6 +978,7 @@ definition {
 			value1 = "${fieldFieldLabel}");
 
 		var key_ddlRecordFieldData = "${key_ddlRecordFieldData}";
+		var key_ddlRecordFieldData_1 = "${key_ddlRecordFieldData_1}";
 
 		if (isSet(ddlRecordFieldDataTableDisplay)) {
 			var key_ddlRecordFieldData = "${ddlRecordFieldDataTableDisplay}";
@@ -1009,7 +1023,7 @@ definition {
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "DDLRecord#FIELD_1",
-			value1 = "${ddlRecordFieldData}");
+			value1 = "${ddlRecordFieldData_1}");
 
 		if (isSet(ddlRecordNestedFieldData)) {
 			var key_ddlRecordFieldData = "${ddlRecordNestedFieldData}";

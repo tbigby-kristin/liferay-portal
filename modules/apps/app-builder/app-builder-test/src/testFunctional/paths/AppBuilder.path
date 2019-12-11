@@ -12,7 +12,7 @@
 <!--CUSTOM_OBJECTS_LISTING_SCREEN-->
 <tr>
 	<td>BUTTON_ADD</td>
-	<td>//*[contains(@class,'lexicon-icon-plus')]</td>
+	<td>//button[contains(@class,'btn-primary')]</td>
 	<td></td>
 </tr>
 
@@ -25,7 +25,13 @@
 
 <tr>
 	<td>ITEM_ON_THE_TABLE</td>
-	<td>//table[contains(@class,'table')]//a[contains(text(),'${value1}')]</td>
+	<td>//table[contains(@class,'table')]//*[contains(text(),'${value1}')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>ITEM_ON_THE_TABLE_CLICK</td>
+	<td>//table[contains(@class,'table')]//*[contains(text(),'${key_ItemName}')]</td>
 	<td></td>
 </tr>
 
@@ -37,6 +43,11 @@
 <tr>
 	<td>CHECKBOX_OPTION_LABEL</td>
 	<td>//label[contains(.,'${key_checkboxOption}')]/input[@type='checkbox']/../span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>VERTICAL_ELLIPSIS_BUTTON</td>
+	<td>//tr[contains(@data-testid,'item')][descendant::a[contains(.,'${key_customObjectName}')]]//button[contains(@class,'dropdown-toggle')]</td>
 	<td></td>
 </tr>
 
@@ -98,6 +109,93 @@
 	<td></td>
 </tr>
 
+<!--EMPTY_FORM_TABLE_VIEW-->
+<tr>
+	<td>EMPTY_DROP_ZONE</td>
+	<td>//div[(@class='empty-drop-zone') or contains(@class,'ddm-empty-page')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>SAVE_BUTTON</td>
+	<td>//button[contains(@class,'btn-primary') and contains(text(),'Save')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>FORM_VIEW_TAB</td>
+	<td>//div[contains(@class,'navbar')]//a[contains(@class,'active') and normalize-space()='Form Views']</td>
+	<td></td>
+</tr>
+
+<!--APP_CREATION_SCREEN-->
+<tr>
+	<td>DEPLOY_APP_TOGGLE</td>
+	<td>//div[contains(@class,'autofit-row ')][descendant::h3[contains(.,'${key_deployOption}')]]//input[contains(@class,'toggle-switch-check')]</td>
+	<td></td>
+</tr>
+
+<!--CONTROL_PANEL-->
+<tr>
+	<td>CUSTOM_PORTLET</td>
+	<td>//div[contains(@class,'panel-app-root')]//a[contains(@data-title,'${key_portlet}')]</td>
+	<td></td>
+</tr>
+
+<!-- SEARCH_COMMANDS -->
+<tr>
+	<td>SEARCH_BAR_INPUT</td>
+	<td>//input[contains(@class, 'input-group')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>SEARCH_BUTTON</td>
+	<td>//*[contains(@class,'lexicon-icon-search')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>CLEAR_SEARCH</td>
+	<td>//button[contains(text(),'Clear')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>VALIDATE_SEARCH_RESULTS_BAR</td>
+	<td>//div[contains(.,'Results')]//li[@class='tbar-item tbar-item-expand']</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>VALIDATE_IF_ITEM_IS_NOT_FOUND</td>
+	<td>//h1[contains(@class,'taglib-empty-result-message-title')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>VALIDATE_FORM_VIEW_NAME_AT_ROW</td>
+	<td>//tr[@data-testid='item'][${key_RowNumber}]//a</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>SEARCH_FILTER_AND_ORDER_MENU</td>
+	<td>//span[contains(text(), 'Filter and Order')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>CHOOSE_SEARCH_FILTER_BY_OPTION</td>
+	<td>//button[contains(text(),'${key_FilterOption}')]</td>
+	<td></td>
+</tr>
+
+<tr>
+	<td>FILTER_LIST_ASCEND_AND_DESCEND_BUTTON</td>
+	<td>//*[contains(@class,'lexicon-icon-order-arrow')]</td>
+	<td></td>
+</tr>
 
 </tbody>
 </table>

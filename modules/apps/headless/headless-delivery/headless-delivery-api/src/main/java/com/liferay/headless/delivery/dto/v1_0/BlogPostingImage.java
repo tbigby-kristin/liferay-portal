@@ -34,6 +34,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -104,7 +106,7 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's relative URL.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String contentUrl;
 
@@ -134,7 +136,9 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The image's content type (e.g., `application/png`, etc.)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String encodingFormat;
 
@@ -162,7 +166,7 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's file extension.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String fileExtension;
 
@@ -188,7 +192,7 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -216,7 +220,7 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's size in bytes.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long sizeInBytes;
 
@@ -244,13 +248,14 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's title text.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String title;
 
 	@Schema(
 		description = "A write-only property that specifies the default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -283,7 +288,9 @@ public class BlogPostingImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -408,6 +415,12 @@ public class BlogPostingImage {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.BlogPostingImage",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

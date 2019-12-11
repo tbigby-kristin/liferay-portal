@@ -901,7 +901,7 @@
 	{@param? logicalOperator: string}
 
 	{let $attributes kind="attributes"}
-		class="btn btn-default dropdown-toggle dropdown-toggle-operator text-uppercase"
+		class="btn btn-secondary dropdown-toggle dropdown-toggle-operator text-uppercase"
 		data-toggle="dropdown"
 		ref="logicalOperatorDropDownButton"
 		type="button"
@@ -911,7 +911,7 @@
 		{/if}
 	{/let}
 
-	<div class="btn-group dropdown" style="block">
+	<div class="btn-group btn-group-item dropdown" style="block">
 		<button {$attributes}>
 			<span class="dropdown-toggle-selected-value">
 				{if $logicalOperator == 'and'}
@@ -925,11 +925,11 @@
 
 		<ul class="dropdown-menu" data-onclick="{$_handleLogicalOperationChange}">
 			<li class="logic-operator text-uppercase" ref="globalOrOperator">
-				<a data-value="or">{msg desc=""}or{/msg}</a>
+				<a class="dropdown-item" data-value="or">{msg desc=""}or{/msg}</a>
 			</li>
 			<li class="divider"></li>
 			<li class="logic-operator text-uppercase" ref="globalAndOperator">
-				<a data-value="and">{msg desc=""}and{/msg}</a>
+				<a class="dropdown-item" data-value="and">{msg desc=""}and{/msg}</a>
 			</li>
 		</ul>
 	</div>

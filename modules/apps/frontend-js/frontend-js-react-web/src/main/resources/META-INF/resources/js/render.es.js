@@ -12,10 +12,9 @@
  * details.
  */
 
+import {ClayIconSpriteContext} from '@clayui/icon';
 import React from 'react';
 import ReactDOM from 'react-dom';
-
-import {ClayIconSpriteContext} from '@clayui/icon';
 
 let counter = 0;
 
@@ -33,36 +32,42 @@ let counter = 0;
  * @see https://reactjs.org/docs/react-dom.html#render
  */
 export default function render(renderFunction, renderData, container) {
-	const {portletId} = renderData;
-	const spritemap =
-		Liferay.ThemeDisplay.getPathThemeImages() + '/lexicon/icons.svg';
+	if (!Liferay.SPA || Liferay.SPA.app) {
+		const {portletId} = renderData;
+		const spritemap =
+			Liferay.ThemeDisplay.getPathThemeImages() + '/lexicon/icons.svg';
 
-	let {componentId} = renderData;
+		let {componentId} = renderData;
 
-	const destroyOnNavigate = !portletId;
+		const destroyOnNavigate = !portletId;
 
-	if (!componentId) {
-		componentId = `__UNNAMED_COMPONENT__${portletId}__${counter++}`;
-	}
-
-	Liferay.component(
-		componentId,
-		{
-			destroy: () => {
-				ReactDOM.unmountComponentAtNode(container);
-			}
-		},
-		{
-			destroyOnNavigate,
-			portletId
+		if (!componentId) {
+			componentId = `__UNNAMED_COMPONENT__${portletId}__${counter++}`;
 		}
-	);
 
-	// eslint-disable-next-line liferay-portal/no-react-dom-render
-	ReactDOM.render(
-		<ClayIconSpriteContext.Provider value={spritemap}>
-			{renderFunction(renderData)}
-		</ClayIconSpriteContext.Provider>,
-		container
-	);
+		Liferay.component(
+			componentId,
+			{
+				destroy: () => {
+					ReactDOM.unmountComponentAtNode(container);
+				}
+			},
+			{
+				destroyOnNavigate,
+				portletId
+			}
+		);
+
+		// eslint-disable-next-line liferay-portal/no-react-dom-render
+		ReactDOM.render(
+			<ClayIconSpriteContext.Provider value={spritemap}>
+				{renderFunction(renderData)}
+			</ClayIconSpriteContext.Provider>,
+			container
+		);
+	} else {
+		Liferay.once('SPAReady', () => {
+			render(renderFunction, renderData, container);
+		});
+	}
 }

@@ -16,7 +16,7 @@ package com.liferay.talend.connection;
 
 import com.liferay.talend.LiferayBaseComponentDefinition;
 import com.liferay.talend.common.util.URIUtil;
-import com.liferay.talend.runtime.ValidatedSoSSandboxRuntime;
+import com.liferay.talend.source.LiferayOASSource;
 import com.liferay.talend.tliferayconnection.TLiferayConnectionDefinition;
 import com.liferay.talend.ui.UIKeys;
 
@@ -36,7 +36,6 @@ import org.talend.daikon.i18n.I18nMessages;
 import org.talend.daikon.properties.PresentationItem;
 import org.talend.daikon.properties.Properties;
 import org.talend.daikon.properties.ValidationResult;
-import org.talend.daikon.properties.ValidationResultMutable;
 import org.talend.daikon.properties.presentation.Form;
 import org.talend.daikon.properties.presentation.Widget;
 import org.talend.daikon.properties.property.Property;
@@ -46,9 +45,7 @@ import org.talend.daikon.properties.property.PropertyFactory;
  * @author Zoltán Takács
  * @author Igor Beslic
  */
-public class LiferayConnectionProperties
-	extends ComponentPropertiesImpl
-	implements LiferayConnectionPropertiesProvider {
+public class LiferayConnectionProperties extends ComponentPropertiesImpl {
 
 	public LiferayConnectionProperties(String name) {
 		super(name);
@@ -88,13 +85,21 @@ public class LiferayConnectionProperties
 		return _getValue(connectTimeout);
 	}
 
-	public int getItemsPerPage() {
-		return _getValue(itemsPerPage);
+	public LiferayConnectionProperties
+		getEffectiveLiferayConnectionProperties() {
+
+		LiferayConnectionProperties liferayConnectionProperties =
+			referencedComponent.getReference();
+
+		if (liferayConnectionProperties != null) {
+			return liferayConnectionProperties;
+		}
+
+		return this;
 	}
 
-	@Override
-	public LiferayConnectionProperties getLiferayConnectionProperties() {
-		return this;
+	public int getItemsPerPage() {
+		return _getValue(itemsPerPage);
 	}
 
 	public String getOAuthClientId() {
@@ -115,30 +120,6 @@ public class LiferayConnectionProperties
 
 	public String getReferencedComponentId() {
 		return referencedComponent.componentInstanceId.getStringValue();
-	}
-
-	public LiferayConnectionProperties getReferencedConnectionProperties() {
-		LiferayConnectionProperties liferayConnectionProperties =
-			referencedComponent.getReference();
-
-		if (liferayConnectionProperties != null) {
-			return liferayConnectionProperties;
-		}
-
-		if (getReferencedComponentId() != null) {
-			_logger.error(
-				"Connection has a reference to '{}' but the referenced " +
-					"Object is null",
-				getReferencedComponentId());
-		}
-
-		if (_logger.isDebugEnabled()) {
-			_logger.debug(
-				"Fall back to the actual instance " +
-					"LiferayConnectionProperties for the runtime environment");
-		}
-
-		return getLiferayConnectionProperties();
 	}
 
 	public String getUserId() {
@@ -299,24 +280,22 @@ public class LiferayConnectionProperties
 	}
 
 	public ValidationResult validateTestConnection() {
-		ValidatedSoSSandboxRuntime sandboxRuntime =
-			LiferayBaseComponentDefinition.initializeSandboxedRuntime(
-				getReferencedConnectionProperties());
-
-		ValidationResultMutable validationResultMutable =
-			sandboxRuntime.getValidationResultMutable();
+		LiferayOASSource liferayOASSource =
+			LiferayBaseComponentDefinition.getLiferayOASSource(
+				getEffectiveLiferayConnectionProperties());
 
 		Form form = getForm(UIKeys.FORM_WIZARD);
 
-		if (validationResultMutable.getStatus() == ValidationResult.Result.OK) {
-			form.setAllowFinish(true);
-			form.setAllowForward(true);
-		}
-		else {
+		if (!liferayOASSource.isValid()) {
 			form.setAllowForward(false);
+
+			return liferayOASSource.getValidationResult();
 		}
 
-		return validationResultMutable;
+		form.setAllowFinish(true);
+		form.setAllowForward(true);
+
+		return liferayOASSource.getValidationResult();
 	}
 
 	public PresentationItem advanced = new PresentationItem("advanced");

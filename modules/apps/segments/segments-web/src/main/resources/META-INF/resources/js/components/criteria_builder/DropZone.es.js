@@ -15,8 +15,9 @@
 import getCN from 'classnames';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
-import {DragTypes} from '../../utils/drag-types.es';
 import {DropTarget as dropTarget} from 'react-dnd';
+
+import {DragTypes} from '../../utils/drag-types.es';
 
 const {CRITERIA_GROUP, CRITERIA_ROW, PROPERTY} = DragTypes;
 

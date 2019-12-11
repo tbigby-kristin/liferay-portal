@@ -101,6 +101,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
@@ -1150,12 +1151,6 @@ public class CalendarPortlet extends MVCPortlet {
 	}
 
 	protected TimeZone getTimeZone(PortletRequest portletRequest) {
-		boolean allDay = ParamUtil.getBoolean(portletRequest, "allDay");
-
-		if (allDay) {
-			return TimeZoneUtil.getTimeZone(StringPool.UTC);
-		}
-
 		PortletPreferences preferences = portletRequest.getPreferences();
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
@@ -1476,9 +1471,10 @@ public class CalendarPortlet extends MVCPortlet {
 		String name = StringUtil.merge(
 			_customSQL.keywords(keywords), StringPool.BLANK);
 
-		LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-
-		params.put("usersGroups", themeDisplay.getUserId());
+		LinkedHashMap<String, Object> params =
+			LinkedHashMapBuilder.<String, Object>put(
+				"usersGroups", themeDisplay.getUserId()
+			).build();
 
 		List<Group> groups = _groupLocalService.search(
 			themeDisplay.getCompanyId(), name, null, params, true, 0,
@@ -1663,7 +1659,7 @@ public class CalendarPortlet extends MVCPortlet {
 			new CalendarDisplayContext(
 				renderRequest, renderResponse, _groupLocalService,
 				_calendarBookingLocalService, _calendarBookingService,
-				_calendarLocalService, _calendarResourceLocalServiceService,
+				_calendarLocalService, _calendarResourceLocalService,
 				_calendarService);
 
 		renderRequest.setAttribute(
@@ -1800,7 +1796,7 @@ public class CalendarPortlet extends MVCPortlet {
 		_calendarNotificationTemplateService;
 
 	@Reference
-	private CalendarResourceLocalService _calendarResourceLocalServiceService;
+	private CalendarResourceLocalService _calendarResourceLocalService;
 
 	@Reference
 	private CalendarResourceService _calendarResourceService;

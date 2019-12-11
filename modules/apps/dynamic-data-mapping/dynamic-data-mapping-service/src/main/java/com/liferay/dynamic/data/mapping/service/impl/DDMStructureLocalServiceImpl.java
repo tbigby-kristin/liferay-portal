@@ -50,7 +50,6 @@ import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalService;
 import com.liferay.dynamic.data.mapping.service.base.DDMStructureLocalServiceBaseImpl;
-import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.util.DDM;
 import com.liferay.dynamic.data.mapping.util.DDMXML;
 import com.liferay.dynamic.data.mapping.validator.DDMFormValidationException;
@@ -82,6 +81,7 @@ import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -95,7 +95,6 @@ import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -221,55 +220,6 @@ public class DDMStructureLocalServiceImpl
 		return structure;
 	}
 
-	/**
-	 * Adds a structure referencing its parent structure.
-	 *
-	 * @param      userId the primary key of the structure's creator/owner
-	 * @param      groupId the primary key of the group
-	 * @param      parentStructureId the primary key of the parent structure
-	 *             (optionally {@link
-	 *             DDMStructureConstants#DEFAULT_PARENT_STRUCTURE_ID})
-	 * @param      classNameId the primary key of the class name for the
-	 *             structure's related model
-	 * @param      structureKey the unique string identifying the structure
-	 *             (optionally <code>null</code>)
-	 * @param      nameMap the structure's locales and localized names
-	 * @param      descriptionMap the structure's locales and localized
-	 *             descriptions
-	 * @param      definition the structure's XML schema definition
-	 * @param      storageType the structure's storage type. It can be "xml" or
-	 *             "expando". For more information, see {@link StorageType}.
-	 * @param      type the structure's type. For more information, see {@link
-	 *             DDMStructureConstants}.
-	 * @param      serviceContext the service context to be applied. Can set the
-	 *             UUID, creation date, modification date, guest permissions,
-	 *             and group permissions for the structure.
-	 * @return     the structure
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #addStructure(long, long, long, long, String, Map, Map,
-	 *             DDMForm, DDMFormLayout, String, int, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DDMStructure addStructure(
-			long userId, long groupId, long parentStructureId, long classNameId,
-			String structureKey, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, String definition,
-			String storageType, int type, ServiceContext serviceContext)
-		throws PortalException {
-
-		_ddmXML.validateXML(definition);
-
-		DDMForm ddmForm = deserializeXSDDDMForm(definition);
-
-		DDMFormLayout ddmFormLayout = _ddm.getDefaultDDMFormLayout(ddmForm);
-
-		return addStructure(
-			userId, groupId, parentStructureId, classNameId, structureKey,
-			nameMap, descriptionMap, ddmForm, ddmFormLayout, storageType, type,
-			serviceContext);
-	}
-
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public DDMStructure addStructure(
@@ -334,42 +284,6 @@ public class DDMStructureLocalServiceImpl
 			storageType, DDMStructureConstants.TYPE_DEFAULT, serviceContext);
 	}
 
-	/**
-	 * Adds a structure referencing a default parent structure, using the portal
-	 * property <code>dynamic.data.lists.storage.type</code> storage type and
-	 * default structure type.
-	 *
-	 * @param      userId the primary key of the structure's creator/owner
-	 * @param      groupId the primary key of the group
-	 * @param      classNameId the primary key of the class name for the
-	 *             structure's related model
-	 * @param      nameMap the structure's locales and localized names
-	 * @param      descriptionMap the structure's locales and localized
-	 *             descriptions
-	 * @param      definition the structure's XML schema definition
-	 * @param      serviceContext the service context to be applied. Can set the
-	 *             UUID, creation date, modification date, guest permissions,
-	 *             and group permissions for the structure.
-	 * @return     the structure
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #addStructure(long, long, long, Map, Map, DDMForm,
-	 *             DDMFormLayout, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DDMStructure addStructure(
-			long userId, long groupId, long classNameId,
-			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
-			String definition, ServiceContext serviceContext)
-		throws PortalException {
-
-		return addStructure(
-			userId, groupId, DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID,
-			classNameId, null, nameMap, descriptionMap, definition,
-			StorageType.JSON.toString(), DDMStructureConstants.TYPE_DEFAULT,
-			serviceContext);
-	}
-
 	@Override
 	public DDMStructure addStructure(
 			long userId, long groupId, String parentStructureKey,
@@ -391,55 +305,6 @@ public class DDMStructureLocalServiceImpl
 
 		return addStructure(
 			userId, groupId, parentStructureId, classNameId, structureKey,
-			nameMap, descriptionMap, ddmForm, ddmFormLayout, storageType, type,
-			serviceContext);
-	}
-
-	/**
-	 * Adds a structure referencing a default parent structure if the parent
-	 * structure is not found.
-	 *
-	 * @param      userId the primary key of the structure's creator/owner
-	 * @param      groupId the primary key of the group
-	 * @param      parentStructureKey the unique string identifying the parent
-	 *             structure (optionally <code>null</code>)
-	 * @param      classNameId the primary key of the class name for the
-	 *             structure's related model
-	 * @param      structureKey the unique string identifying the structure
-	 *             (optionally <code>null</code>)
-	 * @param      nameMap the structure's locales and localized names
-	 * @param      descriptionMap the structure's locales and localized
-	 *             descriptions
-	 * @param      definition the structure's XML schema definition
-	 * @param      storageType the structure's storage type. It can be "xml" or
-	 *             "expando". For more information, see {@link StorageType}.
-	 * @param      type the structure's type. For more information, see {@link
-	 *             DDMStructureConstants}.
-	 * @param      serviceContext the service context to be applied. Can set the
-	 *             UUID, creation date, modification date, guest permissions and
-	 *             group permissions for the structure.
-	 * @return     the structure
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #addStructure(long, long, String, long, String, Map, Map,
-	 *             DDMForm, DDMFormLayout, String, int, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DDMStructure addStructure(
-			long userId, long groupId, String parentStructureKey,
-			long classNameId, String structureKey, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, String definition,
-			String storageType, int type, ServiceContext serviceContext)
-		throws PortalException {
-
-		_ddmXML.validateXML(definition);
-
-		DDMForm ddmForm = deserializeXSDDDMForm(definition);
-
-		DDMFormLayout ddmFormLayout = _ddm.getDefaultDDMFormLayout(ddmForm);
-
-		return addStructure(
-			userId, groupId, parentStructureKey, classNameId, structureKey,
 			nameMap, descriptionMap, ddmForm, ddmFormLayout, storageType, type,
 			serviceContext);
 	}
@@ -1123,7 +988,7 @@ public class DDMStructureLocalServiceImpl
 		long companyId, long[] groupIds, long classNameId, int start, int end,
 		OrderByComparator<DDMStructure> orderByComparator) {
 
-		return ddmStructureFinder.filterFindByC_G_C_S(
+		return ddmStructureFinder.findByC_G_C_S(
 			companyId, groupIds, classNameId, WorkflowConstants.STATUS_ANY,
 			start, end, orderByComparator);
 	}
@@ -1606,134 +1471,6 @@ public class DDMStructureLocalServiceImpl
 		return structure;
 	}
 
-	/**
-	 * Updates the structure matching the class name ID, structure key, and
-	 * group, replacing its old parent structure, name map, description map, and
-	 * XSD with new ones.
-	 *
-	 * @param      groupId the primary key of the group
-	 * @param      parentStructureId the primary key of the new parent structure
-	 * @param      classNameId the primary key of the class name for the
-	 *             structure's related model
-	 * @param      structureKey the unique string identifying the structure
-	 * @param      nameMap the structure's new locales and localized names
-	 * @param      descriptionMap the structure's new locales and localized
-	 *             description
-	 * @param      definition the structure's new XML schema definition
-	 * @param      serviceContext the service context to be applied. Can set the
-	 *             structure's modification date.
-	 * @return     the updated structure
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #updateStructure(long, long, long, long, String, Map, Map,
-	 *             DDMForm, DDMFormLayout, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DDMStructure updateStructure(
-			long groupId, long parentStructureId, long classNameId,
-			String structureKey, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, String definition,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		DDMStructure structure = ddmStructurePersistence.findByG_C_S(
-			groupId, classNameId, structureKey);
-
-		long userId = _portal.getValidUserId(
-			structure.getCompanyId(), serviceContext.getUserId());
-
-		_ddmXML.validateXML(definition);
-
-		DDMForm ddmForm = deserializeXSDDDMForm(definition);
-
-		DDMFormLayout ddmFormLayout = _ddm.getDefaultDDMFormLayout(ddmForm);
-
-		structureKey = getStructureKey(structureKey);
-
-		return doUpdateStructure(
-			userId, parentStructureId, nameMap, descriptionMap, ddmForm,
-			ddmFormLayout, serviceContext, structure);
-	}
-
-	/**
-	 * Updates the structure matching the structure ID, replacing its old parent
-	 * structure, name map, description map, and XSD with new ones.
-	 *
-	 * @param      structureId the primary key of the structure
-	 * @param      parentStructureId the primary key of the new parent structure
-	 * @param      nameMap the structure's new locales and localized names
-	 * @param      descriptionMap the structure's new locales and localized
-	 *             descriptions
-	 * @param      definition the structure's new XML schema definition
-	 * @param      serviceContext the service context to be applied. Can set the
-	 *             structure's modification date.
-	 * @return     the updated structure
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #updateStructure(long, long, long, Map, Map, DDMForm,
-	 *             DDMFormLayout, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DDMStructure updateStructure(
-			long structureId, long parentStructureId,
-			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
-			String definition, ServiceContext serviceContext)
-		throws PortalException {
-
-		DDMStructure structure = ddmStructurePersistence.findByPrimaryKey(
-			structureId);
-
-		long userId = _portal.getValidUserId(
-			structure.getCompanyId(), serviceContext.getUserId());
-
-		_ddmXML.validateXML(definition);
-
-		DDMForm ddmForm = deserializeXSDDDMForm(definition);
-
-		DDMFormLayout ddmFormLayout = _ddm.getDefaultDDMFormLayout(ddmForm);
-
-		return doUpdateStructure(
-			userId, parentStructureId, nameMap, descriptionMap, ddmForm,
-			ddmFormLayout, serviceContext, structure);
-	}
-
-	/**
-	 * Updates the structure matching the structure ID, replacing its XSD with a
-	 * new one.
-	 *
-	 * @param      structureId the primary key of the structure
-	 * @param      definition the structure's new XML schema definition
-	 * @param      serviceContext the service context to be applied. Can set the
-	 *             structure's modification date.
-	 * @return     the updated structure
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #updateStructure(long, DDMForm, DDMFormLayout,
-	 *             ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public DDMStructure updateXSD(
-			long structureId, String definition, ServiceContext serviceContext)
-		throws PortalException {
-
-		DDMStructure structure = ddmStructurePersistence.findByPrimaryKey(
-			structureId);
-
-		long userId = _portal.getValidUserId(
-			structure.getCompanyId(), serviceContext.getUserId());
-
-		_ddmXML.validateXML(definition);
-
-		DDMForm ddmForm = deserializeXSDDDMForm(definition);
-
-		DDMFormLayout ddmFormLayout = _ddm.getDefaultDDMFormLayout(ddmForm);
-
-		return doUpdateStructure(
-			userId, structure.getParentStructureId(), structure.getNameMap(),
-			structure.getDescriptionMap(), ddmForm, ddmFormLayout,
-			serviceContext, structure);
-	}
-
 	protected void addDataProviderInstanceLinks(
 		long groupId, long structureId, DDMForm ddmForm) {
 
@@ -2096,9 +1833,10 @@ public class DDMStructureLocalServiceImpl
 			DDMStructureIndexerBackgroundTaskExecutor.getBackgroundTaskName(
 				structure.getStructureId());
 
-		Map<String, Serializable> taskContextMap = new HashMap<>();
-
-		taskContextMap.put("structureId", structure.getStructureId());
+		Map<String, Serializable> taskContextMap =
+			HashMapBuilder.<String, Serializable>put(
+				"structureId", structure.getStructureId()
+			).build();
 
 		_backgroundTaskManager.addBackgroundTask(
 			structure.getUserId(), structure.getGroupId(), backgroundTaskName,

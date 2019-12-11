@@ -366,6 +366,16 @@ public class LayoutPageTemplateEntryPersistenceTest {
 	}
 
 	@Test
+	public void testCountByG_N_T() throws Exception {
+		_persistence.countByG_N_T(
+			RandomTestUtil.nextLong(), "", RandomTestUtil.nextInt());
+
+		_persistence.countByG_N_T(0L, "null", 0);
+
+		_persistence.countByG_N_T(0L, (String)null, 0);
+	}
+
+	@Test
 	public void testCountByG_T_LikeN() throws Exception {
 		_persistence.countByG_T_LikeN(
 			RandomTestUtil.nextLong(), "", RandomTestUtil.nextInt());
@@ -800,6 +810,11 @@ public class LayoutPageTemplateEntryPersistenceTest {
 				ReflectionTestUtil.invoke(
 					existingLayoutPageTemplateEntry, "getOriginalName",
 					new Class<?>[0])));
+		Assert.assertEquals(
+			Integer.valueOf(existingLayoutPageTemplateEntry.getType()),
+			ReflectionTestUtil.<Integer>invoke(
+				existingLayoutPageTemplateEntry, "getOriginalType",
+				new Class<?>[0]));
 	}
 
 	protected LayoutPageTemplateEntry addLayoutPageTemplateEntry()

@@ -314,6 +314,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>I_AGREE_LOCALIZED</td>
+	<td>//button[contains(.,'${key_localizedAgree}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>IGNORE</td>
 	<td>//button[contains(.,'Ignore')]</td>
 	<td></td>
@@ -344,6 +349,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>LANGUAGE_DROPDOWN</td>
+	<td>//button[contains(@id,'${key_portletName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>LEAVE</td>
 	<td>//button[contains(.,'Leave')]</td>
 	<td></td>
@@ -355,7 +365,12 @@
 </tr>
 <tr>
 	<td>LOCALIZATION_GENERIC</td>
-	<td>//div[contains(@class,'form-group')]//div[contains(@class,'localized')]//button[contains(@class,'localized')]</td>
+	<td>//div[contains(@class,'form-group')]//div[contains(@class,'localized')]//button[contains(@class,'localized')] | //button[contains(@class,'localized')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>LOCALIZATION_OPEN_GRAPH</td>
+	<td>//div[contains(@id,'${key_fieldName}')]//button[contains(@class,'localized')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -404,6 +419,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PALETTE_ITEM</td>
+	<td>//li[contains(@class,'palette-item')]//button[contains(@class,'bg-${key_paletteItem}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PARENT_FOLDER_SELECT</td>
 	<td>//button[contains(@id,'selectFolderButton')]</td>
 	<td></td>
@@ -425,7 +445,7 @@
 </tr>
 <tr>
 	<td>PLUS_IE</td>
-	<td>//a[contains(@class,'nav-btn-monospaced')] | //button[@data-title='New' or @title='New']</td>
+	<td>//a[contains(@class,'nav-btn-monospaced')] | //button[@data-title='New' or @title='New' or @title='Add']</td>
 	<td></td>
 </tr>
 <tr>
@@ -441,6 +461,11 @@
 <tr>
 	<td>PREVIOUS</td>
 	<td>//button[contains(.,'Previous')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>PROPAGATE</td>
+	<td>//button[contains(@title,'Propagate')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -496,6 +521,11 @@
 <tr>
 	<td>REPLY_DISABLED</td>
 	<td>//button[contains(.,'Reply')][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>REPLY_LAST</td>
+	<td>xpath=(//button[contains(.,'Reply')])[last()]</td>
 	<td></td>
 </tr>
 <tr>
@@ -564,6 +594,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>SEARCH_DISABLED</td>
+	<td>//button[contains(.,'Search')][@disabled='']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SELECT</td>
 	<td>//a[contains(.,'Select') and contains(@class,'btn')] | //button[contains(.,'Select')]</td>
 	<td></td>
@@ -575,7 +610,7 @@
 </tr>
 <tr>
 	<td>SELECT_CATEGORIES</td>
-	<td>//button[contains(@class,'btn-secondary')]</td>
+	<td>//div[@class='field-content']//button[contains(@class,'btn-secondary')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -601,6 +636,16 @@
 <tr>
 	<td>SELECT_MOBILE_DEVICE_RULES</td>
 	<td>//div[@class='btn-toolbar']/button[contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SELECT_OPEN_GRAPH_IMAGE</td>
+	<td>//button[contains(@name,'openGraphImageButton')][contains(.,'Select')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CLEAR_OPEN_GRAPH_IMAGE</td>
+	<td>//button[contains(@name,'openGraphClearImageButton')][contains(.,'Clear')]</td>
 	<td></td>
 </tr>
 <tr>

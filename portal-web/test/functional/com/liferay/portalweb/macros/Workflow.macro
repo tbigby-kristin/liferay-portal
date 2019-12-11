@@ -40,6 +40,7 @@ definition {
 	}
 
 	macro _viewActivities {
+		var key_workflowActivityComment = "${workflowActivityComment}";
 		var key_workflowAssetTitle = "${workflowAssetTitle}";
 
 		AssertClick(
@@ -51,7 +52,7 @@ definition {
 			value1 = "Activities");
 
 		AssertTextEquals.assertPartialText(
-			locator1 = "MyWorkflowTasksTask#ACTIVITIES_LINE_1",
+			locator1 = "MyWorkflowTasksTask#ACTIVITIES_LINE",
 			value1 = "${workflowActivityComment}");
 	}
 
@@ -526,6 +527,8 @@ definition {
 
 		MenuItem.click(menuItem = "Resubmit");
 
+		Button.clickDone();
+
 		Alert.viewSuccessMessage();
 
 		Workflow.viewCompletedTask(
@@ -549,6 +552,8 @@ definition {
 			workflowTask = "${workflowTask}");
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Resubmit");
+
+		Button.clickDone();
 
 		Alert.viewSuccessMessage();
 
@@ -664,7 +669,7 @@ definition {
 		MenuItem.click(menuItem = "Update Due Date");
 
 		var currentYear = DateUtil.getCurrentYear();
-		var futureYear = MathUtil.sum("${currentYear}", "1");
+		var futureYear = ${currentYear} + 1;
 
 		Type(
 			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",
@@ -681,6 +686,8 @@ definition {
 				locator1 = "MyWorkflowTasks#DIALOG_BOX_COMMENT_FIELD",
 				value1 = "${workflowActivityComment}");
 		}
+
+		Button.clickDone();
 
 		Alert.viewSuccessMessage();
 
@@ -712,7 +719,7 @@ definition {
 		MenuItem.click(menuItem = "Update Due Date");
 
 		var currentYear = DateUtil.getCurrentYear();
-		var futureYear = MathUtil.sum("${currentYear}", "1");
+		var futureYear = ${currentYear} + 1;
 
 		Type(
 			locator1 = "MyWorkflowTasks#DIALOG_BOX_DUE_DATE",

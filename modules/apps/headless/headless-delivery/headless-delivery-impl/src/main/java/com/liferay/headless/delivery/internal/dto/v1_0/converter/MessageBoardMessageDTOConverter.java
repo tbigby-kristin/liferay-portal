@@ -26,13 +26,15 @@ import com.liferay.headless.delivery.internal.dto.v1_0.util.CreatorUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.CustomFieldsUtil;
 import com.liferay.headless.delivery.internal.dto.v1_0.util.RelatedContentUtil;
 import com.liferay.message.boards.model.MBMessage;
+import com.liferay.message.boards.model.MBThread;
 import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.message.boards.service.MBMessageService;
-import com.liferay.portal.kernel.service.UserService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -77,18 +79,21 @@ public class MessageBoardMessageDTOConverter implements DTOConverter {
 					_assetTagLocalService.getTags(
 						MBMessage.class.getName(), mbMessage.getMessageId()),
 					AssetTag.NAME_ACCESSOR);
-				relatedContents = RelatedContentUtil.toRelatedContents(
-					_assetEntryLocalService, _assetLinkLocalService,
-					mbMessage.getModelClassName(), mbMessage.getMessageId(),
-					dtoConverterContext.getLocale());
 				numberOfMessageBoardAttachments =
 					mbMessage.getAttachmentsFileEntriesCount();
 				numberOfMessageBoardMessages =
 					_mbMessageLocalService.getChildMessagesCount(
 						mbMessage.getMessageId(),
 						WorkflowConstants.STATUS_APPROVED);
+				relatedContents = RelatedContentUtil.toRelatedContents(
+					_assetEntryLocalService, _assetLinkLocalService,
+					mbMessage.getModelClassName(), mbMessage.getMessageId(),
+					dtoConverterContext.getLocale());
 				showAsAnswer = mbMessage.isAnswer();
 				siteId = mbMessage.getGroupId();
+				subscribed = _subscriptionLocalService.isSubscribed(
+					mbMessage.getCompanyId(), dtoConverterContext.getUserId(),
+					MBThread.class.getName(), mbMessage.getThreadId());
 
 				setCreator(
 					() -> {
@@ -98,7 +103,8 @@ public class MessageBoardMessageDTOConverter implements DTOConverter {
 
 						return CreatorUtil.toCreator(
 							_portal,
-							_userService.getUserById(mbMessage.getUserId()));
+							_userLocalService.getUserById(
+								mbMessage.getUserId()));
 					});
 			}
 		};
@@ -126,6 +132,9 @@ public class MessageBoardMessageDTOConverter implements DTOConverter {
 	private RatingsStatsLocalService _ratingsStatsLocalService;
 
 	@Reference
-	private UserService _userService;
+	private SubscriptionLocalService _subscriptionLocalService;
+
+	@Reference
+	private UserLocalService _userLocalService;
 
 }

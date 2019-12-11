@@ -134,7 +134,9 @@ public class UpdateLanguageAction implements Action {
 					layout.getLayoutSet(), themeDisplay, locale);
 			}
 
-			if (!redirect.endsWith(StringPool.SLASH)) {
+			if (!redirect.endsWith(StringPool.SLASH) &&
+				!queryString.startsWith(StringPool.SLASH)) {
+
 				redirect += StringPool.SLASH;
 			}
 		}

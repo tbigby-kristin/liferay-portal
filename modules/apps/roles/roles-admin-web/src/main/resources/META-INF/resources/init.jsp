@@ -118,8 +118,10 @@ page import="com.liferay.portlet.usersadmin.search.OrganizationSearch" %><%@
 page import="com.liferay.product.navigation.personal.menu.BasePersonalMenuEntry" %><%@
 page import="com.liferay.roles.admin.constants.RolesAdminPortletKeys" %><%@
 page import="com.liferay.roles.admin.kernel.util.RolesAdminUtil" %><%@
+page import="com.liferay.roles.admin.web.internal.constants.RolesAdminWebKeys" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.EditRoleAssignmentsManagementToolbarDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.RoleDisplayContext" %><%@
+page import="com.liferay.roles.admin.web.internal.display.context.SegmentsEntryDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.SelectRoleManagementToolbarDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.display.context.ViewRolesManagementToolbarDisplayContext" %><%@
 page import="com.liferay.roles.admin.web.internal.role.type.contributor.RoleTypeContributor" %><%@
@@ -214,7 +216,7 @@ private StringBundler _getResourceHtmlId(String resource) {
 	StringBundler sb = new StringBundler(2);
 
 	sb.append("resource_");
-	sb.append(resource.replace('.', '_'));
+	sb.append(StringUtil.replace(resource, '.', '_'));
 
 	return sb;
 }

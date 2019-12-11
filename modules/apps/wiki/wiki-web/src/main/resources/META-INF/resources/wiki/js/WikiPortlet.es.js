@@ -12,9 +12,9 @@
  * details.
  */
 
+import {PortletBase, fetch} from 'frontend-js-web';
 import core from 'metal';
 import {EventHandler} from 'metal-events';
-import {PortletBase, fetch} from 'frontend-js-web';
 
 /**
  * WikiPortlet

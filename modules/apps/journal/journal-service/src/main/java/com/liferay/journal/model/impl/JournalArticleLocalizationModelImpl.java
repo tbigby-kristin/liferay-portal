@@ -64,10 +64,10 @@ public class JournalArticleLocalizationModelImpl
 	public static final String TABLE_NAME = "JournalArticleLocalization";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"mvccVersion", Types.BIGINT}, {"articleLocalizationId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"articlePK", Types.BIGINT},
-		{"title", Types.VARCHAR}, {"description", Types.VARCHAR},
-		{"languageId", Types.VARCHAR}
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
+		{"articleLocalizationId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"articlePK", Types.BIGINT}, {"title", Types.VARCHAR},
+		{"description", Types.VARCHAR}, {"languageId", Types.VARCHAR}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -75,6 +75,7 @@ public class JournalArticleLocalizationModelImpl
 
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("articleLocalizationId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("articlePK", Types.BIGINT);
@@ -84,7 +85,7 @@ public class JournalArticleLocalizationModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table JournalArticleLocalization (mvccVersion LONG default 0 not null,articleLocalizationId LONG not null primary key,companyId LONG,articlePK LONG,title VARCHAR(400) null,description STRING null,languageId VARCHAR(75) null)";
+		"create table JournalArticleLocalization (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,articleLocalizationId LONG not null,companyId LONG,articlePK LONG,title VARCHAR(400) null,description STRING null,languageId VARCHAR(75) null,primary key (articleLocalizationId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table JournalArticleLocalization";
@@ -255,6 +256,12 @@ public class JournalArticleLocalizationModelImpl
 			(BiConsumer<JournalArticleLocalization, Long>)
 				JournalArticleLocalization::setMvccVersion);
 		attributeGetterFunctions.put(
+			"ctCollectionId", JournalArticleLocalization::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<JournalArticleLocalization, Long>)
+				JournalArticleLocalization::setCtCollectionId);
+		attributeGetterFunctions.put(
 			"articleLocalizationId",
 			JournalArticleLocalization::getArticleLocalizationId);
 		attributeSetterBiConsumers.put(
@@ -306,6 +313,16 @@ public class JournalArticleLocalizationModelImpl
 	@Override
 	public void setMvccVersion(long mvccVersion) {
 		_mvccVersion = mvccVersion;
+	}
+
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@Override
@@ -444,6 +461,7 @@ public class JournalArticleLocalizationModelImpl
 			new JournalArticleLocalizationImpl();
 
 		journalArticleLocalizationImpl.setMvccVersion(getMvccVersion());
+		journalArticleLocalizationImpl.setCtCollectionId(getCtCollectionId());
 		journalArticleLocalizationImpl.setArticleLocalizationId(
 			getArticleLocalizationId());
 		journalArticleLocalizationImpl.setCompanyId(getCompanyId());
@@ -535,6 +553,9 @@ public class JournalArticleLocalizationModelImpl
 				new JournalArticleLocalizationCacheModel();
 
 		journalArticleLocalizationCacheModel.mvccVersion = getMvccVersion();
+
+		journalArticleLocalizationCacheModel.ctCollectionId =
+			getCtCollectionId();
 
 		journalArticleLocalizationCacheModel.articleLocalizationId =
 			getArticleLocalizationId();
@@ -650,6 +671,7 @@ public class JournalArticleLocalizationModelImpl
 	private static boolean _finderCacheEnabled;
 
 	private long _mvccVersion;
+	private long _ctCollectionId;
 	private long _articleLocalizationId;
 	private long _companyId;
 	private long _articlePK;

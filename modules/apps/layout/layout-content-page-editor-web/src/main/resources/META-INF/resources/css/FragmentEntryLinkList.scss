@@ -25,11 +25,14 @@
 	}
 
 	&__container {
-		box-shadow: inset 0 0 0 $topperBorderWidth
-			$fragmentEntryLinkRowBorderColor;
 		position: relative;
 		transition: background-color ease 0.2s;
 		will-change: background-color;
+	}
+
+	.fragments-editor--with-update-permissions &__container {
+		box-shadow: inset 0 0 0 $topperBorderWidth
+			$fragmentEntryLinkRowBorderColor;
 	}
 
 	&__container--empty &__col {
@@ -40,8 +43,6 @@
 		position: relative;
 
 		&:before {
-			box-shadow: inset 0 0 0 $topperBorderWidth
-				$fragmentEntryLinkColumnBorderColor;
 			content: '';
 			display: block;
 			height: 100%;
@@ -53,6 +54,11 @@
 			width: calc(100% - #{$fragmentsEditorSpacing * 3});
 			will-change: box-shadow;
 			z-index: 1;
+		}
+
+		.fragments-editor--with-update-permissions &:before {
+			box-shadow: inset 0 0 0 $topperBorderWidth
+				$fragmentEntryLinkColumnBorderColor;
 		}
 
 		&-resizer {
@@ -86,12 +92,19 @@
 	}
 
 	&.no-fragments-message {
+		background: #f7faff;
+		box-shadow: inset 0 0 0 2px #b3cdff;
 		padding: 10vh 0;
 		transition: box-shadow ease 0.3s;
 		will-change: box-shadow;
 
 		&.targetOver {
 			box-shadow: inset 0 0 0 $dropTargetWidth $dropTargetColor;
+		}
+
+		& > .taglib-empty-result-message-header {
+			max-width: 120px;
+			padding-top: 160px;
 		}
 	}
 }

@@ -1,0 +1,133 @@
+@component-name = "portal-collaboration"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Item Selector";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			BlogsEntry.tearDownCP();
+
+			User.logoutPG();
+		}
+	}
+
+	@description = "This makes sure that an image can be uploaded via URL."
+	@priority = "5"
+	test AddBlogsImageViaURL {
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoAddEntry();
+
+		BlogsEntry.addTitle(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.addContent(entryContent = "Blogs Entry Content");
+
+		ItemSelector.gotoItemSelectorViaAlloyEditor();
+
+		ItemSelector.addFromURL(
+			imageSourceURL = "https://raw.githubusercontent.com/liferay/liferay-portal/master/portal-web/test/functional/com/liferay/portalweb/dependencies/Document_1.png",
+			navTab = "URL");
+
+		Pause(locator1 = "1000");
+
+		PortletEntry.publish();
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoEntryCP(entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsEntry.viewInlineImage(uploadFileName = "https://raw.githubusercontent.com/liferay/liferay-portal/master/portal-web/test/functional/com/liferay/portalweb/dependencies/Document_1.png");
+	}
+
+	@description = "This ensures that the background image of a fragment can be added."
+	@priority = "5"
+	test FragmentSmoke {
+		JSONGroup.addGroup(groupName = "Test Site Name");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "test-site-name");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpeg",
+			dmDocumentTitle = "Document_1.jpeg");
+
+		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+		ContentPages.addPage(pageName = "Test Content Page Name");
+
+		PageEditor.addLayoutSection(columnCount = "2");
+
+		PageEditor.selectLayoutSectionImage(
+			entryTitle = "Document_1.jpeg",
+			navItem = "Documents and Media");
+
+		PageEditor.clickPublish();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-content-page-name");
+
+		AssertElementPresent(
+			key_imageName = "Document_1.jpeg",
+			locator1 = "Fragment#FRAGMENT_LAYOUT_BACKGROUND_IMAGE");
+	}
+
+	@description = "This makes sure that the files in item selector can display by pagination."
+	@priority = "4"
+	test PaginateFiles {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addMultipleCP(dmDocumentFileList = "Document_1.jpg,Document_2.jpg,Document_3.jpg,Document_1.png,Document_2.png,Document_3.png");
+
+		BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
+
+		BlogsNavigator.gotoAddEntry();
+
+		BlogsNavigator.gotoSelectFile();
+
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		AssertClick(
+			key_navTab = "Documents and Media",
+			locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
+			value1 = "Documents and Media");
+
+		for (var imageFileName : list "Document_1.jpg,Document_2.jpg,Document_3.jpg,Document_1.png,Document_2.png,Document_3.png") {
+			AssertElementPresent(
+				key_imageFileName = "${imageFileName}",
+				locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
+		}
+
+		Pagination.viewResults(results = "Showing 1 to 6 of 6 entries.");
+
+		Pagination.changePagination(itemsPerPage = "5");
+
+		for (var imageFileName : list "Document_1.jpg,Document_2.jpg,Document_3.jpg,Document_1.png,Document_2.png") {
+			AssertElementPresent(
+				key_imageFileName = "${imageFileName}",
+				locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
+		}
+
+		AssertElementNotPresent(
+			key_imageFileName = "Document_3.png",
+			locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
+
+		Pagination.viewResults(results = "Showing 1 to 5 of 6 entries.");
+	}
+
+}

@@ -68,7 +68,7 @@ public class AssetType {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A flag that marks if this type is required.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean required;
 
@@ -96,7 +96,7 @@ public class AssetType {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The asset's subtype.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String subtype;
 
@@ -124,7 +124,9 @@ public class AssetType {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The asset's type (e.g., `BlogPosting`, `Document`, etc.)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String type;
 
@@ -197,6 +199,12 @@ public class AssetType {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.taxonomy.dto.v1_0.AssetType",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -34,13 +34,13 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.xml.Element;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -272,13 +272,12 @@ public class CalendarResourceStagedModelDataHandler
 			return calendarResource.getNameMap();
 		}
 
-		Map<Locale, String> calendarResourceNameMap = new HashMap<>();
-
 		Group scopeGroup = _groupLocalService.getGroup(
 			portletDataContext.getScopeGroupId());
 
-		calendarResourceNameMap.put(
-			LocaleUtil.getSiteDefault(), scopeGroup.getDescriptiveName());
+		Map<Locale, String> calendarResourceNameMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), scopeGroup.getDescriptiveName()
+		).build();
 
 		return LocalizationUtil.populateLocalizationMap(
 			calendarResourceNameMap,

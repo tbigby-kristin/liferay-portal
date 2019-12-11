@@ -131,6 +131,8 @@ public class DLContentPersistenceTest {
 
 		newDLContent.setMvccVersion(RandomTestUtil.nextLong());
 
+		newDLContent.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newDLContent.setGroupId(RandomTestUtil.nextLong());
 
 		newDLContent.setCompanyId(RandomTestUtil.nextLong());
@@ -158,6 +160,9 @@ public class DLContentPersistenceTest {
 
 		Assert.assertEquals(
 			existingDLContent.getMvccVersion(), newDLContent.getMvccVersion());
+		Assert.assertEquals(
+			existingDLContent.getCtCollectionId(),
+			newDLContent.getCtCollectionId());
 		Assert.assertEquals(
 			existingDLContent.getContentId(), newDLContent.getContentId());
 		Assert.assertEquals(
@@ -244,9 +249,9 @@ public class DLContentPersistenceTest {
 
 	protected OrderByComparator<DLContent> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"DLContent", "mvccVersion", true, "contentId", true, "groupId",
-			true, "companyId", true, "repositoryId", true, "path", true,
-			"version", true, "size", true);
+			"DLContent", "mvccVersion", true, "ctCollectionId", true,
+			"contentId", true, "groupId", true, "companyId", true,
+			"repositoryId", true, "path", true, "version", true, "size", true);
 	}
 
 	@Test
@@ -490,6 +495,8 @@ public class DLContentPersistenceTest {
 		DLContent dlContent = _persistence.create(pk);
 
 		dlContent.setMvccVersion(RandomTestUtil.nextLong());
+
+		dlContent.setCtCollectionId(RandomTestUtil.nextLong());
 
 		dlContent.setGroupId(RandomTestUtil.nextLong());
 

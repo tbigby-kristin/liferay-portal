@@ -51,18 +51,15 @@ definition {
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 
 		DMDocument.addDMShortcutCP(
-			dmDocumentDescription = "DM Document Description",
 			dmDocumentTitle = "DM Document Title",
 			siteName = "Site Name");
 
 		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
 
-		DMDocument.viewCP(
-			dmDocumentSize = "259 B",
-			dmDocumentTitle = "DM Document Title");
+		DMDocument.viewCP(dmDocumentTitle = "DM Document Title");
 	}
 
-	@description = "This test ensures that a user can check in a document without changing versions."
+	@description = "This test covers LPS-88313 and LPS-92145. It ensures that a user can check in a document without changing versions."
 	@priority = "5"
 	test CheckInDocumentAsCurrentVersion {
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
@@ -72,6 +69,13 @@ definition {
 		DMDocument.addCP(
 			dmDocumentFile = "Document_1.doc",
 			dmDocumentTitle = "Check in as current version");
+
+		DMDocument.editCP(
+			dmDocumentFile = "Document_1.doc",
+			dmDocumentTitle = "Check in as current version",
+			revision = "Current",
+			versioning = "true",
+			versionNotes = '''<!DOCTYPE html> <html class="ltr" dir="ltr" lang="en-US"> <head> <title>''');
 
 		DMDocument.checkoutCP(dmDocumentTitle = "Check in as current version");
 
@@ -565,6 +569,58 @@ definition {
 			dmFolderName = "DM Folder Name");
 	}
 
+	@description = "This is a test for LPS-91751. It ensures that a user cannot preview a file with size that exceeds the preview limit."
+	@priority = "4"
+	test PreviewFileThatExceedsLimit {
+		property test.name.skip.portal.instance = "CPDocumentsandmedia#PreviewFileThatExceedsLimit";
+
+		SystemSettings.openSystemSettingsAdmin();
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "Documents and Media",
+			configurationName = "File Entries",
+			configurationScope = "System Scope");
+
+		Type(
+			key_fieldLabel = "Previewable Processor Maximum Size",
+			locator1 = "TextInput#GENERIC_TEXT_INPUT",
+			value1 = "1024");
+
+		SystemSettings.saveConfiguration();
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description1",
+			dmDocumentFile = "high_resolution_photo.jpg",
+			dmDocumentTitle = "DM Document Title");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "DM Document Title");
+
+		AssertVisible(
+			key_title = "File too big to preview",
+			locator1 = "Header#H3_TITLE");
+	}
+
+	@description = "This test covers LPS-104957. It ensures that the JPG file can be previewed."
+	@priority = "5"
+	test PreviewJPG {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.jpg",
+			dmDocumentTitle = "Document_1.jpg");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_1.jpg");
+
+		AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_IMAGE_PREVIEW");
+
+		DMDocument.expandInfo();
+
+		AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_THUMBNAIL");
+	}
+
 	@description = "This is a use case for LPS-88785."
 	@priority = "5"
 	test PreviewPDF {
@@ -585,6 +641,25 @@ definition {
 		Refresh();
 
 		AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_IMAGE_PREVIEW");
+	}
+
+	@description = "This test covers LPS-104957. It ensures that the PNG file can be previewed."
+	@priority = "5"
+	test PreviewPNG {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = "Document_1.png",
+			dmDocumentTitle = "Document_1.png");
+
+		DMNavigator.gotoDocumentCP(dmDocumentTitle = "Document_1.png");
+
+		AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_DETAILS_IMAGE_PREVIEW");
+
+		DMDocument.expandInfo();
+
+		AssertVisible(locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_THUMBNAIL");
 	}
 
 	@priority = "4"

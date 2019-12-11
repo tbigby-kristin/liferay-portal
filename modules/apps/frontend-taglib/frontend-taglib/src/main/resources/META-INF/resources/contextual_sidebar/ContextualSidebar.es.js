@@ -12,8 +12,8 @@
  * details.
  */
 
-import Component from 'metal-component';
 import {isFunction, isObject} from 'metal';
+import Component from 'metal-component';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 
@@ -75,10 +75,11 @@ class ContextualSidebar extends Component {
 	 */
 
 	prepareStateForRender(state) {
-		return Object.assign({}, state, {
+		return {
+			...state,
 			body: Soy.toIncDom(this.body || ''),
 			header: Soy.toIncDom(this.header || '')
-		});
+		};
 	}
 
 	/**

@@ -160,7 +160,7 @@ public abstract class BaseSubstringFieldQueryBuilderTestCase
 		addDocument("Ultimate Nullifier");
 		addDocument("llun");
 
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"null",
 			Arrays.asList(
 				"null", "anulled", "the word null is in this sentence",
@@ -299,38 +299,39 @@ public abstract class BaseSubstringFieldQueryBuilderTestCase
 		assertSearch("AA?+BB?-CC?{DD?]", Arrays.asList("aaa+bbb-ccc{ddd]"));
 		assertSearch("AA*+BB*-CC*{DD*]", Arrays.asList("aaa+bbb-ccc{ddd]"));
 
-		assertSearch("M*A*S*H", Arrays.asList("m*a*s*h", "m... a... s... h"));
-		assertSearch(
+		assertSearchIgnoreRelevance(
+			"M*A*S*H", Arrays.asList("m*a*s*h", "m... a... s... h"));
+		assertSearchIgnoreRelevance(
 			"M A S H",
 			Arrays.asList(
 				"m*a*s*h", "m... a... s... h", "aaa+bbb-ccc{ddd]",
 				"aaa bbb ccc ddd", "who? when? where?", "who. when. where."));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"M* A* *S *H",
 			Arrays.asList(
 				"m*a*s*h", "m... a... s... h", "aaa+bbb-ccc{ddd]",
 				"aaa bbb ccc ddd", "who? when? where?", "who. when. where."));
 
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"When?", Arrays.asList("who? when? where?", "who. when. where."));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"Who? When?",
 			Arrays.asList("who? when? where?", "who. when. where."));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"Who? *en? Where?",
 			Arrays.asList("who? when? where?", "who. when. where."));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"Who? * Where?",
 			Arrays.asList(
 				"who? when? where?", "who. when. where.", "aaa+bbb-ccc{ddd]",
 				"aaa bbb ccc ddd", "m*a*s*h", "m... a... s... h"));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"Who?   When?   Where?",
 			Arrays.asList("who? when? where?", "who. when. where."));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"Wh?? W?en? Wher??",
 			Arrays.asList("who? when? where?", "who. when. where."));
-		assertSearch(
+		assertSearchIgnoreRelevance(
 			"Wh* W*en* Wher*",
 			Arrays.asList("who? when? where?", "who. when. where."));
 	}

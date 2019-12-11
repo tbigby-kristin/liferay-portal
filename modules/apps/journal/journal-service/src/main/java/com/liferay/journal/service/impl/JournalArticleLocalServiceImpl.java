@@ -106,7 +106,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
-import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepository;
 import com.liferay.portal.kernel.repository.capabilities.TemporaryFileEntriesCapability;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
@@ -139,6 +139,7 @@ import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizerUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupSubscriptionCheckSubscriptionSender;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -861,29 +862,6 @@ public class JournalArticleLocalServiceImpl
 	}
 
 	/**
-	 * Adds the model resources with the permissions to the web content article.
-	 *
-	 * @param      article the web content article to add resources to
-	 * @param      groupPermissions the group permissions to be added
-	 * @param      guestPermissions the guest permissions to be added
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #addArticleResources(JournalArticle, ModelPermissions)}
-	 */
-	@Deprecated
-	@Override
-	public void addArticleResources(
-			JournalArticle article, String[] groupPermissions,
-			String[] guestPermissions)
-		throws PortalException {
-
-		resourceLocalService.addModelResources(
-			article.getCompanyId(), article.getGroupId(), article.getUserId(),
-			JournalArticle.class.getName(), article.getResourcePrimKey(),
-			groupPermissions, guestPermissions);
-	}
-
-	/**
 	 * Adds the resources to the most recently created web content article.
 	 *
 	 * @param  groupId the primary key of the web content article's group
@@ -901,30 +879,6 @@ public class JournalArticleLocalServiceImpl
 		JournalArticle article = getLatestArticle(groupId, articleId);
 
 		addArticleResources(article, addGroupPermissions, addGuestPermissions);
-	}
-
-	/**
-	 * Adds the resources with the permissions to the most recently created web
-	 * content article.
-	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      articleId the primary key of the web content article
-	 * @param      groupPermissions the group permissions to be added
-	 * @param      guestPermissions the guest permissions to be added
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #addArticleResources(JournalArticle, ModelPermissions)}
-	 */
-	@Deprecated
-	@Override
-	public void addArticleResources(
-			long groupId, String articleId, String[] groupPermissions,
-			String[] guestPermissions)
-		throws PortalException {
-
-		JournalArticle article = getLatestArticle(groupId, articleId);
-
-		addArticleResources(article, groupPermissions, guestPermissions);
 	}
 
 	/**
@@ -1363,7 +1317,7 @@ public class JournalArticleLocalServiceImpl
 			long folderId = article.getImagesFolderId();
 
 			if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-				PortletFileRepositoryUtil.deletePortletFolder(folderId);
+				_portletFileRepository.deletePortletFolder(folderId);
 			}
 
 			// Ratings
@@ -1816,16 +1770,6 @@ public class JournalArticleLocalServiceImpl
 	public JournalArticle fetchArticleByUrlTitle(
 		long groupId, String urlTitle) {
 
-		FriendlyURLEntry friendlyURLEntry =
-			friendlyURLEntryLocalService.fetchFriendlyURLEntry(
-				groupId, JournalArticle.class, urlTitle);
-
-		if (friendlyURLEntry != null) {
-			return fetchLatestArticle(
-				friendlyURLEntry.getClassPK(), WorkflowConstants.STATUS_ANY,
-				true);
-		}
-
 		JournalArticle article = fetchLatestArticleByUrlTitle(
 			groupId, urlTitle, WorkflowConstants.STATUS_APPROVED);
 
@@ -2015,7 +1959,15 @@ public class JournalArticleLocalServiceImpl
 				groupId, JournalArticle.class, urlTitle);
 
 		if (friendlyURLEntry != null) {
-			return fetchLatestArticle(friendlyURLEntry.getClassPK(), status);
+			JournalArticle article = fetchLatestArticle(
+				friendlyURLEntry.getClassPK(), status);
+
+			if ((article != null) && (article.getGroupId() != groupId)) {
+				article = fetchLatestArticle(
+					groupId, article.getArticleId(), status);
+			}
+
+			return article;
 		}
 
 		List<JournalArticle> articles = null;
@@ -2238,33 +2190,6 @@ public class JournalArticleLocalServiceImpl
 	}
 
 	/**
-	 * Returns the web content from the web content article associated with the
-	 * DDM template.
-	 *
-	 * @param      article the web content article
-	 * @param      ddmTemplateKey the primary key of the web content article's
-	 *             DDM template
-	 * @param      viewMode the mode in which the web content is being viewed
-	 * @param      languageId the primary key of the language translation to get
-	 * @param      themeDisplay the theme display
-	 * @return     the web content from the matching web content article
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #getArticleContent(JournalArticle, String, String, String,
-	 *             PortletRequestModel,ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getArticleContent(
-			JournalArticle article, String ddmTemplateKey, String viewMode,
-			String languageId, ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		return getArticleContent(
-			article, ddmTemplateKey, viewMode, languageId, null, themeDisplay);
-	}
-
-	/**
 	 * Returns the web content from the web content article matching the group,
 	 * article ID, and version, and associated with the portlet request model
 	 * and the DDM template.
@@ -2300,66 +2225,6 @@ public class JournalArticleLocalServiceImpl
 	}
 
 	/**
-	 * Returns the web content from the web content article matching the group,
-	 * article ID, and version, and associated with the DDM template.
-	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      articleId the primary key of the web content article
-	 * @param      version the web content article's version
-	 * @param      viewMode the mode in which the web content is being viewed
-	 * @param      ddmTemplateKey the primary key of the web content article's
-	 *             DDM template (optionally <code>null</code>). If the article
-	 *             is related to a DDM structure, the template's structure must
-	 *             match it.
-	 * @param      languageId the primary key of the language translation to get
-	 * @param      themeDisplay the theme display
-	 * @return     the web content from the matching web content article
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #getArticleContent(long, String, double, String, String,
-	 *             String, PortletRequestModel, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getArticleContent(
-			long groupId, String articleId, double version, String viewMode,
-			String ddmTemplateKey, String languageId, ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		return getArticleContent(
-			groupId, articleId, version, viewMode, ddmTemplateKey, languageId,
-			null, themeDisplay);
-	}
-
-	/**
-	 * Returns the web content from the web content article matching the group,
-	 * article ID, and version.
-	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      articleId the primary key of the web content article
-	 * @param      version the web content article's version
-	 * @param      viewMode the mode in which the web content is being viewed
-	 * @param      languageId the primary key of the language translation to get
-	 * @param      themeDisplay the theme display
-	 * @return     the web content from the matching web content article
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #getArticleContent(long, String, double, String, String,
-	 *             String, PortletRequestModel, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getArticleContent(
-			long groupId, String articleId, double version, String viewMode,
-			String languageId, ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		return getArticleContent(
-			groupId, articleId, version, viewMode, null, languageId, null,
-			themeDisplay);
-	}
-
-	/**
 	 * Returns the latest web content from the web content article matching the
 	 * group and article ID, and associated with the portlet request model and
 	 * the DDM template.
@@ -2387,64 +2252,6 @@ public class JournalArticleLocalServiceImpl
 			portletRequestModel, themeDisplay);
 
 		return articleDisplay.getContent();
-	}
-
-	/**
-	 * Returns the latest web content from the web content article matching the
-	 * group and article ID, and associated with the DDM template.
-	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      articleId the primary key of the web content article
-	 * @param      viewMode the mode in which the web content is being viewed
-	 * @param      ddmTemplateKey the primary key of the web content article's
-	 *             DDM template
-	 * @param      languageId the primary key of the language translation to get
-	 * @param      themeDisplay the theme display
-	 * @return     the latest web content from the matching web content article
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #getArticleContent(long, String, String, String, String,
-	 *             PortletRequestModel, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getArticleContent(
-			long groupId, String articleId, String viewMode,
-			String ddmTemplateKey, String languageId, ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		return getArticleContent(
-			groupId, articleId, viewMode, ddmTemplateKey, languageId, null,
-			themeDisplay);
-	}
-
-	/**
-	 * Returns the latest web content from the web content article matching the
-	 * group and article ID.
-	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      articleId the primary key of the web content article
-	 * @param      viewMode the mode in which the web content is being viewed
-	 * @param      languageId the primary key of the language translation to get
-	 * @param      themeDisplay the theme display
-	 * @return     the latest web content from the matching web content article
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #getArticleContent(long, String, String, String, String,
-	 *             PortletRequestModel, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getArticleContent(
-			long groupId, String articleId, String viewMode, String languageId,
-			ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		JournalArticle article = fetchDisplayArticle(groupId, articleId);
-
-		return getArticleContent(
-			groupId, articleId, viewMode, article.getDDMTemplateKey(),
-			languageId, null, themeDisplay);
 	}
 
 	@Override
@@ -3681,7 +3488,7 @@ public class JournalArticleLocalServiceImpl
 			WorkflowConstants.STATUS_ANY);
 
 		return journalArticleFinder.countByG_F(
-			groupId, ListUtil.toList(folderId), queryDefinition);
+			groupId, ListUtil.fromArray(folderId), queryDefinition);
 	}
 
 	/**
@@ -3832,17 +3639,6 @@ public class JournalArticleLocalServiceImpl
 	public int getStructureArticlesCount(long groupId, String ddmStructureKey) {
 		return journalArticlePersistence.countByG_DDMSK(
 			groupId, ddmStructureKey);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.service.SubscriptionLocalService
-		getSubscriptionLocalService() {
-
-		return null;
 	}
 
 	/**
@@ -4043,30 +3839,6 @@ public class JournalArticleLocalServiceImpl
 	 * Moves the web content article matching the group and article ID to a new
 	 * folder.
 	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      articleId the primary key of the web content article
-	 * @param      newFolderId the primary key of the web content article's new
-	 *             folder
-	 * @return     the updated web content article, which was moved to a new
-	 *             folder
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #moveArticle(long, String, long, ServiceContext)}
-	 */
-	@Deprecated
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public JournalArticle moveArticle(
-			long groupId, String articleId, long newFolderId)
-		throws PortalException {
-
-		return moveArticle(groupId, articleId, newFolderId, null);
-	}
-
-	/**
-	 * Moves the web content article matching the group and article ID to a new
-	 * folder.
-	 *
 	 * @param  groupId the primary key of the web content article's group
 	 * @param  articleId the primary key of the web content article
 	 * @param  newFolderId the primary key of the web content article's new
@@ -4181,7 +3953,7 @@ public class JournalArticleLocalServiceImpl
 			// Attachments
 
 			for (FileEntry fileEntry : article.getImagesFileEntries()) {
-				PortletFileRepositoryUtil.restorePortletFileEntryFromTrash(
+				_portletFileRepository.restorePortletFileEntryFromTrash(
 					userId, fileEntry.getFileEntryId());
 			}
 
@@ -4227,6 +3999,10 @@ public class JournalArticleLocalServiceImpl
 			journalArticlePersistence.update(article);
 		}
 
+		article = updateStatus(
+			userId, article.getId(), WorkflowConstants.STATUS_IN_TRASH,
+			new HashMap<>(), new ServiceContext());
+
 		List<JournalArticle> articleVersions =
 			journalArticlePersistence.findByG_A(
 				article.getGroupId(), article.getArticleId());
@@ -4241,10 +4017,6 @@ public class JournalArticleLocalServiceImpl
 			articleVersionStatusOVPs = getArticleVersionStatuses(
 				articleVersions);
 		}
-
-		article = updateStatus(
-			userId, article.getId(), WorkflowConstants.STATUS_IN_TRASH,
-			new HashMap<>(), new ServiceContext());
 
 		// Trash
 
@@ -4288,7 +4060,7 @@ public class JournalArticleLocalServiceImpl
 		// Attachments
 
 		for (FileEntry fileEntry : article.getImagesFileEntries()) {
-			PortletFileRepositoryUtil.movePortletFileEntryToTrash(
+			_portletFileRepository.movePortletFileEntryToTrash(
 				userId, fileEntry.getFileEntryId());
 		}
 
@@ -4488,9 +4260,9 @@ public class JournalArticleLocalServiceImpl
 				journalArticlePersistence.findByPrimaryKey(
 					trashVersion.getClassPK());
 
-			trashArticleVersion.setStatus(trashVersion.getStatus());
+			trashArticleVersion.setStatus(trashEntry.getStatus());
 
-			if (trashVersion.getStatus() == WorkflowConstants.STATUS_APPROVED) {
+			if (trashEntry.getStatus() == WorkflowConstants.STATUS_APPROVED) {
 				visible = true;
 			}
 
@@ -4523,47 +4295,6 @@ public class JournalArticleLocalServiceImpl
 			extraDataJSONObject.toString(), 0);
 
 		return article;
-	}
-
-	/**
-	 * Returns a range of all the web content articles matching the parameters
-	 * without using the indexer. It is preferable to use the indexed version
-	 * {@link #search(long, long, long, int, int, int)} instead of this method
-	 * wherever possible for performance reasons.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param      groupId the primary key of the group (optionally
-	 *             <code>0</code>)
-	 * @param      folderIds the primary keys of the web content article folders
-	 *             (optionally {@link Collections#EMPTY_LIST})
-	 * @param      status the web content article's workflow status. For more
-	 *             information see {@link WorkflowConstants} for constants
-	 *             starting with the "STATUS_" prefix.
-	 * @param      start the lower bound of the range of web content articles to
-	 *             return
-	 * @param      end the upper bound of the range of web content articles to
-	 *             return (not inclusive)
-	 * @return     the matching web content articles
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #search(long
-	 *             groupId, List folderIds, Locale locale, int status, int
-	 *             start, int end)}
-	 */
-	@Deprecated
-	@Override
-	public List<JournalArticle> search(
-		long groupId, List<Long> folderIds, int status, int start, int end) {
-
-		Locale locale = LocaleUtil.getMostRelevantLocale();
-
-		return search(groupId, folderIds, locale, status, start, end);
 	}
 
 	@Override
@@ -4609,7 +4340,7 @@ public class JournalArticleLocalServiceImpl
 		long groupId, long folderId, int status, int start, int end) {
 
 		return search(
-			groupId, ListUtil.toList(folderId),
+			groupId, ListUtil.fromArray(folderId),
 			LocaleUtil.getMostRelevantLocale(), status, start, end);
 	}
 
@@ -5011,28 +4742,6 @@ public class JournalArticleLocalServiceImpl
 	}
 
 	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link #search(long,
-	 *             long, List, long, String, String, String, String, int,
-	 *             String, String, LinkedHashMap, boolean, int, int, Sort)}
-	 */
-	@Deprecated
-	@Override
-	public Hits search(
-		long companyId, long groupId, List<Long> folderIds, long classNameId,
-		String articleId, String title, String description, String content,
-		String type, String statusString, String ddmStructureKey,
-		String ddmTemplateKey, LinkedHashMap<String, Object> params,
-		boolean andSearch, int start, int end, Sort sort) {
-
-		int status = GetterUtil.getInteger(statusString);
-
-		return search(
-			companyId, groupId, folderIds, classNameId, articleId, title,
-			description, content, status, ddmStructureKey, ddmTemplateKey,
-			params, andSearch, start, end, sort);
-	}
-
-	/**
 	 * Returns a range of all the web content articles matching the group,
 	 * creator, and status using the indexer. It is preferable to use this
 	 * method instead of the non-indexed version whenever possible for
@@ -5111,7 +4820,7 @@ public class JournalArticleLocalServiceImpl
 	 */
 	@Override
 	public int searchCount(long groupId, long folderId, int status) {
-		return searchCount(groupId, ListUtil.toList(folderId), status);
+		return searchCount(groupId, ListUtil.fromArray(folderId), status);
 	}
 
 	/**
@@ -5510,16 +5219,6 @@ public class JournalArticleLocalServiceImpl
 			groupId, userId, creatorUserId, status, start, end);
 
 		return searchJournalArticles(searchContext);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void setSubscriptionLocalService(
-		com.liferay.portal.kernel.service.SubscriptionLocalService
-			subscriptionLocalService) {
 	}
 
 	@Override
@@ -6574,34 +6273,6 @@ public class JournalArticleLocalServiceImpl
 	 * Updates the web content article's asset with the new asset categories,
 	 * tag names, and link entries, removing and adding them as necessary.
 	 *
-	 * @param      userId the primary key of the user updating the web content
-	 *             article's asset
-	 * @param      article the web content article
-	 * @param      assetCategoryIds the primary keys of the new asset categories
-	 * @param      assetTagNames the new asset tag names
-	 * @param      assetLinkEntryIds the primary keys of the new asset link
-	 *             entries
-	 * @throws     PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #updateAsset(long, JournalArticle, long[], String[], long[],
-	 *             Double)}
-	 */
-	@Deprecated
-	@Override
-	public void updateAsset(
-			long userId, JournalArticle article, long[] assetCategoryIds,
-			String[] assetTagNames, long[] assetLinkEntryIds)
-		throws PortalException {
-
-		updateAsset(
-			userId, article, assetCategoryIds, assetTagNames, assetLinkEntryIds,
-			null);
-	}
-
-	/**
-	 * Updates the web content article's asset with the new asset categories,
-	 * tag names, and link entries, removing and adding them as necessary.
-	 *
 	 * @param  userId the primary key of the user updating the web content
 	 *         article's asset
 	 * @param  article the web content article
@@ -6956,7 +6627,12 @@ public class JournalArticleLocalServiceImpl
 			action = "move_from_trash";
 		}
 
-		notifySubscribers(user.getUserId(), article, action, serviceContext);
+		Group group = groupLocalService.getGroup(article.getGroupId());
+
+		if (!group.isStaged() || group.isStagingGroup()) {
+			notifySubscribers(
+				user.getUserId(), article, action, serviceContext);
+		}
 
 		return article;
 	}
@@ -7026,33 +6702,6 @@ public class JournalArticleLocalServiceImpl
 		return journalArticleLocalService.updateStatus(
 			userId, article, status, articleURL, serviceContext,
 			workflowContext);
-	}
-
-	/**
-	 * Updates the web content articles matching the group, class name ID, and
-	 * DDM template key, replacing the DDM template key with a new one.
-	 *
-	 * @param      groupId the primary key of the web content article's group
-	 * @param      classNameId the primary key of the DDMStructure class if the
-	 *             web content article is related to a DDM structure, the
-	 *             primary key of the class name associated with the article, or
-	 *             JournalArticleConstants.CLASSNAME_ID_DEFAULT in the
-	 *             journal-api module otherwise
-	 * @param      oldDDMTemplateKey the primary key of the web content
-	 *             article's old DDM template
-	 * @param      newDDMTemplateKey the primary key of the web content
-	 *             article's new DDM template
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #updateDDMTemplateKey}
-	 */
-	@Deprecated
-	@Override
-	public void updateTemplateId(
-		long groupId, long classNameId, String oldDDMTemplateKey,
-		String newDDMTemplateKey) {
-
-		updateDDMTemplateKey(
-			groupId, classNameId, oldDDMTemplateKey, newDDMTemplateKey);
 	}
 
 	protected void addDocumentLibraryFileEntries(Element dynamicElementElement)
@@ -7138,7 +6787,7 @@ public class JournalArticleLocalServiceImpl
 						folder.getGroupId(), folder.getFolderId(),
 						fileEntry.getFileName());
 
-					fileEntry = PortletFileRepositoryUtil.addPortletFileEntry(
+					fileEntry = _portletFileRepository.addPortletFileEntry(
 						folder.getGroupId(), fileEntry.getUserId(),
 						JournalArticle.class.getName(),
 						article.getResourcePrimKey(),
@@ -7201,17 +6850,26 @@ public class JournalArticleLocalServiceImpl
 
 		searchContext.setAndSearch(andSearch);
 
-		Map<String, Serializable> attributes = new HashMap<>();
-
-		attributes.put(Field.ARTICLE_ID, articleId);
-		attributes.put(Field.CLASS_NAME_ID, classNameId);
-		attributes.put(Field.CONTENT, content);
-		attributes.put(Field.DESCRIPTION, description);
-		attributes.put(Field.STATUS, status);
-		attributes.put(Field.TITLE, title);
-		attributes.put("ddmStructureKey", ddmStructureKey);
-		attributes.put("ddmTemplateKey", ddmTemplateKey);
-		attributes.put("params", params);
+		Map<String, Serializable> attributes =
+			HashMapBuilder.<String, Serializable>put(
+				Field.ARTICLE_ID, articleId
+			).put(
+				Field.CLASS_NAME_ID, classNameId
+			).put(
+				Field.CONTENT, content
+			).put(
+				Field.DESCRIPTION, description
+			).put(
+				Field.STATUS, status
+			).put(
+				Field.TITLE, title
+			).put(
+				"ddmStructureKey", ddmStructureKey
+			).put(
+				"ddmTemplateKey", ddmTemplateKey
+			).put(
+				"params", params
+			).build();
 
 		searchContext.setAttributes(attributes);
 
@@ -7562,7 +7220,7 @@ public class JournalArticleLocalServiceImpl
 		Folder folder = newArticle.addImagesFolder();
 
 		for (FileEntry fileEntry : oldArticle.getImagesFileEntries()) {
-			PortletFileRepositoryUtil.addPortletFileEntry(
+			_portletFileRepository.addPortletFileEntry(
 				oldArticle.getGroupId(), newArticle.getUserId(),
 				JournalArticle.class.getName(), newArticle.getResourcePrimKey(),
 				JournalConstants.SERVICE_NAME, folder.getFolderId(),
@@ -7589,7 +7247,7 @@ public class JournalArticleLocalServiceImpl
 				String fileName = dynamicContentEl.attributeValue("name");
 
 				FileEntry fileEntry =
-					PortletFileRepositoryUtil.getPortletFileEntry(
+					_portletFileRepository.getPortletFileEntry(
 						newArticle.getGroupId(), folder.getFolderId(),
 						fileName);
 
@@ -8127,19 +7785,24 @@ public class JournalArticleLocalServiceImpl
 		JournalArticle article, String portletId,
 		ServiceContext serviceContext) {
 
+		String defaultArticleURL = StringPool.BLANK;
+
+		try {
+			defaultArticleURL = _portal.getControlPanelFullURL(
+				article.getGroupId(), portletId, null);
+		}
+		catch (PortalException pe) {
+			_log.error(pe, pe);
+		}
+
 		LiferayPortletRequest liferayPortletRequest =
 			serviceContext.getLiferayPortletRequest();
 
 		if (liferayPortletRequest == null) {
-			return StringPool.BLANK;
+			return defaultArticleURL;
 		}
 
-		String urlViewInContext = StringPool.BLANK;
-
 		try {
-			String defaultArticleURL = _portal.getControlPanelFullURL(
-				article.getGroupId(), portletId, null);
-
 			AssetRendererFactory<JournalArticle> assetRendererFactory =
 				AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClass(
 					JournalArticle.class);
@@ -8148,14 +7811,14 @@ public class JournalArticleLocalServiceImpl
 				assetRendererFactory.getAssetRenderer(
 					article, AssetRendererFactory.TYPE_LATEST_APPROVED);
 
-			urlViewInContext = assetRenderer.getURLViewInContext(
+			return assetRenderer.getURLViewInContext(
 				liferayPortletRequest, null, defaultArticleURL);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
 		}
 
-		return urlViewInContext;
+		return StringPool.BLANK;
 	}
 
 	protected boolean hasModifiedLatestApprovedVersion(
@@ -8239,6 +7902,85 @@ public class JournalArticleLocalServiceImpl
 					 emailArticleUpdatedEnabled()) {
 		}
 		else {
+			return;
+		}
+
+		SubscriptionSender subscriptionSender =
+			new GroupSubscriptionCheckSubscriptionSender(
+				JournalConstants.RESOURCE_NAME);
+
+		subscriptionSender.setClassName(article.getModelClassName());
+		subscriptionSender.setClassPK(article.getId());
+		subscriptionSender.setCompanyId(article.getCompanyId());
+
+		JournalFolder folder = journalFolderPersistence.fetchByPrimaryKey(
+			article.getFolderId());
+
+		subscriptionSender.addPersistedSubscribers(
+			JournalFolder.class.getName(), article.getGroupId());
+
+		Group group = groupLocalService.getGroup(article.getGroupId());
+
+		long liveGroupId = group.getLiveGroupId();
+
+		if (liveGroupId > 0) {
+			subscriptionSender.addPersistedSubscribers(
+				JournalFolder.class.getName(), liveGroupId, false);
+		}
+
+		if (folder != null) {
+			subscriptionSender.addPersistedSubscribers(
+				JournalFolder.class.getName(), folder.getFolderId());
+
+			for (Long ancestorFolderId : folder.getAncestorFolderIds()) {
+				subscriptionSender.addPersistedSubscribers(
+					JournalFolder.class.getName(), ancestorFolderId);
+			}
+
+			if (liveGroupId > 0) {
+				folder = journalFolderPersistence.fetchByUUID_G(
+					folder.getUuid(), liveGroupId);
+
+				if (folder != null) {
+					subscriptionSender.addPersistedSubscribers(
+						JournalFolder.class.getName(), folder.getFolderId(),
+						false);
+
+					for (Long ancestorFolderId :
+							folder.getAncestorFolderIds()) {
+
+						subscriptionSender.addPersistedSubscribers(
+							JournalFolder.class.getName(), ancestorFolderId,
+							false);
+					}
+				}
+			}
+		}
+
+		DDMStructure ddmStructure = ddmStructureLocalService.getStructure(
+			_portal.getSiteGroupId(article.getGroupId()),
+			classNameLocalService.getClassNameId(JournalArticle.class),
+			article.getDDMStructureKey(), true);
+
+		subscriptionSender.addPersistedSubscribers(
+			DDMStructure.class.getName(), ddmStructure.getStructureId());
+
+		subscriptionSender.addPersistedSubscribers(
+			JournalArticle.class.getName(), article.getResourcePrimKey());
+
+		if (liveGroupId > 0) {
+			JournalArticle liveGroupArticle =
+				journalArticlePersistence.fetchByUUID_G(
+					article.getUuid(), liveGroupId);
+
+			if (liveGroupArticle != null) {
+				subscriptionSender.addPersistedSubscribers(
+					JournalArticle.class.getName(),
+					liveGroupArticle.getResourcePrimKey(), false);
+			}
+		}
+
+		if (!subscriptionSender.hasSubscribers()) {
 			return;
 		}
 
@@ -8346,13 +8088,6 @@ public class JournalArticleLocalServiceImpl
 		catch (Exception e) {
 		}
 
-		SubscriptionSender subscriptionSender =
-			new GroupSubscriptionCheckSubscriptionSender(
-				JournalConstants.RESOURCE_NAME);
-
-		subscriptionSender.setClassName(article.getModelClassName());
-		subscriptionSender.setClassPK(article.getId());
-		subscriptionSender.setCompanyId(article.getCompanyId());
 		subscriptionSender.setContextAttribute(
 			"[$ARTICLE_CONTENT$]", articleContent, false);
 		subscriptionSender.setContextAttribute(
@@ -8360,9 +8095,6 @@ public class JournalArticleLocalServiceImpl
 			false);
 
 		String folderName = StringPool.BLANK;
-
-		JournalFolder folder = journalFolderPersistence.fetchByPrimaryKey(
-			article.getFolderId());
 
 		if (folder != null) {
 			folderName = folder.getName();
@@ -8376,11 +8108,9 @@ public class JournalArticleLocalServiceImpl
 			}
 		}
 
-		String portletId = PortletProviderUtil.getPortletId(
-			JournalArticle.class.getName(), PortletProvider.Action.EDIT);
-
-		String articleURL = getURLViewInContext(
-			article, portletId, serviceContext);
+		String articleURL = JournalUtil.getJournalControlPanelLink(
+			article.getFolderId(), article.getGroupId(),
+			serviceContext.getLiferayPortletResponse());
 
 		String articleStatus = LanguageUtil.get(
 			LocaleUtil.getSiteDefault(),
@@ -8403,34 +8133,12 @@ public class JournalArticleLocalServiceImpl
 		subscriptionSender.setLocalizedSubjectMap(localizedSubjectMap);
 		subscriptionSender.setMailId("journal_article", article.getId());
 		subscriptionSender.setNotificationType(notificationType);
-		subscriptionSender.setPortletId(portletId);
+		subscriptionSender.setPortletId(
+			PortletProviderUtil.getPortletId(
+				JournalArticle.class.getName(), PortletProvider.Action.EDIT));
 		subscriptionSender.setReplyToAddress(fromAddress);
 		subscriptionSender.setScopeGroupId(article.getGroupId());
 		subscriptionSender.setServiceContext(serviceContext);
-
-		subscriptionSender.addPersistedSubscribers(
-			JournalFolder.class.getName(), article.getGroupId());
-
-		if (folder != null) {
-			subscriptionSender.addPersistedSubscribers(
-				JournalFolder.class.getName(), folder.getFolderId());
-
-			for (Long ancestorFolderId : folder.getAncestorFolderIds()) {
-				subscriptionSender.addPersistedSubscribers(
-					JournalFolder.class.getName(), ancestorFolderId);
-			}
-		}
-
-		DDMStructure ddmStructure = ddmStructureLocalService.getStructure(
-			_portal.getSiteGroupId(article.getGroupId()),
-			classNameLocalService.getClassNameId(JournalArticle.class),
-			article.getDDMStructureKey(), true);
-
-		subscriptionSender.addPersistedSubscribers(
-			DDMStructure.class.getName(), ddmStructure.getStructureId());
-
-		subscriptionSender.addPersistedSubscribers(
-			JournalArticle.class.getName(), article.getResourcePrimKey());
 
 		subscriptionSender.flushNotificationsAsync();
 	}
@@ -8975,22 +8683,6 @@ public class JournalArticleLocalServiceImpl
 	@Reference
 	protected FriendlyURLEntryLocalService friendlyURLEntryLocalService;
 
-	private FileEntry _addArticleAttachmentFileEntry(
-			JournalArticle article, long folderId, FileEntry fileEntry)
-		throws PortalException {
-
-		String fileEntryName = DLUtil.getUniqueFileName(
-			fileEntry.getGroupId(), fileEntry.getFolderId(),
-			fileEntry.getFileName());
-
-		return PortletFileRepositoryUtil.addPortletFileEntry(
-			article.getGroupId(), fileEntry.getUserId(),
-			JournalArticle.class.getName(), article.getResourcePrimKey(),
-			JournalConstants.SERVICE_NAME, folderId,
-			fileEntry.getContentStream(), fileEntryName,
-			fileEntry.getMimeType(), false);
-	}
-
 	private List<JournalArticleLocalization> _addArticleLocalizedFields(
 		long companyId, long articlePK, Map<Locale, String> titleMap,
 		Map<Locale, String> descriptionMap) {
@@ -9072,11 +8764,9 @@ public class JournalArticleLocalServiceImpl
 			}
 		}
 
-		Map<Locale, String> defaultFriendlyURLMap = new HashMap<>();
-
-		defaultFriendlyURLMap.put(defaultLocale, titleMap.get(defaultLocale));
-
-		return defaultFriendlyURLMap;
+		return HashMapBuilder.put(
+			defaultLocale, titleMap.get(defaultLocale)
+		).build();
 	}
 
 	private void _deleteDDMStructurePredefinedValues(
@@ -9177,12 +8867,24 @@ public class JournalArticleLocalServiceImpl
 	private String _replaceTempImages(JournalArticle article, String content)
 		throws PortalException {
 
-		Folder folder = article.addImagesFolder();
-
 		return _attachmentContentUpdater.updateContent(
 			content, ContentTypes.TEXT_HTML,
-			fileEntry -> _addArticleAttachmentFileEntry(
-				article, folder.getFolderId(), fileEntry));
+			fileEntry -> {
+				String fileEntryName = DLUtil.getUniqueFileName(
+					fileEntry.getGroupId(), fileEntry.getFolderId(),
+					fileEntry.getFileName());
+
+				Folder folder = article.addImagesFolder();
+
+				_portletFileRepository.addPortletFileEntry(
+					article.getGroupId(), fileEntry.getUserId(),
+					JournalArticle.class.getName(),
+					article.getResourcePrimKey(), JournalConstants.SERVICE_NAME,
+					folder.getFolderId(), fileEntry.getContentStream(),
+					fileEntryName, fileEntry.getMimeType(), false);
+
+				return null;
+			});
 	}
 
 	private List<JournalArticleLocalization> _updateArticleLocalizedFields(
@@ -9261,6 +8963,9 @@ public class JournalArticleLocalServiceImpl
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private PortletFileRepository _portletFileRepository;
 
 	private Date _previousCheckDate;
 

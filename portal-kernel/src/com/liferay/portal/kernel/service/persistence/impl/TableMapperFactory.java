@@ -14,8 +14,6 @@
 
 package com.liferay.portal.kernel.service.persistence.impl;
 
-import com.liferay.portal.kernel.internal.service.persistence.CachelessTableMapperImpl;
-import com.liferay.portal.kernel.internal.service.persistence.ReverseTableMapper;
 import com.liferay.portal.kernel.internal.service.persistence.TableMapperImpl;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
@@ -78,27 +76,12 @@ public class TableMapperFactory {
 		TableMapper<?, ?> tableMapper = _tableMappers.get(tableMapperKey);
 
 		if (tableMapper == null) {
-			TableMapperImpl<L, R> tableMapperImpl = null;
-
-			if (_cachelessMappingTableNames.contains(tableName)) {
-				tableMapperImpl = new CachelessTableMapperImpl<>(
-					tableName, companyColumnName, leftColumnName,
-					rightColumnName, leftPersistence.getModelClass(),
-					rightPersistence.getModelClass(), leftPersistence,
-					rightPersistence);
-			}
-			else {
-				tableMapperImpl = new TableMapperImpl<>(
-					tableName, companyColumnName, leftColumnName,
-					rightColumnName, leftPersistence.getModelClass(),
-					rightPersistence.getModelClass(), leftPersistence,
-					rightPersistence);
-			}
-
-			tableMapperImpl.setReverseTableMapper(
-				new ReverseTableMapper<>(tableMapperImpl));
-
-			tableMapper = tableMapperImpl;
+			tableMapper = new TableMapperImpl<>(
+				tableName, companyColumnName, leftColumnName, rightColumnName,
+				leftPersistence.getModelClass(),
+				rightPersistence.getModelClass(), leftPersistence,
+				rightPersistence,
+				_cachelessMappingTableNames.contains(tableName));
 
 			_tableMappers.put(tableMapperKey, tableMapper);
 		}

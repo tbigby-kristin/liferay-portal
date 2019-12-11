@@ -119,7 +119,7 @@ public abstract class BaseUserAccountResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site members' user accounts. Results can be paginated, filtered, searched, and sorted."
+		description = "Retrieves the site members' user accounts. Results can be paginated, filtered, searched, and sorted."
 	)
 	@Parameters(
 		value = {

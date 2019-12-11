@@ -1,5 +1,52 @@
 definition {
 
+	macro addExportProcessCP {
+		var key_application = "${application}";
+
+		LexiconEntry.gotoAdd();
+
+		AssertElementPresent(
+			key_firstName = "${userFirstName}",
+			key_lastName = "${userLastName}",
+			locator1 = "ExportPersonalData#ADD_PROCESS_HEADER");
+
+		if (isSet(applications)) {
+			for (var application : list "${applications}") {
+				Check(
+					key_application = "${application}",
+					locator1 = "ExportPersonalData#APPLICATION_CHECKBOX");
+			}
+		}
+		else {
+			PortletEntry.selectAll();
+		}
+
+		AssertClick(
+			locator1 = "Button#EXPORT",
+			value1 = "Export");
+
+		Alert.viewSuccessMessage();
+
+		AssertElementPresent(
+			key_firstName = "${userFirstName}",
+			key_lastName = "${userLastName}",
+			locator1 = "ExportPersonalData#HEADER");
+
+		while (IsElementPresent(locator1 = "ExportPersonalData#EXPORT_PROCESS_IN_PROGRESS")) {
+			Pause(locator1 = "3000");
+		}
+
+		AssertElementPresent(locator1 = "ExportPersonalData#EXPORT_PROCESS_SUCCESSFUL");
+
+		if (isSet(applications)) {
+			for (var application : list "${applications}") {
+				AssertElementPresent(
+					key_application = "${application}",
+					locator1 = "ExportPersonalData#EXPORT_PROCESS_SPECIFIC_APPLICATION_SUCCESSFUL");
+			}
+		}
+	}
+
 	macro anonymizeDataViaReviewData {
 		var key_application = "${application}";
 
@@ -32,7 +79,7 @@ definition {
 
 			AssertConfirm.assertConfirmationNoError(value1 = "Are you sure you want to anonymize the user's personal data?");
 
-			AssertConfirm.assertConfirmationNoError(value1 = "All personal data associated to this user's applications has been deleted or anonymized. The user can now be deleted. Click OK to delete the user.");
+			AssertConfirm.assertConfirmationNoError(value1 = "All personal data associated with this user's applications has been deleted or anonymized. The user can now be deleted. Click OK to delete the user.");
 		}
 
 		Alert.viewSuccessMessage();
@@ -57,6 +104,18 @@ definition {
 		}
 
 		Alert.viewSuccessMessage();
+	}
+
+	macro downloadExportedPersonalData {
+		for (var application : list "${applications}") {
+			var key_rowEntry = "${application}";
+
+			Click(locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_ELLIPSIS");
+
+			AssertClick.assertPartialTextClickAt(
+				locator1 = "MenuItem#DOWNLOAD",
+				value1 = "Download");
+		}
 	}
 
 	macro editEntryCP {

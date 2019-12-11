@@ -27,10 +27,6 @@ DDMStructure ddmStructure = (DDMStructure)request.getAttribute(WebKeys.DOCUMENT_
 
 long ddmStructureId = BeanParamUtil.getLong(ddmStructure, request, "structureId");
 
-String script = BeanParamUtil.getString(ddmStructure, request, "definition");
-
-JSONArray fieldsJSONArray = DDMUtil.getDDMFormFieldsJSONArray(DDMStructureLocalServiceUtil.fetchDDMStructure(ddmStructureId), script);
-
 List<DDMStructure> ddmStructures = null;
 
 if (fileEntryType != null) {
@@ -42,8 +38,6 @@ if (fileEntryType != null) {
 		ddmStructures.remove(ddmStructure);
 	}
 }
-
-DDMDisplay ddmDisplay = new DLDDMDisplay();
 
 portletDisplay.setShowBackIcon(true);
 portletDisplay.setURLBack(redirect);
@@ -96,15 +90,7 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 			</aui:fieldset>
 
 			<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" id="mainMetadataFields" label="main-metadata-fields">
-				<liferay-util:include page="/form_builder.jsp" portletId="<%= PortletProviderUtil.getPortletId(com.liferay.dynamic.data.mapping.model.DDMStructure.class.getName(), PortletProvider.Action.VIEW) %>">
-					<portlet:param name="refererPortletName" value="<%= DLPortletKeys.DOCUMENT_LIBRARY %>" />
-					<portlet:param name="portletResourceNamespace" value="<%= renderResponse.getNamespace() %>" />
-					<portlet:param name="script" value="<%= script %>" />
-					<portlet:param name="fieldsJSONArrayString" value="<%= (fieldsJSONArray != null) ? fieldsJSONArray.toString() : StringPool.BLANK %>" />
-					<portlet:param name="className" value="<%= ddmDisplay.getStructureType() %>" />
-					<portlet:param name="storageType" value="<%= ddmDisplay.getStorageType() %>" />
-					<portlet:param name="scopeAvailableFields" value="<%= ddmDisplay.getAvailableFields() %>" />
-				</liferay-util:include>
+				<liferay-util:include page="/document_library/ddm/ddm_form_builder.jsp" servletContext="<%= application %>" />
 			</aui:fieldset>
 
 			<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" id="additionalMetadataFields" label="additional-metadata-fields">
@@ -141,7 +127,7 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 				<liferay-ui:icon
 					cssClass="modify-link select-metadata"
 					label="<%= true %>"
-					linkCssClass="btn btn-default"
+					linkCssClass="btn btn-secondary"
 					message="select"
 					url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
 				/>
@@ -168,7 +154,8 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 	function <portlet:namespace />openDDMStructureSelector() {
 		Liferay.Util.openDDMPortlet(
 			{
-				basePortletURL: '<%= PortletURLFactoryUtil.create(request, PortletProviderUtil.getPortletId(com.liferay.dynamic.data.mapping.model.DDMStructure.class.getName(), PortletProvider.Action.VIEW), PortletRequest.RENDER_PHASE) %>',
+				basePortletURL:
+					'<%= PortletURLFactoryUtil.create(request, PortletProviderUtil.getPortletId(com.liferay.dynamic.data.mapping.model.DDMStructure.class.getName(), PortletProvider.Action.VIEW), PortletRequest.RENDER_PHASE) %>',
 				classPK: '<%= ddmStructureId %>',
 				dialog: {
 					destroyOnHide: true
@@ -182,14 +169,22 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 				title: '<%= UnicodeLanguageUtil.get(request, "metadata-sets") %>'
 			},
 			function(event) {
-				var searchContainer = Liferay.SearchContainer.get('<portlet:namespace />ddmStructuresSearchContainer');
+				var searchContainer = Liferay.SearchContainer.get(
+					'<portlet:namespace />ddmStructuresSearchContainer'
+				);
 
 				var data = searchContainer.getData(false);
 
 				if (!data.includes(event.ddmstructureid)) {
-					var ddmStructureLink = '<a class="modify-link" data-rowId="' + event.ddmstructureid + '" href="javascript:;" title="<%= LanguageUtil.get(request, "remove") %>"><%= UnicodeFormatter.toString(removeStructureIcon) %></a>';
+					var ddmStructureLink =
+						'<a class="modify-link" data-rowId="' +
+						event.ddmstructureid +
+						'" href="javascript:;" title="<%= LanguageUtil.get(request, "remove") %>"><%= UnicodeFormatter.toString(removeStructureIcon) %></a>';
 
-					searchContainer.addRow([event.name, ddmStructureLink], event.ddmstructureid);
+					searchContainer.addRow(
+						[event.name, ddmStructureLink],
+						event.ddmstructureid
+					);
 
 					searchContainer.updateDataStore();
 				}
@@ -210,7 +205,9 @@ renderResponse.setTitle((fileEntryType == null) ? LanguageUtil.get(request, "new
 </aui:script>
 
 <aui:script use="liferay-search-container">
-	var searchContainer = Liferay.SearchContainer.get('<portlet:namespace />ddmStructuresSearchContainer');
+	var searchContainer = Liferay.SearchContainer.get(
+		'<portlet:namespace />ddmStructuresSearchContainer'
+	);
 
 	searchContainer.get('contentBox').delegate(
 		'click',

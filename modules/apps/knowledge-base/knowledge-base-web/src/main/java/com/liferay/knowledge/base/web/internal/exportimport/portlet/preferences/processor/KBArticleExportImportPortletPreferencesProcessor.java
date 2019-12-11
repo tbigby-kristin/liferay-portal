@@ -57,7 +57,7 @@ public class KBArticleExportImportPortletPreferencesProcessor
 
 	@Override
 	public List<Capability> getImportCapabilities() {
-		return ListUtil.toList(new Capability[] {_capability});
+		return ListUtil.fromArray(_capability);
 	}
 
 	@Override

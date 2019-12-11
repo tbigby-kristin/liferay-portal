@@ -54,12 +54,12 @@ public class PoshiRunnerValidation {
 	public static void main(String[] args) throws Exception {
 		PoshiRunnerContext.readFiles();
 
-		List<String> failingFilePaths =
-			PoshiScriptParserException.getFailingFilePaths();
+		Set<String> uniqueErrorPaths =
+			PoshiScriptParserException.getUniqueErrorPaths();
 
-		if (!failingFilePaths.isEmpty()) {
+		if (!uniqueErrorPaths.isEmpty()) {
 			throw new RuntimeException(
-				"Found " + failingFilePaths.size() + " Poshi Script parsing " +
+				"Found " + uniqueErrorPaths.size() + " Poshi Script parsing " +
 					"errors");
 		}
 

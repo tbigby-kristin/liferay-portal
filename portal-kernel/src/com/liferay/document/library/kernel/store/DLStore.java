@@ -29,9 +29,6 @@ import java.io.InputStream;
 @Transactional(rollbackFor = {PortalException.class, SystemException.class})
 public interface DLStore {
 
-	public void addDirectory(long companyId, long repositoryId, String dirName)
-		throws PortalException;
-
 	public void addFile(
 			long companyId, long repositoryId, String fileName,
 			boolean validateFileExtension, byte[] bytes)
@@ -59,8 +56,6 @@ public interface DLStore {
 			long companyId, long repositoryId, String fileName, InputStream is)
 		throws PortalException;
 
-	public void checkRoot(long companyId);
-
 	public void copyFileVersion(
 			long companyId, long repositoryId, String fileName,
 			String fromVersionLabel, String toVersionLabel)
@@ -73,14 +68,6 @@ public interface DLStore {
 		throws PortalException;
 
 	public void deleteFile(
-			long companyId, long repositoryId, String fileName,
-			String versionLabel)
-		throws PortalException;
-
-	public File getFile(long companyId, long repositoryId, String fileName)
-		throws PortalException;
-
-	public File getFile(
 			long companyId, long repositoryId, String fileName,
 			String versionLabel)
 		throws PortalException;
@@ -110,10 +97,6 @@ public interface DLStore {
 	public long getFileSize(long companyId, long repositoryId, String fileName)
 		throws PortalException;
 
-	public boolean hasDirectory(
-			long companyId, long repositoryId, String dirName)
-		throws PortalException;
-
 	public boolean hasFile(long companyId, long repositoryId, String fileName)
 		throws PortalException;
 
@@ -123,18 +106,6 @@ public interface DLStore {
 		throws PortalException;
 
 	public boolean isValidName(String name);
-
-	public void move(String srcDir, String destDir);
-
-	public void updateFile(
-			long companyId, long repositoryId, long newRepositoryId,
-			String fileName)
-		throws PortalException;
-
-	public void updateFile(
-			long companyId, long repositoryId, String fileName,
-			String newFileName)
-		throws PortalException;
 
 	public void updateFile(
 			long companyId, long repositoryId, String fileName,

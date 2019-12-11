@@ -27,7 +27,7 @@ import org.osgi.service.component.annotations.Component;
 	immediate = true,
 	property = {
 		"ddm.form.field.type.description=text-field-type-description",
-		"ddm.form.field.type.display.order:Integer=2",
+		"ddm.form.field.type.display.order:Integer=1",
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=text",
 		"ddm.form.field.type.label=text-field-type-label",
 		"ddm.form.field.type.name=text"

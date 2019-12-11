@@ -130,6 +130,16 @@ public class WorkflowLogSerDes {
 			sb.append(String.valueOf(workflowLog.getPreviousPerson()));
 		}
 
+		if (workflowLog.getPreviousRole() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"previousRole\": ");
+
+			sb.append(String.valueOf(workflowLog.getPreviousRole()));
+		}
+
 		if (workflowLog.getPreviousState() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -142,6 +152,16 @@ public class WorkflowLogSerDes {
 			sb.append(_escape(workflowLog.getPreviousState()));
 
 			sb.append("\"");
+		}
+
+		if (workflowLog.getRole() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"role\": ");
+
+			sb.append(String.valueOf(workflowLog.getRole()));
 		}
 
 		if (workflowLog.getState() != null) {
@@ -177,7 +197,7 @@ public class WorkflowLogSerDes {
 
 			sb.append("\"");
 
-			sb.append(_escape(workflowLog.getType()));
+			sb.append(workflowLog.getType());
 
 			sb.append("\"");
 		}
@@ -246,6 +266,14 @@ public class WorkflowLogSerDes {
 				String.valueOf(workflowLog.getPreviousPerson()));
 		}
 
+		if (workflowLog.getPreviousRole() == null) {
+			map.put("previousRole", null);
+		}
+		else {
+			map.put(
+				"previousRole", String.valueOf(workflowLog.getPreviousRole()));
+		}
+
 		if (workflowLog.getPreviousState() == null) {
 			map.put("previousState", null);
 		}
@@ -253,6 +281,13 @@ public class WorkflowLogSerDes {
 			map.put(
 				"previousState",
 				String.valueOf(workflowLog.getPreviousState()));
+		}
+
+		if (workflowLog.getRole() == null) {
+			map.put("role", null);
+		}
+		else {
+			map.put("role", String.valueOf(workflowLog.getRole()));
 		}
 
 		if (workflowLog.getState() == null) {
@@ -332,9 +367,21 @@ public class WorkflowLogSerDes {
 						CreatorSerDes.toDTO((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "previousRole")) {
+				if (jsonParserFieldValue != null) {
+					workflowLog.setPreviousRole(
+						RoleSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "previousState")) {
 				if (jsonParserFieldValue != null) {
 					workflowLog.setPreviousState((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "role")) {
+				if (jsonParserFieldValue != null) {
+					workflowLog.setRole(
+						RoleSerDes.toDTO((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "state")) {
@@ -350,7 +397,8 @@ public class WorkflowLogSerDes {
 			}
 			else if (Objects.equals(jsonParserFieldName, "type")) {
 				if (jsonParserFieldValue != null) {
-					workflowLog.setType((String)jsonParserFieldValue);
+					workflowLog.setType(
+						WorkflowLog.Type.create((String)jsonParserFieldValue));
 				}
 			}
 			else {
@@ -364,9 +412,11 @@ public class WorkflowLogSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

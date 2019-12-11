@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServices
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
+import com.liferay.dynamic.data.mapping.form.web.internal.configuration.DDMFormWebConfiguration;
 import com.liferay.dynamic.data.mapping.form.web.internal.security.permission.resource.DDMFormInstancePermission;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
@@ -98,6 +99,7 @@ public class DDMFormDisplayContext {
 		DDMFormRenderer ddmFormRenderer,
 		DDMFormValuesFactory ddmFormValuesFactory,
 		DDMFormValuesMerger ddmFormValuesMerger,
+		DDMFormWebConfiguration ddmFormWebConfiguration,
 		GroupLocalService groupLocalService, JSONFactory jsonFactory,
 		WorkflowDefinitionLinkLocalService workflowDefinitionLinkLocalService,
 		Portal portal) {
@@ -114,6 +116,7 @@ public class DDMFormDisplayContext {
 		_ddmFormRenderer = ddmFormRenderer;
 		_ddmFormValuesFactory = ddmFormValuesFactory;
 		_ddmFormValuesMerger = ddmFormValuesMerger;
+		_ddmFormWebConfiguration = ddmFormWebConfiguration;
 		_groupLocalService = groupLocalService;
 		_jsonFactory = jsonFactory;
 		_workflowDefinitionLinkLocalService =
@@ -134,6 +137,10 @@ public class DDMFormDisplayContext {
 			renderRequest.setAttribute(
 				WebKeys.PORTLET_CONFIGURATOR_VISIBILITY, Boolean.TRUE);
 		}
+	}
+
+	public int getAutosaveInterval() {
+		return _ddmFormWebConfiguration.autosaveInterval() * 60000;
 	}
 
 	public String[] getAvailableLanguageIds() throws PortalException {
@@ -350,7 +357,9 @@ public class DDMFormDisplayContext {
 			DDMFormInstanceSettings formInstanceSettings =
 				formInstance.getSettingsModel();
 
-			_autosaveEnabled = formInstanceSettings.autosaveEnabled();
+			_autosaveEnabled =
+				formInstanceSettings.autosaveEnabled() &&
+				(getAutosaveInterval() > 0);
 		}
 
 		return _autosaveEnabled;
@@ -761,6 +770,7 @@ public class DDMFormDisplayContext {
 	private final DDMFormRenderer _ddmFormRenderer;
 	private final DDMFormValuesFactory _ddmFormValuesFactory;
 	private final DDMFormValuesMerger _ddmFormValuesMerger;
+	private final DDMFormWebConfiguration _ddmFormWebConfiguration;
 	private final GroupLocalService _groupLocalService;
 	private Boolean _hasAddFormInstanceRecordPermission;
 	private Boolean _hasViewPermission;

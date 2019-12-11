@@ -1,0 +1,38 @@
+definition {
+
+	macro addBasicTableView {
+		AppBuilderAdmin.switchTab(tabName = "Table Views");
+
+		AppBuilderAdmin.add();
+
+		TableViewBuilder.addColumnByDoubleClick(fieldType = "${fieldType}");
+
+		TableViewBuilder.setName(tableViewName = "${tableViewName}");
+
+		TableViewBuilder.save();
+	}
+
+	macro addColumnByDoubleClick {
+
+		var key_fieldType = "${fieldType}";
+
+		DoubleClick(locator1 = "FormViewBuilder#ADD_FIELD_TYPE");
+
+		TableViewBuilder.validateColumnLabel(columnLabel = "${fieldType}");
+	}
+
+	macro save {
+		AppBuilderAdmin.save();
+	}
+
+	macro setName {
+		AppBuilderAdmin.setName(title = "${tableViewName}");
+	}
+
+	macro validateColumnLabel {
+		AssertTextEquals(
+			locator1 = "TableViewBuilder#COLUMN_LABEL",
+			value1 = "${columnLabel}");
+	}
+
+}

@@ -46,8 +46,10 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 
 /**
- * @author Andrea Di Giorgi
+ * @author     Andrea Di Giorgi
+ * @deprecated As of Judson (7.1.x), with no direct replacement
  */
+@Deprecated
 public class JSTranspilerPlugin implements Plugin<Project> {
 
 	public static final String DOWNLOAD_METAL_CLI_TASK_NAME =

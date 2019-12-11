@@ -50,21 +50,11 @@ DecimalFormat decimalFormat = portletConfigurationCSSPortletDisplayContext.getDe
 
 		</aui:select>
 
-		<%
-		Map<String, Object> context = new HashMap<>();
-
-		context.put("color", portletConfigurationCSSPortletDisplayContext.getTextDataProperty("color"));
-		context.put("id", renderResponse.getNamespace() + "fontColor");
-		context.put("label", LanguageUtil.get(request, "color"));
-		context.put("name", renderResponse.getNamespace() + "fontColor");
-		%>
-
-		<soy:component-renderer
-			context="<%= context %>"
-			module="js/ColorPickerInput.es"
-			servletContext="<%= application %>"
-			templateNamespace="com.liferay.portlet.configuration.css.web.ColorPickerInput.render"
-		/>
+		<liferay-util:include page="/color_picker_input.jsp" servletContext="<%= application %>">
+			<liferay-util:param name="color" value='<%= portletConfigurationCSSPortletDisplayContext.getTextDataProperty("color") %>' />
+			<liferay-util:param name="label" value='<%= LanguageUtil.get(request, "color") %>' />
+			<liferay-util:param name="name" value='<%= renderResponse.getNamespace() + "fontColor" %>' />
+		</liferay-util:include>
 
 		<aui:select label="alignment" name="textAlign" showEmptyOption="<%= true %>">
 			<aui:option label="justify" selected='<%= Objects.equals(portletConfigurationCSSPortletDisplayContext.getTextDataProperty("textAlign"), "justify") %>' />

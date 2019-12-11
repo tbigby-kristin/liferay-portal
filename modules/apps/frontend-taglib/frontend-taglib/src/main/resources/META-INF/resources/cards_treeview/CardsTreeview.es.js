@@ -13,10 +13,10 @@
  */
 
 import Soy from 'metal-soy';
-import {Treeview} from 'frontend-js-web';
 import {Config} from 'metal-state';
 
 import templates from './CardsTreeview.soy';
+import Treeview from './Treeview.es';
 
 /**
  * CardsTreeview

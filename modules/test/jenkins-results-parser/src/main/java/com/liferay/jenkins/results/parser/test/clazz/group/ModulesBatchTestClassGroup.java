@@ -31,7 +31,7 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 
 	@Override
 	public int getAxisCount() {
-		if (testRelevantIntegrationUnitOnly) {
+		if (!isStableTestSuiteBatch() && testRelevantIntegrationUnitOnly) {
 			return 0;
 		}
 
@@ -84,6 +84,22 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 					getPathMatchers(
 						getFirstPropertyValue("modules.includes.private"),
 						modulesDir));
+
+				if (includeStableTestSuite && isStableTestSuiteBatch()) {
+					excludesPathMatchers.addAll(
+						getPathMatchers(
+							getFirstPropertyValue(
+								"modules.excludes.private", batchName,
+								NAME_STABLE_TEST_SUITE),
+							modulesDir));
+
+					includesPathMatchers.addAll(
+						getPathMatchers(
+							getFirstPropertyValue(
+								"modules.includes.private", batchName,
+								NAME_STABLE_TEST_SUITE),
+							modulesDir));
+				}
 			}
 			else {
 				excludesPathMatchers.addAll(
@@ -95,6 +111,22 @@ public abstract class ModulesBatchTestClassGroup extends BatchTestClassGroup {
 					getPathMatchers(
 						getFirstPropertyValue("modules.includes.public"),
 						modulesDir));
+
+				if (includeStableTestSuite && isStableTestSuiteBatch()) {
+					excludesPathMatchers.addAll(
+						getPathMatchers(
+							getFirstPropertyValue(
+								"modules.excludes.public", batchName,
+								NAME_STABLE_TEST_SUITE),
+							modulesDir));
+
+					includesPathMatchers.addAll(
+						getPathMatchers(
+							getFirstPropertyValue(
+								"modules.includes.public", batchName,
+								NAME_STABLE_TEST_SUITE),
+							modulesDir));
+				}
 			}
 
 			if (testRelevantChanges) {

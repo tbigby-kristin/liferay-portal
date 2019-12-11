@@ -27,12 +27,13 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 <aui:input name="ddmStructureKey" type="hidden" value="<%= ddmStructure.getStructureKey() %>" />
 
 <c:if test="<%= journalWebConfiguration.changeableDefaultLanguage() %>">
-	<soy:component-renderer
-		context="<%= journalEditArticleDisplayContext.getChangeDefaultLanguageSoyContext() %>"
-		module="js/ChangeDefaultLanguage.es"
-		servletContext="<%= application %>"
-		templateNamespace="com.liferay.journal.web.ChangeDefaultLanguage.render"
-	/>
+	<div id="<%= renderResponse.getNamespace() + "-change-default-language" %>">
+		<react:component
+			data="<%= journalEditArticleDisplayContext.getChangeDefaultLanguageData() %>"
+			module="js/ChangeDefaultLanguage.es"
+			servletContext="<%= application %>"
+		/>
+	</div>
 </c:if>
 
 <p class="article-structure">
@@ -64,7 +65,11 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 		</div>
 
 		<aui:script>
-			Liferay.Util.disableToggleBoxes('<portlet:namespace />autoArticleId', '<portlet:namespace />newArticleId', true);
+			Liferay.Util.disableToggleBoxes(
+				'<portlet:namespace />autoArticleId',
+				'<portlet:namespace />newArticleId',
+				true
+			);
 		</aui:script>
 	</c:when>
 	<c:otherwise>
@@ -85,12 +90,13 @@ DDMStructure ddmStructure = journalEditArticleDisplayContext.getDDMStructure();
 	<liferay-ui:input-localized
 		availableLocales="<%= journalEditArticleDisplayContext.getAvailableLocales() %>"
 		cssClass="form-control"
-		defaultLanguageId="<%= journalEditArticleDisplayContext.getDefaultLanguageId() %>"
+		defaultLanguageId="<%= journalEditArticleDisplayContext.getDefaultArticleLanguageId() %>"
 		editorName="alloyeditor"
 		formName="fm"
 		ignoreRequestValue="<%= journalEditArticleDisplayContext.isChangeStructure() %>"
 		name="descriptionMapAsXML"
 		placeholder="description"
+		selectedLanguageId="<%= journalEditArticleDisplayContext.getSelectedLanguageId() %>"
 		type="editor"
 		xml="<%= (article != null) ? article.getDescriptionMapAsXML() : StringPool.BLANK %>"
 	/>

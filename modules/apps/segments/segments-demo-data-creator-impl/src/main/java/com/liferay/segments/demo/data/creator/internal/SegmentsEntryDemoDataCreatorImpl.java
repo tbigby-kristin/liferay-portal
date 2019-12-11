@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -38,7 +39,6 @@ import com.liferay.segments.service.SegmentsEntryRelLocalService;
 import java.io.IOException;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -56,13 +56,6 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = SegmentsEntryDemoDataCreator.class)
 public class SegmentsEntryDemoDataCreatorImpl
 	implements SegmentsEntryDemoDataCreator {
-
-	@Activate
-	public void activate(BundleContext bundleContext) {
-		Collections.addAll(_availableIndexes, new Integer[] {1, 2});
-
-		Collections.shuffle(_availableIndexes);
-	}
 
 	@Override
 	public SegmentsEntry create(long userId, long groupId)
@@ -117,6 +110,13 @@ public class SegmentsEntryDemoDataCreatorImpl
 		}
 	}
 
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		Collections.addAll(_availableIndexes, new Integer[] {1, 2});
+
+		Collections.shuffle(_availableIndexes);
+	}
+
 	private String _getCriteria(int index) {
 		Class<?> clazz = getClass();
 
@@ -142,36 +142,34 @@ public class SegmentsEntryDemoDataCreatorImpl
 	private Map<Locale, String> _getDescriptionMap(int index)
 		throws IOException {
 
-		Class<?> clazz = getClass();
+		return HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(),
+			() -> {
+				Class<?> clazz = getClass();
 
-		String descriptionPath = StringBundler.concat(
-			"com/liferay/segments/demo/data/creator/internal/dependencies",
-			"/segment", index, "/description.txt");
+				String descriptionPath = StringBundler.concat(
+					"com/liferay/segments/demo/data/creator/internal",
+					"/dependencies/segment", index, "/description.txt");
 
-		String description = StringUtil.read(
-			clazz.getClassLoader(), descriptionPath, false);
-
-		Map<Locale, String> descriptionMap = new HashMap<>();
-
-		descriptionMap.put(LocaleUtil.getSiteDefault(), description);
-
-		return descriptionMap;
+				return StringUtil.read(
+					clazz.getClassLoader(), descriptionPath, false);
+			}
+		).build();
 	}
 
 	private Map<Locale, String> _getNameMap(int index) throws IOException {
-		Class<?> clazz = getClass();
+		return HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(),
+			() -> {
+				Class<?> clazz = getClass();
 
-		String namePath = StringBundler.concat(
-			"com/liferay/segments/demo/data/creator/internal/dependencies",
-			"/segment", index, "/name.txt");
+				String namePath = StringBundler.concat(
+					"com/liferay/segments/demo/data/creator/internal",
+					"/dependencies/segment", index, "/name.txt");
 
-		String name = StringUtil.read(clazz.getClassLoader(), namePath, false);
-
-		Map<Locale, String> nameMap = new HashMap<>();
-
-		nameMap.put(LocaleUtil.getSiteDefault(), name);
-
-		return nameMap;
+				return StringUtil.read(clazz.getClassLoader(), namePath, false);
+			}
+		).build();
 	}
 
 	private int _getNextIndex() {

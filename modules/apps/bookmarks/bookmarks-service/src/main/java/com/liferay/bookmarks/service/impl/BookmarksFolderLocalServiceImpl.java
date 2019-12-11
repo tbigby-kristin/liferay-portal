@@ -164,7 +164,7 @@ public class BookmarksFolderLocalServiceImpl
 
 		// Entries
 
-		_blogsEntryLocalService.deleteEntries(
+		_bookmarksEntryLocalService.deleteEntries(
 			folder.getGroupId(), folder.getFolderId(), includeTrashedEntries);
 
 		// Asset
@@ -523,7 +523,7 @@ public class BookmarksFolderLocalServiceImpl
 						long parentPrimaryKey, String treePath)
 					throws PortalException {
 
-					_blogsEntryLocalService.setTreePaths(
+					_bookmarksEntryLocalService.setTreePaths(
 						parentPrimaryKey, treePath, false);
 				}
 
@@ -618,40 +618,6 @@ public class BookmarksFolderLocalServiceImpl
 		assetLinkLocalService.updateLinks(
 			userId, assetEntry.getEntryId(), assetLinkEntryIds,
 			AssetLinkConstants.TYPE_RELATED);
-	}
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 *             #updateFolder(long, long, long, String, String,
-	 *             ServiceContext)} and {@link #mergeFolders(long, long)}
-	 */
-	@Deprecated
-	@Indexable(type = IndexableType.REINDEX)
-	@Override
-	public BookmarksFolder updateFolder(
-			long userId, long folderId, long parentFolderId, String name,
-			String description, boolean mergeWithParentFolder,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		// Merge folders
-
-		BookmarksFolder folder = bookmarksFolderPersistence.findByPrimaryKey(
-			folderId);
-
-		parentFolderId = getParentFolderId(folder, parentFolderId);
-
-		if (mergeWithParentFolder && (folderId != parentFolderId)) {
-			mergeFolders(folder, parentFolderId);
-
-			return folder;
-		}
-
-		// Folder
-
-		return updateFolder(
-			userId, folderId, parentFolderId, name, description,
-			serviceContext);
 	}
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -1024,7 +990,7 @@ public class BookmarksFolderLocalServiceImpl
 	}
 
 	@Reference
-	private BookmarksEntryLocalService _blogsEntryLocalService;
+	private BookmarksEntryLocalService _bookmarksEntryLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

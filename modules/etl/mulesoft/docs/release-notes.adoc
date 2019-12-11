@@ -1,0 +1,24 @@
+= Anypoint&#8482; Liferay Connector Release Notes
+
+The Anypoint Liferay Connector connects Liferay to platforms and services in
+the Mulesoft ecosystem.
+
+== Prerequisites
+- *Supported Mule Runtime Versions*: 4.x
+- *JDK* 1.8+
+- *Anypoint Studio* 7.x or access to *Design Center*
+- *Liferay OpenAPI Specifications*:
+https://app.swaggerhub.com/organizations/liferayinc
+
+== Features
+The Liferay Connector supports
+
+- *Basic authentication*
+- *OAuth 2.0*
+
+After configuring authentication parameters, add an OpenAPI document to
+dynamically configure the connector using the available endpoints and
+parameters.
+
+After configuring the connector, you can *Create*, *Delete*, *Get*, or *Update*
+resources defined within the specification.

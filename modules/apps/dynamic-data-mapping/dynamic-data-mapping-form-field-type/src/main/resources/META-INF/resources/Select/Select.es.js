@@ -12,19 +12,27 @@
  * details.
  */
 
+/* eslint-disable react/no-string-refs */
+
 import '../FieldBase/FieldBase.es';
+
 import '../Text/Text.es';
+
 import './SelectRegister.soy.js';
+
 import 'clay-dropdown';
+
 import 'clay-icon';
+
 import 'clay-label';
 import Component from 'metal-component';
 import dom from 'metal-dom';
-import Soy from 'metal-soy';
-import templates from './Select.soy.js';
-import {Config} from 'metal-state';
 import {EventHandler} from 'metal-events';
+import Soy from 'metal-soy';
+import {Config} from 'metal-state';
+
 import {setJSONArrayValue} from '../util/setters.es';
+import templates from './Select.soy.js';
 
 class Select extends Component {
 	addValue(value) {
@@ -150,12 +158,12 @@ class Select extends Component {
 		if (newVal) {
 			this.emit('fieldFocused', {
 				fieldInstance: this,
-				originalEvent: event
+				originalEvent: window.event
 			});
 		} else {
 			this.emit('fieldBlurred', {
 				fieldInstance: this,
-				originalEvent: event
+				originalEvent: window.event
 			});
 		}
 
@@ -198,7 +206,7 @@ class Select extends Component {
 		);
 	}
 
-	_handleLabelClosed({target, preventDefault, stopPropagation}) {
+	_handleLabelClosed({preventDefault, stopPropagation, target}) {
 		const {value} = target.data;
 
 		preventDefault();
@@ -233,16 +241,26 @@ class Select extends Component {
 			type: multiple ? 'checkbox' : 'item'
 		};
 	}
+
+	_setDataSourceType(value) {
+		if (Array.isArray(value)) {
+			return value[value.length - 1];
+		}
+
+		return value;
+	}
 }
 
 Select.STATE = {
 	/**
-	 * @default 'string'
+	 * @default 'manual'
 	 * @memberof Select
 	 * @type {?(string|undefined)}
 	 */
 
-	dataSourceType: Config.string(),
+	dataSourceType: Config.oneOfType([Config.string(), Config.array()])
+		.setter('_setDataSourceType')
+		.value('manual'),
 
 	/**
 	 * @default 'string'

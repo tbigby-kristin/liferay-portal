@@ -46,6 +46,10 @@ import com.liferay.message.boards.settings.MBGroupServiceSettings;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Field;
@@ -53,8 +57,8 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.search.filter.TermFilter;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.service.UserService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -65,14 +69,17 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 import com.liferay.portal.vulcan.util.SearchUtil;
+import com.liferay.ratings.kernel.model.RatingsStats;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalService;
 import com.liferay.ratings.kernel.service.RatingsStatsLocalService;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
@@ -167,6 +174,23 @@ public class MessageBoardThreadResourceImpl
 			messageBoardThreadId);
 
 		return spiRatingResource.getRating(mbThread.getRootMessageId());
+	}
+
+	@Override
+	public Page<MessageBoardThread> getMessageBoardThreadsRankedPage(
+		Date dateCreated, Date dateModified, Pagination pagination,
+		Sort[] sorts) {
+
+		DynamicQuery dynamicQuery = _getDynamicQuery(
+			dateCreated, dateModified, pagination, sorts);
+
+		return Page.of(
+			transform(
+				_ratingsStatsLocalService.dynamicQuery(dynamicQuery),
+				(RatingsStats ratingsStats) -> _toMessageBoardThread(
+					_mbMessageService.getMessage(ratingsStats.getClassPK()))),
+			pagination,
+			_ratingsStatsLocalService.dynamicQueryCount(dynamicQuery));
 	}
 
 	@Override
@@ -273,6 +297,26 @@ public class MessageBoardThreadResourceImpl
 			rating.getRatingValue(), mbThread.getRootMessageId());
 	}
 
+	@Override
+	public void putMessageBoardThreadSubscribe(Long messageBoardThreadId)
+		throws Exception {
+
+		MBThread mbThread = _mbThreadLocalService.getThread(
+			messageBoardThreadId);
+
+		_mbMessageService.subscribeMessage(mbThread.getRootMessageId());
+	}
+
+	@Override
+	public void putMessageBoardThreadUnsubscribe(Long messageBoardThreadId)
+		throws Exception {
+
+		MBThread mbThread = _mbThreadLocalService.getThread(
+			messageBoardThreadId);
+
+		_mbMessageService.unsubscribeMessage(mbThread.getRootMessageId());
+	}
+
 	private MessageBoardThread _addMessageBoardThread(
 			Long siteId, Long messageBoardSectionId,
 			MessageBoardThread messageBoardThread)
@@ -291,6 +335,58 @@ public class MessageBoardThreadResourceImpl
 		_updateQuestion(mbMessage, messageBoardThread);
 
 		return _toMessageBoardThread(mbMessage);
+	}
+
+	private DynamicQuery _getDynamicQuery(
+		Date dateCreated, Date dateModified, Pagination pagination,
+		Sort[] sorts) {
+
+		DynamicQuery dynamicQuery = _ratingsStatsLocalService.dynamicQuery();
+
+		ClassName className = _classNameLocalService.getClassName(
+			MBMessage.class.getName());
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.eq(
+				"classNameId", className.getClassNameId()));
+
+		if (dateCreated != null) {
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.gt("createDate", dateCreated));
+		}
+
+		if (dateModified != null) {
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.gt("modifiedDate", dateCreated));
+		}
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.sqlRestriction(
+				"EXISTS (SELECT 1 FROM MBMessage WHERE this_.classPK = " +
+					"messageId AND parentMessageId = 0)"));
+
+		dynamicQuery.setLimit(
+			pagination.getStartPosition(), pagination.getEndPosition());
+
+		if (sorts == null) {
+			dynamicQuery.addOrder(OrderFactoryUtil.desc("totalScore"));
+		}
+		else {
+			for (Sort sort : sorts) {
+				String fieldName = sort.getFieldName();
+
+				fieldName = StringUtil.replace(fieldName, "_sortable", "");
+
+				if (sort.isReverse()) {
+					dynamicQuery.addOrder(OrderFactoryUtil.desc(fieldName));
+				}
+				else {
+					dynamicQuery.addOrder(OrderFactoryUtil.asc(fieldName));
+				}
+			}
+		}
+
+		return dynamicQuery;
 	}
 
 	private Map<String, Serializable> _getExpandoBridgeAttributes(
@@ -350,7 +446,8 @@ public class MessageBoardThreadResourceImpl
 						MBMessage.class.getName(), mbMessage.getMessageId()));
 				articleBody = mbMessage.getBody();
 				creator = CreatorUtil.toCreator(
-					_portal, _userService.getUserById(mbThread.getUserId()));
+					_portal,
+					_userLocalService.getUserById(mbThread.getUserId()));
 				customFields = CustomFieldsUtil.toCustomFields(
 					MBMessage.class.getName(), mbMessage.getMessageId(),
 					mbThread.getCompanyId(),
@@ -376,6 +473,9 @@ public class MessageBoardThreadResourceImpl
 					contextAcceptLanguage.getPreferredLocale());
 				showAsQuestion = mbThread.isQuestion();
 				siteId = mbThread.getGroupId();
+				subscribed = _subscriptionLocalService.isSubscribed(
+					mbMessage.getCompanyId(), contextUser.getUserId(),
+					MBThread.class.getName(), mbMessage.getThreadId());
 				threadType = _toThreadType(
 					mbThread.getGroupId(), mbThread.getPriority());
 				viewCount = mbThread.getViewCount();
@@ -465,6 +565,9 @@ public class MessageBoardThreadResourceImpl
 	private AssetTagLocalService _assetTagLocalService;
 
 	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
 	private ExpandoColumnLocalService _expandoColumnLocalService;
 
 	@Reference
@@ -495,9 +598,9 @@ public class MessageBoardThreadResourceImpl
 	private RatingsStatsLocalService _ratingsStatsLocalService;
 
 	@Reference
-	private UserLocalService _userLocalService;
+	private SubscriptionLocalService _subscriptionLocalService;
 
 	@Reference
-	private UserService _userService;
+	private UserLocalService _userLocalService;
 
 }

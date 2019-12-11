@@ -183,7 +183,7 @@ definition {
 
 		var count = Page.getTextCountFromHtmlSource(text = "document.write");
 
-		if (!("${count}" == "2")) {
+		if ("${count}" != "2") {
 			fail("That response should contain two document.write commands");
 		}
 	}
@@ -735,11 +735,15 @@ definition {
 
 		PortalSettings.viewEnabledLDAPSetting(enableSettingList = "${enableSettingList}");
 
+		User.logoutPG(specificURL = "http://www.able.com:9080");
+
 		Portlet.shutdownServer();
 
 		Portlet.startServer(deleteLiferayHome = "false");
 
-		User.firstLoginPG();
+		User.loginPG(
+			password = "test",
+			userEmailAddress = "test@liferay.com");
 
 		ProductMenu.gotoPortlet(
 			category = "Configuration",

@@ -23,6 +23,8 @@ import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
@@ -34,8 +36,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +54,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest({PortalClassLoaderUtil.class, ResourceBundleUtil.class})
+@PrepareForTest(
+	{
+		LocaleThreadLocal.class, PortalClassLoaderUtil.class,
+		ResourceBundleUtil.class
+	}
+)
 @RunWith(PowerMockRunner.class)
 public class SelectDDMFormFieldTemplateContextContributorTest
 	extends BaseDDMFormFieldTypeSettingsTestCase {
@@ -63,6 +68,8 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
+
+		_setUpLocaleThreadLocal();
 
 		setUpJSONFactory();
 	}
@@ -115,9 +122,10 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext =
 			new DDMFormFieldRenderingContext();
 
-		Map<String, Object> changedProperties = new HashMap<>();
-
-		changedProperties.put("multiple", true);
+		Map<String, Object> changedProperties =
+			HashMapBuilder.<String, Object>put(
+				"multiple", true
+			).build();
 
 		ddmFormFieldRenderingContext.setProperty(
 			"changedProperties", changedProperties);
@@ -295,12 +303,11 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 	}
 
 	protected Map<String, String> createOption(String label, String value) {
-		Map<String, String> option = new HashMap<>();
-
-		option.put("label", label);
-		option.put("value", value);
-
-		return option;
+		return HashMapBuilder.put(
+			"label", label
+		).put(
+			"value", value
+		).build();
 	}
 
 	protected SelectDDMFormFieldTemplateContextContributor createSpy() {
@@ -308,15 +315,7 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 			_selectDDMFormFieldTemplateContextContributor);
 
 		PowerMockitoStubber powerMockitoStubber = PowerMockito.doReturn(
-			LocaleUtil.US);
-
-		powerMockitoStubber.when(
-			spy
-		).getDisplayLocale(
-			Matchers.any(HttpServletRequest.class)
-		);
-
-		powerMockitoStubber = PowerMockito.doReturn(_resourceBundle);
+			_resourceBundle);
 
 		powerMockitoStubber.when(
 			spy
@@ -376,6 +375,16 @@ public class SelectDDMFormFieldTemplateContextContributorTest
 		}
 
 		return jsonArray;
+	}
+
+	private void _setUpLocaleThreadLocal() {
+		mockStatic(LocaleThreadLocal.class);
+
+		when(
+			LocaleThreadLocal.getThemeDisplayLocale()
+		).thenReturn(
+			LocaleUtil.US
+		);
 	}
 
 	@Mock

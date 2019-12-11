@@ -105,12 +105,7 @@ renderResponse.setTitle((role == null) ? LanguageUtil.get(request, "new-role") :
 				</c:otherwise>
 			</c:choose>
 
-			<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="title">
-				<c:if test="<%= (role == null) || !role.isSystem() %>">
-					<aui:validator name="required" />
-				</c:if>
-			</aui:input>
-
+			<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" helpMessage="title-field-help" name="title" />
 			<aui:input name="description" />
 
 			<c:if test="<%= role != null %>">
@@ -153,6 +148,7 @@ renderResponse.setTitle((role == null) ? LanguageUtil.get(request, "new-role") :
 
 			<c:choose>
 				<c:when test="<%= (role != null) && role.isSystem() %>">
+					<aui:input disabled="<%= true %>" helpMessage="key-field-help" label="key" name="viewNameField" type="text" value="<%= roleName %>" />
 					<aui:input name="name" type="hidden" value="<%= roleName %>" />
 				</c:when>
 				<c:otherwise>
@@ -194,32 +190,26 @@ renderResponse.setTitle((role == null) ? LanguageUtil.get(request, "new-role") :
 
 <c:if test="<%= role == null %>">
 	<aui:script require="frontend-js-web/liferay/debounce/debounce.es as debounceModule">
-		const form = document.getElementById('<portlet:namespace />fm');
+		var form = document.getElementById('<portlet:namespace />fm');
 
 		if (form) {
-			const nameInput = form.querySelector('#<portlet:namespace />name');
-			const titleInput = form.querySelector('#<portlet:namespace />title');
+			var nameInput = form.querySelector('#<portlet:namespace />name');
+			var titleInput = form.querySelector('#<portlet:namespace />title');
 
 			if (nameInput && titleInput) {
-				const debounce = debounceModule.default;
+				var debounce = debounceModule.default;
 
-				const handleOnTitleInput = function(event) {
-					let value = event.target.value;
+				var handleOnTitleInput = function(event) {
+					var value = event.target.value;
 
 					if (nameInput.hasAttribute('maxLength')) {
-						value = value.substring(
-							0,
-							nameInput.getAttribute('maxLength')
-						);
+						value = value.substring(0, nameInput.getAttribute('maxLength'));
 					}
 
 					nameInput.value = value;
 				};
 
-				titleInput.addEventListener(
-					'input',
-					debounce(handleOnTitleInput, 200)
-				);
+				titleInput.addEventListener('input', debounce(handleOnTitleInput, 200));
 			}
 		}
 	</aui:script>

@@ -30,20 +30,6 @@ page import="com.liferay.portal.search.web.internal.modified.facet.display.conte
 
 <portlet:defineObjects />
 
-<style>
-	.facet-checkbox-label {
-		display: block;
-	}
-
-	.facet-term-selected {
-		font-weight: 600;
-	}
-
-	.facet-term-unselected {
-		font-weight: 400;
-	}
-</style>
-
 <%
 ModifiedFacetDisplayContext modifiedFacetDisplayContext = (ModifiedFacetDisplayContext)java.util.Objects.requireNonNull(request.getAttribute(WebKeys.PORTLET_DISPLAY_CONTEXT));
 
@@ -147,15 +133,27 @@ ModifiedFacetCalendarDisplayContext modifiedFacetCalendarDisplayContext = modifi
 				</aui:field-wrapper>
 
 				<c:if test="<%= !modifiedFacetDisplayContext.isNothingSelected() %>">
-					<aui:a cssClass="modified-facet-a-clear text-default" href="javascript:;" onClick="Liferay.Search.ModifiedFacetFilterUtil.clearSelections(event);">
-						<small><liferay-ui:message key="clear" /></small>
-					</aui:a>
+					<aui:button cssClass="btn-link btn-unstyled facet-clear-btn" onClick="Liferay.Search.FacetUtil.clearSelections(event);" value="clear" />
 				</c:if>
 			</aui:form>
 		</liferay-ui:panel>
 	</liferay-ui:panel-container>
 
 	<aui:script use="liferay-search-modified-facet">
-		new Liferay.Search.ModifiedFacetFilter(A.one('#<portlet:namespace/>modifiedFacetForm'), Liferay.component('<portlet:namespace />fromInputDatePicker'), Liferay.component('<portlet:namespace />toInputDatePicker'));
+		new Liferay.Search.ModifiedFacetFilter({
+			form: A.one('#<portlet:namespace/>modifiedFacetForm'),
+			fromInputDatePicker: Liferay.component(
+				'<portlet:namespace />fromInputDatePicker'
+			),
+			fromInputName: '<portlet:namespace />fromInput',
+			namespace: '<portlet:namespace />',
+			searchCustomRangeButton: A.one(
+				'#<portlet:namespace />searchCustomRangeButton'
+			),
+			toInputDatePicker: Liferay.component(
+				'<portlet:namespace />toInputDatePicker'
+			),
+			toInputName: '<portlet:namespace />toInput'
+		});
 	</aui:script>
 </c:if>

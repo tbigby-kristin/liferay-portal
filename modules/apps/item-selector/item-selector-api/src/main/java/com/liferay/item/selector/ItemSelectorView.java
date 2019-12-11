@@ -46,7 +46,7 @@ public interface ItemSelectorView<T extends ItemSelectorCriterion> {
 	 *
 	 * @return the item selector criterion associated to this item selector view
 	 */
-	public Class<T> getItemSelectorCriterionClass();
+	public Class<? extends T> getItemSelectorCriterionClass();
 
 	/**
 	 * Returns the item selector return types that this view supports.
@@ -63,19 +63,6 @@ public interface ItemSelectorView<T extends ItemSelectorCriterion> {
 	 * @return the localized title of the tab
 	 */
 	public String getTitle(Locale locale);
-
-	/**
-	 * Returns whether the item selector view should show the search field. If
-	 * the view supports search, this method should return <code>true</code>.
-	 *
-	 * @return     <code>true</code> if the item selector view should show the
-	 *             search field
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public default boolean isShowSearch() {
-		return true;
-	}
 
 	/**
 	 * Returns whether the item selector view is visible.

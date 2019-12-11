@@ -36,7 +36,7 @@ public interface InfoDisplayContributor<T> {
 
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by {@link
-	 * 			   #getInfoDisplayFields(long, Locale)}
+	 *             #getInfoDisplayFields(long, Locale)}
 	 */
 	@Deprecated
 	public default List<InfoDisplayField> getClassTypeInfoDisplayFields(
@@ -55,6 +55,13 @@ public interface InfoDisplayContributor<T> {
 	public Set<InfoDisplayField> getInfoDisplayFields(
 			long classTypeId, Locale locale)
 		throws PortalException;
+
+	public default Set<InfoDisplayField> getInfoDisplayFields(
+			T t, Locale locale)
+		throws PortalException {
+
+		return getInfoDisplayFields(0, locale);
+	}
 
 	public Map<String, Object> getInfoDisplayFieldsValues(T t, Locale locale)
 		throws PortalException;

@@ -14,15 +14,19 @@
 
 package com.liferay.layout.taglib.servlet.taglib;
 
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalServiceUtil;
 import com.liferay.layout.taglib.internal.servlet.ServletContextUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -97,6 +101,7 @@ public class RenderFragmentLayoutTag extends IncludeTag {
 		_mode = null;
 		_plid = 0;
 		_showPreview = false;
+		_structureJSONArray = null;
 	}
 
 	@Override
@@ -113,6 +118,9 @@ public class RenderFragmentLayoutTag extends IncludeTag {
 		httpServletRequest.setAttribute(
 			"liferay-layout:render-fragment-layout:mode", _mode);
 		httpServletRequest.setAttribute(
+			"liferay-layout:render-fragment-layout:previewClassNameId",
+			_getPreviewClassNameId());
+		httpServletRequest.setAttribute(
 			"liferay-layout:render-fragment-layout:previewClassPK",
 			_getPreviewClassPK());
 		httpServletRequest.setAttribute(
@@ -126,12 +134,35 @@ public class RenderFragmentLayoutTag extends IncludeTag {
 			_getStructureJSONArray());
 	}
 
+	private JSONArray _getDefaultStructureJSONArray() {
+		return JSONUtil.putAll(
+			JSONUtil.put(
+				"columns",
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"fragmentEntryLinkIds", JSONUtil.put("drop-zone")
+					).put(
+						"size", 12
+					))
+			).put(
+				"config", JSONUtil.put("isDropZone", true)
+			));
+	}
+
+	private long _getPreviewClassNameId() {
+		if (!_showPreview) {
+			return 0;
+		}
+
+		return ParamUtil.getLong(request, "previewClassNameId");
+	}
+
 	private long _getPreviewClassPK() {
 		if (!_showPreview) {
 			return 0;
 		}
 
-		return ParamUtil.getLong(request, "previewAssetEntryId");
+		return ParamUtil.getLong(request, "previewClassPK");
 	}
 
 	private int _getPreviewType() {
@@ -139,7 +170,7 @@ public class RenderFragmentLayoutTag extends IncludeTag {
 			return 0;
 		}
 
-		return ParamUtil.getInteger(request, "previewAssetEntryType");
+		return ParamUtil.getInteger(request, "previewType");
 	}
 
 	private long[] _getSegmentsExperienceIds() {
@@ -149,28 +180,45 @@ public class RenderFragmentLayoutTag extends IncludeTag {
 	}
 
 	private JSONArray _getStructureJSONArray() {
+		if (_structureJSONArray != null) {
+			return _structureJSONArray;
+		}
+
 		try {
-			LayoutPageTemplateStructure layoutPageTemplateStructure =
+			Layout layout = LayoutLocalServiceUtil.fetchLayout(_plid);
+
+			LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+				LayoutPageTemplateEntryLocalServiceUtil.
+					fetchLayoutPageTemplateEntryByPlid(
+						layout.getMasterLayoutPlid());
+
+			if (masterLayoutPageTemplateEntry == null) {
+				_structureJSONArray = _getDefaultStructureJSONArray();
+
+				return _structureJSONArray;
+			}
+
+			LayoutPageTemplateStructure masterLayoutPageTemplateStructure =
 				LayoutPageTemplateStructureLocalServiceUtil.
 					fetchLayoutPageTemplateStructure(
-						_groupId,
-						PortalUtil.getClassNameId(Layout.class.getName()),
-						_plid, true);
+						masterLayoutPageTemplateEntry.getGroupId(),
+						PortalUtil.getClassNameId(Layout.class),
+						masterLayoutPageTemplateEntry.getPlid());
 
-			long[] segmentsExperienceIds = GetterUtil.getLongValues(
-				request.getAttribute(SegmentsWebKeys.SEGMENTS_EXPERIENCE_IDS),
-				new long[] {SegmentsExperienceConstants.ID_DEFAULT});
-
-			String data = layoutPageTemplateStructure.getData(
-				segmentsExperienceIds);
+			String data = masterLayoutPageTemplateStructure.getData(
+				SegmentsExperienceConstants.ID_DEFAULT);
 
 			if (Validator.isNull(data)) {
-				return null;
+				_structureJSONArray = _getDefaultStructureJSONArray();
+
+				return _structureJSONArray;
 			}
 
 			JSONObject dataJSONObject = JSONFactoryUtil.createJSONObject(data);
 
-			return dataJSONObject.getJSONArray("structure");
+			_structureJSONArray = dataJSONObject.getJSONArray("structure");
+
+			return _structureJSONArray;
 		}
 		catch (Exception e) {
 			_log.error("Unable to get structure JSON array", e);
@@ -189,5 +237,6 @@ public class RenderFragmentLayoutTag extends IncludeTag {
 	private String _mode;
 	private long _plid;
 	private boolean _showPreview;
+	private JSONArray _structureJSONArray;
 
 }

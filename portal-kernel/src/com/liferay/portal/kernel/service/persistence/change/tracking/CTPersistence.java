@@ -14,10 +14,13 @@
 
 package com.liferay.portal.kernel.service.persistence.change.tracking;
 
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.service.persistence.BasePersistence;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Preston Crary
@@ -25,12 +28,13 @@ import java.util.List;
 public interface CTPersistence<T extends CTModel<T>>
 	extends BasePersistence<T> {
 
-	public List<T> findByCTCollectionId(long ctCollectionId);
+	public Set<String> getCTColumnNames(
+		CTColumnResolutionType ctColumnResolutionType);
+
+	public Map<String, Integer> getTableColumnsMap();
+
+	public String getTableName();
 
 	public List<String[]> getUniqueIndexColumnNames();
-
-	public T removeCTModel(T ctModel, boolean quiet);
-
-	public T updateCTModel(T ctModel, boolean quiet);
 
 }

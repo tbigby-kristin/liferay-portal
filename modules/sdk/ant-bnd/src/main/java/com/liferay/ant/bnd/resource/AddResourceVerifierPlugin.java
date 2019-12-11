@@ -19,7 +19,6 @@ import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Analyzer;
 import aQute.bnd.osgi.FileResource;
 import aQute.bnd.osgi.Jar;
-import aQute.bnd.osgi.Resource;
 import aQute.bnd.service.verifier.VerifierPlugin;
 
 import java.io.IOException;
@@ -63,13 +62,13 @@ public class AddResourceVerifierPlugin implements VerifierPlugin {
 							Path path, BasicFileAttributes basicFileAttributes)
 						throws IOException {
 
-						Resource resource = new FileResource(
-							path.toAbsolutePath());
-
 						Path relativePath = jspClassesDir.relativize(path);
 
+						String relativePathString = relativePath.toString();
+
 						jar.putResource(
-							relativePath.toString(), resource, true);
+							relativePathString.replace('\\', '/'),
+							new FileResource(path.toAbsolutePath()), true);
 
 						return FileVisitResult.CONTINUE;
 					}

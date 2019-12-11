@@ -13,17 +13,19 @@
  */
 
 import '../SuccessPage/SuccessPage.es';
-import Component from 'metal-jsx';
-import compose from 'dynamic-data-mapping-form-renderer/js/util/compose.es';
+
 import FormRenderer from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormRenderer.es';
+import compose from 'dynamic-data-mapping-form-renderer/js/util/compose.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+import Component from 'metal-jsx';
+import {Config} from 'metal-state';
+
+import {pageStructure} from '../../util/config.es';
 import withActionableFields from './withActionableFields.es';
 import withEditablePageHeader from './withEditablePageHeader.es';
 import withMoveableFields from './withMoveableFields.es';
 import withMultiplePages from './withMultiplePages.es';
 import withResizeableColumns from './withResizeableColumns.es';
-import {Config} from 'metal-state';
-import {pageStructure} from '../../util/config.es';
-import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
 
 /**
  * Builder.
@@ -53,7 +55,10 @@ class FormBuilderBase extends Component {
 		const visitor = new PagesVisitor(pages);
 
 		return visitor.mapFields(field => {
-			if (field.type === 'select' && field.dataSourceType !== 'manual') {
+			if (
+				field.type === 'select' &&
+				!field.dataSourceType.includes('manual')
+			) {
 				field = {
 					...field,
 					options: [

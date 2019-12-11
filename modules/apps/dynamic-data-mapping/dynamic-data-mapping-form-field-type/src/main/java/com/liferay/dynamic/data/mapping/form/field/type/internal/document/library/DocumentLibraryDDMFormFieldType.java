@@ -28,8 +28,7 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"ddm.form.field.type.description=document-library-field-type-description",
 		"ddm.form.field.type.display.order:Integer=9",
-		"ddm.form.field.type.group=customized",
-		"ddm.form.field.type.icon=upload",
+		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=upload",
 		"ddm.form.field.type.label=document-library-field-type-label",
 		"ddm.form.field.type.name=document_library"
 	},

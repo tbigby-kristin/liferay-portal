@@ -14,12 +14,20 @@
 
 package com.liferay.layout.admin.web.internal.display.context;
 
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
+import com.liferay.asset.kernel.service.AssetVocabularyServiceUtil;
+import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.exportimport.kernel.staging.LayoutStagingUtil;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.NavigationItemList;
+import com.liferay.item.selector.ItemSelector;
+import com.liferay.item.selector.ItemSelectorCriterion;
+import com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType;
+import com.liferay.item.selector.criteria.URLItemSelectorReturnType;
+import com.liferay.item.selector.criteria.image.criterion.ImageItemSelectorCriterion;
 import com.liferay.layout.admin.web.internal.configuration.LayoutConverterConfiguration;
 import com.liferay.layout.admin.web.internal.constants.LayoutAdminWebKeys;
 import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
@@ -28,6 +36,9 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLoca
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryServiceUtil;
 import com.liferay.layout.page.template.util.comparator.LayoutPageTemplateCollectionNameComparator;
+import com.liferay.layout.seo.canonical.url.LayoutSEOCanonicalURLProvider;
+import com.liferay.layout.seo.kernel.LayoutSEOLink;
+import com.liferay.layout.seo.kernel.LayoutSEOLinkManager;
 import com.liferay.layout.seo.model.LayoutSEOEntry;
 import com.liferay.layout.seo.service.LayoutSEOEntryLocalServiceUtil;
 import com.liferay.layout.util.LayoutCopyHelper;
@@ -45,6 +56,9 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
@@ -57,6 +71,7 @@ import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetBranchLocalServiceUtil;
@@ -71,6 +86,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.ListMergeable;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -84,11 +100,10 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.LayoutDescription;
 import com.liferay.portal.util.LayoutListUtil;
 import com.liferay.portal.util.LayoutTypeControllerTracker;
+import com.liferay.portal.util.RobotsUtil;
 import com.liferay.portlet.layoutsadmin.display.context.GroupDisplayContextHelper;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
-import com.liferay.staging.StagingGroupHelper;
-import com.liferay.staging.StagingGroupHelperUtil;
 import com.liferay.taglib.security.PermissionsURLTag;
 
 import java.util.ArrayList;
@@ -96,8 +111,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.PortletURL;
@@ -110,14 +127,17 @@ import javax.servlet.http.HttpServletRequest;
 public class LayoutsAdminDisplayContext {
 
 	public LayoutsAdminDisplayContext(
+		DLURLHelper dlurlHelper,
+		LayoutSEOCanonicalURLProvider layoutSEOCanonicalURLProvider,
+		LayoutSEOLinkManager layoutSEOLinkManager,
 		LiferayPortletRequest liferayPortletRequest,
 		LiferayPortletResponse liferayPortletResponse) {
 
+		_dlurlHelper = dlurlHelper;
+		_layoutSEOCanonicalURLProvider = layoutSEOCanonicalURLProvider;
+		_layoutSEOLinkManager = layoutSEOLinkManager;
 		_liferayPortletRequest = liferayPortletRequest;
 		_liferayPortletResponse = liferayPortletResponse;
-
-		_themeDisplay = (ThemeDisplay)liferayPortletRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
 
 		_httpServletRequest = PortalUtil.getHttpServletRequest(
 			_liferayPortletRequest);
@@ -125,16 +145,19 @@ public class LayoutsAdminDisplayContext {
 		_groupDisplayContextHelper = new GroupDisplayContextHelper(
 			_httpServletRequest);
 
+		_itemSelector = (ItemSelector)_liferayPortletRequest.getAttribute(
+			LayoutAdminWebKeys.ITEM_SELECTOR);
 		_layoutConverterConfiguration =
 			(LayoutConverterConfiguration)_liferayPortletRequest.getAttribute(
 				LayoutConverterConfiguration.class.getName());
-
 		_layoutCopyHelper =
 			(LayoutCopyHelper)_liferayPortletRequest.getAttribute(
 				LayoutAdminWebKeys.LAYOUT_COPY_HELPER);
 		_layoutConverterRegistry =
 			(LayoutConverterRegistry)_liferayPortletRequest.getAttribute(
-				LayoutAdminWebKeys.LAYOUT_TEMPLATE_CONVERTER_REGISTRY);
+				LayoutAdminWebKeys.LAYOUT_CONVERTER_REGISTRY);
+		_themeDisplay = (ThemeDisplay)liferayPortletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
 	}
 
 	public List<DropdownItem> getAddLayoutDropdownItems() {
@@ -193,6 +216,12 @@ public class LayoutsAdminDisplayContext {
 		portletURL.setParameter(
 			"layoutPageTemplateEntryId",
 			String.valueOf(layoutPageTemplateEntryId));
+
+		long masterLayoutPlid = ParamUtil.getLong(
+			_httpServletRequest, "masterLayoutPlid");
+
+		portletURL.setParameter(
+			"masterLayoutPlid", String.valueOf(masterLayoutPlid));
 
 		if (layoutPageTemplateEntryId > 0) {
 			portletURL.setParameter(
@@ -286,6 +315,23 @@ public class LayoutsAdminDisplayContext {
 		return breadcrumbEntriesJSONArray;
 	}
 
+	public String getCanonicalLayoutURL() throws PortalException {
+		String completeURL = getViewLayoutURL(_selLayout);
+
+		String canonicalURL = PortalUtil.getCanonicalURL(
+			completeURL, _themeDisplay, _selLayout, false, false);
+
+		Map<Locale, String> alternateURLs = PortalUtil.getAlternateURLs(
+			canonicalURL, _themeDisplay, _selLayout);
+
+		LayoutSEOLink canonicalLayoutSEOLink =
+			_layoutSEOLinkManager.getCanonicalLayoutSEOLink(
+				_selLayout, _themeDisplay.getLocale(), canonicalURL,
+				alternateURLs);
+
+		return canonicalLayoutSEOLink.getHref();
+	}
+
 	public String getConfigureLayoutURL(Layout layout) {
 		PortletURL configureLayoutURL =
 			_liferayPortletResponse.createRenderURL();
@@ -333,6 +379,8 @@ public class LayoutsAdminDisplayContext {
 			"mvcRenderCommandName", "/layout/add_layout");
 		copyLayoutRenderURL.setParameter(
 			"sourcePlid", String.valueOf(layout.getPlid()));
+		copyLayoutRenderURL.setParameter(
+			"privateLayout", String.valueOf(isPrivateLayout()));
 		copyLayoutRenderURL.setWindowState(LiferayWindowState.POP_UP);
 
 		return copyLayoutRenderURL.toString();
@@ -355,6 +403,19 @@ public class LayoutsAdminDisplayContext {
 			"explicitCreation", String.valueOf(Boolean.TRUE));
 
 		return copyLayoutURL.toString();
+	}
+
+	public String getDefaultCanonicalURL() throws PortalException {
+		String completeURL = getViewLayoutURL(_selLayout);
+
+		String canonicalURL = PortalUtil.getCanonicalURL(
+			completeURL, _themeDisplay, _selLayout, false, false);
+
+		Map<Locale, String> alternateURLs = PortalUtil.getAlternateURLs(
+			canonicalURL, _themeDisplay, _selLayout);
+
+		return _layoutSEOCanonicalURLProvider.getDefaultCanonicalURL(
+			_selLayout, _themeDisplay.getLocale(), canonicalURL, alternateURLs);
 	}
 
 	public String getDeleteLayoutURL(Layout layout) throws PortalException {
@@ -410,7 +471,8 @@ public class LayoutsAdminDisplayContext {
 				layout.getNameMap(), layout.getTitleMap(),
 				layout.getDescriptionMap(), layout.getKeywordsMap(),
 				layout.getRobotsMap(), layout.getType(),
-				layout.getTypeSettings(), true, true, Collections.emptyMap(),
+				layout.getTypeSettings(), true, true,
+				layout.getMasterLayoutPlid(), Collections.emptyMap(),
 				serviceContext);
 
 			_layoutCopyHelper.copyLayout(layout, draftLayout);
@@ -501,6 +563,50 @@ public class LayoutsAdminDisplayContext {
 		return 0;
 	}
 
+	public String getFriendlyURLBase() {
+		StringBuilder friendlyURLBase = new StringBuilder();
+
+		friendlyURLBase.append(_themeDisplay.getPortalURL());
+
+		Layout selLayout = getSelLayout();
+
+		LayoutSet layoutSet = selLayout.getLayoutSet();
+
+		TreeMap<String, String> virtualHostnames =
+			layoutSet.getVirtualHostnames();
+
+		if (virtualHostnames.isEmpty() ||
+			!_matchesHostname(friendlyURLBase, virtualHostnames)) {
+
+			Group group = getGroup();
+
+			friendlyURLBase.append(
+				group.getPathFriendlyURL(isPrivateLayout(), _themeDisplay));
+			friendlyURLBase.append(HttpUtil.decodeURL(group.getFriendlyURL()));
+		}
+
+		return friendlyURLBase.toString();
+	}
+
+	public String getFullPageTitle() throws PortalException {
+		String portletId = (String)_httpServletRequest.getAttribute(
+			WebKeys.PORTLET_ID);
+
+		ListMergeable<String> titleListMergeable =
+			(ListMergeable<String>)_httpServletRequest.getAttribute(
+				WebKeys.PAGE_TITLE);
+		ListMergeable<String> subtitleListMergeable =
+			(ListMergeable<String>)_httpServletRequest.getAttribute(
+				WebKeys.PAGE_SUBTITLE);
+
+		Company company = _themeDisplay.getCompany();
+
+		return _layoutSEOLinkManager.getFullPageTitle(
+			_selLayout, portletId, _themeDisplay.getTilesTitle(),
+			titleListMergeable, subtitleListMergeable, company.getName(),
+			_themeDisplay.getLocale());
+	}
+
 	public Group getGroup() {
 		return _groupDisplayContextHelper.getGroup();
 	}
@@ -511,6 +617,23 @@ public class LayoutsAdminDisplayContext {
 
 	public UnicodeProperties getGroupTypeSettings() {
 		return _groupDisplayContextHelper.getGroupTypeSettings();
+	}
+
+	public String getItemSelectorURL() {
+		ItemSelectorCriterion imageItemSelectorCriterion =
+			new ImageItemSelectorCriterion();
+
+		imageItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
+			new FileEntryItemSelectorReturnType(),
+			new URLItemSelectorReturnType());
+
+		PortletURL itemSelectorURL = _itemSelector.getItemSelectorURL(
+			RequestBackedPortletURLFactoryUtil.create(_httpServletRequest),
+			_liferayPortletResponse.getNamespace() +
+				"openGraphImageSelectedItem",
+			imageItemSelectorCriterion);
+
+		return itemSelectorURL.toString();
 	}
 
 	public String getKeywords() {
@@ -540,6 +663,10 @@ public class LayoutsAdminDisplayContext {
 		}
 
 		return layoutColumnsJSONArray;
+	}
+
+	public LayoutConverterConfiguration getLayoutConverterConfiguration() {
+		return _layoutConverterConfiguration;
 	}
 
 	public List<LayoutDescription> getLayoutDescriptions() {
@@ -591,7 +718,7 @@ public class LayoutsAdminDisplayContext {
 			}
 
 			JSONObject layoutJSONObject = JSONUtil.put(
-				"actions", _getAvailableActions(layout)
+				"actions", StringUtil.merge(_getAvailableActions(layout))
 			).put(
 				"actionURLs", _getActionURLsJSONObject(layout)
 			).put(
@@ -756,61 +883,26 @@ public class LayoutsAdminDisplayContext {
 		return deleteLayoutURL.toString();
 	}
 
-	public List<NavigationItem> getNavigationItems() {
-		Group group = _themeDisplay.getScopeGroup();
+	public String getOpenGraphImageURL() {
+		LayoutSEOEntry layoutSEOEntry = getSelLayoutSEOEntry();
 
-		StagingGroupHelper stagingGroupHelper =
-			StagingGroupHelperUtil.getStagingGroupHelper();
+		if ((layoutSEOEntry == null) ||
+			(layoutSEOEntry.getOpenGraphImageFileEntryId() == 0)) {
 
-		return new NavigationItemList() {
-			{
-				if (!group.isCompany()) {
-					add(
-						navigationItem -> {
-							navigationItem.setActive(
-								Objects.equals(getTabs1(), "pages"));
-							navigationItem.setHref(
-								getPortletURL(), "tabs1", "pages");
-							navigationItem.setLabel(
-								LanguageUtil.get(_httpServletRequest, "pages"));
-						});
-				}
+			return null;
+		}
 
-				if (!(stagingGroupHelper.isLocalLiveGroup(group) ||
-					  stagingGroupHelper.isRemoteLiveGroup(group))) {
+		try {
+			return _dlurlHelper.getImagePreviewURL(
+				DLAppLocalServiceUtil.getFileEntry(
+					layoutSEOEntry.getOpenGraphImageFileEntryId()),
+				_themeDisplay);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 
-					add(
-						navigationItem -> {
-							navigationItem.setActive(
-								Objects.equals(getTabs1(), "page-templates"));
-							navigationItem.setHref(
-								getPortletURL(), "tabs1", "page-templates");
-							navigationItem.setLabel(
-								LanguageUtil.get(
-									_httpServletRequest, "page-templates"));
-						});
-				}
-
-				if (!group.isCompany() &&
-					!(stagingGroupHelper.isLocalLiveGroup(group) ||
-					  stagingGroupHelper.isRemoteLiveGroup(group))) {
-
-					add(
-						navigationItem -> {
-							navigationItem.setActive(
-								Objects.equals(
-									getTabs1(), "display-page-templates"));
-							navigationItem.setHref(
-								getPortletURL(), "tabs1",
-								"display-page-templates");
-							navigationItem.setLabel(
-								LanguageUtil.get(
-									_httpServletRequest,
-									"display-page-templates"));
-						});
-				}
-			}
-		};
+			return null;
+		}
 	}
 
 	public String getOrphanPortletsURL(Layout layout) {
@@ -824,6 +916,30 @@ public class LayoutsAdminDisplayContext {
 			"selPlid", String.valueOf(layout.getPlid()));
 
 		return orphanPortletsURL.toString();
+	}
+
+	public String getPageTitle() throws PortalException {
+		String portletId = (String)_httpServletRequest.getAttribute(
+			WebKeys.PORTLET_ID);
+
+		ListMergeable<String> titleListMergeable =
+			(ListMergeable<String>)_httpServletRequest.getAttribute(
+				WebKeys.PAGE_TITLE);
+		ListMergeable<String> subtitleListMergeable =
+			(ListMergeable<String>)_httpServletRequest.getAttribute(
+				WebKeys.PAGE_SUBTITLE);
+
+		return _layoutSEOLinkManager.getPageTitle(
+			_selLayout, portletId, _themeDisplay.getTilesTitle(),
+			titleListMergeable, subtitleListMergeable,
+			_themeDisplay.getLocale());
+	}
+
+	public String getPageTitleSuffix() throws PortalException {
+		Company company = _themeDisplay.getCompany();
+
+		return _layoutSEOLinkManager.getPageTitleSuffix(
+			_selLayout, company.getName());
 	}
 
 	public long getParentLayoutId() {
@@ -977,6 +1093,24 @@ public class LayoutsAdminDisplayContext {
 		return breadcrumbEntries;
 	}
 
+	public String getRobots() {
+		String robots = StringPool.BLANK;
+
+		try {
+			robots = ParamUtil.getString(
+				_httpServletRequest, "robots",
+				RobotsUtil.getRobots(
+					getSelLayoutSet(), _httpServletRequest.isSecure()));
+		}
+		catch (PortalException pe) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+		}
+
+		return robots;
+	}
+
 	public String getRootNodeName() {
 		if (_rootNodeName != null) {
 			return _rootNodeName;
@@ -1014,7 +1148,7 @@ public class LayoutsAdminDisplayContext {
 		boolean privateLayout) {
 
 		return getSelectLayoutPageTemplateEntryURL(
-			layoutPageTemplateCollectionId, selPlid, "basic-pages",
+			layoutPageTemplateCollectionId, selPlid, "basic-templates",
 			privateLayout);
 	}
 
@@ -1130,11 +1264,7 @@ public class LayoutsAdminDisplayContext {
 			return _tabs1;
 		}
 
-		Group group = getGroup();
-
-		_tabs1 = ParamUtil.getString(
-			_liferayPortletRequest, "tabs1",
-			group.isCompany() ? "page-templates" : "pages");
+		_tabs1 = ParamUtil.getString(_liferayPortletRequest, "tabs1", "pages");
 
 		return _tabs1;
 	}
@@ -1163,10 +1293,50 @@ public class LayoutsAdminDisplayContext {
 		String layoutFullURL = PortalUtil.getLayoutFullURL(
 			layout, _themeDisplay);
 
-		layoutFullURL = HttpUtil.setParameter(
-			layoutFullURL, "p_l_back_url", _themeDisplay.getURLCurrent());
+		try {
+			layoutFullURL = HttpUtil.setParameter(
+				layoutFullURL, "p_l_back_url", _themeDisplay.getURLCurrent());
+		}
+		catch (Exception e) {
+			_log.error(
+				"Unable to generate view layout URL for " + layoutFullURL, e);
+		}
 
 		return layoutFullURL;
+	}
+
+	public String getVirtualHostName() {
+		String virtualHostName = StringPool.BLANK;
+
+		try {
+			LayoutSet layoutSet = getSelLayoutSet();
+
+			virtualHostName = PortalUtil.getVirtualHostname(layoutSet);
+
+			Group scopeGroup = _themeDisplay.getScopeGroup();
+
+			if (Validator.isNull(virtualHostName) &&
+				scopeGroup.isStagingGroup()) {
+
+				Group liveGroup = scopeGroup.getLiveGroup();
+
+				LayoutSet liveGroupLayoutSet = liveGroup.getPublicLayoutSet();
+
+				if (layoutSet.isPrivateLayout()) {
+					liveGroupLayoutSet = liveGroup.getPrivateLayoutSet();
+				}
+
+				virtualHostName = PortalUtil.getVirtualHostname(
+					liveGroupLayoutSet);
+			}
+		}
+		catch (PortalException pe) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+		}
+
+		return virtualHostName;
 	}
 
 	public boolean hasLayouts() {
@@ -1178,6 +1348,23 @@ public class LayoutsAdminDisplayContext {
 
 		if ((privatePagesCount + publicPagesCount) > 0) {
 			return true;
+		}
+
+		return false;
+	}
+
+	public boolean hasRequiredVocabularies() {
+		long classNameId = PortalUtil.getClassNameId(Layout.class);
+
+		List<AssetVocabulary> assetVocabularies =
+			AssetVocabularyServiceUtil.getGroupVocabularies(_getGroupIds());
+
+		for (AssetVocabulary assetVocabulary : assetVocabularies) {
+			if (assetVocabulary.isAssociatedToClassNameId(classNameId) &&
+				assetVocabulary.isRequired(classNameId, 0)) {
+
+				return true;
+			}
 		}
 
 		return false;
@@ -1287,6 +1474,30 @@ public class LayoutsAdminDisplayContext {
 		return GroupPermissionUtil.contains(
 			_themeDisplay.getPermissionChecker(), getSelGroup(),
 			ActionKeys.ADD_LAYOUT);
+	}
+
+	public boolean isShowCategorization() {
+		long classNameId = PortalUtil.getClassNameId(Layout.class);
+
+		List<AssetVocabulary> assetVocabularies =
+			AssetVocabularyServiceUtil.getGroupVocabularies(_getGroupIds());
+
+		for (AssetVocabulary assetVocabulary : assetVocabularies) {
+			if (assetVocabulary.isAssociatedToClassNameId(classNameId) &&
+				assetVocabulary.isRequired(classNameId, 0)) {
+
+				int assetVocabularyCategoriesCount =
+					AssetCategoryServiceUtil.getVocabularyCategoriesCount(
+						assetVocabulary.getGroupId(),
+						assetVocabulary.getVocabularyId());
+
+				if (assetVocabularyCategoriesCount > 0) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public boolean isShowConfigureAction(Layout layout) throws PortalException {
@@ -1520,19 +1731,23 @@ public class LayoutsAdminDisplayContext {
 		return _activeLayoutSetBranchId;
 	}
 
-	private String _getAvailableActions(Layout layout) throws PortalException {
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)_httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
+	private List<String> _getAvailableActions(Layout layout)
+		throws PortalException {
 
-		if (LayoutPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(), layout,
-				ActionKeys.DELETE)) {
+		List<String> availableActions = new ArrayList<>();
 
-			return "deleteSelectedPages";
+		if (isShowConvertLayoutAction(layout)) {
+			availableActions.add("convertSelectedPages");
 		}
 
-		return StringPool.BLANK;
+		if (LayoutPermissionUtil.contains(
+				_themeDisplay.getPermissionChecker(), layout,
+				ActionKeys.DELETE)) {
+
+			availableActions.add("deleteSelectedPages");
+		}
+
+		return availableActions;
 	}
 
 	private String _getBackURL() {
@@ -1602,6 +1817,20 @@ public class LayoutsAdminDisplayContext {
 		}
 
 		return jsonObject;
+	}
+
+	private long[] _getGroupIds() {
+		try {
+			return PortalUtil.getCurrentAndAncestorSiteGroupIds(
+				_themeDisplay.getScopeGroupId());
+		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+		}
+
+		return new long[0];
 	}
 
 	private JSONArray _getLayoutColumnsJSONArray() throws Exception {
@@ -1761,18 +1990,38 @@ public class LayoutsAdminDisplayContext {
 		return false;
 	}
 
+	private boolean _matchesHostname(
+		StringBuilder friendlyURLBase,
+		TreeMap<String, String> virtualHostnames) {
+
+		for (String virtualHostname : virtualHostnames.keySet()) {
+			if (friendlyURLBase.indexOf(virtualHostname) != -1) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LayoutsAdminDisplayContext.class);
+
 	private Long _activeLayoutSetBranchId;
 	private String _backURL;
 	private String _displayStyle;
+	private final DLURLHelper _dlurlHelper;
 	private Boolean _firstColumn;
 	private final GroupDisplayContextHelper _groupDisplayContextHelper;
 	private final HttpServletRequest _httpServletRequest;
+	private final ItemSelector _itemSelector;
 	private String _keywords;
 	private final LayoutConverterConfiguration _layoutConverterConfiguration;
 	private final LayoutConverterRegistry _layoutConverterRegistry;
 	private final LayoutCopyHelper _layoutCopyHelper;
 	private List<LayoutDescription> _layoutDescriptions;
 	private Long _layoutId;
+	private final LayoutSEOCanonicalURLProvider _layoutSEOCanonicalURLProvider;
+	private final LayoutSEOLinkManager _layoutSEOLinkManager;
 	private SearchContainer _layoutsSearchContainer;
 	private final LiferayPortletRequest _liferayPortletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;

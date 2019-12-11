@@ -91,39 +91,51 @@ export const addFieldToColumn = (
 
 	if (rowIndex >= numberOfRows) {
 		pages = addRow(pages, numberOfRows, pageIndex);
+	} else if (!isEmptyColumn(pages, pageIndex, rowIndex, columnIndex)) {
+		pages = addRow(pages, rowIndex, pageIndex);
 	}
 
 	const visitor = new PagesVisitor(pages);
 
 	return visitor.mapColumns(
 		(column, currentColumnIndex, currentRowIndex, currentPageIndex) => {
-			let newColumn = column;
-
 			if (
 				currentColumnIndex === columnIndex &&
 				currentRowIndex === rowIndex &&
 				currentPageIndex === pageIndex
 			) {
-				newColumn = {
+				return {
 					...column,
 					fields: [...column.fields, field]
 				};
 			}
 
-			return newColumn;
+			return column;
 		}
 	);
 };
 
-export const emptyPages = pages => {
-	let empty = true;
-	const visitor = new PagesVisitor(pages);
+export const isEmptyColumn = (pages, pageIndex, rowIndex, columnIndex) => {
+	return (
+		pages[pageIndex].rows[rowIndex].columns[columnIndex].fields.length === 0
+	);
+};
 
-	visitor.mapFields(() => {
-		empty = false;
-	});
+export const isEmptyRow = (pages, pageIndex, rowIndex) => {
+	return pages[pageIndex].rows[rowIndex].columns.every(
+		(column, columnIndex) =>
+			isEmptyColumn(pages, pageIndex, rowIndex, columnIndex)
+	);
+};
 
-	return empty;
+export const isEmptyPage = (pages, pageIndex) => {
+	return pages[pageIndex].rows.every((row, rowIndex) =>
+		isEmptyRow(pages, pageIndex, rowIndex)
+	);
+};
+
+export const isEmpty = pages => {
+	return pages.every((page, pageIndex) => isEmptyPage(pages, pageIndex));
 };
 
 export const setColumnFields = (

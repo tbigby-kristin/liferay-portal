@@ -1,3 +1,5 @@
+@import 'mixins';
+
 .app-builder-upper-toolbar {
 	height: $upperToolbarHeight;
 	position: fixed;
@@ -5,4 +7,16 @@
 	transition: width 0.5s $animation;
 	width: 100%;
 	z-index: 10;
+
+	@include respond-to(phone, tablet) {
+		top: $mobile_controlMenuHeight;
+	}
+
+	&.standalone,
+	&.widget {
+		margin-bottom: 2rem;
+		position: relative;
+		top: 0;
+		width: auto;
+	}
 }

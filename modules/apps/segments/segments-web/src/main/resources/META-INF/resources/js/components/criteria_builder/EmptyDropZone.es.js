@@ -15,9 +15,10 @@
 import getCN from 'classnames';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
+import {DropTarget as dropTarget} from 'react-dnd';
+
 import ThemeContext from '../../ThemeContext.es';
 import {DragTypes} from '../../utils/drag-types.es';
-import {DropTarget as dropTarget} from 'react-dnd';
 import EmptyPlaceholder from './EmptyPlaceholder.es';
 
 /**

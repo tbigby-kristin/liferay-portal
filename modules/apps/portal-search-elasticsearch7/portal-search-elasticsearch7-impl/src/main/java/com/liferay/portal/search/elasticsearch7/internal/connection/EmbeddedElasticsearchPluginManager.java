@@ -17,16 +17,14 @@ package com.liferay.portal.search.elasticsearch7.internal.connection;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.io.File;
 import java.io.IOException;
 
 import java.nio.file.Path;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.elasticsearch.Version;
 
@@ -66,13 +64,13 @@ public class EmbeddedElasticsearchPluginManager {
 		PluginManager pluginManager =
 			_pluginManagerFactory.createPluginManager();
 
-		Optional<Path> pathOptional = getInstalledPluginPath(pluginManager);
+		Path path = getInstalledPluginPath(pluginManager);
 
-		if (!pathOptional.isPresent()) {
+		if (path == null) {
 			return;
 		}
 
-		if (pluginManager.isCurrentVersion(pathOptional.get())) {
+		if (pluginManager.isCurrentVersion(path)) {
 			return;
 		}
 
@@ -104,14 +102,16 @@ public class EmbeddedElasticsearchPluginManager {
 		}
 	}
 
-	protected Optional<Path> getInstalledPluginPath(PluginManager pluginManager)
+	protected Path getInstalledPluginPath(PluginManager pluginManager)
 		throws IOException {
 
-		return Stream.of(
-			pluginManager.getInstalledPluginsPaths()
-		).filter(
-			path -> path.endsWith(_pluginName)
-		).findAny();
+		for (Path path : pluginManager.getInstalledPluginsPaths()) {
+			if (path.endsWith(_pluginName)) {
+				return path;
+			}
+		}
+
+		return null;
 	}
 
 	protected String getPluginZipFileName(String pluginName) {
@@ -145,13 +145,13 @@ public class EmbeddedElasticsearchPluginManager {
 		PluginManager pluginManager =
 			_pluginManagerFactory.createPluginManager();
 
-		Optional<Path> pathOptional = getInstalledPluginPath(pluginManager);
+		Path path = getInstalledPluginPath(pluginManager);
 
-		if (pathOptional.isPresent()) {
-			return true;
+		if (path == null) {
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -161,20 +161,14 @@ public class EmbeddedElasticsearchPluginManager {
 	private final String _pluginName;
 	private final String _pluginsPathString;
 	private final PluginZipFactory _pluginZipFactory;
-	private final Map<String, String> _pluginZipFileNames =
-		new HashMap<String, String>() {
-			{
-				put("analysis-icu", "org.elasticsearch.plugin.analysis.icu");
-				put(
-					"analysis-kuromoji",
-					"org.elasticsearch.plugin.analysis.kuromoji");
-				put(
-					"analysis-smartcn",
-					"org.elasticsearch.plugin.analysis.smartcn");
-				put(
-					"analysis-stempel",
-					"org.elasticsearch.plugin.analysis.stempel");
-			}
-		};
+	private final Map<String, String> _pluginZipFileNames = HashMapBuilder.put(
+		"analysis-icu", "org.elasticsearch.plugin.analysis.icu"
+	).put(
+		"analysis-kuromoji", "org.elasticsearch.plugin.analysis.kuromoji"
+	).put(
+		"analysis-smartcn", "org.elasticsearch.plugin.analysis.smartcn"
+	).put(
+		"analysis-stempel", "org.elasticsearch.plugin.analysis.stempel"
+	).build();
 
 }

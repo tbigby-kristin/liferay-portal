@@ -68,7 +68,7 @@ public class RelatedContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The type of the content.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String contentType;
 
@@ -94,7 +94,7 @@ public class RelatedContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The identifier of the resource.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -122,7 +122,7 @@ public class RelatedContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The title of the content.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String title;
 
@@ -195,6 +195,12 @@ public class RelatedContent {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.RelatedContent",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

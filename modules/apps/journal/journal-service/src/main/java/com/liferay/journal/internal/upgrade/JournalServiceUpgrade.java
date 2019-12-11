@@ -76,6 +76,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.settings.SettingsFactory;
 import com.liferay.portal.kernel.upgrade.BaseUpgradeSQLServerDatetime;
 import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
+import com.liferay.portal.kernel.upgrade.UpgradeCTModel;
 import com.liferay.portal.kernel.upgrade.UpgradeMVCCVersion;
 import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
@@ -90,7 +91,10 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Eduardo García
  */
-@Component(immediate = true, service = UpgradeStepRegistrator.class)
+@Component(
+	immediate = true,
+	service = {JournalServiceUpgrade.class, UpgradeStepRegistrator.class}
+)
 public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Override
@@ -231,6 +235,12 @@ public class JournalServiceUpgrade implements UpgradeStepRegistrator {
 				}
 
 			});
+
+		registry.register(
+			"3.1.0", "3.2.0",
+			new UpgradeCTModel(
+				"JournalArticleLocalization", "JournalArticleResource",
+				"JournalArticle", "JournalFolder"));
 	}
 
 	protected void deleteTempImages() throws Exception {

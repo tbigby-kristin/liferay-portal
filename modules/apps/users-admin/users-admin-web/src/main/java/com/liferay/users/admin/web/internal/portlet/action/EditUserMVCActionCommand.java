@@ -209,6 +209,8 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 				user = addUser(actionRequest);
 
 				SessionMessages.add(actionRequest, "userAdded");
+
+				hideDefaultSuccessMessage(actionRequest);
 			}
 			else if (cmd.equals(Constants.DEACTIVATE) ||
 					 cmd.equals(Constants.DELETE) ||
@@ -516,6 +518,8 @@ public class EditUserMVCActionCommand extends BaseMVCActionCommand {
 			!StringUtil.equalsIgnoreCase(oldEmailAddress, emailAddress)) {
 
 			SessionMessages.add(actionRequest, "verificationEmailSent");
+
+			hideDefaultSuccessMessage(actionRequest);
 		}
 
 		return new Object[] {user, oldScreenName, updateLanguageId};

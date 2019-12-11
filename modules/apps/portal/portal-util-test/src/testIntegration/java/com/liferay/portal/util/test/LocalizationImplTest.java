@@ -20,6 +20,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -33,7 +34,6 @@ import com.liferay.portlet.PortletPreferencesImpl;
 import java.lang.reflect.Field;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -384,9 +384,9 @@ public class LocalizationImplTest {
 
 	@Test
 	public void testUpdateLocalization() {
-		Map<Locale, String> localizationMap = new HashMap<>();
-
-		localizationMap.put(LocaleUtil.US, _ENGLISH_HELLO);
+		Map<Locale, String> localizationMap = HashMapBuilder.put(
+			LocaleUtil.US, _ENGLISH_HELLO
+		).build();
 
 		StringBundler sb = new StringBundler(10);
 
@@ -415,15 +415,14 @@ public class LocalizationImplTest {
 
 	@Test
 	public void testUpdateLocalizationWithAmpersand() {
-		Map<Locale, String> localizationMap = new HashMap<>();
-
+		String englishValue = "foo&bar";
 		String spanishValue = "bar&foo";
 
-		localizationMap.put(LocaleUtil.SPAIN, spanishValue);
-
-		String englishValue = "foo&bar";
-
-		localizationMap.put(LocaleUtil.US, englishValue);
+		Map<Locale, String> localizationMap = HashMapBuilder.put(
+			LocaleUtil.SPAIN, spanishValue
+		).put(
+			LocaleUtil.US, englishValue
+		).build();
 
 		String xml = LocalizationUtil.updateLocalization(
 			localizationMap, _xml, "static-content", "en_US");

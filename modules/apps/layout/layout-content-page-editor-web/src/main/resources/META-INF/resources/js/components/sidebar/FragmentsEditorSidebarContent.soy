@@ -6,7 +6,8 @@
 {template .render}
 	{@param? _handleLookAndFeeldButtonClick: any}
 	{@param? _handlePanelButtonClick: any}
-	{@param? _selectedSidebarPanel: [
+	{@param? lockedSegmentsExperience: bool }
+	{@param? selectedSidebarPanel: [
 		icon: string,
 		label: string,
 		sidebarPanelId: string
@@ -22,32 +23,28 @@
 
 	<div class="fragments-editor-sidebar-content">
 		<div class="fragments-editor-sidebar-section">
-			{if $_selectedSidebarPanel}
-				{if $_selectedSidebarPanel.sidebarPanelId == 'sections'}
-					{call com.liferay.layout.content.page.editor.web.SidebarSectionsPanel.render}
-						{param store: $store /}
-					{/call}
-				{elseif $_selectedSidebarPanel.sidebarPanelId == 'elements'}
+			{if $selectedSidebarPanel}
+				{if $selectedSidebarPanel.sidebarPanelId == 'elements'}
 					{call com.liferay.layout.content.page.editor.web.SidebarElementsPanel.render}
 						{param store: $store /}
 					{/call}
-				{elseif $_selectedSidebarPanel.sidebarPanelId == 'mapping'}
+				{elseif $selectedSidebarPanel.sidebarPanelId == 'mapping'}
 					{call com.liferay.layout.content.page.editor.web.SidebarMappingPanel.render}
 						{param store: $store /}
 					{/call}
-				{elseif $_selectedSidebarPanel.sidebarPanelId == 'page-structure'}
+				{elseif $selectedSidebarPanel.sidebarPanelId == 'page-structure'}
 					{call com.liferay.layout.content.page.editor.web.SidebarPageStructurePanel.render}
 						{param store: $store /}
 					{/call}
-				{elseif $_selectedSidebarPanel.sidebarPanelId == 'contents'}
+				{elseif $selectedSidebarPanel.sidebarPanelId == 'contents'}
 					{call com.liferay.layout.content.page.editor.web.SidebarPageContentsPanel.render}
 						{param store: $store /}
 					{/call}
-				{elseif $_selectedSidebarPanel.sidebarPanelId == 'widgets'}
+				{elseif $selectedSidebarPanel.sidebarPanelId == 'widgets'}
 					{call com.liferay.layout.content.page.editor.web.SidebarWidgetsPanel.render}
 						{param store: $store /}
 					{/call}
-				{elseif $_selectedSidebarPanel.sidebarPanelId == 'comments'}
+				{elseif $selectedSidebarPanel.sidebarPanelId == 'comments'}
 					{call com.liferay.layout.content.page.editor.web.SidebarCommentsPanel.render}
 						{param store: $store /}
 					{/call}
@@ -68,7 +65,11 @@
 							{sp}text-center
 							{sp}fragments-editor-sidebar-sections-buttons__btn
 
-							{if $_selectedSidebarPanel and ($sidebarPanel.sidebarPanelId == $_selectedSidebarPanel.sidebarPanelId)}
+							{if $lockedSegmentsExperience}
+								{sp}disabled
+							{/if}
+
+							{if $selectedSidebarPanel and ($sidebarPanel.sidebarPanelId == $selectedSidebarPanel.sidebarPanelId)}
 								{sp}fragments-editor-sidebar-sections-buttons__btn--active
 							{/if}
 						{/let}
@@ -76,13 +77,22 @@
 						{let $sectionButtonAttributes kind="attributes"}
 							class="{$sectionButtonClasses}"
 							data-sidebar-panel-id="{$sidebarPanel.sidebarPanelId}"
-							data-title="{$sidebarPanel.label}"
+							{if $lockedSegmentsExperience}
+								data-title="{msg desc=""}edit-is-not-allowed-for-this-experience{/msg}"
+							{else}
+								data-title="{$sidebarPanel.label}"
+							{/if}
+
 							type="button"
 
-							{if $sidebarPanel.sidebarPanelId == 'lookAndFeel'}
-								data-onclick="{$_handleLookAndFeeldButtonClick}"
+							{if $lockedSegmentsExperience}
+								aria-disabled="true"
 							{else}
-								data-onclick="{$_handlePanelButtonClick}"
+								{if $sidebarPanel.sidebarPanelId == 'lookAndFeel'}
+									data-onclick="{$_handleLookAndFeeldButtonClick}"
+								{else}
+									data-onclick="{$_handlePanelButtonClick}"
+								{/if}
 							{/if}
 						{/let}
 

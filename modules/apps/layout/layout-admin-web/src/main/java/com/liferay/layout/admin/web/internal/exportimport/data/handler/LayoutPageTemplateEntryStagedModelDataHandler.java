@@ -136,6 +136,9 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 			entryElement.addAttribute("preloaded", "true");
 		}
 
+		entryElement.addAttribute(
+			"type", String.valueOf(layoutPageTemplateEntry.getType()));
+
 		portletDataContext.addClassedModel(
 			entryElement,
 			ExportImportPathUtil.getModelPath(layoutPageTemplateEntry),
@@ -164,6 +167,8 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 			referenceElement.attributeValue("class-pk"));
 		String name = GetterUtil.getString(
 			referenceElement.attributeValue("name"));
+		int type = GetterUtil.getInteger(
+			referenceElement.attributeValue("type"));
 		boolean preloaded = GetterUtil.getBoolean(
 			referenceElement.attributeValue("preloaded"));
 
@@ -175,7 +180,7 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 		}
 		else {
 			existingLayoutPageTemplateEntry = fetchExistingTemplate(
-				uuid, groupId, name, 0L, preloaded);
+				uuid, groupId, name, type, 0L, preloaded);
 		}
 
 		if (existingLayoutPageTemplateEntry == null) {
@@ -309,7 +314,8 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 				fetchExistingTemplate(
 					layoutPageTemplateEntry.getUuid(),
 					portletDataContext.getScopeGroupId(),
-					layoutPageTemplateEntry.getName(), plid, preloaded);
+					layoutPageTemplateEntry.getName(),
+					layoutPageTemplateEntry.getType(), plid, preloaded);
 
 			if (existingLayoutPageTemplateEntry == null) {
 				importedLayoutPageTemplateEntry = _addStagedModel(
@@ -320,6 +326,8 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 					importedLayoutPageTemplateEntry, layoutPrototype);
 			}
 			else {
+				importedLayoutPageTemplateEntry.setMvccVersion(
+					existingLayoutPageTemplateEntry.getMvccVersion());
 				importedLayoutPageTemplateEntry.setLayoutPageTemplateEntryId(
 					existingLayoutPageTemplateEntry.
 						getLayoutPageTemplateEntryId());
@@ -339,7 +347,8 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 	}
 
 	protected LayoutPageTemplateEntry fetchExistingTemplate(
-		String uuid, long groupId, String name, long plid, boolean preloaded) {
+		String uuid, long groupId, String name, int type, long plid,
+		boolean preloaded) {
 
 		LayoutPageTemplateEntry existingTemplate = null;
 
@@ -357,7 +366,7 @@ public class LayoutPageTemplateEntryStagedModelDataHandler
 		if ((existingTemplate == null) && preloaded) {
 			existingTemplate =
 				_layoutPageTemplateEntryLocalService.
-					fetchLayoutPageTemplateEntry(groupId, name);
+					fetchLayoutPageTemplateEntry(groupId, name, type);
 		}
 
 		return existingTemplate;

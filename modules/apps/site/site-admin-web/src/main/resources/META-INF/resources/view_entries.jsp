@@ -17,7 +17,7 @@
 <%@ include file="/init.jsp" %>
 
 <liferay-ui:search-container
-	searchContainer="<%= siteAdminDisplayContext.getSearchContainer() %>"
+	searchContainer="<%= siteAdminDisplayContext.getGroupSearch() %>"
 >
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.kernel.model.Group"
@@ -229,6 +229,7 @@
 					<clay:dropdown-actions
 						defaultEventHandler="<%= SiteAdminWebKeys.SITE_DROPDOWN_DEFAULT_EVENT_HANDLER %>"
 						dropdownItems="<%= siteAdminDisplayContext.getActionDropdownItems(curGroup) %>"
+						itemsIconAlignment="right"
 					/>
 				</liferay-ui:search-container-column-text>
 			</c:otherwise>

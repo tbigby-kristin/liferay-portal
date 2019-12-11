@@ -39,8 +39,11 @@ import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
 import com.liferay.exportimport.kernel.staging.StagingConstants;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
+import com.liferay.journal.configuration.JournalGroupServiceConfiguration;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
+import com.liferay.journal.constants.JournalConstants;
 import com.liferay.journal.internal.exportimport.creation.strategy.JournalCreationStrategy;
+import com.liferay.journal.internal.util.JournalUtil;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.model.JournalArticleConstants;
 import com.liferay.journal.model.JournalArticleResource;
@@ -50,6 +53,9 @@ import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.service.JournalArticleResourceLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -60,6 +66,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserNotificationEvent;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
@@ -68,15 +75,21 @@ import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.service.UserNotificationEventLocalService;
+import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HtmlEscapableObject;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.SubscriptionSender;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Element;
@@ -86,6 +99,7 @@ import java.io.File;
 import java.io.InputStream;
 
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -174,6 +188,43 @@ public class JournalArticleStagedModelDataHandler
 
 	@Override
 	public String getDisplayName(JournalArticle article) {
+		if (article.getFolderId() ==
+				JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+
+			return article.getTitleCurrentValue();
+		}
+
+		try {
+			JournalFolder folder = article.getFolder();
+
+			List<JournalFolder> ancestorFolders = folder.getAncestors();
+
+			StringBundler sb = new StringBundler(
+				4 * ancestorFolders.size() + 5);
+
+			Collections.reverse(ancestorFolders);
+
+			for (JournalFolder ancestorFolder : ancestorFolders) {
+				sb.append(ancestorFolder.getName());
+				sb.append(StringPool.SPACE);
+				sb.append(StringPool.GREATER_THAN);
+				sb.append(StringPool.SPACE);
+			}
+
+			sb.append(folder.getName());
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.GREATER_THAN);
+			sb.append(StringPool.SPACE);
+			sb.append(article.getTitleCurrentValue());
+
+			return sb.toString();
+		}
+		catch (PortalException pe) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(pe, pe);
+			}
+		}
+
 		return article.getTitleCurrentValue();
 	}
 
@@ -188,8 +239,6 @@ public class JournalArticleStagedModelDataHandler
 	@Override
 	public Map<String, String> getReferenceAttributes(
 		PortletDataContext portletDataContext, JournalArticle article) {
-
-		Map<String, String> referenceAttributes = new HashMap<>();
 
 		String articleResourceUuid = null;
 
@@ -211,9 +260,11 @@ public class JournalArticleStagedModelDataHandler
 			throw eire;
 		}
 
-		referenceAttributes.put("article-resource-uuid", articleResourceUuid);
-
-		referenceAttributes.put("article-id", article.getArticleId());
+		Map<String, String> referenceAttributes = HashMapBuilder.put(
+			"article-id", article.getArticleId()
+		).put(
+			"article-resource-uuid", articleResourceUuid
+		).build();
 
 		long defaultUserId = 0;
 
@@ -804,7 +855,7 @@ public class JournalArticleStagedModelDataHandler
 						}
 					}
 					finally {
-						StreamUtil.cleanUp(inputStream);
+						StreamUtil.cleanUp(true, inputStream);
 					}
 				}
 			}
@@ -993,6 +1044,9 @@ public class JournalArticleStagedModelDataHandler
 
 				_importFriendlyURLEntries(
 					portletDataContext, article, importedArticle);
+
+				_sendUndeliveredUserNotificationEvents(
+					article, importedArticle, serviceContext);
 			}
 			finally {
 				ServiceContextThreadLocal.popServiceContext();
@@ -1083,7 +1137,7 @@ public class JournalArticleStagedModelDataHandler
 
 		if (article != null) {
 			article = fetchExistingArticleVersion(
-				articleUuid, groupId, article.getArticleId(), version);
+				article.getUuid(), groupId, article.getArticleId(), version);
 		}
 
 		return article;
@@ -1413,6 +1467,174 @@ public class JournalArticleStagedModelDataHandler
 		}
 	}
 
+	private void _sendUndeliveredUserNotificationEvents(
+		JournalArticle article, JournalArticle importedArticle,
+		ServiceContext serviceContext) {
+
+		ActionableDynamicQuery actionableDynamicQuery =
+			_userNotificationEventLocalService.getActionableDynamicQuery();
+
+		actionableDynamicQuery.setAddCriteriaMethod(
+			dynamicQuery -> {
+				Property delivered = PropertyFactoryUtil.forName("delivered");
+
+				dynamicQuery.add(delivered.eq(false));
+
+				Property payload = PropertyFactoryUtil.forName("payload");
+
+				dynamicQuery.add(
+					payload.like(
+						StringPool.PERCENT + article.getId() +
+							StringPool.PERCENT));
+			});
+		actionableDynamicQuery.setCompanyId(article.getCompanyId());
+		actionableDynamicQuery.setPerformActionMethod(
+			(ActionableDynamicQuery.PerformActionMethod<UserNotificationEvent>)
+				userNotificationEvent -> {
+					userNotificationEvent.setDelivered(true);
+
+					JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+						userNotificationEvent.getPayload());
+
+					SubscriptionSender subscriptionSender =
+						new SubscriptionSender();
+
+					subscriptionSender.setClassName(
+						jsonObject.getString("className"));
+					subscriptionSender.setClassPK(
+						jsonObject.getLong("classPK"));
+					subscriptionSender.setCompanyId(
+						userNotificationEvent.getCompanyId());
+
+					Map<String, HashMap<String, Object>> contextMap =
+						(Map)JSONFactoryUtil.looseDeserialize(
+							String.valueOf(jsonObject.get("context")));
+
+					String articleURL = JournalUtil.getJournalControlPanelLink(
+						importedArticle.getFolderId(),
+						importedArticle.getGroupId(),
+						serviceContext.getLiferayPortletResponse());
+
+					HashMap<String, Object> articleURLMap =
+						HashMapBuilder.<String, Object>put(
+							"escape", true
+						).put(
+							"escapedValue",
+							() -> {
+								HtmlEscapableObject escapedObject =
+									new HtmlEscapableObject<>(articleURL, true);
+
+								return escapedObject.getEscapedValue();
+							}
+						).put(
+							"originalValue", articleURL
+						).build();
+
+					contextMap.put("[$ARTICLE_URL$]", articleURLMap);
+
+					contextMap.forEach(
+						(key, value) -> subscriptionSender.setContextAttribute(
+							key, value.get("originalValue")));
+
+					jsonObject.put(
+						"context", contextMap
+					).put(
+						"entryURL", articleURL
+					);
+
+					userNotificationEvent.setPayload(jsonObject.toString());
+
+					userNotificationEvent.setTimestamp(
+						System.currentTimeMillis());
+
+					_userNotificationEventLocalService.
+						updateUserNotificationEvent(userNotificationEvent);
+
+					JournalGroupServiceConfiguration
+						journalGroupServiceConfiguration =
+							_configurationProvider.getConfiguration(
+								JournalGroupServiceConfiguration.class,
+								new GroupServiceSettingsLocator(
+									article.getGroupId(),
+									JournalConstants.SERVICE_NAME));
+
+					String fromAddress =
+						journalGroupServiceConfiguration.emailFromAddress();
+
+					String fromName =
+						journalGroupServiceConfiguration.emailFromName();
+
+					subscriptionSender.setFrom(fromAddress, fromName);
+
+					subscriptionSender.setHtmlFormat(true);
+
+					Map<String, String> localizedJsonBodyMap =
+						(Map)JSONFactoryUtil.looseDeserialize(
+							String.valueOf(jsonObject.get("localizedBodyMap")));
+
+					Map<Locale, String> localizedBodyMap = new HashMap<>();
+
+					for (Map.Entry<String, String> entry :
+							localizedJsonBodyMap.entrySet()) {
+
+						localizedBodyMap.put(
+							LocaleUtil.fromLanguageId(entry.getKey()),
+							entry.getValue());
+					}
+
+					subscriptionSender.setLocalizedBodyMap(localizedBodyMap);
+
+					Map<String, String> localizedJsonSubjectMap =
+						(Map)JSONFactoryUtil.looseDeserialize(
+							String.valueOf(
+								jsonObject.get("localizedSubjectMap")));
+
+					Map<Locale, String> localizedSubjectMap = new HashMap<>();
+
+					for (Map.Entry<String, String> entry :
+							localizedJsonSubjectMap.entrySet()) {
+
+						localizedSubjectMap.put(
+							LocaleUtil.fromLanguageId(entry.getKey()),
+							entry.getValue());
+					}
+
+					subscriptionSender.setLocalizedSubjectMap(
+						localizedSubjectMap);
+
+					subscriptionSender.setMailId(
+						"journal_article", article.getId());
+					subscriptionSender.setNotificationType(
+						jsonObject.getInt("notificationType"));
+					subscriptionSender.setPortletId(
+						jsonObject.getString("portletId"));
+					subscriptionSender.setReplyToAddress(fromAddress);
+
+					try {
+						subscriptionSender.sendEmailNotification(
+							userNotificationEvent.getUserId());
+					}
+					catch (Exception e) {
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"Unable to send email notification for " +
+									"article " + article.getArticleId());
+						}
+					}
+				});
+
+		try {
+			actionableDynamicQuery.performActions();
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to send email notification for article " +
+						article.getArticleId());
+			}
+		}
+	}
+
 	/**
 	 * @deprecated As of Judson (7.1.x), only used for backwards compatibility
 	 *             with LARs that use journal schema under 1.1.0
@@ -1483,5 +1705,9 @@ public class JournalArticleStagedModelDataHandler
 	private Portal _portal;
 
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private UserNotificationEventLocalService
+		_userNotificationEventLocalService;
 
 }

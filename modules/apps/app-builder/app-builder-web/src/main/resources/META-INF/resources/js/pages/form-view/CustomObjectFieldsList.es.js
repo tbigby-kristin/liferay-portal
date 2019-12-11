@@ -13,21 +13,35 @@
  */
 
 import React, {useContext} from 'react';
+
 import FieldTypeList from '../../components/field-types/FieldTypeList.es';
-import FormViewContext from './FormViewContext.es';
 import {containsField} from '../../utils/dataLayoutVisitor.es';
 import {DRAG_CUSTOM_OBJECT_FIELD} from '../../utils/dragTypes.es';
+import DataLayoutBuilderContext from './DataLayoutBuilderContext.es';
+import FormViewContext from './FormViewContext.es';
+import {
+	dropCustomObjectField,
+	UPDATE_FOCUSED_CUSTOM_OBJECT_FIELD
+} from './actions.es';
+import useDeleteDefinitionField from './useDeleteDefinitionField.es';
+import useDeleteDefinitionFieldModal from './useDeleteDefinitionFieldModal.es';
 
-const getFieldTypes = ({dataDefinition, dataLayout, fieldTypes}) => {
+const getFieldTypes = ({
+	dataDefinition,
+	dataLayout,
+	fieldTypes,
+	focusedCustomObjectField
+}) => {
 	const {dataDefinitionFields} = dataDefinition;
 	const {dataLayoutPages} = dataLayout;
 
-	return dataDefinitionFields.map(({label, fieldType, name}) => {
+	return dataDefinitionFields.map(({fieldType, label, name}) => {
 		const fieldTypeSettings = fieldTypes.find(({name}) => {
 			return name === fieldType;
 		});
 
 		return {
+			active: name === focusedCustomObjectField.name,
 			className: 'custom-object-field',
 			description: fieldTypeSettings.label,
 			disabled: containsField(dataLayoutPages, name),
@@ -41,8 +55,55 @@ const getFieldTypes = ({dataDefinition, dataLayout, fieldTypes}) => {
 };
 
 export default ({keywords}) => {
-	const [state] = useContext(FormViewContext);
+	const [dataLayoutBuilder] = useContext(DataLayoutBuilderContext);
+	const [state, dispatch] = useContext(FormViewContext);
+	const {dataDefinition} = state;
+	const {dataDefinitionFields} = dataDefinition;
 	const fieldTypes = getFieldTypes(state);
+	const onClick = ({name}) => {
+		const dataDefinitionField = dataDefinitionFields.find(
+			({name: currentName}) => currentName === name
+		);
 
-	return <FieldTypeList fieldTypes={fieldTypes} keywords={keywords} />;
+		dispatch({
+			payload: {dataDefinitionField},
+			type: UPDATE_FOCUSED_CUSTOM_OBJECT_FIELD
+		});
+	};
+	const onDoubleClick = ({name}) => {
+		const {activePage, pages} = dataLayoutBuilder.getStore();
+
+		dataLayoutBuilder.dispatch(
+			'fieldAdded',
+			dropCustomObjectField({
+				addedToPlaceholder: true,
+				dataDefinition,
+				dataDefinitionFieldName: name,
+				dataLayoutBuilder,
+				indexes: {
+					columnIndex: 0,
+					pageIndex: activePage,
+					rowIndex: pages[activePage].rows.length
+				},
+				skipFieldNameGeneration: true
+			})
+		);
+	};
+
+	const deleteField = useDeleteDefinitionField({dataLayoutBuilder});
+
+	const onDeleteDefinitionField = useDeleteDefinitionFieldModal(fieldName =>
+		deleteField(fieldName)
+	);
+
+	return (
+		<FieldTypeList
+			deleteLabel={Liferay.Language.get('delete-from-object')}
+			fieldTypes={fieldTypes}
+			keywords={keywords}
+			onClick={onClick}
+			onDelete={onDeleteDefinitionField}
+			onDoubleClick={onDoubleClick}
+		/>
+	);
 };

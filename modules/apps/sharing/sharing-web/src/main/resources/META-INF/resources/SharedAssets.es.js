@@ -12,8 +12,7 @@
  * details.
  */
 
-import {ItemSelectorDialog} from 'frontend-js-web';
-import {PortletBase} from 'frontend-js-web';
+import {ItemSelectorDialog, PortletBase} from 'frontend-js-web';
 
 class SharedAssets extends PortletBase {
 	constructor(config, ...args) {
@@ -23,6 +22,12 @@ class SharedAssets extends PortletBase {
 		this._viewAssetTypeURL = config.viewAssetTypeURL;
 	}
 
+	attached() {
+		Liferay.on('sharing:changed', () =>
+			Liferay.Portlet.refresh('#p_p_id' + this.namespace)
+		);
+	}
+
 	handleFilterItemClicked(event) {
 		const itemData = event.data.item.data;
 		const namespace = this.namespace;
@@ -30,8 +35,8 @@ class SharedAssets extends PortletBase {
 
 		if (itemData.action === 'openAssetTypesSelector') {
 			const itemSelectorDialog = new ItemSelectorDialog({
-				buttonAddLabel: Liferay.Language.get('select'),
 				eventName: namespace + 'selectAssetType',
+				singleSelect: true,
 				title: Liferay.Language.get('select-asset-type'),
 				url: this._selectAssetTypeURL
 			});

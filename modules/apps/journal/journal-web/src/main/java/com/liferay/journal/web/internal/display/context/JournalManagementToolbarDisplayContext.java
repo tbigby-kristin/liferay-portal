@@ -37,10 +37,12 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -50,7 +52,6 @@ import com.liferay.staging.StagingGroupHelperUtil;
 import com.liferay.trash.TrashHelper;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -147,8 +148,6 @@ public class JournalManagementToolbarDisplayContext
 	}
 
 	public Map<String, Object> getComponentContext() throws Exception {
-		Map<String, Object> componentContext = new HashMap<>();
-
 		PortletURL addArticleURL = liferayPortletResponse.createRenderURL();
 
 		addArticleURL.setParameter("mvcPath", "/edit_article.jsp");
@@ -157,12 +156,6 @@ public class JournalManagementToolbarDisplayContext
 			"groupId", String.valueOf(_themeDisplay.getScopeGroupId()));
 		addArticleURL.setParameter(
 			"folderId", String.valueOf(_journalDisplayContext.getFolderId()));
-
-		componentContext.put("addArticleURL", addArticleURL.toString());
-
-		componentContext.put(
-			"folderId",
-			String.valueOf(JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
 
 		PortletURL moveEntriesURL = liferayPortletResponse.createRenderURL();
 
@@ -179,8 +172,6 @@ public class JournalManagementToolbarDisplayContext
 		moveEntriesURL.setParameter(
 			"referringPortletResource", referringPortletResource);
 
-		componentContext.put("moveEntriesURL", moveEntriesURL.toString());
-
 		PortletURL openViewMoreStructuresURL =
 			liferayPortletResponse.createRenderURL();
 
@@ -193,19 +184,10 @@ public class JournalManagementToolbarDisplayContext
 			liferayPortletResponse.getNamespace() + "selectAddMenuItem");
 		openViewMoreStructuresURL.setWindowState(LiferayWindowState.POP_UP);
 
-		componentContext.put(
-			"openViewMoreStructuresURL", openViewMoreStructuresURL.toString());
-
 		PortletURL selectEntityURL = liferayPortletResponse.createRenderURL();
 
 		selectEntityURL.setParameter("mvcPath", "/select_ddm_structure.jsp");
 		selectEntityURL.setWindowState(LiferayWindowState.POP_UP);
-
-		componentContext.put("selectEntityURL", selectEntityURL.toString());
-
-		componentContext.put(
-			"trashEnabled",
-			_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroupId()));
 
 		PortletURL viewDDMStructureArticlesURL =
 			liferayPortletResponse.createRenderURL();
@@ -215,11 +197,24 @@ public class JournalManagementToolbarDisplayContext
 			"folderId",
 			String.valueOf(JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID));
 
-		componentContext.put(
+		return HashMapBuilder.<String, Object>put(
+			"addArticleURL", addArticleURL.toString()
+		).put(
+			"folderId",
+			String.valueOf(JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID)
+		).put(
+			"moveEntriesURL", moveEntriesURL.toString()
+		).put(
+			"openViewMoreStructuresURL", openViewMoreStructuresURL.toString()
+		).put(
+			"selectEntityURL", selectEntityURL.toString()
+		).put(
+			"trashEnabled",
+			_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroupId())
+		).put(
 			"viewDDMStructureArticlesURL",
-			viewDDMStructureArticlesURL.toString());
-
-		return componentContext;
+			viewDDMStructureArticlesURL.toString()
+		).build();
 	}
 
 	@Override
@@ -286,6 +281,17 @@ public class JournalManagementToolbarDisplayContext
 				if (_journalDisplayContext.isNavigationMine()) {
 					add(
 						labelItem -> {
+							PortletURL removeLabelURL = PortletURLUtil.clone(
+								currentURLObj, liferayPortletResponse);
+
+							removeLabelURL.setParameter(
+								"navigation", (String)null);
+
+							labelItem.putData(
+								"removeLabelURL", removeLabelURL.toString());
+
+							labelItem.setCloseable(true);
+
 							ThemeDisplay themeDisplay =
 								(ThemeDisplay)request.getAttribute(
 									WebKeys.THEME_DISPLAY);
@@ -300,24 +306,65 @@ public class JournalManagementToolbarDisplayContext
 
 				if (_journalDisplayContext.isNavigationRecent()) {
 					add(
-						labelItem -> labelItem.setLabel(
-							LanguageUtil.get(request, "recent")));
+						labelItem -> {
+							PortletURL removeLabelURL = PortletURLUtil.clone(
+								currentURLObj, liferayPortletResponse);
+
+							removeLabelURL.setParameter(
+								"navigation", (String)null);
+
+							labelItem.putData(
+								"removeLabelURL", removeLabelURL.toString());
+
+							labelItem.setCloseable(true);
+
+							labelItem.setLabel(
+								LanguageUtil.get(request, "recent"));
+						});
 				}
 
 				if (_journalDisplayContext.isNavigationStructure()) {
 					add(
-						labelItem -> labelItem.setLabel(
-							LanguageUtil.get(request, "structures") + ": " +
-								_journalDisplayContext.getDDMStructureName()));
+						labelItem -> {
+							PortletURL removeLabelURL = PortletURLUtil.clone(
+								currentURLObj, liferayPortletResponse);
+
+							removeLabelURL.setParameter(
+								"navigation", (String)null);
+
+							labelItem.putData(
+								"removeLabelURL", removeLabelURL.toString());
+
+							labelItem.setCloseable(true);
+
+							String ddmStructureName =
+								_journalDisplayContext.getDDMStructureName();
+
+							labelItem.setLabel(
+								LanguageUtil.get(request, "structures") + ": " +
+									ddmStructureName);
+						});
 				}
 
 				int status = _journalDisplayContext.getStatus();
 
 				if (status != _journalDisplayContext.getDefaultStatus()) {
 					add(
-						labelItem -> labelItem.setLabel(
-							LanguageUtil.get(request, "status") + ": " +
-								_getStatusLabel(status)));
+						labelItem -> {
+							PortletURL removeLabelURL = PortletURLUtil.clone(
+								currentURLObj, liferayPortletResponse);
+
+							removeLabelURL.setParameter("status", (String)null);
+
+							labelItem.putData(
+								"removeLabelURL", removeLabelURL.toString());
+
+							labelItem.setCloseable(true);
+
+							labelItem.setLabel(
+								LanguageUtil.get(request, "status") + ": " +
+									_getStatusLabel(status));
+						});
 				}
 			}
 		};
@@ -334,6 +381,12 @@ public class JournalManagementToolbarDisplayContext
 
 		portletURL.setParameter(
 			"folderId", String.valueOf(_journalDisplayContext.getFolderId()));
+		portletURL.setParameter(
+			"navigation", _journalDisplayContext.getNavigation());
+		portletURL.setParameter("orderByCol", getOrderByCol());
+		portletURL.setParameter("orderByType", getOrderByType());
+		portletURL.setParameter(
+			"status", String.valueOf(_journalDisplayContext.getStatus()));
 
 		return portletURL.toString();
 	}

@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletURLFactory;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -76,13 +77,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class SimulationProductNavigationControlMenuEntry
 	extends BaseProductNavigationControlMenuEntry {
-
-	@Activate
-	public void activate() {
-		_portletNamespace = _portal.getPortletNamespace(
-			ProductNavigationSimulationPortletKeys.
-				PRODUCT_NAVIGATION_SIMULATION);
-	}
 
 	@Override
 	public String getLabel(Locale locale) {
@@ -208,6 +202,13 @@ public class SimulationProductNavigationControlMenuEntry
 	public void setPanelCategory(PanelCategory panelCategory) {
 	}
 
+	@Activate
+	protected void activate() {
+		_portletNamespace = _portal.getPortletNamespace(
+			ProductNavigationSimulationPortletKeys.
+				PRODUCT_NAVIGATION_SIMULATION);
+	}
+
 	@Reference(unbind = "-")
 	protected void setPanelAppRegistry(PanelAppRegistry panelAppRegistry) {
 		_panelAppRegistry = panelAppRegistry;
@@ -215,15 +216,15 @@ public class SimulationProductNavigationControlMenuEntry
 
 	private void _processBodyBottomTagBody(PageContext pageContext) {
 		try {
-			Map<String, String> values = new HashMap<>();
-
-			values.put("portletNamespace", _portletNamespace);
-
 			MessageTag messageTag = new MessageTag();
 
 			messageTag.setKey("simulation");
 
-			values.put("sidebarMessage", messageTag.doTagAsString(pageContext));
+			Map<String, String> values = HashMapBuilder.put(
+				"portletNamespace", _portletNamespace
+			).put(
+				"sidebarMessage", messageTag.doTagAsString(pageContext)
+			).build();
 
 			messageTag = new MessageTag();
 

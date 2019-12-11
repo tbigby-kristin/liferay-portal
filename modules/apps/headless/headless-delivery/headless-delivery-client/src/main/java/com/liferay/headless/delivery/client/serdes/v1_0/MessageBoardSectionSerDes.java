@@ -182,6 +182,16 @@ public class MessageBoardSectionSerDes {
 			sb.append(messageBoardSection.getSiteId());
 		}
 
+		if (messageBoardSection.getSubscribed() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(messageBoardSection.getSubscribed());
+		}
+
 		if (messageBoardSection.getTitle() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -304,6 +314,15 @@ public class MessageBoardSectionSerDes {
 			map.put("siteId", String.valueOf(messageBoardSection.getSiteId()));
 		}
 
+		if (messageBoardSection.getSubscribed() == null) {
+			map.put("subscribed", null);
+		}
+		else {
+			map.put(
+				"subscribed",
+				String.valueOf(messageBoardSection.getSubscribed()));
+		}
+
 		if (messageBoardSection.getTitle() == null) {
 			map.put("title", null);
 		}
@@ -405,6 +424,12 @@ public class MessageBoardSectionSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "subscribed")) {
+				if (jsonParserFieldValue != null) {
+					messageBoardSection.setSubscribed(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "title")) {
 				if (jsonParserFieldValue != null) {
 					messageBoardSection.setTitle((String)jsonParserFieldValue);
@@ -428,9 +453,11 @@ public class MessageBoardSectionSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

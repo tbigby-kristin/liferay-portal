@@ -14,13 +14,13 @@
 
 import {ClayIconSpriteContext} from '@clayui/icon';
 import {Component} from 'metal-component';
+import Soy from 'metal-soy';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Soy from 'metal-soy';
 
 import {getConnectedComponent} from './ConnectedComponent.es';
-import {StoreContext} from './StoreContext.es';
 import StateProvider from './StateProvider.es';
+import {StoreContext} from './StoreContext.es';
 
 function getConnectedReactComponentAdapter(ReactComponent, templates) {
 	class ReactComponentAdapter extends Component {

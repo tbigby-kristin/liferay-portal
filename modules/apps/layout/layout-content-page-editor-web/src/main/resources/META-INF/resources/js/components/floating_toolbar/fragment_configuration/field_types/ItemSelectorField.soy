@@ -12,14 +12,14 @@
 		typeOptions: ?
 	]}
 
-	{@param? availableAssets: list<[
-		href: string,
-		typeName: string
-	]>}
-
 	{@param? availableTemplates: list<[
-		key: string,
-		label: string
+		infoItemRendererKey: string,
+		label: string,
+		templates: list<[
+			infoItemRendererKey: string,
+			label: string,
+			templateKey: string
+		]>
 	]>}
 	{@param? enableSelectTemplate: bool}
 	{@param? selectedClassName: string}
@@ -31,22 +31,21 @@
 
 	<div>
 		{if $selectedClassName}
-			{call .classNameAssetSelector}
+			{call .classNameInfoItemSelector}
 				{param configurationValues: $configurationValues /}
 				{param field: $field /}
 				{param handleItemSelectClick: $_handleItemSelectClick /}
-				{param selectedAssetEntryTitle: $configurationValues[$field.name]?.title /}
+				{param selectedInfoItemTitle: $configurationValues[$field.name]?.title /}
 				{param spritemap: $spritemap /}
 			{/call}
 		{else}
 			<div class="form-group">
-				{call com.liferay.layout.content.page.editor.web.AssetSelector.render}
-					{param assetBrowserLinks: $availableAssets /}
+				{call com.liferay.layout.content.page.editor.web.InfoItemSelector.render}
 					{param fieldId: $field.name /}
 					{param fieldName: $field.label /}
 					{param handleAssetBrowserLinkClick: $_handleItemTypeClick /}
-					{param handleAssetEntryLinkClick: $_handleItemSelectClick /}
-					{param selectedAssetEntryTitle: $configurationValues[$field.name]?.title /}
+					{param handleInfoItemLinkClick: $_handleItemSelectClick /}
+					{param selectedInfoItemTitle: $configurationValues[$field.name]?.title /}
 					{param store: $store /}
 				{/call}
 			</div>
@@ -62,7 +61,7 @@
 	</div>
 {/template}
 
-{template .classNameAssetSelector}
+{template .classNameInfoItemSelector}
 	{@param configurationValues: ?}
 	{@param field: [
 		name: string,
@@ -104,11 +103,11 @@
 
 {template .templateSelector}
 	{@param availableTemplates: ?}
-	{@param? selectedTemplate: string}
+	{@param? selectedTemplate: ?}
 	{@param? handleSelectTemplateValueChanged: any}
 
 	<div class="form-group">
-		<label for="template">{msg desc=""}display-style{/msg}</label>
+		<label for="template">{msg desc=""}template{/msg}</label>
 
 		<select
 			class="form-control form-control-sm"
@@ -116,15 +115,40 @@
 			id="template"
 		>
 			{foreach $option in $availableTemplates}
-				{let $optionAttributes kind="attributes"}
-					value="{$option.key}"
+				{if isNonnull($option.templates) and length($option.templates) > 1}
+					<optgroup label="{$option.label}">
+						{foreach $template in $option.templates}
+							{let $optionAttributes kind="attributes"}
+								{if $template.templateKey}
+									data-template-key="{$template.templateKey}"
+								{/if}
 
-					{if $selectedTemplate and $selectedTemplate == $option.key}
-						selected
-					{/if}
-				{/let}
+								{if $template.infoItemRendererKey}
+									data-info-item-renderer-key="{$template.infoItemRendererKey}"
+								{/if}
 
-				<option {$optionAttributes}>{$option.label}</option>
+								{if $selectedTemplate and $selectedTemplate.infoItemRendererKey == $template.infoItemRendererKey and
+								(not $selectedTemplate.templateKey or ($selectedTemplate.templateKey and $selectedTemplate.templateKey == $template.templateKey))}
+									selected
+								{/if}
+							{/let}
+
+							<option {$optionAttributes}>{$template.label}</option>
+						{/foreach}
+					</optgroup>
+				{else}
+					{let $optionAttributes kind="attributes"}
+						{if $option.infoItemRendererKey}
+							data-info-item-renderer-key="{$option.infoItemRendererKey}"
+						{/if}
+
+						{if $selectedTemplate and $selectedTemplate.infoItemRendererKey == $option.infoItemRendererKey}
+							selected
+						{/if}
+					{/let}
+
+					<option {$optionAttributes}>{$option.label}</option>
+				{/if}
 			{/foreach}
 		</select>
 	</div>

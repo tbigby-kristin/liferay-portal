@@ -17,6 +17,7 @@ import Component from 'metal-component';
 import Soy from 'metal-soy';
 
 import componentTemplates from './RotateComponent.soy';
+
 import './RotateControls.soy';
 
 /**

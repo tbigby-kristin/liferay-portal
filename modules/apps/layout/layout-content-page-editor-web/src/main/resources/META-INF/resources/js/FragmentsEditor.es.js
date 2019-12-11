@@ -12,28 +12,34 @@
  * details.
  */
 
+import {debounce} from 'frontend-js-web';
 import Component from 'metal-component';
 import dom from 'metal-dom';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 
 import './components/fragment_entry_link/FragmentEntryLinkList.es';
+
+import './components/master_layout/MasterFragmentEntryLinkList.es';
+
 import './components/sidebar/FragmentsEditorSidebar.es';
+
 import './components/toolbar/FragmentsEditorToolbar.es';
+import templates from './FragmentsEditor.soy';
 import {
 	CLEAR_ACTIVE_ITEM,
 	CLEAR_HOVERED_ITEM,
 	UPDATE_HOVERED_ITEM
 } from './actions/actions.es';
-import {getFragmentEntryLinkListElements} from './utils/FragmentsEditorGetUtils.es';
+import {updateActiveItemAction} from './actions/updateActiveItem.es';
 import {INITIAL_STATE} from './store/state.es';
+import {Store} from './store/store.es';
 import {
 	startListeningWidgetConfigurationChange,
 	stopListeningWidgetConfigurationChange
 } from './utils/FragmentsEditorDialogUtils';
-import {Store} from './store/store.es';
-import templates from './FragmentsEditor.soy';
-import {updateActiveItemAction} from './actions/updateActiveItem.es';
+import {getElements} from './utils/FragmentsEditorGetUtils.es';
+import {FRAGMENTS_EDITOR_ITEM_TYPES} from './utils/constants';
 
 /**
  * @type {string}
@@ -91,6 +97,49 @@ class FragmentsEditor extends Component {
 	}
 
 	/**
+	 * Adds edition listeners
+	 * @review
+	 */
+	_addEditionListeners() {
+		if (!this._activeEditionListeners) {
+			this._activeEditionListeners = true;
+
+			document.addEventListener('click', this._handleDocumentClick, true);
+			document.addEventListener('keydown', this._handleDocumentKeyDown);
+			document.addEventListener('keyup', this._handleDocumentKeyUp);
+			document.addEventListener(
+				'mouseover',
+				this._handleDocumentMouseOver
+			);
+		}
+	}
+
+	/**
+	 * Removes edition listeners
+	 * @review
+	 */
+	_removeEditionListeners() {
+		if (this._activeEditionListeners) {
+			this._activeEditionListeners = false;
+
+			document.removeEventListener(
+				'click',
+				this._handleDocumentClick,
+				true
+			);
+			document.removeEventListener(
+				'keydown',
+				this._handleDocumentKeyDown
+			);
+			document.removeEventListener('keyup', this._handleDocumentKeyUp);
+			document.removeEventListener(
+				'mouseover',
+				this._handleDocumentMouseOver
+			);
+		}
+	}
+
+	/**
 	 * @inheritdoc
 	 * @review
 	 */
@@ -98,14 +147,14 @@ class FragmentsEditor extends Component {
 		this._handleDocumentClick = this._handleDocumentClick.bind(this);
 		this._handleDocumentKeyDown = this._handleDocumentKeyDown.bind(this);
 		this._handleDocumentKeyUp = this._handleDocumentKeyUp.bind(this);
-		this._handleDocumentMouseOver = this._handleDocumentMouseOver.bind(
-			this
+		this._handleDocumentMouseOver = debounce(
+			this._handleDocumentMouseOver.bind(this),
+			100
 		);
 
-		document.addEventListener('click', this._handleDocumentClick, true);
-		document.addEventListener('keydown', this._handleDocumentKeyDown);
-		document.addEventListener('keyup', this._handleDocumentKeyUp);
-		document.addEventListener('mouseover', this._handleDocumentMouseOver);
+		if (!this.lockedSegmentsExperience) {
+			this._addEditionListeners();
+		}
 	}
 
 	/**
@@ -113,15 +162,28 @@ class FragmentsEditor extends Component {
 	 * @review
 	 */
 	disposed() {
-		document.removeEventListener('click', this._handleDocumentClick, true);
-		document.removeEventListener('keydown', this._handleDocumentKeyDown);
-		document.removeEventListener('keyup', this._handleDocumentKeyUp);
-		document.removeEventListener(
-			'mouseover',
-			this._handleDocumentMouseOver
-		);
+		this._removeEditionListeners();
 
 		stopListeningWidgetConfigurationChange();
+	}
+
+	/**
+	 * Listens for changes in the Experience lock status to hide edition features
+	 * @inheritdoc
+	 * @review
+	 */
+	syncLockedSegmentsExperience(value, previousValue) {
+		if (value && value !== previousValue) {
+			if (this.store) {
+				this.store.dispatch({
+					type: CLEAR_ACTIVE_ITEM
+				});
+			}
+
+			this._removeEditionListeners();
+		} else if (value !== previousValue) {
+			this._addEditionListeners();
+		}
 	}
 
 	/**
@@ -216,28 +278,48 @@ class FragmentsEditor extends Component {
 			targetItemType
 		} = FragmentsEditor._getTargetItemData(event);
 
+		let hoveredItemId = targetItemId;
+		let hoveredItemType = targetItemType;
+
 		document
 			.querySelectorAll(`.${HOVERED_ITEM_CLASS}`)
 			.forEach(hoveredItem => {
 				hoveredItem.classList.remove(HOVERED_ITEM_CLASS);
 			});
 
-		const targetItems = getFragmentEntryLinkListElements(
-			targetItemId,
-			targetItemType
-		);
+		const targetItems = getElements(targetItemId, targetItemType);
 
-		if (targetItems.length > 0) {
+		if (targetItems.length === 0) {
+			const targetItemIsEditable =
+				targetItemType === FRAGMENTS_EDITOR_ITEM_TYPES.editable ||
+				targetItemType ===
+					FRAGMENTS_EDITOR_ITEM_TYPES.backgroundImageEditable;
+
+			if (
+				targetItemIsEditable &&
+				!targetItems[0].classList.contains(
+					'fragments-editor__editable--highlighted'
+				)
+			) {
+				const fragment = getElements(
+					targetItems[0].dataset.fragmentEntryLinkId,
+					FRAGMENTS_EDITOR_ITEM_TYPES.fragment
+				)[0];
+
+				hoveredItemId = fragment.dataset.fragmentsEditorItemId;
+				hoveredItemType = FRAGMENTS_EDITOR_ITEM_TYPES.fragment;
+			}
+		} else if (targetItems.length > 1) {
 			targetItems.forEach(targetItem => {
 				targetItem.classList.add(ITEM_CLASS);
 				targetItem.classList.add(HOVERED_ITEM_CLASS);
 			});
 		}
 
-		if (targetItemId && targetItemType) {
+		if (hoveredItemId && hoveredItemType) {
 			this.store.dispatch({
-				hoveredItemId: targetItemId,
-				hoveredItemType: targetItemType,
+				hoveredItemId,
+				hoveredItemType,
 				type: UPDATE_HOVERED_ITEM
 			});
 		} else {
@@ -254,32 +336,30 @@ class FragmentsEditor extends Component {
  * @static
  * @type {object}
  */
-FragmentsEditor.STATE = Object.assign(
-	{
-		/**
-		 * @default false
-		 * @instance
-		 * @memberOf FragmentsEditor
-		 * @private
-		 * @review
-		 * @type {boolean}
-		 */
-		_shiftPressed: Config.bool()
-			.internal()
-			.value(false),
+FragmentsEditor.STATE = {
+	/**
+	 * @default false
+	 * @instance
+	 * @memberOf FragmentsEditor
+	 * @private
+	 * @review
+	 * @type {boolean}
+	 */
+	_shiftPressed: Config.bool()
+		.internal()
+		.value(false),
 
-		/**
-		 * Store instance
-		 * @default undefined
-		 * @instance
-		 * @memberOf FragmentsEditor
-		 * @review
-		 * @type {Store}
-		 */
-		store: Config.instanceOf(Store)
-	},
-	INITIAL_STATE
-);
+	/**
+	 * Store instance
+	 * @default undefined
+	 * @instance
+	 * @memberOf FragmentsEditor
+	 * @review
+	 * @type {Store}
+	 */
+	store: Config.instanceOf(Store),
+	...INITIAL_STATE
+};
 
 Soy.register(FragmentsEditor, templates);
 

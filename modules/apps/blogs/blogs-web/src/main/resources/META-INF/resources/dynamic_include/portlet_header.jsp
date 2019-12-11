@@ -79,16 +79,20 @@ BlogsGroupServiceOverriddenConfiguration blogsGroupServiceOverriddenConfiguratio
 	</c:if>
 
 	<c:if test="<%= BlogsPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ENTRY) %>">
-		<portlet:renderURL var="editEntryURL" windowState="<%= WindowState.MAXIMIZED.toString() %>">
-			<portlet:param name="mvcRenderCommandName" value="/blogs/edit_entry" />
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-		</portlet:renderURL>
+
+		<%
+		PortletURL editEntryURL = PortalUtil.getControlPanelPortletURL(request, themeDisplay.getScopeGroup(), BlogsPortletKeys.BLOGS_ADMIN, 0, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
+
+		editEntryURL.setParameter("mvcRenderCommandName", "/blogs/edit_entry");
+		editEntryURL.setParameter("redirect", currentURL);
+		editEntryURL.setParameter("portletResource", portletDisplay.getId());
+		%>
 
 		<div class="btn-group-item">
 			<clay:link
 				buttonStyle="primary"
 				elementClasses="btn-sm"
-				href="<%= editEntryURL %>"
+				href="<%= editEntryURL.toString() %>"
 				label='<%= LanguageUtil.get(request, "new-entry") %>'
 			/>
 		</div>

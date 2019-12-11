@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -157,6 +159,7 @@ public class FormField {
 	protected String displayStyle;
 
 	@Schema
+	@Valid
 	public FormFieldOption[] getFormFieldOptions() {
 		return formFieldOptions;
 	}
@@ -186,6 +189,7 @@ public class FormField {
 	protected FormFieldOption[] formFieldOptions;
 
 	@Schema
+	@Valid
 	public Grid getGrid() {
 		return grid;
 	}
@@ -738,6 +742,7 @@ public class FormField {
 	protected String tooltip;
 
 	@Schema(description = "https://www.schema.org/FormFieldValidation")
+	@Valid
 	public Validation getValidation() {
 		return validation;
 	}
@@ -761,7 +766,7 @@ public class FormField {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "https://www.schema.org/FormFieldValidation")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Validation validation;
 
@@ -1110,6 +1115,12 @@ public class FormField {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.form.dto.v1_0.FormField",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

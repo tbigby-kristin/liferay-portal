@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -88,6 +89,7 @@ public class MessageBoardThread {
 	}
 
 	@Schema(description = "The thread's average rating.")
+	@Valid
 	public AggregateRating getAggregateRating() {
 		return aggregateRating;
 	}
@@ -112,7 +114,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The thread's average rating.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected AggregateRating aggregateRating;
 
@@ -142,11 +144,14 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The thread's main body content (the message written as the thread's description)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String articleBody;
 
 	@Schema(description = "The thread's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -170,11 +175,12 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The thread's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
 	@Schema
+	@Valid
 	public CustomField[] getCustomFields() {
 		return customFields;
 	}
@@ -226,7 +232,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The date the thread was created.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -254,7 +260,9 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The last time any field of the thread changed."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -284,7 +292,9 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The media format of the thread's content (e.g., HTML, BBCode, etc.)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String encodingFormat;
 
@@ -312,7 +322,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The thread's main title.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	@NotEmpty
 	protected String headline;
@@ -339,7 +349,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The thread's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -367,7 +377,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A list of keywords describing the thread.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String[] keywords;
 
@@ -399,7 +409,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of the thread's attachments.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfMessageBoardAttachments;
 
@@ -431,11 +441,12 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of the thread's messages.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfMessageBoardMessages;
 
 	@Schema
+	@Valid
 	public RelatedContent[] getRelatedContents() {
 		return relatedContents;
 	}
@@ -490,7 +501,9 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A flag that indicates whether this thread was posted as a question that can receive approved answers."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean showAsQuestion;
 
@@ -518,9 +531,39 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which this thread is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
+
+	@Schema
+	public Boolean getSubscribed() {
+		return subscribed;
+	}
+
+	public void setSubscribed(Boolean subscribed) {
+		this.subscribed = subscribed;
+	}
+
+	@JsonIgnore
+	public void setSubscribed(
+		UnsafeSupplier<Boolean, Exception> subscribedUnsafeSupplier) {
+
+		try {
+			subscribed = subscribedUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Boolean subscribed;
 
 	@Schema(description = "The thread's type.")
 	public String getThreadType() {
@@ -546,22 +589,22 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The thread's type.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String threadType;
 
 	@Schema(description = "The number of views of this thread.")
-	public Integer getViewCount() {
+	public Long getViewCount() {
 		return viewCount;
 	}
 
-	public void setViewCount(Integer viewCount) {
+	public void setViewCount(Long viewCount) {
 		this.viewCount = viewCount;
 	}
 
 	@JsonIgnore
 	public void setViewCount(
-		UnsafeSupplier<Integer, Exception> viewCountUnsafeSupplier) {
+		UnsafeSupplier<Long, Exception> viewCountUnsafeSupplier) {
 
 		try {
 			viewCount = viewCountUnsafeSupplier.get();
@@ -574,13 +617,14 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of views of this thread.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
-	protected Integer viewCount;
+	protected Long viewCount;
 
 	@Schema(
 		description = "A write-only property that specifies the thread's default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -613,7 +657,9 @@ public class MessageBoardThread {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the thread's default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -851,6 +897,16 @@ public class MessageBoardThread {
 			sb.append(siteId);
 		}
 
+		if (subscribed != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(subscribed);
+		}
+
 		if (threadType != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -893,6 +949,12 @@ public class MessageBoardThread {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.MessageBoardThread",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

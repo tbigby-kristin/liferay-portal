@@ -13,9 +13,10 @@
  */
 
 import getCN from 'classnames';
-import LocalizedDropdown from './LocalizedDropdown.es';
 import PropTypes from 'prop-types';
 import React from 'react';
+
+import LocalizedDropdown from './LocalizedDropdown.es';
 
 export default class LocalizedInput extends React.Component {
 	static propTypes = {
@@ -139,7 +140,7 @@ export default class LocalizedInput extends React.Component {
 				/>
 				<div className={inputGroupItemClasses}>
 					<input
-						className="rounded form-control language-value field form-control-inline form-control"
+						className="field form-control form-control-inline language-value rounded"
 						data-testid="localized-main-input"
 						onChange={this._handleInputChange}
 						placeholder={placeholder}

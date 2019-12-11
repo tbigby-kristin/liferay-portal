@@ -14,9 +14,16 @@
 
 package com.liferay.change.tracking.internal;
 
+import com.liferay.change.tracking.exception.CTEventException;
+import com.liferay.change.tracking.listener.CTEventListener;
+import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
-import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
 
@@ -36,8 +43,62 @@ public class CTServiceRegistry {
 		return _serviceTrackerMap.getService(classNameId);
 	}
 
+	public void onAfterCopy(
+		CTCollection sourceCTCollection, CTCollection targetCTCollection) {
+
+		for (CTEventListener ctEventListener : _serviceTrackerList) {
+			try {
+				ctEventListener.onAfterCopy(
+					sourceCTCollection, targetCTCollection);
+			}
+			catch (CTEventException ctee) {
+				_log.error(
+					StringBundler.concat(
+						"On after copy callback failure for change tracking ",
+						"collection ", sourceCTCollection, " by ",
+						ctEventListener),
+					ctee);
+			}
+		}
+	}
+
+	public void onAfterPublish(long ctCollectionId) {
+		for (CTEventListener ctEventListener : _serviceTrackerList) {
+			try {
+				ctEventListener.onAfterPublish(ctCollectionId);
+			}
+			catch (CTEventException ctee) {
+				_log.error(
+					StringBundler.concat(
+						"On after publish callback failure for change ",
+						"tracking collection ", ctCollectionId, " by ",
+						ctEventListener),
+					ctee);
+			}
+		}
+	}
+
+	public void onBeforeRemove(long ctCollectionId) {
+		for (CTEventListener ctEventListener : _serviceTrackerList) {
+			try {
+				ctEventListener.onBeforeRemove(ctCollectionId);
+			}
+			catch (CTEventException ctee) {
+				_log.error(
+					StringBundler.concat(
+						"On before remove callback failure for change ",
+						"tracking collection ", ctCollectionId, " by ",
+						ctEventListener),
+					ctee);
+			}
+		}
+	}
+
 	@Activate
 	protected void activate(BundleContext bundleContext) {
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			bundleContext, CTEventListener.class);
+
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
 			bundleContext, CTService.class, null,
 			(serviceReference, emitter) -> {
@@ -52,15 +113,18 @@ public class CTServiceRegistry {
 
 	@Deactivate
 	protected void deactivate() {
+		_serviceTrackerList.close();
 		_serviceTrackerMap.close();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		CTServiceRegistry.class);
 
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
 
-	@Reference(target = ModuleServiceLifecycle.PORTAL_INITIALIZED)
-	private ModuleServiceLifecycle _moduleServiceLifecycle;
-
+	private ServiceTrackerList<CTEventListener, CTEventListener>
+		_serviceTrackerList;
 	private ServiceTrackerMap<Long, CTService> _serviceTrackerMap;
 
 }

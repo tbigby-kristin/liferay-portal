@@ -67,7 +67,7 @@ public class BlogsEntryFinderImpl
 		QueryDefinition<BlogsEntry> queryDefinition) {
 
 		return countByOrganizationIds(
-			ListUtil.toList(organizationId), displayDate, queryDefinition);
+			ListUtil.fromArray(organizationId), displayDate, queryDefinition);
 	}
 
 	@Override
@@ -192,7 +192,7 @@ public class BlogsEntryFinderImpl
 		QueryDefinition<BlogsEntry> queryDefinition) {
 
 		return findByOrganizationIds(
-			ListUtil.toList(organizationId), displayDate, queryDefinition);
+			ListUtil.fromArray(organizationId), displayDate, queryDefinition);
 	}
 
 	@Override
@@ -245,37 +245,6 @@ public class BlogsEntryFinderImpl
 			return (List<BlogsEntry>)QueryUtil.list(
 				q, getDialect(), queryDefinition.getStart(),
 				queryDefinition.getEnd());
-		}
-		catch (Exception e) {
-			throw new SystemException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public List<BlogsEntry> findByNoAssets() {
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			String sql = _customSQL.get(getClass(), FIND_BY_NO_ASSETS);
-
-			SQLQuery q = session.createSynchronizedSQLQuery(sql);
-
-			q.addEntity("BlogsEntry", BlogsEntryImpl.class);
-
-			QueryPos qPos = QueryPos.getInstance(q);
-
-			qPos.add(_portal.getClassNameId(BlogsEntry.class));
-
-			return q.list(true);
 		}
 		catch (Exception e) {
 			throw new SystemException(e);

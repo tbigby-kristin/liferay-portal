@@ -76,10 +76,17 @@ public interface KnowledgeBaseArticleResource {
 			Long knowledgeBaseArticleId, Rating rating)
 		throws Exception;
 
+	public void putKnowledgeBaseArticleSubscribe(Long knowledgeBaseArticleId)
+		throws Exception;
+
+	public void putKnowledgeBaseArticleUnsubscribe(Long knowledgeBaseArticleId)
+		throws Exception;
+
 	public Page<KnowledgeBaseArticle>
 			getKnowledgeBaseArticleKnowledgeBaseArticlesPage(
-				Long parentKnowledgeBaseArticleId, String search, Filter filter,
-				Pagination pagination, Sort[] sorts)
+				Long parentKnowledgeBaseArticleId, Boolean flatten,
+				String search, Filter filter, Pagination pagination,
+				Sort[] sorts)
 		throws Exception;
 
 	public KnowledgeBaseArticle postKnowledgeBaseArticleKnowledgeBaseArticle(
@@ -105,6 +112,12 @@ public interface KnowledgeBaseArticleResource {
 
 	public KnowledgeBaseArticle postSiteKnowledgeBaseArticle(
 			Long siteId, KnowledgeBaseArticle knowledgeBaseArticle)
+		throws Exception;
+
+	public void putSiteKnowledgeBaseArticleSubscribe(Long siteId)
+		throws Exception;
+
+	public void putSiteKnowledgeBaseArticleUnsubscribe(Long siteId)
 		throws Exception;
 
 	public default void setContextAcceptLanguage(

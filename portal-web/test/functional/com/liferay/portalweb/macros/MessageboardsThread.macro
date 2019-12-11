@@ -654,6 +654,8 @@ definition {
 				value1 = "Reply");
 		}
 
+		AssertElementPresent.pauseAssertVisible(locator1 = "MessageBoardsThread#THREAD_REPLY_EDITOR");
+
 		Type.typeEditor(
 			locator1 = "MessageBoardsThread#THREAD_REPLY_EDITOR",
 			value1 = "${threadReplyBody}");
@@ -948,7 +950,16 @@ definition {
 
 		AssertElementPresent(locator1 = "MessageBoards#THREAD_LIST_VIEWS");
 
-		AssertElementPresent(locator1 = "MessageBoards#THREAD_LIST_ACTIONS");
+		var browserType = PropsUtil.get("browser.type");
+
+		if ("${browserType}" == "internetexplorer") {
+			AssertElementPresent(
+				key_rowEntry = "${threadSubject}",
+				locator1 = "Icon#ROW_VERTICAL_ELLIPSIS_IE");
+		}
+		else {
+			AssertElementPresent(locator1 = "MessageBoards#THREAD_LIST_ACTIONS");
+		}
 
 		AssertClick(
 			locator1 = "MessageBoards#THREAD_LIST_THREAD",
@@ -1241,8 +1252,6 @@ definition {
 			value1 = "${threadBody}");
 
 		AssetPublisherPortlet.clickAssetTitle(assetTitle = "${threadSubject}");
-
-		AssertVisible(locator1 = "Icon#SHARE");
 
 		AssertTextEquals.assertPartialText(
 			locator1 = "APAsset#ASSET_TITLE_HEADER",

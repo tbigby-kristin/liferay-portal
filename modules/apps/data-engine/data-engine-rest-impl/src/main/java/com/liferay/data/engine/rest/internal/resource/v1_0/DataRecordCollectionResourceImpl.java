@@ -21,6 +21,7 @@ import com.liferay.data.engine.rest.internal.model.InternalDataRecordCollection;
 import com.liferay.data.engine.rest.internal.resource.common.CommonDataRecordCollectionResource;
 import com.liferay.data.engine.rest.resource.v1_0.DataRecordCollectionResource;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -28,6 +29,7 @@ import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
@@ -55,6 +57,19 @@ public class DataRecordCollectionResourceImpl
 
 		commonDataRecordCollectionResource.deleteDataRecordCollection(
 			dataRecordCollectionId);
+	}
+
+	@Override
+	public DataRecordCollection getDataDefinitionDataRecordCollection(
+			Long dataDefinitionId)
+		throws Exception {
+
+		DDMStructure ddmStructure = _ddmStructureLocalService.getStructure(
+			dataDefinitionId);
+
+		return DataRecordCollectionUtil.toDataRecordCollection(
+			_ddlRecordSetLocalService.getRecordSet(
+				ddmStructure.getGroupId(), ddmStructure.getStructureKey()));
 	}
 
 	@Override
@@ -119,14 +134,23 @@ public class DataRecordCollectionResourceImpl
 			Long dataDefinitionId, DataRecordCollection dataRecordCollection)
 		throws Exception {
 
+		DDMStructure ddmStructure = _ddmStructureLocalService.getDDMStructure(
+			dataDefinitionId);
+
+		String dataRecordCollectionKey =
+			dataRecordCollection.getDataRecordCollectionKey();
+
+		if (Validator.isNull(dataRecordCollectionKey)) {
+			dataRecordCollectionKey = ddmStructure.getStructureKey();
+		}
+
 		CommonDataRecordCollectionResource<DataRecordCollection>
 			commonDataRecordCollectionResource =
 				_getCommonDataRecordCollectionResource();
 
 		return commonDataRecordCollectionResource.
 			postDataDefinitionDataRecordCollection(
-				contextCompany, dataDefinitionId,
-				dataRecordCollection.getDataRecordCollectionKey(),
+				contextCompany, dataDefinitionId, dataRecordCollectionKey,
 				dataRecordCollection.getDescription(),
 				dataRecordCollection.getName());
 	}

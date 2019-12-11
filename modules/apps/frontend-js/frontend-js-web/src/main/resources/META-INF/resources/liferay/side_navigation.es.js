@@ -342,6 +342,10 @@ SideNavigation.prototype = {
 		const sidebar = element.querySelector('.sidebar-body');
 
 		if (!instance._fetchPromise && sidebar) {
+			while (sidebar.firstChild) {
+				sidebar.removeChild(sidebar.firstChild);
+			}
+
 			const loading = document.createElement('div');
 			addClass(loading, 'sidenav-loading');
 			loading.innerHTML = instance.options.loadingIndicatorTPL;
@@ -371,8 +375,7 @@ SideNavigation.prototype = {
 					instance.setHeight();
 				})
 				.catch(err => {
-					// eslint-disable-next-line no-console
-					console.log(err);
+					console.error(err);
 				});
 		}
 	},
@@ -598,7 +601,7 @@ SideNavigation.prototype = {
 
 			instance._emit('closedStart.lexicon.sidenav');
 
-			instance._subscribeSidenavTransitionEnd(content, function() {
+			instance._subscribeSidenavTransitionEnd(content, () => {
 				removeClass(container, 'sidenav-transition');
 				removeClass(toggler, 'sidenav-transition');
 
@@ -649,7 +652,7 @@ SideNavigation.prototype = {
 		 */
 		const useDataAttribute = toggler.dataset.toggle === 'liferay-sidenav';
 
-		options = Object.assign({}, defaults, options);
+		options = {...defaults, ...options};
 
 		options.breakpoint = toInt(options.breakpoint);
 		options.container =
@@ -839,7 +842,7 @@ SideNavigation.prototype = {
 
 			instance._emit('openStart.lexicon.sidenav');
 
-			instance._subscribeSidenavTransitionEnd(content, function() {
+			instance._subscribeSidenavTransitionEnd(content, () => {
 				removeClass(container, 'sidenav-transition');
 				removeClass(toggler, 'sidenav-transition');
 
@@ -894,7 +897,7 @@ SideNavigation.prototype = {
 			instance._emit('closedStart.lexicon.sidenav');
 		}
 
-		instance._subscribeSidenavTransitionEnd(container, function() {
+		instance._subscribeSidenavTransitionEnd(container, () => {
 			const menu = container.querySelector('.sidenav-menu');
 
 			if (hasClass(container, 'closed')) {

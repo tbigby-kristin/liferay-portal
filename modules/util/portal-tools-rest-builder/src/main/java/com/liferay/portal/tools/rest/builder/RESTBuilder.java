@@ -18,6 +18,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
 import com.liferay.portal.kernel.util.CamelCaseUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.StringUtil_IW;
 import com.liferay.portal.kernel.util.TextFormatter;
@@ -55,7 +56,6 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +112,7 @@ public class RESTBuilder {
 		throws Exception {
 
 		_copyrightFile = copyrightFile;
+
 		_configDir = restConfigDir;
 
 		File configFile = new File(_configDir, "rest-config.yaml");
@@ -128,16 +129,17 @@ public class RESTBuilder {
 	}
 
 	public void build() throws Exception {
-		Map<String, Object> context = new HashMap<>();
-
-		context.put("configYAML", _configYAML);
-
 		FreeMarkerTool freeMarkerTool = FreeMarkerTool.getInstance();
 
-		context.put("freeMarkerTool", freeMarkerTool);
-
-		context.put("stringUtil", StringUtil_IW.getInstance());
-		context.put("validator", Validator_IW.getInstance());
+		Map<String, Object> context = HashMapBuilder.<String, Object>put(
+			"configYAML", _configYAML
+		).put(
+			"freeMarkerTool", freeMarkerTool
+		).put(
+			"stringUtil", StringUtil_IW.getInstance()
+		).put(
+			"validator", Validator_IW.getInstance()
+		).build();
 
 		if (_configYAML.isGenerateREST()) {
 			_createApplicationFile(context);
@@ -290,6 +292,8 @@ public class RESTBuilder {
 
 		String s = _fixOpenAPILicense(FileUtil.read(file));
 
+		s = _fixOpenAPIPaths(s);
+
 		s = _fixOpenAPIPathParameters(s);
 
 		if (_configYAML.isForcePredictableSchemaPropertyName()) {
@@ -318,11 +322,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/jaxrs/application/");
 
 		Application application = _configYAML.getApplication();
@@ -350,11 +351,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/resource/");
 		sb.append(escapedVersion);
 		sb.append("/Base");
@@ -380,11 +378,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getTestDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/resource/");
 		sb.append(escapedVersion);
 		sb.append("/test/Base");
@@ -408,11 +403,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/json/BaseJSONParser.java");
 
 		File file = new File(sb.toString());
@@ -434,11 +426,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/dto/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -464,11 +453,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/constant/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -492,11 +478,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/http/HttpInvoker.java");
 
 		File file = new File(sb.toString());
@@ -516,11 +499,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/pagination/Page.java");
 
 		File file = new File(sb.toString());
@@ -540,11 +520,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/pagination/Pagination.java");
 
 		File file = new File(sb.toString());
@@ -566,11 +543,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/resource/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -596,11 +570,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/serdes/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -624,11 +595,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getClientDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/client/function/UnsafeSupplier.java");
 
 		File file = new File(sb.toString());
@@ -650,11 +618,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getApiDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/dto/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -679,11 +644,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getApiDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/constant/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -707,11 +669,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/graphql/mutation/");
 		sb.append(escapedVersion);
 		sb.append("/Mutation.java");
@@ -734,11 +693,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/graphql/query/");
 		sb.append(escapedVersion);
 		sb.append("/Query.java");
@@ -761,11 +717,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/graphql/servlet/");
 		sb.append(escapedVersion);
 		sb.append("/ServletDataImpl.java");
@@ -788,11 +741,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/resource/");
 		sb.append(escapedVersion);
 		sb.append("/OpenAPIResourceImpl.java");
@@ -838,11 +788,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getApiDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/resource/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -868,11 +815,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getImplDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/internal/resource/");
 		sb.append(escapedVersion);
 		sb.append("/");
@@ -902,11 +846,8 @@ public class RESTBuilder {
 
 		sb.append(_configYAML.getTestDir());
 		sb.append("/");
-
-		String apiPackagePath = _configYAML.getApiPackagePath();
-
-		sb.append(apiPackagePath.replace('.', '/'));
-
+		sb.append(
+			StringUtil.replace(_configYAML.getApiPackagePath(), '.', '/'));
 		sb.append("/resource/");
 		sb.append(escapedVersion);
 		sb.append("/test/");
@@ -981,10 +922,10 @@ public class RESTBuilder {
 
 		String oldSub = sb.toString();
 
-		String newSub =
-			oldSub + oldSub.replace("application/json", "application/xml");
+		String replacement = StringUtil.replace(
+			oldSub, "application/json", "application/xml");
 
-		return StringUtil.replaceFirst(s, oldSub, newSub, index);
+		return StringUtil.replaceFirst(s, oldSub, oldSub + replacement, index);
 	}
 
 	private String _fixOpenAPIContentApplicationXML(String s) {
@@ -1195,13 +1136,15 @@ public class RESTBuilder {
 
 				String line = s.substring(z + 1, s.indexOf("\n", z + 1));
 
-				while (line.matches(leadingWhiteSpace + "\\w.*")) {
-					String text = line.trim();
+				while (line.startsWith(leadingWhiteSpace)) {
+					if (line.matches(leadingWhiteSpace + "\\w.*")) {
+						String text = line.trim();
 
-					if ((text.compareTo("operationId:") > 0) ||
-						(s.indexOf('\n', z + 1) == -1)) {
+						if ((text.compareTo("operationId:") > 0) ||
+							(s.indexOf('\n', z + 1) == -1)) {
 
-						break;
+							break;
+						}
 					}
 
 					z = s.indexOf('\n', z + 1);
@@ -1271,11 +1214,11 @@ public class RESTBuilder {
 
 						s = sb.toString();
 
-						String newPathLine = pathLine.replace(
-							"{" + parameterName + "}",
+						String newPathLine = StringUtil.replace(
+							pathLine, "{" + parameterName + "}",
 							"{" + newParameterName + "}");
 
-						s = s.replace(pathLine, newPathLine);
+						s = StringUtil.replace(s, pathLine, newPathLine);
 					}
 				}
 			}
@@ -1348,19 +1291,59 @@ public class RESTBuilder {
 
 						s = sb.toString();
 
-						String newPathLine = pathLine.replace(
-							"{" + parameterName + "}",
+						String newPathLine = StringUtil.replace(
+							pathLine, "{" + parameterName + "}",
 							"{" + newParameterName + "}");
 
-						s = s.replace(pathLine, newPathLine);
+						s = StringUtil.replace(s, pathLine, newPathLine);
 					}
 				}
 			}
 
-			String newPathLine = pathLine.replace(
-				"{" + selParameterName + "}", "{" + newParameterName + "}");
+			String newPathLine = StringUtil.replace(
+				pathLine, "{" + selParameterName + "}",
+				"{" + newParameterName + "}");
 
-			s = s.replace(pathLine, newPathLine);
+			s = StringUtil.replace(s, pathLine, newPathLine);
+		}
+
+		return s;
+	}
+
+	private String _fixOpenAPIPaths(String s) {
+		OpenAPIYAML openAPIYAML = YAMLUtil.loadOpenAPIYAML(s);
+
+		Map<String, PathItem> pathItems = openAPIYAML.getPathItems();
+
+		if (pathItems == null) {
+			return s;
+		}
+
+		for (Map.Entry<String, PathItem> entry : pathItems.entrySet()) {
+			String path = entry.getKey();
+
+			if (!path.endsWith("/")) {
+				continue;
+			}
+
+			String newPath = path.substring(0, path.length() - 1);
+
+			int x = s.indexOf(StringUtil.quote(path, '"') + ":");
+
+			if (x != -1) {
+				String newSub = StringUtil.quote(newPath, '"');
+				String oldSub = StringUtil.quote(path, '"');
+
+				s = StringUtil.replaceFirst(s, oldSub, newSub, x);
+
+				continue;
+			}
+
+			x = s.indexOf(path + ":");
+
+			if (x != -1) {
+				s = StringUtil.replaceFirst(s, path, newPath, x);
+			}
 		}
 
 		return s;
@@ -1391,9 +1374,20 @@ public class RESTBuilder {
 
 				String description = propertySchema.getDescription();
 
-				if ((description == null) ||
-					!description.startsWith("https://www.schema.org/")) {
+				String reference = null;
 
+				if (StringUtil.startsWith(
+						description, "https://www.schema.org/")) {
+
+					reference = description;
+				}
+				else if (propertySchema.getItems() != null) {
+					Items items = propertySchema.getItems();
+
+					reference = items.getReference();
+				}
+
+				if (reference == null) {
 					continue;
 				}
 
@@ -1403,15 +1397,30 @@ public class RESTBuilder {
 
 				int z = s.indexOf(':', y);
 
+				String propertyName = entry2.getKey();
 				String schemaVarName = freeMarkerTool.getSchemaVarName(
-					description.substring(description.lastIndexOf('/') + 1));
+					reference.substring(reference.lastIndexOf('/') + 1));
 
 				if (Objects.equals(propertySchema.getType(), "array")) {
 					String plural = TextFormatter.formatPlural(schemaVarName);
 
+					if (propertyName.endsWith(
+							StringUtil.upperCaseFirstLetter(plural)) &&
+						propertyName.matches("[a-zA-Z]+")) {
+
+						continue;
+					}
+
 					s = s.substring(0, y + 1) + plural + s.substring(z);
 				}
 				else {
+					if (propertyName.endsWith(
+							StringUtil.upperCaseFirstLetter(schemaVarName)) &&
+						propertyName.matches("[a-zA-Z]+")) {
+
+						continue;
+					}
+
 					s = s.substring(0, y + 1) + schemaVarName + s.substring(z);
 				}
 			}
@@ -1533,6 +1542,30 @@ public class RESTBuilder {
 					sb.append(
 						"\" should use \"type: integer\" instead of \"type: " +
 							"number\"");
+
+					System.out.println(sb.toString());
+				}
+			}
+
+			if (schema.getRequiredPropertySchemaNames() == null) {
+				continue;
+			}
+
+			List<String> requiredPropertySchemaNames =
+				schema.getRequiredPropertySchemaNames();
+
+			Set<String> propertySchemaNames = propertySchemas.keySet();
+
+			for (String requiredPropertySchemaName :
+					requiredPropertySchemaNames) {
+
+				if (!propertySchemaNames.contains(requiredPropertySchemaName)) {
+					StringBuilder sb = new StringBuilder();
+
+					sb.append("The required property \"");
+					sb.append(requiredPropertySchemaName);
+					sb.append("\" is not defined in ");
+					sb.append(entry1.getKey());
 
 					System.out.println(sb.toString());
 				}

@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -78,6 +80,35 @@ public class DataDefinition {
 	protected String[] availableLanguageIds;
 
 	@Schema
+	public Long getClassNameId() {
+		return classNameId;
+	}
+
+	public void setClassNameId(Long classNameId) {
+		this.classNameId = classNameId;
+	}
+
+	@JsonIgnore
+	public void setClassNameId(
+		UnsafeSupplier<Long, Exception> classNameIdUnsafeSupplier) {
+
+		try {
+			classNameId = classNameIdUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Long classNameId;
+
+	@Schema
+	@Valid
 	public DataDefinitionField[] getDataDefinitionFields() {
 		return dataDefinitionFields;
 	}
@@ -137,6 +168,7 @@ public class DataDefinition {
 	protected String dataDefinitionKey;
 
 	@Schema
+	@Valid
 	public DataDefinitionRule[] getDataDefinitionRules() {
 		return dataDefinitionRules;
 	}
@@ -252,6 +284,7 @@ public class DataDefinition {
 	protected String defaultLanguageId;
 
 	@Schema
+	@Valid
 	public Map<String, Object> getDescription() {
 		return description;
 	}
@@ -307,6 +340,7 @@ public class DataDefinition {
 	protected Long id;
 
 	@Schema
+	@Valid
 	public Map<String, Object> getName() {
 		return name;
 	}
@@ -470,6 +504,16 @@ public class DataDefinition {
 			}
 
 			sb.append("]");
+		}
+
+		if (classNameId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"classNameId\": ");
+
+			sb.append(classNameId);
 		}
 
 		if (dataDefinitionFields != null) {
@@ -636,6 +680,12 @@ public class DataDefinition {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.data.engine.rest.dto.v1_0.DataDefinition",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

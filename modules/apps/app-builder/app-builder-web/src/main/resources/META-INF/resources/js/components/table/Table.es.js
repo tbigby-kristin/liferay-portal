@@ -12,20 +12,31 @@
  * details.
  */
 
+import {ClayCheckbox} from '@clayui/form';
 import ClayTable from '@clayui/table';
 import React from 'react';
+
 import DropDown from './DropDown.es';
 
 const {Body, Cell, Head, Row} = ClayTable;
 
-const Table = ({actions, columns, forwardRef, items}) => {
+const Table = ({
+	actions,
+	align = 'left',
+	checkable,
+	columns,
+	forwardRef,
+	items
+}) => {
 	return (
 		<div ref={forwardRef}>
 			<ClayTable hover={false}>
 				<Head>
 					<Row>
+						{checkable && <Cell headingCell></Cell>}
 						{columns.map((column, index) => (
 							<Cell
+								align={index === 0 ? 'left' : align}
 								className={
 									index > 0 && 'table-cell-expand-smaller'
 								}
@@ -42,8 +53,18 @@ const Table = ({actions, columns, forwardRef, items}) => {
 				<Body>
 					{items.map(item => (
 						<Row data-testid="item" key={item.id}>
+							{checkable && (
+								<Cell>
+									<ClayCheckbox
+										checked={false}
+										disabled={false}
+										indeterminate={false}
+									/>
+								</Cell>
+							)}
 							{columns.map((column, index) => (
 								<Cell
+									align={index === 0 ? 'left' : align}
 									className={
 										index > 0 && 'table-cell-expand-smaller'
 									}
@@ -54,9 +75,11 @@ const Table = ({actions, columns, forwardRef, items}) => {
 									{item[column.key]}
 								</Cell>
 							))}
-							<Cell>
-								<DropDown actions={actions} item={item} />
-							</Cell>
+							{actions && (
+								<Cell>
+									<DropDown actions={actions} item={item} />
+								</Cell>
+							)}
 						</Row>
 					))}
 				</Body>

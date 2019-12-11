@@ -16,14 +16,25 @@ import React, {createContext} from 'react';
 
 const AppContext = createContext();
 
-const context = {
-	siteId: Liferay.ThemeDisplay.getCompanyGroupId()
-};
+const AppContextProvider = ({
+	children,
+	pathFriendlyURLPublic,
+	...restProps
+}) => {
+	const getStandaloneURL = appId =>
+		`${Liferay.ThemeDisplay.getPortalURL()}${pathFriendlyURLPublic}/App${appId}`;
 
-const AppContextProvider = ({appId, basePortletURL, children}) => (
-	<AppContext.Provider value={{...context, appId, basePortletURL}}>
-		{children}
-	</AppContext.Provider>
-);
+	return (
+		<AppContext.Provider
+			value={{
+				getStandaloneURL,
+				siteId: Liferay.ThemeDisplay.getCompanyGroupId(),
+				...restProps
+			}}
+		>
+			{children}
+		</AppContext.Provider>
+	);
+};
 
 export {AppContext, AppContextProvider};

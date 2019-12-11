@@ -554,7 +554,7 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 					{
 						put("page", 1);
 						put("pageSize", 2);
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 					}
 				},
 				graphQLFields.toArray(new GraphQLField[0])));
@@ -1216,6 +1216,58 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 			testGroup.getGroupId(), randomStructuredContentFolder());
 	}
 
+	@Test
+	public void testPutStructuredContentFolderSubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		StructuredContentFolder structuredContentFolder =
+			testPutStructuredContentFolderSubscribe_addStructuredContentFolder();
+
+		assertHttpResponseStatusCode(
+			204,
+			structuredContentFolderResource.
+				putStructuredContentFolderSubscribeHttpResponse(
+					structuredContentFolder.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			structuredContentFolderResource.
+				putStructuredContentFolderSubscribeHttpResponse(0L));
+	}
+
+	protected StructuredContentFolder
+			testPutStructuredContentFolderSubscribe_addStructuredContentFolder()
+		throws Exception {
+
+		return structuredContentFolderResource.postSiteStructuredContentFolder(
+			testGroup.getGroupId(), randomStructuredContentFolder());
+	}
+
+	@Test
+	public void testPutStructuredContentFolderUnsubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		StructuredContentFolder structuredContentFolder =
+			testPutStructuredContentFolderUnsubscribe_addStructuredContentFolder();
+
+		assertHttpResponseStatusCode(
+			204,
+			structuredContentFolderResource.
+				putStructuredContentFolderUnsubscribeHttpResponse(
+					structuredContentFolder.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			structuredContentFolderResource.
+				putStructuredContentFolderUnsubscribeHttpResponse(0L));
+	}
+
+	protected StructuredContentFolder
+			testPutStructuredContentFolderUnsubscribe_addStructuredContentFolder()
+		throws Exception {
+
+		return structuredContentFolderResource.postSiteStructuredContentFolder(
+			testGroup.getGroupId(), randomStructuredContentFolder());
+	}
+
 	protected StructuredContentFolder
 			testGraphQLStructuredContentFolder_addStructuredContentFolder()
 		throws Exception {
@@ -1349,6 +1401,24 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 
 				sb.append(", ");
 			}
+
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = structuredContentFolder.getSubscribed();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
 		}
 
 		sb.append("}");
@@ -1363,7 +1433,7 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 				"createSiteStructuredContentFolder",
 				new HashMap<String, Object>() {
 					{
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 						put("structuredContentFolder", sb.toString());
 					}
 				},
@@ -1559,6 +1629,14 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				if (structuredContentFolder.getSubscribed() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("viewableBy", additionalAssertFieldName)) {
 				if (structuredContentFolder.getViewableBy() == null) {
 					valid = false;
@@ -1739,6 +1817,17 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						structuredContentFolder1.getSubscribed(),
+						structuredContentFolder2.getSubscribed())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("viewableBy", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						structuredContentFolder1.getViewableBy(),
@@ -1813,6 +1902,17 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 				if (!Objects.deepEquals(
 						structuredContentFolder.getNumberOfStructuredContents(),
 						jsonObject.getInt("numberOfStructuredContents"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("subscribed", fieldName)) {
+				if (!Objects.deepEquals(
+						structuredContentFolder.getSubscribed(),
+						jsonObject.getBoolean("subscribed"))) {
 
 					return false;
 				}
@@ -1996,6 +2096,11 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("subscribed")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("viewableBy")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -2035,6 +2140,7 @@ public abstract class BaseStructuredContentFolderResourceTestCase {
 				numberOfStructuredContentFolders = RandomTestUtil.randomInt();
 				numberOfStructuredContents = RandomTestUtil.randomInt();
 				siteId = testGroup.getGroupId();
+				subscribed = RandomTestUtil.randomBoolean();
 			}
 		};
 	}

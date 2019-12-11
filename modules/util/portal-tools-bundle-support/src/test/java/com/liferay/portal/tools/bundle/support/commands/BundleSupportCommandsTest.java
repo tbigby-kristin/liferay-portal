@@ -46,7 +46,9 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -133,6 +135,54 @@ public class BundleSupportCommandsTest {
 		Assert.assertFalse(warFile.exists());
 
 		Assert.assertTrue(jarFile.exists());
+	}
+
+	@Test
+	public void testCopyConfigs() throws Exception {
+		File liferayHomeDir = temporaryFolder.newFolder("bundles");
+
+		File configsDir = temporaryFolder.newFolder("configs");
+
+		File commonConfigsDir = _createDirectory(configsDir, "common");
+
+		_createFile(commonConfigsDir, "common-configs.properties");
+
+		File prodConfigsDir = _createDirectory(configsDir, "prod");
+
+		_createFile(prodConfigsDir, "prod-configs.properties");
+
+		File devOpsDir = temporaryFolder.newFolder("devops");
+
+		File commonDevOpsDir = _createDirectory(devOpsDir, "common");
+
+		_createFile(commonDevOpsDir, "common-devops.properties");
+
+		File prodDevOpsDir = _createDirectory(devOpsDir, "prod");
+
+		_createFile(prodDevOpsDir, "prod-devops.properties");
+
+		copyConfigs(
+			Arrays.asList(configsDir, devOpsDir), "prod", liferayHomeDir);
+
+		File deployedCommonConfigsFile = new File(
+			liferayHomeDir, "common-configs.properties");
+
+		Assert.assertTrue(deployedCommonConfigsFile.exists());
+
+		File deployedProdConfigsFile = new File(
+			liferayHomeDir, "prod-configs.properties");
+
+		Assert.assertTrue(deployedProdConfigsFile.exists());
+
+		File deployedCommonDevOpsFile = new File(
+			liferayHomeDir, "common-devops.properties");
+
+		Assert.assertTrue(deployedCommonDevOpsFile.exists());
+
+		File deployedProdDevOpsFile = new File(
+			liferayHomeDir, "prod-devops.properties");
+
+		Assert.assertTrue(deployedProdDevOpsFile.exists());
 	}
 
 	@Test
@@ -311,6 +361,19 @@ public class BundleSupportCommandsTest {
 		cleanCommand.setLiferayHomeDir(liferayHomeDir);
 
 		cleanCommand.execute();
+	}
+
+	protected void copyConfigs(
+			List<File> configsDirs, String environment, File liferayHomeDir)
+		throws Exception {
+
+		CopyConfigsCommand copyConfigsCommand = new CopyConfigsCommand();
+
+		copyConfigsCommand.setConfigsDirs(configsDirs);
+		copyConfigsCommand.setEnvironment(environment);
+		copyConfigsCommand.setLiferayHomeDir(liferayHomeDir);
+
+		copyConfigsCommand.execute();
 	}
 
 	protected void createToken(

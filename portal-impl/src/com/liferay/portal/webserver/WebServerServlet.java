@@ -1495,8 +1495,16 @@ public class WebServerServlet extends HttpServlet {
 			PermissionChecker permissionChecker =
 				PermissionThreadLocal.getPermissionChecker();
 
-			if (!PortletPermissionUtil.hasControlPanelAccessPermission(
-					permissionChecker, fileEntry.getGroupId(), portletId)) {
+			Group group = GroupLocalServiceUtil.getGroup(
+				fileEntry.getGroupId());
+
+			if (group.isStagingGroup()) {
+				GroupPermissionUtil.check(
+					permissionChecker, fileEntry.getGroupId(),
+					ActionKeys.VIEW_STAGING);
+			}
+			else if (!PortletPermissionUtil.hasControlPanelAccessPermission(
+						permissionChecker, fileEntry.getGroupId(), portletId)) {
 
 				throw new PrincipalException.MustHavePermission(
 					permissionChecker, FileEntry.class.getName(),

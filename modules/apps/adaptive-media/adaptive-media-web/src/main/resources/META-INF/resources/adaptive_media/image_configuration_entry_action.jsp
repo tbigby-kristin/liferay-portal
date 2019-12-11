@@ -144,15 +144,3 @@ String entryUuid = String.valueOf(amImageConfigurationEntry.getUUID());
 		</c:otherwise>
 	</c:choose>
 </liferay-ui:icon-menu>
-
-<%
-Map<String, Object> context = new HashMap<>();
-
-context.put("uuid", entryUuid);
-%>
-
-<liferay-frontend:component
-	componentId='<%= liferayPortletResponse.getNamespace() + "OptionsHandler" + entryUuid %>'
-	context="<%= context %>"
-	module="adaptive_media/js/AdaptiveMediaOptionsHandler.es"
-/>

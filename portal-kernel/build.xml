@@ -15,4 +15,97 @@
 			includes="junit.jar"
 		/>
 	</path>
+
+	<target depends="replace-release-info-tokens" name="compile">
+		<if>
+			<equals arg1="${release.info.uptodate}" arg2="false" />
+			<then>
+				<copy
+					file="build/temp/ReleaseInfo.java.new"
+					overwrite="true"
+					tofile="src/com/liferay/portal/kernel/util/ReleaseInfo.java"
+					verbose="true"
+				/>
+			</then>
+		</if>
+
+		<if>
+			<istrue value="${build.portal.artifacts.enabled}" />
+			<then>
+				<condition property="compile.uptodate">
+					<and>
+						<uptodate
+							targetfile="classes/.touch"
+						>
+							<srcfiles dir="${basedir}" excludes="src/com/liferay/portal/kernel/util/ReleaseInfo.java" includes="bnd.bnd,build.xml,ivy.xml,src/**/*.*" />
+						</uptodate>
+						<equals arg1="${release.info.uptodate}" arg2="true" />
+					</and>
+				</condition>
+			</then>
+		</if>
+
+		<ant antfile="${project.dir}/build-common-java.xml" dir="${project.dir}/portal-kernel" inheritRefs="true" target="compile" />
+
+		<if>
+			<equals arg1="${release.info.uptodate}" arg2="false" />
+			<then>
+				<copy
+					file="build/temp/ReleaseInfo.java.original"
+					overwrite="true"
+					tofile="src/com/liferay/portal/kernel/util/ReleaseInfo.java"
+					verbose="true"
+				/>
+			</then>
+		</if>
+	</target>
+
+	<target name="replace-release-info-tokens">
+		<copy
+			file="src/com/liferay/portal/kernel/util/ReleaseInfo.java"
+			overwrite="true"
+			tofile="build/temp/ReleaseInfo.java.original"
+		/>
+
+		<copy
+			file="src/com/liferay/portal/kernel/util/ReleaseInfo.java"
+			overwrite="true"
+			tofile="build/temp/ReleaseInfo.java.new"
+		/>
+
+		<replace
+			file="build/temp/ReleaseInfo.java.new"
+		>
+			<replacefilter
+				token="@release.info.build@"
+				value="${release.info.build}"
+			/>
+			<replacefilter
+				token="@release.info.date@"
+				value="${release.info.date}"
+			/>
+			<replacefilter
+				token="@release.info.name@"
+				value="${release.info.name}"
+			/>
+			<replacefilter
+				token="@release.info.version@"
+				value="${release.info.version}"
+			/>
+			<replacefilter
+				token="@release.info.version.display.name@"
+				value="${release.info.version.display.name}"
+			/>
+		</replace>
+
+		<condition else="false" property="release.info.uptodate" value="true">
+			<filesmatch file1="build/temp/ReleaseInfo.java.old" file2="build/temp/ReleaseInfo.java.new" />
+		</condition>
+
+		<copy
+			file="build/temp/ReleaseInfo.java.new"
+			overwrite="true"
+			tofile="build/temp/ReleaseInfo.java.old"
+		/>
+	</target>
 </project>

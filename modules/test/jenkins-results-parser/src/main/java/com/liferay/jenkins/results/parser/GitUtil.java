@@ -29,9 +29,9 @@ import java.util.regex.Pattern;
  */
 public class GitUtil {
 
-	public static final long MILLIS_RETRY_DELAY = 1000;
+	public static final long MILLIS_RETRY_DELAY = 30 * 1000;
 
-	public static final long MILLIS_TIMEOUT = 30 * 1000;
+	public static final long MILLIS_TIMEOUT = 120 * 1000;
 
 	public static final int RETRIES_SIZE_MAX = 1;
 
@@ -224,8 +224,8 @@ public class GitUtil {
 		}
 
 		ExecutionResult executionResult = executeBashCommands(
-			GitUtil.RETRIES_SIZE_MAX, GitUtil.MILLIS_RETRY_DELAY,
-			1000 * 60 * 10, workingDirectory, command);
+			3, GitUtil.MILLIS_RETRY_DELAY, 1000 * 60 * 10, workingDirectory,
+			command);
 
 		if (executionResult.getExitValue() != 0) {
 			throw new RuntimeException(

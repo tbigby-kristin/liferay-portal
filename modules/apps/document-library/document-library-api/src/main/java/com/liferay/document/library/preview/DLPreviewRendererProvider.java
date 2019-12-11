@@ -17,6 +17,9 @@ package com.liferay.document.library.preview;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 
 import java.util.Optional;
+import java.util.Set;
+
+import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * Renders file previews in conjunction with {@link DLPreviewRenderer}.
@@ -31,7 +34,13 @@ import java.util.Optional;
  *
  * @author Alejandro Tardín
  */
+@ProviderType
 public interface DLPreviewRendererProvider {
+
+	public Set<String> getMimeTypes();
+
+	public DLPreviewRenderer getPreviewDLPreviewRenderer(
+		FileVersion fileVersion);
 
 	/**
 	 * Returns the DL preview renderer responsible for rendering the file
@@ -39,8 +48,16 @@ public interface DLPreviewRendererProvider {
 	 *
 	 * @param  fileVersion the file version to preview
 	 * @return the optional DL preview renderer
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getPreviewDLPreviewRenderer(FileVersion)}
 	 */
-	public Optional<DLPreviewRenderer> getPreviewDLPreviewRendererOptional(
+	@Deprecated
+	public default Optional<DLPreviewRenderer>
+		getPreviewDLPreviewRendererOptional(FileVersion fileVersion) {
+
+		return Optional.ofNullable(getPreviewDLPreviewRenderer(fileVersion));
+	}
+
+	public DLPreviewRenderer getThumbnailDLPreviewRenderer(
 		FileVersion fileVersion);
 
 	/**
@@ -50,8 +67,13 @@ public interface DLPreviewRendererProvider {
 	 *
 	 * @param  fileVersion the file version to preview
 	 * @return the optional DL preview renderer
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link #getThumbnailDLPreviewRenderer(FileVersion)}
 	 */
-	public Optional<DLPreviewRenderer> getThumbnailDLPreviewRendererOptional(
-		FileVersion fileVersion);
+	@Deprecated
+	public default Optional<DLPreviewRenderer>
+		getThumbnailDLPreviewRendererOptional(FileVersion fileVersion) {
+
+		return Optional.ofNullable(getThumbnailDLPreviewRenderer(fileVersion));
+	}
 
 }

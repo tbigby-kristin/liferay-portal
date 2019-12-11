@@ -151,7 +151,7 @@ if (fixedHeader) {
 								</span>
 							</c:when>
 							<c:when test="<%= truncate %>">
-								<span class="truncate-text">
+								<span class="text-truncate">
 									<%= headerNameValue %>
 								</span>
 							</c:when>
@@ -174,7 +174,17 @@ if (fixedHeader) {
 
 				<c:if test="<%= fixedHeader %>">
 					<tr aria-hidden="true" class="hide lfr-search-iterator-fixed-header" id="<%= namespace + id %>fixedHeader">
-						<%= theadContent %>
+						<th>
+							<div class="lfr-search-iterator-fixed-header-inner-wrapper">
+								<table>
+									<thead>
+										<tr>
+											<%= theadContent %>
+										</tr>
+									</thead>
+								</table>
+							</div>
+						</th>
 					</tr>
 				</c:if>
 			</thead>
@@ -267,7 +277,7 @@ if (fixedHeader) {
 							String columnClassName = entry.getCssClass();
 
 							if (!Validator.isBlank(entry.getAlign())) {
-								columnClassName += " text-"+ entry.getAlign();
+								columnClassName += " text-" + entry.getAlign();
 							}
 
 							if (!Validator.isBlank(entry.getValign())) {
@@ -298,7 +308,7 @@ if (fixedHeader) {
 							<td class="<%= columnClassName %>" colspan="<%= entry.getColspan() %>">
 								<c:choose>
 									<c:when test="<%= truncate %>">
-										<span class="truncate-text">
+										<span class="text-truncate">
 
 											<%
 											entry.print(pageContext.getOut(), request, response);

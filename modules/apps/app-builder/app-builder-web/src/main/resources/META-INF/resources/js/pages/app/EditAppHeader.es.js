@@ -13,17 +13,18 @@
  */
 
 import React, {useContext} from 'react';
-import EditAppContext, {UPDATE_NAME} from './EditAppContext.es';
+
 import {UpperToolbarInput} from '../../components/upper-toolbar/UpperToolbar.es';
+import EditAppContext, {UPDATE_NAME} from './EditAppContext.es';
 
 export default () => {
 	const {
+		dispatch,
 		state: {
 			app: {
 				name: {en_US: appName}
 			}
-		},
-		dispatch
+		}
 	} = useContext(EditAppContext);
 
 	const onAppNameChange = event => {
@@ -37,7 +38,7 @@ export default () => {
 
 	return (
 		<>
-			<div className="card-header align-items-center d-flex justify-content-between bg-transparent">
+			<div className="align-items-center bg-transparent card-header d-flex justify-content-between">
 				<UpperToolbarInput
 					onInput={onAppNameChange}
 					placeholder={Liferay.Language.get('untitled-app')}

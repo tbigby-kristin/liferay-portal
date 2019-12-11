@@ -18,6 +18,7 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class AssetCategoryCacheModel
-	implements CacheModel<AssetCategory>, Externalizable {
+	implements CacheModel<AssetCategory>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object obj) {
@@ -48,7 +49,9 @@ public class AssetCategoryCacheModel
 		AssetCategoryCacheModel assetCategoryCacheModel =
 			(AssetCategoryCacheModel)obj;
 
-		if (categoryId == assetCategoryCacheModel.categoryId) {
+		if ((categoryId == assetCategoryCacheModel.categoryId) &&
+			(mvccVersion == assetCategoryCacheModel.mvccVersion)) {
+
 			return true;
 		}
 
@@ -57,14 +60,30 @@ public class AssetCategoryCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, categoryId);
+		int hashCode = HashUtil.hash(0, categoryId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(35);
+		StringBundler sb = new StringBundler(37);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", externalReferenceCode=");
 		sb.append(externalReferenceCode);
@@ -84,10 +103,8 @@ public class AssetCategoryCacheModel
 		sb.append(modifiedDate);
 		sb.append(", parentCategoryId=");
 		sb.append(parentCategoryId);
-		sb.append(", leftCategoryId=");
-		sb.append(leftCategoryId);
-		sb.append(", rightCategoryId=");
-		sb.append(rightCategoryId);
+		sb.append(", treePath=");
+		sb.append(treePath);
 		sb.append(", name=");
 		sb.append(name);
 		sb.append(", title=");
@@ -106,6 +123,9 @@ public class AssetCategoryCacheModel
 	@Override
 	public AssetCategory toEntityModel() {
 		AssetCategoryImpl assetCategoryImpl = new AssetCategoryImpl();
+
+		assetCategoryImpl.setMvccVersion(mvccVersion);
+		assetCategoryImpl.setCtCollectionId(ctCollectionId);
 
 		if (uuid == null) {
 			assetCategoryImpl.setUuid("");
@@ -148,8 +168,13 @@ public class AssetCategoryCacheModel
 		}
 
 		assetCategoryImpl.setParentCategoryId(parentCategoryId);
-		assetCategoryImpl.setLeftCategoryId(leftCategoryId);
-		assetCategoryImpl.setRightCategoryId(rightCategoryId);
+
+		if (treePath == null) {
+			assetCategoryImpl.setTreePath("");
+		}
+		else {
+			assetCategoryImpl.setTreePath(treePath);
+		}
 
 		if (name == null) {
 			assetCategoryImpl.setName("");
@@ -188,6 +213,9 @@ public class AssetCategoryCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		externalReferenceCode = objectInput.readUTF();
 
@@ -203,10 +231,7 @@ public class AssetCategoryCacheModel
 		modifiedDate = objectInput.readLong();
 
 		parentCategoryId = objectInput.readLong();
-
-		leftCategoryId = objectInput.readLong();
-
-		rightCategoryId = objectInput.readLong();
+		treePath = objectInput.readUTF();
 		name = objectInput.readUTF();
 		title = objectInput.readUTF();
 		description = objectInput.readUTF();
@@ -217,6 +242,10 @@ public class AssetCategoryCacheModel
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		objectOutput.writeLong(ctCollectionId);
+
 		if (uuid == null) {
 			objectOutput.writeUTF("");
 		}
@@ -251,9 +280,12 @@ public class AssetCategoryCacheModel
 
 		objectOutput.writeLong(parentCategoryId);
 
-		objectOutput.writeLong(leftCategoryId);
-
-		objectOutput.writeLong(rightCategoryId);
+		if (treePath == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(treePath);
+		}
 
 		if (name == null) {
 			objectOutput.writeUTF("");
@@ -280,6 +312,8 @@ public class AssetCategoryCacheModel
 		objectOutput.writeLong(lastPublishDate);
 	}
 
+	public long mvccVersion;
+	public long ctCollectionId;
 	public String uuid;
 	public String externalReferenceCode;
 	public long categoryId;
@@ -290,8 +324,7 @@ public class AssetCategoryCacheModel
 	public long createDate;
 	public long modifiedDate;
 	public long parentCategoryId;
-	public long leftCategoryId;
-	public long rightCategoryId;
+	public String treePath;
 	public String name;
 	public String title;
 	public String description;

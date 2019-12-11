@@ -85,7 +85,7 @@ public interface Queries {
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #moreLikeThis(List<String>, String...)}
+	 *             #moreLikeThis(List, String...)}
 	 */
 	@Deprecated
 	public MoreLikeThisQuery moreLikeThis(List<String> likeTexts);
@@ -98,7 +98,7 @@ public interface Queries {
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #moreLikeThis(List<String>, String...)}
+	 *             #moreLikeThis(List, String...)}
 	 */
 	@Deprecated
 	public MoreLikeThisQuery moreLikeThis(String... likeTexts);
@@ -137,5 +137,9 @@ public interface Queries {
 	public TermsSetQuery termsSet(String fieldName, List<Object> values);
 
 	public WildcardQuery wildcard(String field, String value);
+
+	public WrapperQuery wrapper(byte[] source);
+
+	public WrapperQuery wrapper(String source);
 
 }

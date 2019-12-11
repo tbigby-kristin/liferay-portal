@@ -311,6 +311,16 @@ public class KnowledgeBaseArticleSerDes {
 			sb.append(knowledgeBaseArticle.getSiteId());
 		}
 
+		if (knowledgeBaseArticle.getSubscribed() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(knowledgeBaseArticle.getSubscribed());
+		}
+
 		if (knowledgeBaseArticle.getTaxonomyCategories() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -556,6 +566,15 @@ public class KnowledgeBaseArticleSerDes {
 			map.put("siteId", String.valueOf(knowledgeBaseArticle.getSiteId()));
 		}
 
+		if (knowledgeBaseArticle.getSubscribed() == null) {
+			map.put("subscribed", null);
+		}
+		else {
+			map.put(
+				"subscribed",
+				String.valueOf(knowledgeBaseArticle.getSubscribed()));
+		}
+
 		if (knowledgeBaseArticle.getTaxonomyCategories() == null) {
 			map.put("taxonomyCategories", null);
 		}
@@ -735,6 +754,12 @@ public class KnowledgeBaseArticleSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "subscribed")) {
+				if (jsonParserFieldValue != null) {
+					knowledgeBaseArticle.setSubscribed(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "taxonomyCategories")) {
 
@@ -781,9 +806,11 @@ public class KnowledgeBaseArticleSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

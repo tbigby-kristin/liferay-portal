@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -36,7 +37,6 @@ import com.liferay.taglib.ui.SuccessTag;
 import java.io.IOException;
 import java.io.Writer;
 
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -92,14 +92,8 @@ public class ManageLayoutProductNavigationControlMenuEntry
 			layout = _layoutLocalService.fetchLayout(layout.getClassPK());
 		}
 
-		Map<String, String> values = new HashMap<>();
-
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			"content.Language", themeDisplay.getLocale(), getClass());
-
-		values.put(
-			"configurePage",
-			_html.escape(_language.get(resourceBundle, "configure-page")));
 
 		PortletURL editPageURL = _portal.getControlPanelPortletURL(
 			httpServletRequest, LayoutAdminPortletKeys.GROUP_PAGES,
@@ -118,7 +112,12 @@ public class ManageLayoutProductNavigationControlMenuEntry
 		editPageURL.setParameter(
 			"privateLayout", String.valueOf(layout.isPrivateLayout()));
 
-		values.put("editPageURL", editPageURL.toString());
+		Map<String, String> values = HashMapBuilder.put(
+			"configurePage",
+			_html.escape(_language.get(resourceBundle, "configure-page"))
+		).put(
+			"editPageURL", editPageURL.toString()
+		).build();
 
 		try {
 			IconTag iconTag = new IconTag();

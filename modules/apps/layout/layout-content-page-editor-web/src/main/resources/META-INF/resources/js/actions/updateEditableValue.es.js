@@ -12,21 +12,22 @@
  * details.
  */
 
-import {
-	disableSavingChangesStatusAction,
-	enableSavingChangesStatusAction,
-	updateLastSaveDateAction
-} from './saveChanges.es';
-import {FREEMARKER_FRAGMENT_ENTRY_PROCESSOR} from '../utils/constants';
+import {getFragmentEntryLinkContent} from '../reducers/fragments.es';
+import {updateEditableValues} from '../utils/FragmentsEditorFetchUtils.es';
 import {setIn, updateIn} from '../utils/FragmentsEditorUpdateUtils.es';
+import {FREEMARKER_FRAGMENT_ENTRY_PROCESSOR} from '../utils/constants';
+import {isNullOrUndefined} from '../utils/isNullOrUndefined.es';
+import {prefixSegmentsExperienceId} from '../utils/prefixSegmentsExperienceId.es';
 import {
 	UPDATE_EDITABLE_VALUE_ERROR,
 	UPDATE_EDITABLE_VALUE_LOADING,
 	UPDATE_FRAGMENT_ENTRY_LINK_CONTENT
 } from './actions.es';
-import {updateEditableValues} from '../utils/FragmentsEditorFetchUtils.es';
-import {prefixSegmentsExperienceId} from '../utils/prefixSegmentsExperienceId.es';
-import {getFragmentEntryLinkContent} from '../reducers/fragments.es';
+import {
+	disableSavingChangesStatusAction,
+	enableSavingChangesStatusAction,
+	updateLastSaveDateAction
+} from './saveChanges.es';
 import {updatePageContentsAction} from './updatePageContents.es';
 
 /**
@@ -149,16 +150,19 @@ const updateFragmentConfigurationAction = (
 		],
 		dispatch,
 		getState
-	).then(() => {
-		const state = getState();
+	)
+		.then(() => {
+			const state = getState();
 
-		return dispatch(
-			updateFragmentEntryLinkContent(
-				fragmentEntryLinkId,
-				state.segmentsExperienceId || state.defaultSegmentsExperienceId
-			)
-		);
-	});
+			return dispatch(
+				updateFragmentEntryLinkContent(
+					fragmentEntryLinkId,
+					state.segmentsExperienceId ||
+						state.defaultSegmentsExperienceId
+				)
+			);
+		})
+		.then(() => dispatch(updatePageContentsAction()));
 
 /**
  * @param {number} fragmentEntryLinkId
@@ -180,7 +184,7 @@ function updateFragmentEntryLinkContent(
 			state.portletNamespace,
 			segmentsExperienceId
 		).then(response => {
-			const {fragmentEntryLinkId, content} = response;
+			const {content, fragmentEntryLinkId} = response;
 
 			dispatch({
 				fragmentEntryLinkContent: content,
@@ -217,7 +221,7 @@ const _getSegmentsExperienceId = getState => {
  * @param {{path: string[], content: any}} change
  */
 const _mergeChange = (editableValues, change) => {
-	if (!change.content) {
+	if (isNullOrUndefined(change.content)) {
 		return updateIn(editableValues, change.path, editable => {
 			let newEditable = undefined;
 

@@ -146,7 +146,7 @@ definition {
 
 		WikiPage.rate4StarsPG(wikiPageTitle = "FrontPage");
 
-		BlogsEntryComment.add(entryComment = "Wiki FrontPage Comment");
+		Comments.addPG(entryComment = "Wiki FrontPage Comment");
 
 		Navigator.gotoSitePage(
 			pageName = "Staging Test Page",
@@ -156,7 +156,7 @@ definition {
 
 		AssetPublisherPortlet.viewAverageRatingPG(averageRating = "4");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "Wiki FrontPage Comment",
 			userFullName = "Test Test (You)");
@@ -216,7 +216,7 @@ definition {
 
 		AssetPublisherPortlet.viewAverageRatingPG(averageRating = "4");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "Wiki FrontPage Comment",
 			userFullName = "Test Test (You)");
@@ -295,7 +295,6 @@ definition {
 	}
 
 	@description = "This is a use case for LPS-73471."
-	@ignore = "true"
 	@priority = "5"
 	test RenameChildPageNameCP {
 		Navigator.gotoStagedSitePage(
@@ -341,14 +340,17 @@ definition {
 
 		WikiPage.renameWikiPageCP(
 			wikiPageTitle = "Child Page Title",
-			wikiPageTitleRename = "Child Page Title Rename");
+			wikiPageTitleRename = "Rename Page Title");
 
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Navigator.gotoStagedSitePage(
+			pageName = "Staging Test Page",
+			siteName = "Site Name");
 
-		Staging.publishCustomPublication();
+		Staging.gotoPublishToLive();
+
+		Staging.configurePublishToLive(checkContentNameList = "Wiki");
+
+		Staging.publishToLive();
 
 		ProductMenu.gotoPortlet(
 			category = "Content &amp; Data",
@@ -361,14 +363,17 @@ definition {
 
 		WikiPage.renameWikiPageCP(
 			wikiPageTitle = "Child Page Title",
-			wikiPageTitleRename = "Child Page Title Rename 1");
+			wikiPageTitleRename = "Rename Page Title 1");
 
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Staging");
+		Navigator.gotoStagedSitePage(
+			pageName = "Staging Test Page",
+			siteName = "Site Name");
 
-		Staging.publishCustomPublication();
+		Staging.gotoPublishToLive();
+
+		Staging.configurePublishToLive(checkContentNameList = "Wiki");
+
+		Staging.publishToLive();
 
 		ProductMenu.gotoLiveSite();
 

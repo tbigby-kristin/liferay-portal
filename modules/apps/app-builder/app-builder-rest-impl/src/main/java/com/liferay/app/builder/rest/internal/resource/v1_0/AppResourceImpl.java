@@ -39,6 +39,7 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -49,6 +50,7 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -143,11 +145,11 @@ public class AppResourceImpl
 			queryConfig -> queryConfig.setSelectedFieldNames(
 				Field.ENTRY_CLASS_PK),
 			searchContext -> {
-				searchContext.setAttribute("ddmStructureId", dataDefinitionId);
 				searchContext.setAttribute(
 					Field.CLASS_NAME_ID,
 					_portal.getClassNameId(AppBuilderApp.class));
 				searchContext.setAttribute(Field.NAME, keywords);
+				searchContext.setAttribute("ddmStructureId", dataDefinitionId);
 				searchContext.setCompanyId(contextCompany.getCompanyId());
 				searchContext.setGroupIds(
 					new long[] {ddmStructure.getGroupId()});
@@ -293,16 +295,12 @@ public class AppResourceImpl
 			AppDeployer appDeployer = _appDeployerTracker.getAppDeployer(
 				appDeployment.getType());
 
-			if (appDeployer != null) {
-				if (Objects.equals(
-						appBuilderAppConstantsStatus,
-						AppBuilderAppConstants.Status.DEPLOYED)) {
+			if ((appDeployer != null) &&
+				Objects.equals(
+					appBuilderAppConstantsStatus,
+					AppBuilderAppConstants.Status.DEPLOYED)) {
 
-					appDeployer.deploy(appId);
-				}
-				else {
-					appDeployer.undeploy(appId);
-				}
+				appDeployer.deploy(appId);
 			}
 		}
 
@@ -373,6 +371,10 @@ public class AppResourceImpl
 	}
 
 	private String _toJSONString(Map<String, Object> map) {
+		if (MapUtil.isEmpty(map)) {
+			return StringPool.BLANK;
+		}
+
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 		for (Map.Entry<String, Object> entry : map.entrySet()) {

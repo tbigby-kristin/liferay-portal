@@ -15,15 +15,16 @@
 import moment from 'moment';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {Link} from 'react-router-dom';
-import CustomObjectPopover from './CustomObjectPopover.es';
+
 import {AppContext} from '../../AppContext.es';
 import Button from '../../components/button/Button.es';
 import ControlMenu from '../../components/control-menu/ControlMenu.es';
 import ListView from '../../components/list-view/ListView.es';
 import {useKeyDown} from '../../hooks/index.es';
-import {confirmDelete} from '../../utils/client.es';
 import isClickOutside from '../../utils/clickOutside.es';
-import {addItem} from '../../utils/client.es';
+import {addItem, confirmDelete} from '../../utils/client.es';
+import CustomObjectPermissionsModal from './CustomObjectPermissionsModal.es';
+import CustomObjectPopover from './CustomObjectPopover.es';
 
 const COLUMNS = [
 	{
@@ -52,6 +53,10 @@ export default ({history}) => {
 
 	const [alignElement, setAlignElement] = useState(addButtonRef.current);
 	const [isPopoverVisible, setPopoverVisible] = useState(false);
+	const [
+		permissionsDataDefinitionId,
+		setPermissionsDataDefinitionId
+	] = useState(null);
 
 	const onClickAddButton = ({currentTarget}) => {
 		setAlignElement(currentTarget);
@@ -127,27 +132,23 @@ export default ({history}) => {
 			<ListView
 				actions={[
 					{
-						action: item =>
+						action: ({id}) =>
 							Promise.resolve(
-								history.push(
-									`/custom-object/${item.id}/form-views`
-								)
+								history.push(`/custom-object/${id}/form-views`)
 							),
 						name: Liferay.Language.get('form-views')
 					},
 					{
-						action: item =>
+						action: ({id}) =>
 							Promise.resolve(
-								history.push(
-									`/custom-object/${item.id}/table-views`
-								)
+								history.push(`/custom-object/${id}/table-views`)
 							),
 						name: Liferay.Language.get('table-views')
 					},
 					{
-						action: item =>
+						action: ({id}) =>
 							Promise.resolve(
-								history.push(`/custom-object/${item.id}/apps`)
+								history.push(`/custom-object/${id}/apps`)
 							),
 						name: Liferay.Language.get('apps')
 					},
@@ -155,7 +156,12 @@ export default ({history}) => {
 						name: 'divider'
 					},
 					{
-						callback: confirmDelete(
+						action: ({id}) =>
+							Promise.resolve(setPermissionsDataDefinitionId(id)),
+						name: Liferay.Language.get('permissions')
+					},
+					{
+						action: confirmDelete(
 							'/o/data-engine/v1.0/data-definitions/'
 						),
 						name: Liferay.Language.get('delete')
@@ -192,9 +198,9 @@ export default ({history}) => {
 				endpoint={`/o/data-engine/v1.0/sites/${siteId}/data-definitions`}
 			>
 				{item => ({
+					...item,
 					dateCreated: moment(item.dateCreated).fromNow(),
 					dateModified: moment(item.dateModified).fromNow(),
-					id: item.id,
 					name: (
 						<Link to={`/custom-object/${item.id}/form-views`}>
 							{item.name.en_US}
@@ -209,6 +215,11 @@ export default ({history}) => {
 				onSubmit={onSubmit}
 				ref={popoverRef}
 				visible={isPopoverVisible}
+			/>
+
+			<CustomObjectPermissionsModal
+				dataDefinitionId={permissionsDataDefinitionId}
+				onClose={() => setPermissionsDataDefinitionId(null)}
 			/>
 		</>
 	);

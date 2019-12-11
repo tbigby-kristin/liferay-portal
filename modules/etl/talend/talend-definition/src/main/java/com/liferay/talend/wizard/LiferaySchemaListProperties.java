@@ -17,18 +17,22 @@ package com.liferay.talend.wizard;
 import static org.talend.daikon.properties.property.PropertyFactory.newProperty;
 
 import com.liferay.talend.LiferayBaseComponentDefinition;
+import com.liferay.talend.common.oas.OASExplorer;
+import com.liferay.talend.common.oas.OASSource;
 import com.liferay.talend.common.oas.constants.OASConstants;
+import com.liferay.talend.common.schema.SchemaBuilder;
 import com.liferay.talend.connection.LiferayConnectionProperties;
-import com.liferay.talend.properties.ExceptionUtils;
 import com.liferay.talend.resource.LiferayInputResourceProperties;
-import com.liferay.talend.runtime.LiferaySourceOrSinkRuntime;
-import com.liferay.talend.runtime.ValidatedSoSSandboxRuntime;
+import com.liferay.talend.source.LiferayOASSource;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
-import org.apache.avro.Schema;
+import javax.json.JsonObject;
+
 import org.apache.commons.lang3.reflect.TypeLiteral;
 
 import org.talend.components.api.exception.ComponentException;
@@ -55,18 +59,12 @@ public class LiferaySchemaListProperties extends ComponentPropertiesImpl {
 			Repository<Properties> repository)
 		throws Exception {
 
-		ValidatedSoSSandboxRuntime sandboxRuntime =
-			LiferayBaseComponentDefinition.initializeSandboxedRuntime(
-				connection.getReferencedConnectionProperties());
+		LiferayOASSource liferayOASSource =
+			LiferayBaseComponentDefinition.getLiferayOASSource(
+				connection.getEffectiveLiferayConnectionProperties());
 
-		LiferaySourceOrSinkRuntime liferaySourceOrSinkRuntime =
-			sandboxRuntime.getLiferaySourceOrSinkRuntime();
-
-		ValidationResult validationResult = liferaySourceOrSinkRuntime.validate(
-			null);
-
-		if (validationResult.getStatus() != ValidationResult.Result.OK) {
-			return validationResult;
+		if (!liferayOASSource.isValid()) {
+			return liferayOASSource.getValidationResult();
 		}
 
 		String connectionRepositoryLocation = repository.storeProperties(
@@ -86,11 +84,6 @@ public class LiferaySchemaListProperties extends ComponentPropertiesImpl {
 
 			liferayInputResourceProperties.afterEndpoint();
 
-			Schema schema = liferaySourceOrSinkRuntime.getEndpointSchema(
-				endpoint, OASConstants.OPERATION_GET);
-
-			liferayInputResourceProperties.main.schema.setValue(schema);
-
 			repository.storeProperties(
 				liferayInputResourceProperties, namedThing.getDisplayName(),
 				connectionRepositoryLocation, "main.schema");
@@ -100,47 +93,40 @@ public class LiferaySchemaListProperties extends ComponentPropertiesImpl {
 	}
 
 	public void beforeFormPresentMain() throws Exception {
-		ValidatedSoSSandboxRuntime sandboxRuntime =
-			LiferayBaseComponentDefinition.initializeSandboxedRuntime(
-				connection.getReferencedConnectionProperties());
+		LiferayOASSource liferayOASSource =
+			LiferayBaseComponentDefinition.getLiferayOASSource(
+				connection.getEffectiveLiferayConnectionProperties());
 
-		LiferaySourceOrSinkRuntime liferaySourceOrSinkRuntime =
-			sandboxRuntime.getLiferaySourceOrSinkRuntime();
+		if (!liferayOASSource.isValid()) {
+			throw new IllegalStateException(
+				"Liferay open API specificatio0n source unavailable");
+		}
 
-		ValidationResult validationResult = liferaySourceOrSinkRuntime.validate(
-			null);
+		OASSource oasSource = liferayOASSource.getOASSource();
 
-		if (validationResult.getStatus() == ValidationResult.Result.OK) {
-			try {
-				Map<String, String> endpointMap =
-					liferaySourceOrSinkRuntime.getEndpointMap(
-						OASConstants.OPERATION_GET);
+		try {
+			Map<String, String> endpointMap = _getEndpointMap(
+				oasSource.getOASJsonObject(), OASConstants.OPERATION_GET);
 
-				for (Map.Entry<String, String> entry : endpointMap.entrySet()) {
-					String endpoint = entry.getKey();
+			for (Map.Entry<String, String> entry : endpointMap.entrySet()) {
+				String endpoint = entry.getKey();
 
-					if (endpoint.endsWith("{id}")) {
-						schemaNames.add(
-							new SimpleNamedThing(
-								entry.getKey(), entry.getValue()));
-					}
+				if (endpoint.endsWith("{id}")) {
+					schemaNames.add(
+						new SimpleNamedThing(entry.getKey(), entry.getValue()));
 				}
 			}
-			catch (Exception e) {
-				throw new ComponentException(
-					ExceptionUtils.exceptionToValidationResult(e));
-			}
-
-			selectedSchemaNames.setPossibleValues(schemaNames);
-
-			Form mainForm = getForm(Form.MAIN);
-
-			mainForm.setAllowBack(true);
-			mainForm.setAllowFinish(true);
 		}
-		else {
-			throw new ComponentException(validationResult);
+		catch (Exception e) {
+			throw new ComponentException(e);
 		}
+
+		selectedSchemaNames.setPossibleValues(schemaNames);
+
+		Form mainForm = getForm(Form.MAIN);
+
+		mainForm.setAllowBack(true);
+		mainForm.setAllowFinish(true);
 	}
 
 	public LiferaySchemaListProperties setConnection(
@@ -180,5 +166,27 @@ public class LiferaySchemaListProperties extends ComponentPropertiesImpl {
 		new TypeLiteral<List<NamedThing>>() {
 		},
 		"selectedSchemaNames");
+
+	private Map<String, String> _getEndpointMap(
+		JsonObject oasJsonObject, String operation) {
+
+		Map<String, String> endpointMap = new TreeMap<>();
+
+		SchemaBuilder schemaBuilder = new SchemaBuilder();
+
+		OASExplorer oasExplorer = new OASExplorer();
+
+		Set<String> endpoints = oasExplorer.getEndpointList(
+			oasJsonObject, operation);
+
+		for (String endpoint : endpoints) {
+			endpointMap.put(
+				endpoint,
+				schemaBuilder.extractEndpointSchemaName(
+					endpoint, operation, oasJsonObject));
+		}
+
+		return endpointMap;
+	}
 
 }

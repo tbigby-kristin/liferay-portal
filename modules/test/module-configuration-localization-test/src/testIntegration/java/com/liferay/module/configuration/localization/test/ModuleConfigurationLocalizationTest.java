@@ -33,6 +33,7 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -107,6 +108,24 @@ public class ModuleConfigurationLocalizationTest {
 			return StringPool.BLANK;
 		}
 
+		Locale locale = LocaleUtil.getDefault();
+
+		Iterator<String> iterator = pids.iterator();
+
+		while (iterator.hasNext()) {
+			ExtendedObjectClassDefinition extendedObjectClassDefinition =
+				extendedMetaTypeInformation.getObjectClassDefinition(
+					iterator.next(), locale.getLanguage());
+
+			if (!_isGenerateUI(extendedObjectClassDefinition)) {
+				iterator.remove();
+			}
+		}
+
+		if (pids.isEmpty()) {
+			return StringPool.BLANK;
+		}
+
 		StringBundler sb = new StringBundler();
 
 		ResourceBundleLoader resourceBundleLoader =
@@ -164,21 +183,6 @@ public class ModuleConfigurationLocalizationTest {
 			extendedMetaTypeInformation.getObjectClassDefinition(
 				pid, locale.getLanguage());
 
-		for (String extensionUri :
-				extendedObjectClassDefinition.getExtensionUris()) {
-
-			Map<String, String> extensionAttributes =
-				extendedObjectClassDefinition.getExtensionAttributes(
-					extensionUri);
-
-			boolean generateUI = GetterUtil.getBoolean(
-				extensionAttributes.get("generateUI"), true);
-
-			if (!generateUI) {
-				return StringPool.BLANK;
-			}
-		}
-
 		StringBundler sb = new StringBundler();
 
 		String extendedObjectClassDefinitionName = ResourceBundleUtil.getString(
@@ -216,6 +220,27 @@ public class ModuleConfigurationLocalizationTest {
 		}
 
 		return sb.toString();
+	}
+
+	private boolean _isGenerateUI(
+		ExtendedObjectClassDefinition extendedObjectClassDefinition) {
+
+		for (String extensionUri :
+				extendedObjectClassDefinition.getExtensionUris()) {
+
+			Map<String, String> extensionAttributes =
+				extendedObjectClassDefinition.getExtensionAttributes(
+					extensionUri);
+
+			boolean generateUI = GetterUtil.getBoolean(
+				extensionAttributes.get("generateUI"), true);
+
+			if (!generateUI) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Inject

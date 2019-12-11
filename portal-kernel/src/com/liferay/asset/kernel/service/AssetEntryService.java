@@ -89,7 +89,8 @@ public interface AssetEntryService extends BaseService {
 		throws PortalException;
 
 	@AccessControlled(guestAccessEnabled = true)
-	public AssetEntry incrementViewCounter(String className, long classPK)
+	public AssetEntry incrementViewCounter(
+			long companyId, String className, long classPK)
 		throws PortalException;
 
 	public AssetEntry updateEntry(
@@ -100,41 +101,6 @@ public interface AssetEntryService extends BaseService {
 			Date expirationDate, String mimeType, String title,
 			String description, String summary, String url, String layoutUuid,
 			int height, int width, Double priority)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #updateEntry(long,
-	 Date, Date, String, long, String, long, long[], String[],
-	 boolean, boolean, Date, Date, Date, Date, String, String,
-	 String, String, String, String, int, int, Double)}
-	 */
-	@Deprecated
-	public AssetEntry updateEntry(
-			long groupId, Date createDate, Date modifiedDate, String className,
-			long classPK, String classUuid, long classTypeId,
-			long[] categoryIds, String[] tagNames, boolean listable,
-			boolean visible, Date startDate, Date endDate, Date expirationDate,
-			String mimeType, String title, String description, String summary,
-			String url, String layoutUuid, int height, int width,
-			Double priority)
-		throws PortalException;
-
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #updateEntry(long, Date, Date, String, long, String, long,
-	 long[], String[], boolean, boolean, Date, Date, Date, Date,
-	 String, String, String, String, String, String, int, int,
-	 Double)}
-	 */
-	@Deprecated
-	public AssetEntry updateEntry(
-			long groupId, Date createDate, Date modifiedDate, String className,
-			long classPK, String classUuid, long classTypeId,
-			long[] categoryIds, String[] tagNames, boolean visible,
-			Date startDate, Date endDate, Date expirationDate, String mimeType,
-			String title, String description, String summary, String url,
-			String layoutUuid, int height, int width, Integer priority,
-			boolean sync)
 		throws PortalException;
 
 }

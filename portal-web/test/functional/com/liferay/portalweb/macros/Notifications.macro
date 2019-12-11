@@ -121,7 +121,13 @@ definition {
 
 			AssertTextEquals.assertPartialText(
 				locator1 = "Notifications#NOTIFICATIONS_TITLE",
-				value1 = '''in the "Content Page Name" page.''');
+				value1 = "in the &quot;Content Page Name&quot; page.");
+		}
+
+		else if (isSet(mentioned)) {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Notifications#NOTIFICATIONS_TITLE",
+				value1 = "${user} mentioned you in a comment in a ${assetType}.");
 		}
 
 		else {

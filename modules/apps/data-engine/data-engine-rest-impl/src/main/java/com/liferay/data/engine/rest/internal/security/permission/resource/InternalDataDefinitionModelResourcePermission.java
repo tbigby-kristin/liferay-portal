@@ -23,7 +23,9 @@ import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
+import com.liferay.portal.kernel.util.Portal;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -74,9 +76,10 @@ public class InternalDataDefinitionModelResourcePermission
 		DDMStructure ddmStructure = ddmStructureLocalService.getStructure(
 			(long)internalDataDefinition.getPrimaryKeyObj());
 
+		String className = _portal.getClassName(ddmStructure.getClassNameId());
+
 		if (permissionChecker.hasOwnerPermission(
-				ddmStructure.getCompanyId(),
-				InternalDataDefinition.class.getName(),
+				ddmStructure.getCompanyId(), className,
 				(long)internalDataDefinition.getPrimaryKeyObj(),
 				ddmStructure.getUserId(), actionId)) {
 
@@ -84,7 +87,7 @@ public class InternalDataDefinitionModelResourcePermission
 		}
 
 		return permissionChecker.hasPermission(
-			ddmStructure.getGroupId(), InternalDataDefinition.class.getName(),
+			ddmStructure.getGroupId(), className,
 			(long)internalDataDefinition.getPrimaryKeyObj(), actionId);
 	}
 
@@ -112,7 +115,15 @@ public class InternalDataDefinitionModelResourcePermission
 		return null;
 	}
 
+	@Activate
+	protected void activate() {
+		_portal.getClassNameId(InternalDataDefinition.class);
+	}
+
 	@Reference
 	protected DDMStructureLocalService ddmStructureLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }

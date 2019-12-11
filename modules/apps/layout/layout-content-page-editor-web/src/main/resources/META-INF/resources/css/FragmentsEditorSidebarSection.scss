@@ -48,6 +48,14 @@
 		}
 	}
 
+	&__collapse {
+		border-radius: 0px;
+
+		&:focus {
+			border-radius: 1px;
+		}
+	}
+
 	&__elements-panel {
 		.card {
 			width: $sidebarElementCardWidth;
@@ -130,7 +138,7 @@
 	&__panel {
 		background-color: transparent;
 
-		& a {
+		& .collapse-icon {
 			border-color: $sidebarCollapsiblePanelLineColor;
 			font-size: 12px;
 			margin-bottom: $sidebarCardMarginBottom;

@@ -10,6 +10,45 @@ definition {
 	}
 
 	@priority = "5"
+	test CASSSOSmoke {
+		property cas.enabled = "true";
+		property dummy.socket.proxy.disabled = "true";
+		property test.name.skip.portal.instance = "Login#CASSSOSmoke";
+
+		User.firstLoginPG();
+
+		var liferayHome = PropsUtil.get("liferay.home.dir.name");
+		var fileContent = FileUtil.read("${liferayHome}/tomcat-9.0.17/bin/cas.log");
+
+		if (contains("${fileContent}", "org.jasig.cas")) {
+			echo("CAS server started.");
+		}
+		else {
+			fail("FAIL! CAS server didn't start.");
+		}
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "CAS Server",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.editConfigurationAuthenticationCAS();
+
+		PortalSettings.gotoConfiguration(
+			configurationCategory = "User Authentication",
+			configurationName = "General",
+			configurationScope = "Virtual Instance Scope");
+
+		PortalSettings.editConfigurationAuthenticationGeneral(authenticationMethod = "By Screen Name");
+
+		User.logoutPG();
+
+		User.loginUserWithCASEnabledPG(
+			userPassword = "test",
+			userScreenName = "test");
+	}
+
+	@priority = "5"
 	test DefaultPortalLandingPage {
 		property test.name.skip.portal.instance = "Login#DefaultPortalLandingPage";
 
@@ -285,12 +324,12 @@ definition {
 
 		var pauseCount = "0";
 
-		while ((IsElementNotPresent(locator1 = "TextInput#TEXT")) && (!("${pauseCount}" == "20"))) {
+		while ((IsElementNotPresent(locator1 = "TextInput#TEXT")) && ("${pauseCount}" != "20")) {
 			Refresh();
 
 			Pause(locator1 = "30000");
 
-			var pauseCount = MathUtil.sum("${pauseCount}", "1");
+			var pauseCount = ${pauseCount} + 1;
 
 			echo("Pause count: ${pauseCount}");
 		}
@@ -342,17 +381,52 @@ definition {
 		SystemSettings.gotoConfiguration(
 			configurationCategory = "SSO",
 			configurationName = "Token Based SSO",
-			configurationScope = "Virtual Instance Scope");
+			configurationScope = "System Scope");
 
 		FormFields.enableCheckbox(fieldName = "Enabled");
 
 		PortletEntry.save();
 
-		User.logoutPG();
+		AntCommand(
+			locator1 = "build-test-authentication.xml",
+			value1 = "verify-token-based-login -Dportal.url=localhost:8080/web/guest -Duser.token=test@liferay.com");
+
+		FormFields.disableCheckbox(fieldName = "Enabled");
+
+		PortletEntry.update();
+
+		ProductMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Virtual Instances");
+
+		PortalInstances.addCP(
+			mailDomain = "www.able.com",
+			virtualHost = "www.able.com",
+			webId = "www.able.com");
+
+		User.firstLoginPG(
+			password = "test",
+			userEmailAddress = "test@www.able.com",
+			virtualHostsURL = "http://www.able.com:8080");
+
+		ProductMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Instance Settings");
+
+		SystemSettings.gotoConfiguration(
+			configurationCategory = "SSO",
+			configurationName = "Token Based SSO",
+			configurationScope = "Virtual Instance Scope");
+
+		FormFields.enableCheckbox(fieldName = "enabled");
+
+		PortletEntry.save();
 
 		AntCommand(
 			locator1 = "build-test-authentication.xml",
-			value1 = "verify-token-based-login");
+			value1 = "verify-token-based-login -Dportal.url=www.able.com:8080/web/guest -Duser.token=test@www.able.com");
 	}
 
 	@priority = "3"

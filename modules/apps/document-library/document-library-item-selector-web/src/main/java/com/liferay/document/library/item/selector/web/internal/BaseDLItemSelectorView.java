@@ -38,6 +38,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Reference;
 
@@ -79,7 +80,7 @@ public abstract class BaseDLItemSelectorView<T extends ItemSelectorCriterion>
 
 	@Override
 	public void renderHTML(
-			ServletRequest request, ServletResponse response, T t,
+			ServletRequest servletRequest, ServletResponse servletResponse, T t,
 			PortletURL portletURL, String itemSelectedEventName, boolean search)
 		throws IOException, ServletException {
 
@@ -90,16 +91,16 @@ public abstract class BaseDLItemSelectorView<T extends ItemSelectorCriterion>
 
 		DLItemSelectorViewDisplayContext dlItemSelectorViewDisplayContext =
 			new DLItemSelectorViewDisplayContext(
-				t, this, _itemSelectorReturnTypeResolverHandler,
-				itemSelectedEventName, search, portletURL,
-				_assetVocabularyService, _classNameLocalService,
-				stagingGroupHelper);
+				(HttpServletRequest)servletRequest, t, this,
+				_itemSelectorReturnTypeResolverHandler, itemSelectedEventName,
+				search, portletURL, _assetVocabularyService,
+				_classNameLocalService, stagingGroupHelper);
 
-		request.setAttribute(
+		servletRequest.setAttribute(
 			DLItemSelectorWebKeys.DL_ITEM_SELECTOR_VIEW_DISPLAY_CONTEXT,
 			dlItemSelectorViewDisplayContext);
 
-		requestDispatcher.include(request, response);
+		requestDispatcher.include(servletRequest, servletResponse);
 	}
 
 	@Reference(unbind = "-")

@@ -5,7 +5,6 @@
 		<check name="CDNCheck" />
 		<check name="IncorrectFileLocationCheck" />
 		<check name="NonbreakingSpaceCheck" />
-		<check name="ReturnCharacterCheck" />
 		<check name="SlantedQuotesCheck" />
 
 		<!-- Liferay Source Checks -->
@@ -102,7 +101,9 @@
 		<check name="GradleDependenciesCheck">
 			<property name="checkPetraDependencies" value="true" />
 		</check>
-		<check name="GradleDependencyArtifactsCheck" />
+		<check name="GradleDependencyArtifactsCheck">
+			<property name="enabled" value="false" />
+		</check>
 		<check name="GradleDependencyConfigurationCheck" />
 		<check name="GradleDependencyVersionCheck" />
 		<check name="GradleExportedPackageDependenciesCheck" />
@@ -122,7 +123,6 @@
 			<property name="allowedDependencyNames" value="com.liferay.arquillian.extension.junit.bridge" />
 			<property name="allowedDependencyNames" value="com.liferay.portal.cache.test.util" />
 		</check>
-		<check name="GradleVersionCheck" />
 		<check name="WhitespaceCheck" />
 	</source-processor>
 	<source-processor name="GroovySourceProcessor">
@@ -169,6 +169,7 @@
 		<check name="JavaIOExceptionCheck" />
 		<check name="JavaLocalSensitiveComparisonCheck" />
 		<check name="JavaLongLinesCheck" />
+		<check name="JavaMapBuilderGenericsCheck" />
 		<check name="JavaMetaAnnotationsCheck" />
 		<check name="JavaModifiedServiceMethodCheck" />
 		<check name="JavaPackagePathCheck" />
@@ -179,6 +180,7 @@
 		<check name="JavaReturnStatementCheck" />
 		<check name="JavaSeeAnnotationCheck" />
 		<check name="JavaServiceImplCheck" />
+		<check name="JavaSessionCheck" />
 		<check name="JavaStaticBlockCheck" />
 		<check name="JavaStaticImportsCheck" />
 		<check name="JavaStaticVariableDependencyCheck" />
@@ -192,7 +194,6 @@
 		<check name="PrimitiveWrapperInstantiationCheck" />
 		<check name="PrincipalExceptionCheck" />
 		<check name="SessionKeysCheck" />
-		<check name="StringUtilCheck" />
 		<check name="UnparameterizedClassCheck" />
 		<check name="ValidatorEqualsCheck" />
 
@@ -207,6 +208,9 @@
 		</check>
 		<check name="JavaCleanUpMethodSuperCleanUpCheck" />
 		<check name="JavaCleanUpMethodVariablesCheck" />
+		<check name="JavaComponentActivateCheck">
+			<property name="enabled" value="false" />
+		</check>
 		<check name="JavaComponentAnnotationsCheck">
 			<property name="checkConfigurationPolicyAttribute" value="false" />
 			<property name="checkMismatchedServiceAttribute" value="false" />
@@ -235,6 +239,7 @@
 		<check name="JavaServiceObjectCheck" />
 		<check name="JavaServiceTrackerFactoryCheck" />
 		<check name="JavaServiceUtilCheck" />
+		<check name="JavaStagedModelDataHandlerCheck" />
 		<check name="JavaStringBundlerConcatCheck" />
 		<check name="JavaStringBundlerInitialCapacityCheck" />
 		<check name="JavaSwitchCheck" />
@@ -276,7 +281,6 @@
 			<property name="serviceReferenceUtilClassNames" value="com.liferay.exportimport.kernel.staging.StagingUtil" />
 			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.backgroundtask.BackgroundTaskManagerUtil" />
 			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.backgroundtask.display.BackgroundTaskDisplayFactoryUtil" />
-			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.captcha.CaptchaUtil" />
 			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.comment.CommentManagerUtil" />
 			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.util.HttpUtil" />
 			<property name="serviceReferenceUtilClassNames" value="com.liferay.portal.kernel.util.PortalUtil" />
@@ -333,7 +337,6 @@
 		<check name="MethodCallsOrderCheck" />
 		<check name="PrimitiveWrapperInstantiationCheck" />
 		<check name="PrincipalExceptionCheck" />
-		<check name="StringUtilCheck" />
 		<check name="UnparameterizedClassCheck" />
 		<check name="ValidatorEqualsCheck" />
 
@@ -418,6 +421,7 @@
 		<check name="PropertiesPortletFileCheck" />
 		<check name="PropertiesSourceFormatterContentCheck" />
 		<check name="PropertiesSourceFormatterFileCheck" />
+		<check name="PropertiesStylingCheck" />
 		<check name="PropertiesWhitespaceCheck">
 			<property name="allowLeadingSpaces" value="true" />
 		</check>
@@ -494,6 +498,10 @@
 	<source-processor name="YMLSourceProcessor">
 		<check name="YMLDefinitionOrderCheck" />
 		<check name="YMLEmptyLinesCheck" />
+		<check name="YMLLongLinesCheck">
+			<property name="maxLineLength" value="120" />
+		</check>
+		<check name="YMLStylingCheck" />
 		<check name="YMLWhitespaceCheck">
 			<property name="allowLeadingSpaces" value="true" />
 		</check>

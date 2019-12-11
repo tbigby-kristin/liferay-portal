@@ -20,5 +20,4 @@
 page import="com.liferay.product.navigation.control.menu.util.ProductNavigationControlMenuCategoryRegistry" %><%@
 page import="com.liferay.product.navigation.taglib.internal.servlet.ServletContextUtil" %>
 
-<%@ page import="java.util.LinkedHashMap" %><%@
-page import="java.util.Map" %>
+<%@ page import="java.util.LinkedHashMap" %>

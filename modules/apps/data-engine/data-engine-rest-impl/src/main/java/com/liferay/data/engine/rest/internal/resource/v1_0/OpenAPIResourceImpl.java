@@ -70,6 +70,8 @@ public class OpenAPIResourceImpl {
 
 			add(DataListViewResourceImpl.class);
 
+			add(DataModelPermissionResourceImpl.class);
+
 			add(DataRecordResourceImpl.class);
 
 			add(DataRecordCollectionResourceImpl.class);

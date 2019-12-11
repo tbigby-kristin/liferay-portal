@@ -142,7 +142,7 @@ SiteNavigationAdminManagementToolbarDisplayContext siteNavigationAdminManagement
 	</liferay-ui:search-container>
 </aui:form>
 
-<aui:script require="metal-dom/src/all/dom as dom,frontend-js-web/liferay/modal/commands/OpenSimpleInputModal.es as modalCommands" sandbox="<%= true %>">
+<aui:script require="metal-dom/src/all/dom as dom,frontend-js-web/liferay/modal/commands/OpenSimpleInputModal.es as openSimpleInputModal" sandbox="<%= true %>">
 	var renameSiteNavigationMenuClickHandler = dom.delegate(
 		document.body,
 		'click',
@@ -152,20 +152,20 @@ SiteNavigationAdminManagementToolbarDisplayContext siteNavigationAdminManagement
 
 			event.preventDefault();
 
-			modalCommands.openSimpleInputModal(
-				{
-					dialogTitle: '<liferay-ui:message key="rename-site-navigation-menu" />',
-					formSubmitURL: data.formSubmitUrl,
-					idFieldName: 'id',
-					idFieldValue: data.idFieldValue,
-					mainFieldLabel: '<liferay-ui:message key="name" />',
-					mainFieldName: 'name',
-					mainFieldPlaceholder: '<liferay-ui:message key="name" />',
-					mainFieldValue: data.mainFieldValue,
-					namespace: '<portlet:namespace />',
-					spritemap: '<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg'
-				}
-			);
+			openSimpleInputModal.default({
+				dialogTitle:
+					'<liferay-ui:message key="rename-site-navigation-menu" />',
+				formSubmitURL: data.formSubmitUrl,
+				idFieldName: 'id',
+				idFieldValue: data.idFieldValue,
+				mainFieldLabel: '<liferay-ui:message key="name" />',
+				mainFieldName: 'name',
+				mainFieldPlaceholder: '<liferay-ui:message key="name" />',
+				mainFieldValue: data.mainFieldValue,
+				namespace: '<portlet:namespace />',
+				spritemap:
+					'<%= themeDisplay.getPathThemeImages() %>/lexicon/icons.svg'
+			});
 		}
 	);
 

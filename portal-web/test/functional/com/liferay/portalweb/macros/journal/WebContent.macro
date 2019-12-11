@@ -158,15 +158,15 @@ definition {
 	}
 
 	macro addMultipleArticlesCP {
-		var articleCount = MathUtil.sum("${articleCount}", "1");
+		var articleCount = ${articleCount} + 1;
 		var count = "1";
 
-		while (!("${count}" == "${articleCount}")) {
+		while ("${count}" != "${articleCount}") {
 			WebContent.addArticleCP(
 				webContentContent = "WC Content ${count}",
 				webContentTitle = "WC Title ${count}");
 
-			var count = MathUtil.sum("${count}", "1");
+			var count = ${count} + 1;
 		}
 	}
 
@@ -342,12 +342,6 @@ definition {
 
 		LexiconCard.clickCard(card = "${dmDocumentTitle}");
 
-		SelectFrameTop(value1 = "relative=top");
-
-		AssertClick(
-			locator1 = "ItemSelector#ADD_BUTTON",
-			value1 = "Add");
-
 		PortletEntry.publish();
 	}
 
@@ -423,6 +417,20 @@ definition {
 		PortletEntry.publish();
 	}
 
+	macro addWithPriorityCP {
+		WebContent.addCP(
+			webContentContent = "${webContentContent}",
+			webContentTitle = "${webContentTitle}");
+
+		Panel.expandPanel(panel = "Metadata");
+
+		Type(
+			locator1 = "TextInput#ASSET_PRIORITY",
+			value1 = "${assetPriority}");
+
+		PortletEntry.publish();
+	}
+
 	macro addWithStructureAndWorkflowCP {
 		WebContent.addCP(webContentTitle = "${webContentTitle}");
 
@@ -486,10 +494,6 @@ definition {
 				key_dmDocumentTitle = "${webContentDocumentsAndMedia}",
 				locator1 = "WC#ICON_DOCUMENT_TITLE",
 				value1 = "${webContentDocumentsAndMedia}");
-
-			SelectFrameTop(value1 = "relative=top");
-
-			Click(locator1 = "Button#ADD");
 		}
 
 		if (isSet(webContentHTML)) {
@@ -502,9 +506,17 @@ definition {
 		if (isSet(webContentImage)) {
 			Click(locator1 = "WCEditWebContent#IMAGE_FIELD_SELECT");
 
-			ItemSelector.uploadFile(
-				navTab = "Web Content Images",
-				uploadFileName = "${webContentImage}");
+			if (isSet(depotName)) {
+				ItemSelector.selectRepositoryImage(
+					depotName = "${depotName}",
+					imageFileName = "${webContentImage}");
+			}
+
+			else {
+				ItemSelector.uploadFile(
+					navTab = "Web Content Images",
+					uploadFileName = "${webContentImage}");
+			}
 		}
 
 		if (isSet(webContentImageUnderDocumentsAndMedia)) {
@@ -612,7 +624,7 @@ definition {
 					locator1 = "DDMField#TEXT_BOX",
 					value1 = "${webContentTextBox}");
 
-				var count = MathUtil.sum("${count}", "1");
+				var count = ${count} + 1;
 			}
 		}
 
@@ -772,6 +784,22 @@ definition {
 			AlloyEditor.addContent(content = "${webContentContentEdit}");
 		}
 
+		if (isSet(webContentSelectWCFile)) {
+			AssertClick(
+				key_fieldName = "${fieldName}",
+				locator1 = "Button#SELECT_CONTENT",
+				value1 = "Select");
+
+			SelectFrame(locator1 = "IFrame#DIALOG");
+
+			AssertClick(
+				key_webContentTitle = "${webContentSelectWCFile}",
+				locator1 = "Link#WEB_CONTENT_ARTICLE",
+				value1 = "${webContentSelectWCFile}");
+
+			SelectFrame(value1 = "relative=top");
+		}
+
 		if ("${saveAsDraft}" == "true") {
 			PortletEntry.saveAsDraft();
 
@@ -834,12 +862,6 @@ definition {
 
 			LexiconCard.clickCard(card = "${pageName}");
 		}
-
-		SelectFrameTop();
-
-		Button.clickDone();
-
-		SelectFrame(value1 = "relative=top");
 
 		if ("${pageType}" == "Public Pages") {
 			AssertTextEquals(
@@ -1020,13 +1042,9 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#DIALOG");
 
-		Portlet.expandTree();
-
-		Portlet.selectTreeNode(nodeName = "${folderName}");
+		WebContentFolder.selectFolderTreeNode(nodeName = "${folderName}");
 
 		SelectFrameTop();
-
-		Button.clickDone();
 
 		AssertClick(
 			locator1 = "Button#MOVE",
@@ -1052,15 +1070,9 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#DIALOG");
 
-		Portlet.expandTree();
-
-		Portlet.selectTreeNode(nodeName = "${folderName}");
+		WebContentFolder.selectFolderTreeNode(nodeName = "${folderName}");
 
 		SelectFrame(value1 = "relative=top");
-
-		Pause(locator1 = "5000");
-
-		Button.clickDone();
 
 		AssertClick(
 			locator1 = "Button#MOVE",
@@ -1085,15 +1097,9 @@ definition {
 
 		SelectFrame(locator1 = "IFrame#DIALOG");
 
-		Portlet.expandTree();
-
-		Portlet.selectTreeNode(nodeName = "${folderName}");
+		WebContentFolder.selectFolderTreeNode(nodeName = "${folderName}");
 
 		SelectFrame(value1 = "relative=top");
-
-		Pause(locator1 = "5000");
-
-		Button.clickDone();
 
 		AssertClick(
 			locator1 = "Button#MOVE",
@@ -1406,7 +1412,7 @@ definition {
 				locator1 = "AssetCategorization#VOCABULARY_LIST_ITEM",
 				value1 = "${vocabularyName}");
 
-			var count = MathUtil.sum("${count}", "1");
+			var count = ${count} + 1;
 		}
 	}
 
@@ -1463,6 +1469,13 @@ definition {
 				value1 = "${webContentContent}");
 
 			SelectFrame(value1 = "relative=top");
+		}
+
+		if (isSet(webContentDocumentsAndMedia)) {
+			AssertTextEquals(
+				key_fieldName = "DocumentsAndMedia",
+				locator1 = "TextInput#DDM",
+				value1 = "${webContentDocumentsAndMedia}");
 		}
 	}
 
@@ -1621,7 +1634,7 @@ definition {
 				locator1 = "xpath=(//div[@data-fieldname='${fieldName}'][${i}]//a[contains(@class,'ddm-repeatable-add-button')]/../div//input)",
 				value1 = "${ddlRecordFieldData} ${i}");
 
-			var i = MathUtil.sum("${i}", "1");
+			var i = ${i} + 1;
 		}
 	}
 
@@ -2036,7 +2049,7 @@ definition {
 					locator1 = "DDMField#TEXT_BOX",
 					value1 = "${webContentTextBox}");
 
-				var count = MathUtil.sum("${count}", "1");
+				var count = ${count} + 1;
 			}
 		}
 	}

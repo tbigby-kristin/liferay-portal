@@ -32,6 +32,8 @@ definition {
 
 			AppBuilderAdmin.teardownAppBuilder();
 
+			Page.tearDownCP();
+
 		}
 	}
 
@@ -49,7 +51,211 @@ definition {
 
 		AppBuilderAdmin.gotoBack();
 
-		AppBuilderAdmin.validateCustomObjectNameOnCustomObjectList(customObjectName = "my custom object");
+		AppBuilderAdmin.validateItemNameOnTable(itemName = "my custom object");
+	}
+
+	@description = "This is a use case for LPS-104569."
+	@priority = "5"
+	test AddMultipleFormViewsToTheSameObject {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object 1",
+			isCreatingFormView = "false",
+			isCreatingViaPlusIcon = "true");
+
+		AppBuilderAdmin.gotoBack();
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object 2",
+			isCreatingFormView = "false",
+			isCreatingViaPlusIcon = "true");
+
+		var fieldList = "Text Field,Select from List,Single Selection,Multiple Selection,Date,Numeric,Grid,Upload";
+
+		for (var field : list "${fieldList}") {
+
+			AppBuilderAdmin.add();
+
+			FormViewBuilder.addFormViewAndValidateFieldLabel(
+				fieldType = "${field}",
+				formViewName = "My Form View with ${field} 1");
+
+			FormViewBuilder.addFormViewAndValidateFieldLabel(
+				fieldType = "${field}",
+				formViewName = "My Form View with ${field} 2");
+
+			FormViewBuilder.openFormView(formViewName = "My Form View with ${field} 1");
+			FormViewBuilder.validateFieldLabel(fieldLabel = "${field}");
+			AppBuilderAdmin.gotoBack();
+
+			FormViewBuilder.openFormView(formViewName = "My Form View with ${field} 2");
+			FormViewBuilder.validateFieldLabel(fieldLabel = "${field}");
+			AppBuilderAdmin.gotoBack();
+		}
+
+		AppBuilderAdmin.gotoBack();
+
+		AppBuilderAdmin.openItem(itemName = "my custom object 1");
+
+		AppBuilderAdmin.validateEmptyListMessage(
+			description = "Create one or more forms to display the data held in your data object.",
+			title = "There are no form views yet.");
+
+		AppBuilderAdmin.assertNewButtonIsVisible(buttonValue = "New Form View");
+	}
+
+	@description = "Add a Form View with a Date field"
+	@priority = "5"
+	test AddSimpleFormViewWithDateField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Date",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Grid field"
+	@priority = "5"
+	test AddSimpleFormViewWithGridField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Grid",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Multiple Selection field"
+	@priority = "5"
+	test AddSimpleFormViewWithMultipleSelectionField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Multiple Selection",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Numeric field"
+	@priority = "5"
+	test AddSimpleFormViewWithNumericField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Numeric",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Select From List field"
+	@priority = "5"
+	test AddSimpleFormViewWithSelectFromListField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Select from List",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Single Selection field"
+	@priority = "5"
+	test AddSimpleFormViewWithSingleSelectionField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Single Selection",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Text Field"
+	@priority = "5"
+	test AddSimpleFormViewWithTextField {
+		property portal.acceptance = "true";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Text Field",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Form View with a Upload field"
+	@priority = "5"
+	test AddSimpleFormViewWithUploadField {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormViewAndValidateFieldLabel(
+			fieldType = "Upload",
+			formViewName = "My Form View");
+	}
+
+	@description = "Add a Table View"
+	@priority = "5"
+	test AddSimpleTableView {
+		property portal.acceptance = "true";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "My Form View");
+
+		AppBuilderAdmin.switchTab(tabName = "Table Views");
+
+		AppBuilderAdmin.add();
+
+		TableViewBuilder.addColumnByDoubleClick(fieldType = "Text Field");
+
+		TableViewBuilder.setName(tableViewName = "My Table View");
+
+		TableViewBuilder.save();
+
+		AppBuilderAdmin.validateItemNameOnTable(itemName = "My Table View");
+
+		AppBuilderAdmin.openItem(itemName = "My Table View");
+
+		TableViewBuilder.validateColumnLabel(columnLabel = "Text Field");
+
+		TableViewBuilder.save();
 	}
 
 	@description = "Attempt to add a Custom Object without a valid name"
@@ -84,6 +290,343 @@ definition {
 			isCreatingViaPlusIcon = "false");
 		AppBuilderAdmin.validateRequiredValidNameMessage();
 		AppBuilderAdmin.cancelNewCustomObject();
+	}
+
+	@description = "Change order of list from default most recent on top to oldest."
+	@priority = "5"
+	test ChangeFormViewsListOrderByDate {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "Custom Object Title",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "Text Field - Form View Title");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Date",
+			formViewName = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateCustomObjectNameOnHeader(customObjectName = "Custom Object Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "1",
+			title = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "2",
+			title = "Text Field - Form View Title");
+
+		AppBuilderAdmin.filterListAscendAndDescend();
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "1",
+			title = "Text Field - Form View Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "2",
+			title = "Date Field - Form View Title");
+	}
+
+	@description = "Order the list of Form Views by Name/Title (Asc or Desc)"
+	@priority = "5"
+	test ChangeFormViewsListOrderByName {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "Custom Object Title",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "Text Field - Form View Title");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Date",
+			formViewName = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateCustomObjectNameOnHeader(customObjectName = "Custom Object Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "1",
+			title = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "2",
+			title = "Text Field - Form View Title");
+
+		AppBuilderAdmin.chooseSearchFilterByOption(filterOption = "Name");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "1",
+			title = "Text Field - Form View Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "2",
+			title = "Date Field - Form View Title");
+	}
+
+	@description = "Delete an existing custom object with no associated relationships"
+	@priority = "5"
+	test DeleteCustomObjectWithAssociatedRelationship {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "My Form View");
+
+		TableViewBuilder.addBasicTableView(
+			fieldType = "Text Field",
+			tableViewName = "My Table View");
+
+		App.add(
+			appTitle = "Test App",
+			deployOption = "Product Menu",
+			formViewName = "My Form View",
+			tableViewName = "My Table View");
+
+		AppBuilderAdmin.gotoCustomAppCP(
+			panel = "Control Panel",
+			portlet = "Test App");
+
+		AppBuilderAdmin.add();
+
+		FormFields.editText(
+			fieldName = "TextField",
+			fieldValue = "test");
+
+		AppBuilderAdmin.save();
+
+		ProductMenu.gotoPortlet(
+			category = "App Builder",
+			panel = "Control Panel",
+			portlet = "Custom Objects");
+
+		AppBuilderAdmin.deleteEntry(customObjectName = "my custom object");
+	}
+
+	@description = "Delete an existing custom object with no associated relationships"
+	@priority = "5"
+	test DeleteCustomObjectWithNoAssociatedRelationship {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		AppBuilderAdmin.gotoBack();
+
+		AppBuilderAdmin.deleteEntry(customObjectName = "my custom object");
+	}
+
+	@description = "Choose between the existing Form Views of an object when deploying an app"
+	@priority = "5"
+	test DeployAnAppChoosingBetweenTheExistingFormViews {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "My Form View 1");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Numeric",
+			formViewName = "My Form View 2");
+
+		TableViewBuilder.addBasicTableView(
+			fieldType = "Text Field",
+			tableViewName = "My Table View 1");
+
+		TableViewBuilder.addBasicTableView(
+			fieldType = "Numeric",
+			tableViewName = "My Table View 2");
+
+		App.add(
+			appTitle = "Test App 1",
+			deployOption = "Product Menu",
+			formViewName = "My Form View 1",
+			tableViewName = "My Table View 1");
+
+		App.add(
+			appTitle = "Test App 2",
+			deployOption = "Product Menu",
+			formViewName = "My Form View 2",
+			tableViewName = "My Table View 2");
+
+		AppBuilderAdmin.gotoCustomAppCP(
+			panel = "Control Panel",
+			portlet = "Test App 1");
+
+		AppBuilderAdmin.add();
+
+		FormFields.editText(
+			fieldName = "TextField",
+			fieldValue = "content of form 1");
+
+		AppBuilderAdmin.save();
+
+		AppBuilderAdmin.validateItemNameOnTable(itemName = "content of form 1");
+
+		AppBuilderAdmin.gotoCustomAppCP(
+			panel = "Control Panel",
+			portlet = "Test App 1");
+
+		AppBuilderAdmin.add();
+
+		FormFields.editText(
+			fieldName = "Numeric",
+			fieldValue = "123");
+
+		AppBuilderAdmin.save();
+
+		AppBuilderAdmin.validateItemNameOnTable(itemName = "123");
+	}
+
+	@description = "Clear search results when clicking the Clear button on the search results banner"
+	@priority = "5"
+	test FormViewClearSearchResults {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "Custom Object Title",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "Text Field - Form View Title");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Date",
+			formViewName = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateCustomObjectNameOnHeader(customObjectName = "Custom Object Title");
+
+		AppBuilderAdmin.searchByItem(itemName = "Text");
+
+		AppBuilderAdmin.validateIfSearchItemIsFound(itemName = "Text");
+
+		AppBuilderAdmin.clearSearch();
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "1",
+			title = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateFormViewTitle(
+			rowNumber = "2",
+			title = "Text Field - Form View Title");
+	}
+
+	@description = "Validate returns by search engine using a search term"
+	@priority = "5"
+	test FormViewSearchByTerm {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "Custom Object Title",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "Text Field - Form View Title");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Date",
+			formViewName = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateCustomObjectNameOnHeader(customObjectName = "Custom Object Title");
+
+		AppBuilderAdmin.searchByItem(itemName = "Text");
+
+		AppBuilderAdmin.validateIfSearchItemIsFound(itemName = "Text");
+	}
+
+	@description = "No results found screen is shown when the search doesn't retrieve any results"
+	@priority = "5"
+	test FormViewSearchNoResultsFound {
+		property portal.acceptance = "false";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "Custom Object Title",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "Text Field - Form View Title");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Date",
+			formViewName = "Date Field - Form View Title");
+
+		AppBuilderAdmin.validateCustomObjectNameOnHeader(customObjectName = "Custom Object Title");
+
+		AppBuilderAdmin.searchByItem(itemName = "Apple");
+
+		AppBuilderAdmin.validateIfSearchItemIsNotFound(itemName = "Apple");
+	}
+
+	@description = "Publish my app as a widget and submit entry"
+	@priority = "5"
+	test PublishAppAsWidgetAndSubmitEntry {
+		property portal.acceptance = "true";
+
+		AppBuilderAdmin.addCustomObject(
+			customObjectName = "my custom object",
+			isCreatingFormView = "true",
+			isCreatingViaPlusIcon = "true");
+
+		FormViewBuilder.addFormView(
+			fieldType = "Text Field",
+			formViewName = "My Form View");
+
+		TableViewBuilder.addBasicTableView(
+			fieldType = "Text Field",
+			tableViewName = "My Table View");
+
+		App.add(
+			appTitle = "Widget App",
+			deployOption = "Widget",
+			formViewName = "My Form View",
+			tableViewName = "My Table View");
+
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Pages");
+
+		SitePages.addPublicPage(pageName = "App Builder Page");
+
+		Navigator.gotoPage(pageName = "App Builder Page");
+
+		Portlet.addPG(
+			pageName = "App Builder Page",
+			portletName = "Widget App");
+
+		AppBuilderAdmin.add();
+
+		FormFields.editText(
+			fieldName = "TextField",
+			fieldValue = "Content of form deployed as widget.");
+
+		AppBuilderAdmin.save();
+
+		AppBuilderAdmin.validateItemNameOnTable(itemName = "Content of form deployed as widget.");
 	}
 
 	@description = "Validate empty list state of Apps listing screen"

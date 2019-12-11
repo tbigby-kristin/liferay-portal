@@ -26,14 +26,15 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.util.IncludeTag;
+import com.liferay.taglib.util.TagResourceBundleUtil;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -56,6 +57,10 @@ public class FlagsTag extends IncludeTag {
 
 	public String getContentTitle() {
 		return _contentTitle;
+	}
+
+	public String getContentURL() {
+		return _contentURL;
 	}
 
 	public String getElementClasses() {
@@ -88,6 +93,10 @@ public class FlagsTag extends IncludeTag {
 
 	public void setContentTitle(String contentTitle) {
 		_contentTitle = contentTitle;
+	}
+
+	public void setContentURL(String contentURL) {
+		_contentURL = contentURL;
 	}
 
 	public void setElementClasses(String elementClasses) {
@@ -124,6 +133,7 @@ public class FlagsTag extends IncludeTag {
 		_className = null;
 		_classPK = 0;
 		_contentTitle = null;
+		_contentURL = null;
 		_elementClasses = null;
 		_enabled = true;
 		_label = true;
@@ -159,28 +169,26 @@ public class FlagsTag extends IncludeTag {
 	private Map<String, Object> _getData(String message)
 		throws PortalException {
 
-		Map<String, Object> data = new HashMap<>();
+		HttpServletRequest httpServletRequest = getRequest();
 
-		Map<String, Object> context = new HashMap<>();
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
 
-		context.put(
-			"namespace", PortalUtil.getPortletNamespace(PortletKeys.FLAGS));
+		Map<String, Object> props = HashMapBuilder.<String, Object>put(
+			"baseData", _getDataJSONObject(themeDisplay)
+		).put(
+			"companyName",
+			() -> {
+				Company company = themeDisplay.getCompany();
 
-		data.put("context", context);
-
-		Map<String, Object> props = new HashMap<>();
-
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			WebKeys.THEME_DISPLAY);
-
-		props.put("baseData", _getDataJSONObject(themeDisplay));
-
-		Company company = themeDisplay.getCompany();
-
-		props.put("companyName", company.getName());
-
-		props.put("disabled", !_enabled);
-		props.put("forceLogin", !FlagsTagUtil.isFlagsEnabled(themeDisplay));
+				return company.getName();
+			}
+		).put(
+			"disabled", !_enabled
+		).put(
+			"forceLogin", !FlagsTagUtil.isFlagsEnabled(themeDisplay)
+		).build();
 
 		if (Validator.isNotNull(message)) {
 			props.put("message", message);
@@ -192,17 +200,29 @@ public class FlagsTag extends IncludeTag {
 			PortalUtil.getPathMain() + "/portal/terms_of_use");
 		props.put(
 			"reasons",
-			FlagsTagUtil.getReasons(themeDisplay.getCompanyId(), request));
+			FlagsTagUtil.getReasons(
+				themeDisplay.getCompanyId(), httpServletRequest));
 		props.put("signedIn", themeDisplay.isSignedIn());
-		props.put("uri", FlagsTagUtil.getURI(request));
+		props.put("uri", FlagsTagUtil.getURI(httpServletRequest));
 
-		data.put("props", props);
-
-		return data;
+		return HashMapBuilder.<String, Object>put(
+			"context",
+			HashMapBuilder.<String, Object>put(
+				"namespace", PortalUtil.getPortletNamespace(PortletKeys.FLAGS)
+			).build()
+		).put(
+			"props", props
+		).build();
 	}
 
 	private JSONObject _getDataJSONObject(ThemeDisplay themeDisplay) {
 		String namespace = PortalUtil.getPortletNamespace(PortletKeys.FLAGS);
+
+		String contentURL = _contentURL;
+
+		if (Validator.isNull(contentURL)) {
+			contentURL = FlagsTagUtil.getCurrentURL(getRequest());
+		}
 
 		JSONObject dataJSONObject = JSONUtil.put(
 			namespace + "className", _className
@@ -211,7 +231,7 @@ public class FlagsTag extends IncludeTag {
 		).put(
 			namespace + "contentTitle", _contentTitle
 		).put(
-			namespace + "contentURL", FlagsTagUtil.getCurrentURL(request)
+			namespace + "contentURL", contentURL
 		).put(
 			namespace + "reportedUserId", _reportedUserId
 		);
@@ -232,9 +252,10 @@ public class FlagsTag extends IncludeTag {
 
 	private String _getMessage() {
 		ResourceBundle resourceBundle = new AggregateResourceBundle(
-			(ResourceBundle)pageContext.getAttribute("resourceBundle"),
+			TagResourceBundleUtil.getResourceBundle(pageContext),
 			ResourceBundleUtil.getBundle(
-				PortalUtil.getLocale(request), "com.liferay.flags.taglib"));
+				PortalUtil.getLocale(getRequest()),
+				"com.liferay.flags.taglib"));
 
 		if (Validator.isNotNull(_message)) {
 			return LanguageUtil.get(resourceBundle, _message);
@@ -250,6 +271,7 @@ public class FlagsTag extends IncludeTag {
 	private String _className;
 	private long _classPK;
 	private String _contentTitle;
+	private String _contentURL;
 	private String _elementClasses;
 	private boolean _enabled = true;
 	private boolean _label = true;

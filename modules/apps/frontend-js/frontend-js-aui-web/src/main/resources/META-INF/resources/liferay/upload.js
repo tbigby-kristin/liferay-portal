@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-upload',
-	function(A) {
+	A => {
 		var AArray = A.Array;
 		var Lang = A.Lang;
 		var UploaderQueue = A.Uploader.Queue;
@@ -33,13 +33,13 @@ AUI.add(
 			'<label>',
 			'<input class="{[ !values.temp ? "hide" : "" ]} select-file" data-fileName="{[ LString.escapeHTML(values.name) ]}" data-title="{[ LString.escapeHTML(values.title ? values.title : values.name) ]}" id="{id}checkbox" name="{$ns}selectUploadedFile" type="{[ this.multipleFiles ? "checkbox" : "hidden" ]}" value="{[ LString.escapeHTML(values.name) ]}" />',
 			'<div class="card-horizontal">',
-			'<div class="card-row card-row-padded">',
+			'<div class="card-body">',
 			'<div class="card-col-field">',
 			Liferay.Util.getLexiconIconTpl('document'),
 			'</div>',
 			'<div class="card-col-content card-col-gutters clamp-horizontal">',
 			'<div class="clamp-container">',
-			'<span class="file-title truncate-text" title="{[ LString.escapeHTML(values.title ? values.title : values.name) ]}">{[ LString.escapeHTML(values.title ? values.title : values.name) ]}</span>',
+			'<span class="file-title text-truncate" title="{[ LString.escapeHTML(values.title ? values.title : values.name) ]}">{[ LString.escapeHTML(values.title ? values.title : values.name) ]}</span>',
 			'</div>',
 			'<span class="progress-bar">',
 			'<span class="progress" id="{id}progress"></span>',
@@ -127,7 +127,7 @@ AUI.add(
 			'</tpl>',
 
 			'<span class="select-files-container" id="{$ns}selectFilesButton">',
-			'<button class="btn btn-default" type="button">{[ this.selectFilesText ]}</button>',
+			'<button class="btn btn-secondary" type="button">{[ this.selectFilesText ]}</button>',
 			'</span>',
 			'</div>',
 			'</div>',
@@ -354,7 +354,7 @@ AUI.add(
 
 					queue.pauseUpload();
 
-					queue.queuedFiles.forEach(function(item) {
+					queue.queuedFiles.forEach(item => {
 						var li = A.one('#' + item.id);
 
 						if (li && !li.hasClass('upload-complete')) {
@@ -407,7 +407,7 @@ AUI.add(
 							metadataExplanationContainer.show();
 						}
 
-						var files = fileNames.map(function(item) {
+						var files = fileNames.map(item => {
 							var title = item;
 
 							var tempTitle = title;
@@ -460,7 +460,7 @@ AUI.add(
 						Liferay.PropsValues
 							.UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE;
 
-					return data.filter(function(item) {
+					return data.filter(item => {
 						var id = item.get('id') || A.guid();
 						var name = item.get('name');
 						var size = item.get('size') || 0;
@@ -545,7 +545,7 @@ AUI.add(
 						(target === uploaderBoundingBox ||
 							uploaderBoundingBox.contains(target))
 					) {
-						event.fileList = dragDropFiles.map(function(item) {
+						event.fileList = dragDropFiles.map(item => {
 							return new A.FileHTML5(item);
 						});
 
@@ -680,7 +680,7 @@ AUI.add(
 
 							var file =
 								queue.currentFiles[fileId] ||
-								AArray.find(queue.queuedFiles, function(item) {
+								AArray.find(queue.queuedFiles, item => {
 									return item.id === fileId;
 								});
 
@@ -950,7 +950,7 @@ AUI.add(
 
 					A.on(
 						'available',
-						function() {
+						() => {
 							A.one(fileIdSelector).addClass('file-uploading');
 						},
 						fileIdSelector
@@ -995,6 +995,32 @@ AUI.add(
 						TPL_FILE_LIST,
 						templateConfig
 					);
+
+					// LPS-102399
+
+					if (A.UA.ie) {
+						instance._fileListTPL.tpls = instance._fileListTPL.tpls.map(
+							tpl => {
+								if (tpl.tplFn) {
+									var tplBodyRegex = /function anonymous\(values,parent\s*\) \{\s*(.*)\s*\}/;
+									var tplFn = tpl.tplFn.toString();
+
+									if (tplBodyRegex.test(tplFn)) {
+										var tplBody = tplBodyRegex
+											.exec(tplFn)[1]
+											.replace(/values/g, 'parts');
+
+										tpl.tplFn = new Function(
+											'parts, parent',
+											tplBody
+										);
+									}
+								}
+
+								return tpl;
+							}
+						);
+					}
 
 					instance._selectUploadedFileCheckboxId = instance.ns(
 						'selectUploadedFile'
@@ -1353,12 +1379,12 @@ AUI.add(
 
 					var uploaderBoundingBox = instance._uploaderBoundingBox;
 
-					var removeCssClassTask = A.debounce(function() {
+					var removeCssClassTask = A.debounce(() => {
 						docElement.removeClass('upload-drop-intent');
 						docElement.removeClass('upload-drop-active');
 					}, 500);
 
-					docElement.on('dragover', function(event) {
+					docElement.on('dragover', event => {
 						var originalEvent = event._event;
 
 						var dataTransfer = originalEvent.dataTransfer;
@@ -1426,7 +1452,7 @@ AUI.add(
 
 						instance._preventRenderHandle = instance.on(
 							'render',
-							function(event) {
+							event => {
 								event.preventDefault();
 							}
 						);

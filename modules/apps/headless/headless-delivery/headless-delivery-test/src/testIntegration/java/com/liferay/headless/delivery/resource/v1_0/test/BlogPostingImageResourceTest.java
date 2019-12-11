@@ -22,10 +22,10 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.io.File;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -110,13 +110,14 @@ public class BlogPostingImageResourceTest
 
 	@Override
 	protected Map<String, File> getMultipartFiles() throws Exception {
-		Map<String, File> files = new HashMap<>();
+		return HashMapBuilder.<String, File>put(
+			"file",
+			() -> {
+				String randomString = RandomTestUtil.randomString();
 
-		String randomString = RandomTestUtil.randomString();
-
-		files.put("file", FileUtil.createTempFile(randomString.getBytes()));
-
-		return files;
+				return FileUtil.createTempFile(randomString.getBytes());
+			}
+		).build();
 	}
 
 	private String _read(String url) throws Exception {

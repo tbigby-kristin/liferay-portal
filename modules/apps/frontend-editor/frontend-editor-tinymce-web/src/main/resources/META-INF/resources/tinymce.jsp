@@ -73,9 +73,9 @@ name = HtmlUtil.escapeJS(name);
 
 <aui:script use="aui-node-base">
 	var browseUrls = {
-		'file': 'filebrowserBrowseUrl',
-		'image': 'filebrowserImageBrowseUrl',
-		'media': 'filebrowserVideoBrowseUrl'
+		file: 'filebrowserBrowseUrl',
+		image: 'filebrowserImageBrowseUrl',
+		media: 'filebrowserVideoBrowseUrl'
 	};
 
 	var getInitialContent = function() {
@@ -83,9 +83,9 @@ name = HtmlUtil.escapeJS(name);
 
 		if (window['<%= HtmlUtil.escapeJS(namespace + initMethod) %>']) {
 			data = <%= HtmlUtil.escapeJS(namespace + initMethod) %>();
-		}
-		else {
-			data = '<%= (contents != null) ? HtmlUtil.escapeJS(contents) : StringPool.BLANK %>';
+		} else {
+			data =
+				'<%= (contents != null) ? HtmlUtil.escapeJS(contents) : StringPool.BLANK %>';
 		}
 
 		return data;
@@ -143,33 +143,38 @@ name = HtmlUtil.escapeJS(name);
 
 			if (url) {
 				var openItemSelectorDialog = function(itemSelectorDialog) {
-					itemSelectorDialog.set('eventName', '<%= name %>selectItem');
-					itemSelectorDialog.set('url', url);
-					itemSelectorDialog.set('zIndex', tinymce.activeEditor.windowManager.windows[0].zIndex + 10);
+					itemSelectorDialog.eventName = '<%= name %>selectItem';
+					itemSelectorDialog.singleSelect = true;
+					itemSelectorDialog.url = url;
+					itemSelectorDialog.zIndex =
+						tinymce.activeEditor.windowManager.windows[0].zIndex + 10;
 
-					itemSelectorDialog.once(
-						'selectedItemChange',
-						function(event) {
-							var selectedItem = event.newVal ? event.newVal : value;
+					itemSelectorDialog.on('selectedItemChange', function(event) {
+						var selectedItem = event.selectedItem
+							? event.selectedItem
+							: value;
 
-							if (selectedItem.returnType === 'com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType') {
-								try {
-									var itemValue = JSON.parse(selectedItem.value);
+						if (
+							selectedItem.returnType ===
+							'com.liferay.item.selector.criteria.FileEntryItemSelectorReturnType'
+						) {
+							try {
+								var itemValue = JSON.parse(selectedItem.value);
 
-									var attachmentPrefix = tinymce.activeEditor.settings.attachmentURLPrefix;
+								var attachmentPrefix =
+									tinymce.activeEditor.settings
+										.attachmentURLPrefix;
 
-									selectedItem = attachmentPrefix ? attachmentPrefix + itemValue.title : itemValue.url;
-								}
-								catch (e) {
-								}
-							}
-							else {
-								selectedItem = selectedItem.value;
-							}
-
-							callback(selectedItem);
+								selectedItem = attachmentPrefix
+									? attachmentPrefix + itemValue.title
+									: itemValue.url;
+							} catch (e) {}
+						} else {
+							selectedItem = selectedItem.value;
 						}
-					);
+
+						callback(selectedItem);
+					});
 
 					itemSelectorDialog.open();
 				};
@@ -178,14 +183,15 @@ name = HtmlUtil.escapeJS(name);
 
 				if (itemSelectorDialog) {
 					openItemSelectorDialog(itemSelectorDialog);
-				}
-				else {
-					AUI().use(
-						'liferay-item-selector-dialog',
-						function(A) {
-							var itemSelectorDialog = new A.LiferayItemSelectorDialog();
+				} else {
+					Liferay.Loader.require(
+						'frontend-js-web/liferay/ItemSelectorDialog.es',
+						function(ItemSelectorDialog) {
+							var itemSelectorDialog = new ItemSelectorDialog.default();
 
-							window['<%= name %>']._itemSelectorDialog = itemSelectorDialog;
+							window[
+								'<%= name %>'
+							]._itemSelectorDialog = itemSelectorDialog;
 
 							openItemSelectorDialog(itemSelectorDialog);
 						}
@@ -197,8 +203,7 @@ name = HtmlUtil.escapeJS(name);
 		focus: function() {
 			if (window['<%= name %>'].instanceReady) {
 				tinyMCE.editors['<%= name %>'].focus();
-			}
-			else {
+			} else {
 				window['<%= name %>'].pendingFocus = true;
 			}
 		},
@@ -208,8 +213,7 @@ name = HtmlUtil.escapeJS(name);
 
 			if (!window['<%= name %>'].instanceReady) {
 				data = getInitialContent();
-			}
-			else {
+			} else {
 				data = tinyMCE.editors['<%= name %>'].getBody().innerHTML;
 			}
 
@@ -225,8 +229,7 @@ name = HtmlUtil.escapeJS(name);
 
 			if (!window['<%= name %>'].instanceReady) {
 				data = getInitialContent();
-			}
-			else {
+			} else {
 				var editorBody = tinyMCE.editors['<%= name %>'].getBody();
 
 				data = editorBody.textContent;
@@ -254,12 +257,11 @@ name = HtmlUtil.escapeJS(name);
 
 			<c:if test="<%= Validator.isNotNull(onChangeMethod) %>">
 				defaultConfig.setup = function(editor) {
-					editor.on(
-						'keyup',
-						function() {
-							<%= HtmlUtil.escapeJS(onChangeMethod) %>(window['<%= name %>'].getHTML());
-						}
-					);
+					editor.on('keyup', function() {
+						<%= HtmlUtil.escapeJS(onChangeMethod) %>(
+							window['<%= name %>'].getHTML()
+						);
+					});
 				};
 			</c:if>
 
@@ -273,7 +275,11 @@ name = HtmlUtil.escapeJS(name);
 
 			Liferay.namespace('EDITORS').tinymce.addInstance();
 
-			Liferay.on('inputLocalized:localeChanged', this._onLocaleChangedHandler, this)
+			Liferay.on(
+				'inputLocalized:localeChanged',
+				this._onLocaleChangedHandler,
+				this
+			);
 		},
 
 		initInstanceCallback: function() {
@@ -305,13 +311,9 @@ name = HtmlUtil.escapeJS(name);
 				window['<%= name %>'].focus();
 			}
 
-			Liferay.component(
-				'<%= name %>',
-				window['<%= name %>'],
-				{
-					portletId: '<%= portletId %>'
-				}
-			);
+			Liferay.component('<%= name %>', window['<%= name %>'], {
+				portletId: '<%= portletId %>'
+			});
 		},
 
 		instanceReady: false,
@@ -325,10 +327,11 @@ name = HtmlUtil.escapeJS(name);
 
 				if (this.contentsLanguage && this.contentsLanguageDir) {
 					editor.$().context.setAttribute('lang', this.contentsLanguage);
-					editor.$().context.setAttribute('dir', this.contentsLanguageDir);
+					editor
+						.$()
+						.context.setAttribute('dir', this.contentsLanguageDir);
 				}
-			}
-			else {
+			} else {
 				editor = document.getElementById('<%= name %>');
 				editor.innerHTML = value;
 
@@ -343,17 +346,15 @@ name = HtmlUtil.escapeJS(name);
 			var instance = this;
 
 			this.contentsLanguage = event.item.getAttribute('data-value');
-			this.contentsLanguageDir = Liferay.Language.direction[this.contentsLanguage];
+			this.contentsLanguageDir =
+				Liferay.Language.direction[this.contentsLanguage];
 		}
 	};
 
-	Liferay.fire(
-		'editorAPIReady',
-		{
-			editor: window['<%= name %>'],
-			editorName: '<%= name %>'
-		}
-	);
+	Liferay.fire('editorAPIReady', {
+		editor: window['<%= name %>'],
+		editorName: '<%= name %>'
+	});
 
 	<c:if test="<%= autoCreate %>">
 		window['<%= name %>'].initEditor();

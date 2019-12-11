@@ -16,13 +16,13 @@ package com.liferay.portal.util;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.URLCodec;
 import com.liferay.portal.kernel.util.Validator;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,8 +48,8 @@ import net.htmlparser.jericho.TextExtractor;
 public class HtmlImpl implements Html {
 
 	/**
-	 * @deprecated As of Mueller (7.2.x), replaced by
-	 *			   {@link #escapeAttribute(String)}
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #escapeAttribute(String)}
 	 */
 	@Deprecated
 	public static final int ESCAPE_MODE_ATTRIBUTE = 1;
@@ -212,14 +212,14 @@ public class HtmlImpl implements Html {
 	 * <code>escape(text)</code>.
 	 * </p>
 	 *
-	 * @param  text the text to escape
-	 * @param  mode the encoding type
-	 * @return the escaped hexadecimal value of the input text, based on the
-	 *         mode, or <code>null</code> if the text is <code>null</code>
-	 * @deprecated As of Mueller (7.2.x), replaced by
-	 *			   {@link #escapeAttribute(String)}, {@link #escapeCSS(String)},
-	 *			   {@link #escapeJS(String)}, {@link #escape(String)},
-	 *			   {@link #escapeURL(String)}
+	 * @param      text the text to escape
+	 * @param      mode the encoding type
+	 * @return     the escaped hexadecimal value of the input text, based on the
+	 *             mode, or <code>null</code> if the text is <code>null</code>
+	 * @deprecated As of Mueller (7.2.x), replaced by {@link
+	 *             #escapeAttribute(String)}, {@link #escapeCSS(String)}, {@link
+	 *             #escapeJS(String)}, {@link #escape(String)}, {@link
+	 *             #escapeURL(String)}
 	 */
 	@Deprecated
 	@Override
@@ -1036,26 +1036,37 @@ public class HtmlImpl implements Html {
 	};
 
 	private static final Pattern _pattern = Pattern.compile("([\\s<&]|$)");
-	private static final Map<String, String> _unescapeMap =
-		new HashMap<String, String>() {
-			{
-				put("#34", "\"");
-				put("#35", "#");
-				put("#37", "%");
-				put("#39", "'");
-				put("#40", "(");
-				put("#41", ")");
-				put("#43", "+");
-				put("#44", ",");
-				put("#45", "-");
-				put("#59", ";");
-				put("#61", "=");
-				put("amp", "&");
-				put("gt", ">");
-				put("lt", "<");
-				put("rsquo", "\u2019");
-			}
-		};
+	private static final Map<String, String> _unescapeMap = HashMapBuilder.put(
+		"#34", "\""
+	).put(
+		"#35", "#"
+	).put(
+		"#37", "%"
+	).put(
+		"#39", "'"
+	).put(
+		"#40", "("
+	).put(
+		"#41", ")"
+	).put(
+		"#43", "+"
+	).put(
+		"#44", ","
+	).put(
+		"#45", "-"
+	).put(
+		"#59", ";"
+	).put(
+		"#61", "="
+	).put(
+		"amp", "&"
+	).put(
+		"gt", ">"
+	).put(
+		"lt", "<"
+	).put(
+		"rsquo", "\u2019"
+	).build();
 
 	static {
 		for (int i = 0; i < 256; i++) {

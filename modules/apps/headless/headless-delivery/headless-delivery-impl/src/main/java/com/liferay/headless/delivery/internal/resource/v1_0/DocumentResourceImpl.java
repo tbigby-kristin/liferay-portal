@@ -98,8 +98,8 @@ public class DocumentResourceImpl
 
 	@Override
 	public Page<Document> getDocumentFolderDocumentsPage(
-			Long documentFolderId, String search, Filter filter,
-			Pagination pagination, Sort[] sorts)
+			Long documentFolderId, Boolean flatten, String search,
+			Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		return _getDocumentsPage(
@@ -108,9 +108,14 @@ public class DocumentResourceImpl
 					BooleanFilter booleanFilter =
 						booleanQuery.getPreBooleanFilter();
 
+					String field = Field.FOLDER_ID;
+
+					if (GetterUtil.getBoolean(flatten)) {
+						field = "treePath";
+					}
+
 					booleanFilter.add(
-						new TermFilter(
-							Field.FOLDER_ID, String.valueOf(documentFolderId)),
+						new TermFilter(field, String.valueOf(documentFolderId)),
 						BooleanClauseOccur.MUST);
 				}
 			},
@@ -421,7 +426,8 @@ public class DocumentResourceImpl
 
 	private Document _toDocument(FileEntry fileEntry) throws Exception {
 		return _documentDTOConverter.toDTO(
-			new DefaultDTOConverterContext(null, fileEntry.getFileEntryId()));
+			new DefaultDTOConverterContext(
+				null, fileEntry.getFileEntryId(), contextUriInfo, contextUser));
 	}
 
 	@Reference

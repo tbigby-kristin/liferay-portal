@@ -65,19 +65,14 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	configurationPid = "com.liferay.adaptive.media.document.library.thumbnails.internal.configuration.AMSystemImagesConfiguration",
-	immediate = true, property = "service.ranking:Integer=100",
+	immediate = true,
+	property = {
+		"service.ranking:Integer=100",
+		"type=" + DLProcessorConstants.IMAGE_PROCESSOR
+	},
 	service = {AMImageEntryProcessor.class, DLProcessor.class}
 )
 public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
-
-	@Activate
-	@Modified
-	public void activate(Map<String, Object> properties) {
-		afterPropertiesSet();
-
-		_amSystemImagesConfiguration = ConfigurableUtil.createConfigurable(
-			AMSystemImagesConfiguration.class, properties);
-	}
 
 	@Override
 	public void afterPropertiesSet() {
@@ -287,6 +282,15 @@ public class AMImageEntryProcessor implements DLProcessor, ImageProcessor {
 	@Override
 	public void trigger(
 		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
+	}
+
+	@Activate
+	@Modified
+	protected void activate(Map<String, Object> properties) {
+		afterPropertiesSet();
+
+		_amSystemImagesConfiguration = ConfigurableUtil.createConfigurable(
+			AMSystemImagesConfiguration.class, properties);
 	}
 
 	private Stream<AdaptiveMedia<AMImageProcessor>> _getAdaptiveMediaStream(

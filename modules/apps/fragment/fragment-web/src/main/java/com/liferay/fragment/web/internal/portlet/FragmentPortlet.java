@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.staging.StagingGroupHelper;
 
 import java.io.IOException;
 
@@ -84,6 +85,14 @@ public class FragmentPortlet extends MVCPortlet {
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
+		Group scopeGroup = themeDisplay.getScopeGroup();
+
+		if (_stagingGroupHelper.isLocalLiveGroup(scopeGroup) ||
+			_stagingGroupHelper.isRemoteLiveGroup(scopeGroup)) {
+
+			throw new PortletException();
+		}
+
 		FragmentPortletConfiguration fragmentPortletConfiguration = null;
 
 		try {
@@ -107,11 +116,11 @@ public class FragmentPortlet extends MVCPortlet {
 			FragmentPortletConfiguration.class.getName(),
 			fragmentPortletConfiguration);
 		renderRequest.setAttribute(
-			FragmentWebKeys.FRAGMENT_ENTRY_PROCESSOR_REGISTRY,
-			_fragmentEntryProcessorRegistry);
-		renderRequest.setAttribute(
 			FragmentActionKeys.FRAGMENT_RENDERER_CONTROLLER,
 			_fragmentRendererController);
+		renderRequest.setAttribute(
+			FragmentWebKeys.FRAGMENT_ENTRY_PROCESSOR_REGISTRY,
+			_fragmentEntryProcessorRegistry);
 
 		try {
 			renderRequest.setAttribute(
@@ -183,5 +192,8 @@ public class FragmentPortlet extends MVCPortlet {
 
 	@Reference
 	private ItemSelector _itemSelector;
+
+	@Reference
+	private StagingGroupHelper _stagingGroupHelper;
 
 }

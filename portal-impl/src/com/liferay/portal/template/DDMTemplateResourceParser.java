@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 public class DDMTemplateResourceParser implements TemplateResourceParser {
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public TemplateResource getTemplateResource(String templateId)
 		throws TemplateException {
 
@@ -54,15 +53,7 @@ public class DDMTemplateResourceParser implements TemplateResourceParser {
 			TemplateConstants.TEMPLATE_SEPARATOR + StringPool.SLASH);
 
 		if (pos == -1) {
-
-			// Backwards compatibility
-
-			pos = templateId.indexOf(
-				TemplateConstants.JOURNAL_SEPARATOR + StringPool.SLASH);
-
-			if (pos == -1) {
-				return null;
-			}
+			return null;
 		}
 
 		try {
@@ -126,11 +117,8 @@ public class DDMTemplateResourceParser implements TemplateResourceParser {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public boolean isTemplateResourceValid(String templateId, String langType) {
-		if (templateId.contains(TemplateConstants.JOURNAL_SEPARATOR) ||
-			templateId.contains(TemplateConstants.TEMPLATE_SEPARATOR)) {
-
+		if (templateId.contains(TemplateConstants.TEMPLATE_SEPARATOR)) {
 			return true;
 		}
 

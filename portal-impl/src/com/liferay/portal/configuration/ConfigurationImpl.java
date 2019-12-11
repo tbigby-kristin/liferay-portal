@@ -19,9 +19,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.CompanyConstants;
-import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -49,28 +47,6 @@ import org.apache.commons.configuration.MapConfiguration;
  */
 public class ConfigurationImpl
 	implements com.liferay.portal.kernel.configuration.Configuration {
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #ConfigurationImpl(ClassLoader, String, long, String)}
-	 */
-	@Deprecated
-	public ConfigurationImpl(ClassLoader classLoader, String name) {
-		this(
-			classLoader, name, CompanyConstants.SYSTEM,
-			_getWebId(CompanyConstants.SYSTEM));
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #ConfigurationImpl(ClassLoader, String, long, String)}
-	 */
-	@Deprecated
-	public ConfigurationImpl(
-		ClassLoader classLoader, String name, long companyId) {
-
-		this(classLoader, name, companyId, _getWebId(companyId));
-	}
 
 	public ConfigurationImpl(
 		ClassLoader classLoader, String name, long companyId, String webId) {
@@ -375,22 +351,6 @@ public class ConfigurationImpl
 		Properties properties) {
 
 		return (Map)properties;
-	}
-
-	private static String _getWebId(long companyId) {
-		if (companyId > CompanyConstants.SYSTEM) {
-			try {
-				Company company = CompanyLocalServiceUtil.getCompanyById(
-					companyId);
-
-				return company.getWebId();
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
-
-		return null;
 	}
 
 	private Object _fixArrayValue(String[] array) {

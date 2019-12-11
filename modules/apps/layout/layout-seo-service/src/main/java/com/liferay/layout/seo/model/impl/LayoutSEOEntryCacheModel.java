@@ -18,6 +18,7 @@ import com.liferay.layout.seo.model.LayoutSEOEntry;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class LayoutSEOEntryCacheModel
-	implements CacheModel<LayoutSEOEntry>, Externalizable {
+	implements CacheModel<LayoutSEOEntry>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object obj) {
@@ -48,7 +49,9 @@ public class LayoutSEOEntryCacheModel
 		LayoutSEOEntryCacheModel layoutSEOEntryCacheModel =
 			(LayoutSEOEntryCacheModel)obj;
 
-		if (layoutSEOEntryId == layoutSEOEntryCacheModel.layoutSEOEntryId) {
+		if ((layoutSEOEntryId == layoutSEOEntryCacheModel.layoutSEOEntryId) &&
+			(mvccVersion == layoutSEOEntryCacheModel.mvccVersion)) {
+
 			return true;
 		}
 
@@ -57,14 +60,28 @@ public class LayoutSEOEntryCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, layoutSEOEntryId);
+		int hashCode = HashUtil.hash(0, layoutSEOEntryId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(27);
+		StringBundler sb = new StringBundler(39);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", layoutSEOEntryId=");
 		sb.append(layoutSEOEntryId);
@@ -84,10 +101,20 @@ public class LayoutSEOEntryCacheModel
 		sb.append(privateLayout);
 		sb.append(", layoutId=");
 		sb.append(layoutId);
-		sb.append(", enabled=");
-		sb.append(enabled);
 		sb.append(", canonicalURL=");
 		sb.append(canonicalURL);
+		sb.append(", canonicalURLEnabled=");
+		sb.append(canonicalURLEnabled);
+		sb.append(", openGraphDescription=");
+		sb.append(openGraphDescription);
+		sb.append(", openGraphDescriptionEnabled=");
+		sb.append(openGraphDescriptionEnabled);
+		sb.append(", openGraphImageFileEntryId=");
+		sb.append(openGraphImageFileEntryId);
+		sb.append(", openGraphTitle=");
+		sb.append(openGraphTitle);
+		sb.append(", openGraphTitleEnabled=");
+		sb.append(openGraphTitleEnabled);
 		sb.append(", lastPublishDate=");
 		sb.append(lastPublishDate);
 		sb.append("}");
@@ -98,6 +125,8 @@ public class LayoutSEOEntryCacheModel
 	@Override
 	public LayoutSEOEntry toEntityModel() {
 		LayoutSEOEntryImpl layoutSEOEntryImpl = new LayoutSEOEntryImpl();
+
+		layoutSEOEntryImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			layoutSEOEntryImpl.setUuid("");
@@ -134,7 +163,6 @@ public class LayoutSEOEntryCacheModel
 
 		layoutSEOEntryImpl.setPrivateLayout(privateLayout);
 		layoutSEOEntryImpl.setLayoutId(layoutId);
-		layoutSEOEntryImpl.setEnabled(enabled);
 
 		if (canonicalURL == null) {
 			layoutSEOEntryImpl.setCanonicalURL("");
@@ -142,6 +170,29 @@ public class LayoutSEOEntryCacheModel
 		else {
 			layoutSEOEntryImpl.setCanonicalURL(canonicalURL);
 		}
+
+		layoutSEOEntryImpl.setCanonicalURLEnabled(canonicalURLEnabled);
+
+		if (openGraphDescription == null) {
+			layoutSEOEntryImpl.setOpenGraphDescription("");
+		}
+		else {
+			layoutSEOEntryImpl.setOpenGraphDescription(openGraphDescription);
+		}
+
+		layoutSEOEntryImpl.setOpenGraphDescriptionEnabled(
+			openGraphDescriptionEnabled);
+		layoutSEOEntryImpl.setOpenGraphImageFileEntryId(
+			openGraphImageFileEntryId);
+
+		if (openGraphTitle == null) {
+			layoutSEOEntryImpl.setOpenGraphTitle("");
+		}
+		else {
+			layoutSEOEntryImpl.setOpenGraphTitle(openGraphTitle);
+		}
+
+		layoutSEOEntryImpl.setOpenGraphTitleEnabled(openGraphTitleEnabled);
 
 		if (lastPublishDate == Long.MIN_VALUE) {
 			layoutSEOEntryImpl.setLastPublishDate(null);
@@ -157,6 +208,7 @@ public class LayoutSEOEntryCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 
 		layoutSEOEntryId = objectInput.readLong();
@@ -173,14 +225,24 @@ public class LayoutSEOEntryCacheModel
 		privateLayout = objectInput.readBoolean();
 
 		layoutId = objectInput.readLong();
-
-		enabled = objectInput.readBoolean();
 		canonicalURL = objectInput.readUTF();
+
+		canonicalURLEnabled = objectInput.readBoolean();
+		openGraphDescription = objectInput.readUTF();
+
+		openGraphDescriptionEnabled = objectInput.readBoolean();
+
+		openGraphImageFileEntryId = objectInput.readLong();
+		openGraphTitle = objectInput.readUTF();
+
+		openGraphTitleEnabled = objectInput.readBoolean();
 		lastPublishDate = objectInput.readLong();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF("");
 		}
@@ -210,8 +272,6 @@ public class LayoutSEOEntryCacheModel
 
 		objectOutput.writeLong(layoutId);
 
-		objectOutput.writeBoolean(enabled);
-
 		if (canonicalURL == null) {
 			objectOutput.writeUTF("");
 		}
@@ -219,9 +279,31 @@ public class LayoutSEOEntryCacheModel
 			objectOutput.writeUTF(canonicalURL);
 		}
 
+		objectOutput.writeBoolean(canonicalURLEnabled);
+
+		if (openGraphDescription == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(openGraphDescription);
+		}
+
+		objectOutput.writeBoolean(openGraphDescriptionEnabled);
+
+		objectOutput.writeLong(openGraphImageFileEntryId);
+
+		if (openGraphTitle == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(openGraphTitle);
+		}
+
+		objectOutput.writeBoolean(openGraphTitleEnabled);
 		objectOutput.writeLong(lastPublishDate);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long layoutSEOEntryId;
 	public long groupId;
@@ -232,8 +314,13 @@ public class LayoutSEOEntryCacheModel
 	public long modifiedDate;
 	public boolean privateLayout;
 	public long layoutId;
-	public boolean enabled;
 	public String canonicalURL;
+	public boolean canonicalURLEnabled;
+	public String openGraphDescription;
+	public boolean openGraphDescriptionEnabled;
+	public long openGraphImageFileEntryId;
+	public String openGraphTitle;
+	public boolean openGraphTitleEnabled;
 	public long lastPublishDate;
 
 }

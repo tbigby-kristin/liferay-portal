@@ -14,6 +14,7 @@
 
 package com.liferay.asset.model;
 
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.model.ModelWrapper;
 import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 
@@ -28,8 +29,11 @@ import java.util.Map;
  *
  * @author Brian Wing Shun Chan
  * @see AssetEntryUsage
+ * @deprecated As of Mueller (7.2.x), replaced by {@link
+ com.liferay.layout.model.impl.LayoutClassedModelUsageImpl}
  * @generated
  */
+@Deprecated
 public class AssetEntryUsageWrapper
 	extends BaseModelWrapper<AssetEntryUsage>
 	implements AssetEntryUsage, ModelWrapper<AssetEntryUsage> {
@@ -46,6 +50,7 @@ public class AssetEntryUsageWrapper
 		attributes.put("uuid", getUuid());
 		attributes.put("assetEntryUsageId", getAssetEntryUsageId());
 		attributes.put("groupId", getGroupId());
+		attributes.put("companyId", getCompanyId());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("assetEntryId", getAssetEntryId());
@@ -82,6 +87,12 @@ public class AssetEntryUsageWrapper
 
 		if (groupId != null) {
 			setGroupId(groupId);
+		}
+
+		Long companyId = (Long)attributes.get("companyId");
+
+		if (companyId != null) {
+			setCompanyId(companyId);
 		}
 
 		Date createDate = (Date)attributes.get("createDate");
@@ -151,6 +162,16 @@ public class AssetEntryUsageWrapper
 	@Override
 	public long getAssetEntryUsageId() {
 		return model.getAssetEntryUsageId();
+	}
+
+	/**
+	 * Returns the company ID of this asset entry usage.
+	 *
+	 * @return the company ID of this asset entry usage
+	 */
+	@Override
+	public long getCompanyId() {
+		return model.getCompanyId();
 	}
 
 	/**
@@ -294,6 +315,16 @@ public class AssetEntryUsageWrapper
 	}
 
 	/**
+	 * Sets the company ID of this asset entry usage.
+	 *
+	 * @param companyId the company ID of this asset entry usage
+	 */
+	@Override
+	public void setCompanyId(long companyId) {
+		model.setCompanyId(companyId);
+	}
+
+	/**
 	 * Sets the container key of this asset entry usage.
 	 *
 	 * @param containerKey the container key of this asset entry usage
@@ -401,6 +432,11 @@ public class AssetEntryUsageWrapper
 	@Override
 	public void setUuid(String uuid) {
 		model.setUuid(uuid);
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return model.getStagedModelType();
 	}
 
 	@Override

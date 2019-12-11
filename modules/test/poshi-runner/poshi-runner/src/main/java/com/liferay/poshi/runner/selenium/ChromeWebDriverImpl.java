@@ -149,10 +149,10 @@ public class ChromeWebDriverImpl extends BaseWebDriverImpl {
 		if (!frameWebElements.isEmpty() &&
 			(frameWebElements.peek() instanceof RetryWebElementImpl)) {
 
-			RetryWebElementImpl frameWebElement =
+			RetryWebElementImpl retryWebElementImpl =
 				(RetryWebElementImpl)frameWebElements.peek();
 
-			String frameWebElementLocator = frameWebElement.getLocator();
+			String frameWebElementLocator = retryWebElementImpl.getLocator();
 
 			frameWebElements.pop();
 

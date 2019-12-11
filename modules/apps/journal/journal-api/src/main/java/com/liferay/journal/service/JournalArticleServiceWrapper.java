@@ -14,6 +14,7 @@
 
 package com.liferay.journal.service;
 
+import com.liferay.journal.model.JournalArticle;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -113,7 +114,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle addArticle(
+	public JournalArticle addArticle(
 			long groupId, long folderId, long classNameId, long classPK,
 			String articleId, boolean autoArticleId,
 			java.util.Map<java.util.Locale, String> titleMap,
@@ -223,7 +224,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle addArticle(
+	public JournalArticle addArticle(
 			long groupId, long folderId, long classNameId, long classPK,
 			String articleId, boolean autoArticleId,
 			java.util.Map<java.util.Locale, String> titleMap,
@@ -326,7 +327,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle addArticle(
+	public JournalArticle addArticle(
 			long groupId, long folderId, long classNameId, long classPK,
 			String articleId, boolean autoArticleId,
 			java.util.Map<java.util.Locale, String> titleMap,
@@ -380,7 +381,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle addArticle(
+	public JournalArticle addArticle(
 			long groupId, long folderId,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -394,7 +395,7 @@ public class JournalArticleServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalArticle addArticleDefaultValues(
+	public JournalArticle addArticleDefaultValues(
 			long groupId, long classNameId, long classPK,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -424,7 +425,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle copyArticle(
+	public JournalArticle copyArticle(
 			long groupId, String oldArticleId, String newArticleId,
 			boolean autoArticleId, double version)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -509,7 +510,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle expireArticle(
+	public JournalArticle expireArticle(
 			long groupId, String articleId, double version, String articleURL,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -548,8 +549,7 @@ public class JournalArticleServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalArticle fetchArticle(
-			long groupId, String articleId)
+	public JournalArticle fetchArticle(long groupId, String articleId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.fetchArticle(groupId, articleId);
@@ -563,7 +563,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getArticle(long id)
+	public JournalArticle getArticle(long id)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getArticle(id);
@@ -580,8 +580,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getArticle(
-			long groupId, String articleId)
+	public JournalArticle getArticle(long groupId, String articleId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getArticle(groupId, articleId);
@@ -598,7 +597,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getArticle(
+	public JournalArticle getArticle(
 			long groupId, String articleId, double version)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -623,7 +622,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getArticle(
+	public JournalArticle getArticle(
 			long groupId, String className, long classPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -641,8 +640,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getArticleByUrlTitle(
-			long groupId, String urlTitle)
+	public JournalArticle getArticleByUrlTitle(long groupId, String urlTitle)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getArticleByUrlTitle(groupId, urlTitle);
@@ -675,32 +673,6 @@ public class JournalArticleServiceWrapper
 	}
 
 	/**
-	 * Returns the web content from the web content article matching the group,
-	 * article ID, and version.
-	 *
-	 * @param groupId the primary key of the web content article's group
-	 * @param articleId the primary key of the web content article
-	 * @param version the web content article's version
-	 * @param languageId the primary key of the language translation to get
-	 * @param themeDisplay the theme display
-	 * @return the matching web content
-	 * @throws PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #getArticleContent(long, String, double, String,
-	 PortletRequestModel, ThemeDisplay)}
-	 */
-	@Deprecated
-	@Override
-	public String getArticleContent(
-			long groupId, String articleId, double version, String languageId,
-			com.liferay.portal.kernel.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _journalArticleService.getArticleContent(
-			groupId, articleId, version, languageId, themeDisplay);
-	}
-
-	/**
 	 * Returns the latest web content from the web content article matching the
 	 * group and article ID.
 	 *
@@ -724,98 +696,18 @@ public class JournalArticleServiceWrapper
 			groupId, articleId, languageId, portletRequestModel, themeDisplay);
 	}
 
-	/**
-	 * Returns the latest web content from the web content article matching the
-	 * group and article ID.
-	 *
-	 * @param groupId the primary key of the web content article's group
-	 * @param articleId the primary key of the web content article
-	 * @param languageId the primary key of the language translation to get
-	 * @param themeDisplay the theme display
-	 * @return the matching web content
-	 * @throws PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #getArticleContent(long, String, String, PortletRequestModel,
-	 ThemeDisplay)}
-	 */
-	@Deprecated
 	@Override
-	public String getArticleContent(
-			long groupId, String articleId, String languageId,
-			com.liferay.portal.kernel.theme.ThemeDisplay themeDisplay)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return _journalArticleService.getArticleContent(
-			groupId, articleId, languageId, themeDisplay);
-	}
-
-	/**
-	 * Returns all the web content articles matching the group and folder.
-	 *
-	 * @param groupId the primary key of the web content article's group
-	 * @param folderId the primary key of the web content article folder
-	 * @return the matching web content articles
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #getArticles(long
-	 groupId, long folderId, Locale locale)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> getArticles(
-		long groupId, long folderId) {
-
-		return _journalArticleService.getArticles(groupId, folderId);
-	}
-
-	/**
-	 * Returns an ordered range of all the web content articles matching the
-	 * group and folder.
-	 *
-	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end -
-	 * start</code> instances. <code>start</code> and <code>end</code> are not
-	 * primary keys, they are indexes in the result set. Thus, <code>0</code>
-	 * refers to the first result in the set. Setting both <code>start</code>
-	 * and <code>end</code> to {@link
-	 * com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
-	 * result set.
-	 * </p>
-	 *
-	 * @param groupId the primary key of the web content article's group
-	 * @param folderId the primary key of the web content article folder
-	 * @param start the lower bound of the range of web content articles to
-	 return
-	 * @param end the upper bound of the range of web content articles to
-	 return (not inclusive)
-	 * @param obc the comparator to order the web content articles
-	 * @return the matching web content articles
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #getArticles(long
-	 groupId, long folderId, Locale locale, int start, int end,
-	 OrderByComparator obc)}
-	 */
-	@Deprecated
-	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> getArticles(
-		long groupId, long folderId, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalArticle> obc) {
-
-		return _journalArticleService.getArticles(
-			groupId, folderId, start, end, obc);
-	}
-
-	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> getArticles(
+	public java.util.List<JournalArticle> getArticles(
 		long groupId, long folderId, java.util.Locale locale) {
 
 		return _journalArticleService.getArticles(groupId, folderId, locale);
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> getArticles(
+	public java.util.List<JournalArticle> getArticles(
 		long groupId, long folderId, java.util.Locale locale, int start,
 		int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalArticle> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticles(
 			groupId, folderId, locale, start, end, obc);
@@ -846,11 +738,9 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByArticleId(
-			long groupId, String articleId, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getArticlesByArticleId(
+		long groupId, String articleId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticlesByArticleId(
 			groupId, articleId, start, end, obc);
@@ -865,8 +755,8 @@ public class JournalArticleServiceWrapper
 	 * @return the matching web content articles
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByLayoutUuid(long groupId, String layoutUuid) {
+	public java.util.List<JournalArticle> getArticlesByLayoutUuid(
+		long groupId, String layoutUuid) {
 
 		return _journalArticleService.getArticlesByLayoutUuid(
 			groupId, layoutUuid);
@@ -906,12 +796,10 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByStructureId(
-			long groupId, long classNameId, String ddmStructureKey, int status,
-			int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getArticlesByStructureId(
+		long groupId, long classNameId, String ddmStructureKey, int status,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticlesByStructureId(
 			groupId, classNameId, ddmStructureKey, status, start, end, obc);
@@ -951,12 +839,10 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByStructureId(
-			long groupId, long classNameId, String ddmStructureKey,
-			java.util.Locale locale, int status, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getArticlesByStructureId(
+		long groupId, long classNameId, String ddmStructureKey,
+		java.util.Locale locale, int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticlesByStructureId(
 			groupId, classNameId, ddmStructureKey, locale, status, start, end,
@@ -992,12 +878,9 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByStructureId(
-			long groupId, String ddmStructureKey, int status, int start,
-			int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getArticlesByStructureId(
+		long groupId, String ddmStructureKey, int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticlesByStructureId(
 			groupId, ddmStructureKey, status, start, end, obc);
@@ -1029,11 +912,9 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByStructureId(
-			long groupId, String ddmStructureKey, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getArticlesByStructureId(
+		long groupId, String ddmStructureKey, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticlesByStructureId(
 			groupId, ddmStructureKey, start, end, obc);
@@ -1069,12 +950,10 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getArticlesByStructureId(
-			long groupId, String ddmStructureKey, java.util.Locale locale,
-			int status, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getArticlesByStructureId(
+		long groupId, String ddmStructureKey, java.util.Locale locale,
+		int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getArticlesByStructureId(
 			groupId, ddmStructureKey, locale, status, start, end, obc);
@@ -1197,7 +1076,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getDisplayArticleByUrlTitle(
+	public JournalArticle getDisplayArticleByUrlTitle(
 			long groupId, String urlTitle)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -1245,13 +1124,11 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-			getGroupArticles(
-				long groupId, long userId, long rootFolderId, int status,
-				boolean includeOwner, int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.journal.model.JournalArticle>
-						orderByComparator)
+	public java.util.List<JournalArticle> getGroupArticles(
+			long groupId, long userId, long rootFolderId, int status,
+			boolean includeOwner, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<JournalArticle>
+				orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getGroupArticles(
@@ -1283,14 +1160,11 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-			getGroupArticles(
-				long groupId, long userId, long rootFolderId, int status,
-				boolean includeOwner, java.util.Locale locale, int start,
-				int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.journal.model.JournalArticle>
-						orderByComparator)
+	public java.util.List<JournalArticle> getGroupArticles(
+			long groupId, long userId, long rootFolderId, int status,
+			boolean includeOwner, java.util.Locale locale, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<JournalArticle>
+				orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getGroupArticles(
@@ -1330,13 +1204,11 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-			getGroupArticles(
-				long groupId, long userId, long rootFolderId, int status,
-				int start, int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.journal.model.JournalArticle>
-						orderByComparator)
+	public java.util.List<JournalArticle> getGroupArticles(
+			long groupId, long userId, long rootFolderId, int status, int start,
+			int end,
+			com.liferay.portal.kernel.util.OrderByComparator<JournalArticle>
+				orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getGroupArticles(
@@ -1373,13 +1245,10 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-			getGroupArticles(
-				long groupId, long userId, long rootFolderId, int start,
-				int end,
-				com.liferay.portal.kernel.util.OrderByComparator
-					<com.liferay.journal.model.JournalArticle>
-						orderByComparator)
+	public java.util.List<JournalArticle> getGroupArticles(
+			long groupId, long userId, long rootFolderId, int start, int end,
+			com.liferay.portal.kernel.util.OrderByComparator<JournalArticle>
+				orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getGroupArticles(
@@ -1465,8 +1334,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getLatestArticle(
-			long resourcePrimKey)
+	public JournalArticle getLatestArticle(long resourcePrimKey)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.getLatestArticle(resourcePrimKey);
@@ -1485,7 +1353,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getLatestArticle(
+	public JournalArticle getLatestArticle(
 			long groupId, String articleId, int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -1510,7 +1378,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle getLatestArticle(
+	public JournalArticle getLatestArticle(
 			long groupId, String className, long classPK)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -1519,11 +1387,9 @@ public class JournalArticleServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getLatestArticles(
-			long groupId, int status, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalArticle> obc) {
+	public java.util.List<JournalArticle> getLatestArticles(
+		long groupId, int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.getLatestArticles(
 			groupId, status, start, end, obc);
@@ -1535,9 +1401,7 @@ public class JournalArticleServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle>
-		getLayoutArticles(long groupId) {
-
+	public java.util.List<JournalArticle> getLayoutArticles(long groupId) {
 		return _journalArticleService.getLayoutArticles(groupId);
 	}
 
@@ -1549,26 +1413,6 @@ public class JournalArticleServiceWrapper
 	@Override
 	public String getOSGiServiceIdentifier() {
 		return _journalArticleService.getOSGiServiceIdentifier();
-	}
-
-	/**
-	 * Moves all versions of the web content article matching the group and
-	 * article ID to the folder.
-	 *
-	 * @param groupId the primary key of the web content article's group
-	 * @param articleId the primary key of the web content article
-	 * @param newFolderId the primary key of the web content article's new
-	 folder
-	 * @throws PortalException if a portal exception occurred
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #moveArticle(long, String, long, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public void moveArticle(long groupId, String articleId, long newFolderId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		_journalArticleService.moveArticle(groupId, articleId, newFolderId);
 	}
 
 	/**
@@ -1619,7 +1463,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle moveArticleFromTrash(
+	public JournalArticle moveArticleFromTrash(
 			long groupId, long resourcePrimKey, long newFolderId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -1648,7 +1492,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle moveArticleFromTrash(
+	public JournalArticle moveArticleFromTrash(
 			long groupId, String articleId, long newFolderId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -1668,8 +1512,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle moveArticleToTrash(
-			long groupId, String articleId)
+	public JournalArticle moveArticleToTrash(long groupId, String articleId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalArticleService.moveArticleToTrash(groupId, articleId);
@@ -1702,7 +1545,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle removeArticleLocale(
+	public JournalArticle removeArticleLocale(
 			long groupId, String articleId, double version, String languageId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -1833,14 +1676,13 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> search(
+	public java.util.List<JournalArticle> search(
 		long companyId, long groupId, java.util.List<Long> folderIds,
 		long classNameId, String keywords, Double version,
 		String ddmStructureKey, String ddmTemplateKey,
 		java.util.Date displayDateGT, java.util.Date displayDateLT, int status,
 		java.util.Date reviewDate, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalArticle> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.search(
 			companyId, groupId, folderIds, classNameId, keywords, version,
@@ -1911,15 +1753,14 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> search(
+	public java.util.List<JournalArticle> search(
 		long companyId, long groupId, java.util.List<Long> folderIds,
 		long classNameId, String articleId, Double version, String title,
 		String description, String content, String ddmStructureKey,
 		String ddmTemplateKey, java.util.Date displayDateGT,
 		java.util.Date displayDateLT, int status, java.util.Date reviewDate,
 		boolean andOperator, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalArticle> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.search(
 			companyId, groupId, folderIds, classNameId, articleId, version,
@@ -1993,15 +1834,14 @@ public class JournalArticleServiceWrapper
 	 comparator
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalArticle> search(
+	public java.util.List<JournalArticle> search(
 		long companyId, long groupId, java.util.List<Long> folderIds,
 		long classNameId, String articleId, Double version, String title,
 		String description, String content, String[] ddmStructureKeys,
 		String[] ddmTemplateKeys, java.util.Date displayDateGT,
 		java.util.Date displayDateLT, int status, java.util.Date reviewDate,
 		boolean andOperator, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator
-			<com.liferay.journal.model.JournalArticle> obc) {
+		com.liferay.portal.kernel.util.OrderByComparator<JournalArticle> obc) {
 
 		return _journalArticleService.search(
 			companyId, groupId, folderIds, classNameId, articleId, version,
@@ -2269,7 +2109,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateArticle(
+	public JournalArticle updateArticle(
 			long userId, long groupId, long folderId, String articleId,
 			double version, java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -2363,7 +2203,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateArticle(
+	public JournalArticle updateArticle(
 			long groupId, long folderId, String articleId, double version,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -2472,7 +2312,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateArticle(
+	public JournalArticle updateArticle(
 			long groupId, long folderId, String articleId, double version,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -2541,7 +2381,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateArticle(
+	public JournalArticle updateArticle(
 			long groupId, long folderId, String articleId, double version,
 			String content,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -2552,7 +2392,7 @@ public class JournalArticleServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalArticle updateArticleDefaultValues(
+	public JournalArticle updateArticleDefaultValues(
 			long groupId, String articleId,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
@@ -2587,7 +2427,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateArticleTranslation(
+	public JournalArticle updateArticleTranslation(
 			long groupId, String articleId, double version,
 			java.util.Locale locale, String title, String description,
 			String content, java.util.Map<String, byte[]> images,
@@ -2613,7 +2453,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateContent(
+	public JournalArticle updateContent(
 			long groupId, String articleId, double version, String content)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -2639,7 +2479,7 @@ public class JournalArticleServiceWrapper
 	 * @throws PortalException if a portal exception occurred
 	 */
 	@Override
-	public com.liferay.journal.model.JournalArticle updateStatus(
+	public JournalArticle updateStatus(
 			long groupId, String articleId, double version, int status,
 			String articleURL,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)

@@ -46,7 +46,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -630,19 +629,24 @@ public abstract class BaseBuild implements Build {
 
 		sb.append("/buildWithParameters?");
 
-		Map<String, String> parameters = getParameters();
+		Map<String, String> parameters = new HashMap<>(getParameters());
 
-		parameters.put("token", "raen3Aib");
+		try {
+			parameters.put(
+				"token",
+				JenkinsResultsParserUtil.getBuildProperty(
+					"jenkins.authentication.token"));
+		}
+		catch (IOException ioe) {
+			throw new RuntimeException(
+				"Unable to get Jenkins authentication token", ioe);
+		}
 
 		for (Map.Entry<String, String> parameter : parameters.entrySet()) {
-			String value = parameter.getValue();
-
-			if ((value != null) && !value.isEmpty()) {
-				sb.append(parameter.getKey());
-				sb.append("=");
-				sb.append(parameter.getValue());
-				sb.append("&");
-			}
+			sb.append(parameter.getKey());
+			sb.append("=");
+			sb.append(parameter.getValue());
+			sb.append("&");
 		}
 
 		sb.deleteCharAt(sb.length() - 1);
@@ -742,24 +746,28 @@ public abstract class BaseBuild implements Build {
 	}
 
 	@Override
-	public int getJobVariantsDownstreamBuildCount(List<String> jobVariants) {
+	public int getJobVariantsDownstreamBuildCount(
+		List<String> jobVariants, String result, String status) {
+
 		List<Build> jobVariantsDownstreamBuilds =
-			getJobVariantsDownstreamBuilds(jobVariants);
+			getJobVariantsDownstreamBuilds(jobVariants, result, status);
 
 		return jobVariantsDownstreamBuilds.size();
 	}
 
 	@Override
 	public List<Build> getJobVariantsDownstreamBuilds(
-		List<String> jobVariants) {
+		Iterable<String> jobVariants, String result, String status) {
 
 		List<Build> jobVariantsDownstreamBuilds = new ArrayList<>();
+
+		List<Build> downstreamBuilds = getDownstreamBuilds(result, status);
 
 		for (Build downstreamBuild : downstreamBuilds) {
 			String downstreamBuildJobVariant = downstreamBuild.getJobVariant();
 
 			for (String jobVariant : jobVariants) {
-				if (downstreamBuildJobVariant.contains(jobVariant)) {
+				if (downstreamBuildJobVariant.startsWith(jobVariant)) {
 					jobVariantsDownstreamBuilds.add(downstreamBuild);
 
 					break;
@@ -1328,15 +1336,9 @@ public abstract class BaseBuild implements Build {
 			if ((notificationRecipients != null) &&
 				!notificationRecipients.isEmpty()) {
 
-				try {
-					JenkinsResultsParserUtil.sendEmail(
-						message, "jenkins", "Build Reinvoked",
-						reinvokeRule.notificationRecipients);
-				}
-				catch (IOException | TimeoutException e) {
-					throw new RuntimeException(
-						"Unable to send reinvoke notification", e);
-				}
+				NotificationUtil.sendEmail(
+					message, "jenkins", "Build Reinvoked",
+					reinvokeRule.notificationRecipients);
 			}
 		}
 
@@ -1441,15 +1443,9 @@ public abstract class BaseBuild implements Build {
 		if ((notificationRecipients != null) &&
 			!notificationRecipients.isEmpty()) {
 
-			try {
-				JenkinsResultsParserUtil.sendEmail(
-					message, "jenkins", "Slave Offline",
-					slaveOfflineRule.notificationRecipients);
-			}
-			catch (IOException | TimeoutException e) {
-				throw new RuntimeException(
-					"Unable to send offline slave notification", e);
-			}
+			NotificationUtil.sendEmail(
+				message, "jenkins", "Slave Offline",
+				slaveOfflineRule.notificationRecipients);
 		}
 	}
 
@@ -2564,15 +2560,8 @@ public abstract class BaseBuild implements Build {
 		for (int i = 0; i < jsonArray.length(); i++) {
 			JSONObject jsonObject = jsonArray.getJSONObject(i);
 
-			if (jsonObject.opt("value") instanceof String) {
-				String value = jsonObject.getString("value");
-
-				if (!value.isEmpty()) {
-					String name = jsonObject.getString("name");
-
-					parameters.put(name, value);
-				}
-			}
+			parameters.put(
+				jsonObject.getString("name"), jsonObject.optString("value"));
 		}
 
 		return parameters;
@@ -2972,15 +2961,26 @@ public abstract class BaseBuild implements Build {
 	}
 
 	protected void loadParametersFromQueryString(String queryString) {
-		Set<String> jobParameterNames = getJobParameterNames();
+		Map<String, String> defaultJobParameters = _getDefaultJobParameters();
+
+		_parameters.putAll(defaultJobParameters);
 
 		for (String parameter : queryString.split("&")) {
+			if (!parameter.contains("=")) {
+				continue;
+			}
+
 			String[] nameValueArray = parameter.split("=");
 
-			if ((nameValueArray.length == 2) &&
-				jobParameterNames.contains(nameValueArray[0])) {
+			if (!defaultJobParameters.containsKey(nameValueArray[0])) {
+				continue;
+			}
 
+			if (nameValueArray.length == 2) {
 				_parameters.put(nameValueArray[0], nameValueArray[1]);
+			}
+			else if (nameValueArray.length == 1) {
+				_parameters.put(nameValueArray[0], "");
 			}
 		}
 	}
@@ -3097,6 +3097,13 @@ public abstract class BaseBuild implements Build {
 			loadParametersFromQueryString(invocationURL);
 
 			setStatus("starting");
+
+			try {
+				JenkinsResultsParserUtil.toString(getInvocationURL(), false);
+			}
+			catch (IOException ioe) {
+				throw new RuntimeException(ioe);
+			}
 		}
 	}
 
@@ -3241,6 +3248,7 @@ public abstract class BaseBuild implements Build {
 
 			_duration = topLevelBuild.getDuration();
 			_startTime = topLevelBuild.getStartTime();
+
 			_timeline = new TimelineDataPoint[size];
 
 			for (int i = 0; i < size; i++) {
@@ -3335,6 +3343,57 @@ public abstract class BaseBuild implements Build {
 
 		}
 
+	}
+
+	private Map<String, String> _getDefaultJobParameters() {
+		Map<String, String> jobParameters = new HashMap<>();
+
+		JSONObject actionsJSONObject = null;
+
+		JSONObject jobJSONObject = null;
+
+		try {
+			jobJSONObject = JenkinsResultsParserUtil.toJSONObject(
+				JenkinsResultsParserUtil.combine(
+					getJobURL(), "/api/json?tree=actions[parameterDefinitions[",
+					"defaultParameterValue[value],name]]"));
+		}
+		catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
+
+		JSONArray actionsJSONArray = jobJSONObject.getJSONArray("actions");
+
+		for (int i = 0; i < actionsJSONArray.length(); i++) {
+			JSONObject jsonObject = actionsJSONArray.getJSONObject(i);
+
+			if (jsonObject.has("parameterDefinitions")) {
+				actionsJSONObject = jsonObject;
+
+				break;
+			}
+		}
+
+		if (actionsJSONObject == null) {
+			return jobParameters;
+		}
+
+		JSONArray parameterDefinitionsJSONArray =
+			actionsJSONObject.getJSONArray("parameterDefinitions");
+
+		for (int i = 0; i < parameterDefinitionsJSONArray.length(); i++) {
+			JSONObject parameterJSONObject =
+				parameterDefinitionsJSONArray.getJSONObject(i);
+
+			JSONObject defaultParameterValueJSONObject =
+				parameterJSONObject.getJSONObject("defaultParameterValue");
+
+			jobParameters.put(
+				parameterJSONObject.getString("name"),
+				defaultParameterValueJSONObject.getString("value"));
+		}
+
+		return jobParameters;
 	}
 
 	private boolean _isDifferent(String newValue, String oldValue) {

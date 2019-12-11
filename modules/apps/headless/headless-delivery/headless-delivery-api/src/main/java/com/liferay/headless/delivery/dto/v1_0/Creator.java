@@ -68,9 +68,39 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The author's additional name (e.g., middle name)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String additionalName;
+
+	@Schema(description = "The type of the content.")
+	public String getContentType() {
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	@JsonIgnore
+	public void setContentType(
+		UnsafeSupplier<String, Exception> contentTypeUnsafeSupplier) {
+
+		try {
+			contentType = contentTypeUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField(description = "The type of the content.")
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String contentType;
 
 	@Schema(description = "The author's surname.")
 	public String getFamilyName() {
@@ -96,7 +126,7 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The author's surname.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String familyName;
 
@@ -124,7 +154,7 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The author's first name.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String givenName;
 
@@ -150,7 +180,7 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The author's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -178,7 +208,7 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A relative URL to the author's profile image.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String image;
 
@@ -204,7 +234,7 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The author's full name.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String name;
 
@@ -232,7 +262,7 @@ public class Creator {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A relative URL to the author's user profile.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String profileURL;
 
@@ -273,6 +303,20 @@ public class Creator {
 			sb.append("\"");
 
 			sb.append(_escape(additionalName));
+
+			sb.append("\"");
+		}
+
+		if (contentType != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(contentType));
 
 			sb.append("\"");
 		}
@@ -361,6 +405,12 @@ public class Creator {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.Creator",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

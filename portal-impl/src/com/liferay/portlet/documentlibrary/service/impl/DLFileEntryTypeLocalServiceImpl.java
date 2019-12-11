@@ -37,18 +37,17 @@ import com.liferay.dynamic.data.mapping.kernel.DDMStructureManager;
 import com.liferay.dynamic.data.mapping.kernel.DDMStructureManagerUtil;
 import com.liferay.dynamic.data.mapping.kernel.StorageEngineManager;
 import com.liferay.dynamic.data.mapping.kernel.StructureDefinitionException;
-import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -60,15 +59,9 @@ import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portlet.documentlibrary.service.base.DLFileEntryTypeLocalServiceBaseImpl;
-import com.liferay.registry.Filter;
-import com.liferay.registry.Registry;
-import com.liferay.registry.RegistryUtil;
-import com.liferay.registry.dependency.ServiceDependencyListener;
-import com.liferay.registry.dependency.ServiceDependencyManager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -166,53 +159,17 @@ public class DLFileEntryTypeLocalServiceImpl
 			long[] ddmStructureIds, ServiceContext serviceContext)
 		throws PortalException {
 
-		Map<Locale, String> nameMap = new HashMap<>();
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), name
+		).build();
 
-		nameMap.put(LocaleUtil.getSiteDefault(), name);
-
-		Map<Locale, String> descriptionMap = new HashMap<>();
-
-		descriptionMap.put(LocaleUtil.getSiteDefault(), description);
+		Map<Locale, String> descriptionMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), description
+		).build();
 
 		return addFileEntryType(
 			userId, groupId, null, nameMap, descriptionMap, ddmStructureIds,
 			serviceContext);
-	}
-
-	@Override
-	public void afterPropertiesSet() {
-		super.afterPropertiesSet();
-
-		ServiceDependencyManager serviceDependencyManager =
-			new ServiceDependencyManager();
-
-		serviceDependencyManager.addServiceDependencyListener(
-			new ServiceDependencyListener() {
-
-				@Override
-				public void dependenciesFulfilled() {
-					try {
-						dlFileEntryTypeLocalService.
-							getBasicDocumentDLFileEntryType();
-					}
-					catch (NoSuchFileEntryTypeException nsfete) {
-						ReflectionUtil.throwException(nsfete);
-					}
-				}
-
-				@Override
-				public void destroy() {
-				}
-
-			});
-
-		Registry registry = RegistryUtil.getRegistry();
-
-		serviceDependencyManager.registerDependencies(
-			new Class<?>[] {ModuleServiceLifecycle.class},
-			new Filter[] {
-				registry.getFilter(ModuleServiceLifecycle.DATABASE_INITIALIZED)
-			});
 	}
 
 	@Override
@@ -576,13 +533,13 @@ public class DLFileEntryTypeLocalServiceImpl
 			long[] ddmStructureIds, ServiceContext serviceContext)
 		throws PortalException {
 
-		Map<Locale, String> nameMap = new HashMap<>();
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), name
+		).build();
 
-		nameMap.put(LocaleUtil.getSiteDefault(), name);
-
-		Map<Locale, String> descriptionMap = new HashMap<>();
-
-		descriptionMap.put(LocaleUtil.getSiteDefault(), description);
+		Map<Locale, String> descriptionMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), description
+		).build();
 
 		updateFileEntryType(
 			userId, fileEntryTypeId, nameMap, descriptionMap, ddmStructureIds,
@@ -813,76 +770,6 @@ public class DLFileEntryTypeLocalServiceImpl
 		staleDDMStructureLinkStructureIds.removeAll(ddmStructureIds);
 
 		return staleDDMStructureLinkStructureIds;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #_updateDDMStructure(long, String, long, long, Map, Map,
-	 *             long[], ServiceContext)}
-	 */
-	@Deprecated
-	protected long updateDDMStructure(
-			long userId, String fileEntryTypeUuid, long fileEntryTypeId,
-			long groupId, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, ServiceContext serviceContext)
-		throws PortalException {
-
-		fixDDMStructureKey(fileEntryTypeUuid, fileEntryTypeId, groupId);
-
-		String ddmStructureKey = DLUtil.getDDMStructureKey(fileEntryTypeUuid);
-
-		DDMForm ddmForm = (DDMForm)serviceContext.getAttribute("ddmForm");
-
-		DDMStructure ddmStructure = DDMStructureManagerUtil.fetchStructure(
-			groupId,
-			classNameLocalService.getClassNameId(DLFileEntryMetadata.class),
-			ddmStructureKey);
-
-		if ((ddmStructure != null) && (ddmForm == null)) {
-			ddmForm = ddmStructure.getDDMForm();
-		}
-
-		if (ddmForm == null) {
-			return 0;
-		}
-
-		List<DDMFormField> ddmFormFields = ddmForm.getDDMFormFields();
-
-		if (ddmFormFields.isEmpty()) {
-			return 0;
-		}
-
-		try {
-			if (ddmStructure == null) {
-				ddmStructure = DDMStructureManagerUtil.addStructure(
-					userId, groupId, null,
-					classNameLocalService.getClassNameId(
-						DLFileEntryMetadata.class),
-					ddmStructureKey, nameMap, descriptionMap, ddmForm,
-					StorageEngineManager.STORAGE_TYPE_DEFAULT,
-					DDMStructureManager.STRUCTURE_TYPE_AUTO, serviceContext);
-			}
-			else {
-				ddmStructure = DDMStructureManagerUtil.updateStructure(
-					userId, ddmStructure.getStructureId(),
-					ddmStructure.getParentStructureId(), nameMap,
-					descriptionMap, ddmForm, serviceContext);
-			}
-
-			return ddmStructure.getStructureId();
-		}
-		catch (StructureDefinitionException sde) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(sde, sde);
-			}
-
-			if (ddmStructure != null) {
-				DDMStructureManagerUtil.deleteStructure(
-					ddmStructure.getStructureId());
-			}
-		}
-
-		return 0;
 	}
 
 	protected void validate(

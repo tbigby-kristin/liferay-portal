@@ -114,7 +114,7 @@ if (vocabulary != null) {
 
 				<c:if test="<%= !exist %>">
 					<div class="has-warning">
-						<div class="help-block">
+						<div class="form-feedback-item">
 							<liferay-ui:message key="the-asset-subtype-no-longer-exists" />
 						</div>
 					</div>
@@ -134,19 +134,17 @@ if (vocabulary != null) {
 <aui:script use="liferay-auto-fields">
 	var extraFields = A.one('#<portlet:namespace />extraFields');
 
-	var autoFields = new Liferay.AutoFields(
-		{
-			contentBox: '#<portlet:namespace />extraFields',
-			fieldIndexes: '<portlet:namespace />indexes',
-			minimumRows: 1,
-			namespace: '<portlet:namespace />',
-			on: {
-				clone: function(event) {
-					event.row.all('.subtype-select').hide();
-				}
+	var autoFields = new Liferay.AutoFields({
+		contentBox: '#<portlet:namespace />extraFields',
+		fieldIndexes: '<portlet:namespace />indexes',
+		minimumRows: 1,
+		namespace: '<portlet:namespace />',
+		on: {
+			clone: function(event) {
+				event.row.all('.subtype-select').hide();
 			}
 		}
-	).render();
+	}).render();
 
 	extraFields.setData('autoFieldsInstance', autoFields);
 

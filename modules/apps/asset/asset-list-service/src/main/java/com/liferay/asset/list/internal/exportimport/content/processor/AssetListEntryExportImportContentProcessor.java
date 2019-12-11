@@ -15,7 +15,9 @@
 package com.liferay.asset.list.internal.exportimport.content.processor;
 
 import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntryType;
 import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalService;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
@@ -42,6 +44,7 @@ import com.liferay.site.model.adapter.StagedGroup;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
@@ -139,6 +142,29 @@ public class AssetListEntryExportImportContentProcessor
 				if (dlFileEntryType != null) {
 					StagedModelDataHandlerUtil.exportReferenceStagedModel(
 						portletDataContext, stagedModel, dlFileEntryType,
+						PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+				}
+			}
+		}
+
+		for (Map.Entry<String, String> entry : unicodeProperties.entrySet()) {
+			String key = entry.getKey();
+
+			if (StringUtil.startsWith(key, "queryName") &&
+				Objects.equals(entry.getValue(), "assetCategories")) {
+
+				String index = key.substring(9);
+
+				String queryValues = unicodeProperties.getProperty(
+					"queryValues" + index);
+
+				long[] categoryIds = GetterUtil.getLongValues(
+					queryValues.split(","));
+
+				for (long categoryId : categoryIds) {
+					StagedModelDataHandlerUtil.exportReferenceStagedModel(
+						portletDataContext, stagedModel,
+						_assetCategoryLocalService.getCategory(categoryId),
 						PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
 				}
 			}
@@ -262,6 +288,39 @@ public class AssetListEntryExportImportContentProcessor
 				"classTypeIds" + className, StringUtil.merge(newClassTypeIds));
 		}
 
+		for (Map.Entry<String, String> entry : unicodeProperties.entrySet()) {
+			String key = entry.getKey();
+
+			if (StringUtil.startsWith(key, "queryName") &&
+				Objects.equals(entry.getValue(), "assetCategories")) {
+
+				String index = key.substring(9);
+
+				String queryValues = unicodeProperties.getProperty(
+					"queryValues" + index);
+
+				long[] categoryIds = GetterUtil.getLongValues(
+					queryValues.split(","));
+
+				long[] newCategoryIds = new long[categoryIds.length];
+
+				Map<Long, Long> categoryIdMap =
+					(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
+						AssetCategory.class);
+
+				for (long categoryId : categoryIds) {
+					long newCategoryId = MapUtil.getLong(
+						categoryIdMap, categoryId, categoryId);
+
+					newCategoryIds = ArrayUtil.append(
+						newCategoryIds, newCategoryId);
+				}
+
+				unicodeProperties.setProperty(
+					"queryValues" + index, StringUtil.merge(newCategoryIds));
+			}
+		}
+
 		return unicodeProperties.toString();
 	}
 
@@ -299,6 +358,9 @@ public class AssetListEntryExportImportContentProcessor
 				"group-key", group.getGroupKey());
 		}
 	}
+
+	@Reference
+	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Reference
 	private DDMStructureLocalService _ddmStructureLocalService;

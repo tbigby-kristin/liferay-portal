@@ -19,6 +19,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CHECKIN_DIALOG_TITLE</td>
+	<td>//h3[contains(.,'Describe Your Changes')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>CONFIGURATION_IFRAME</td>
 	<td>//iframe[contains(@id,'DLPortlet')]</td>
 	<td></td>
@@ -265,6 +270,11 @@
 <tr>
 	<td>SIDEBAR_LATEST_VERSION</td>
 	<td>//div[contains(@class,'sidebar-body')]//div[@class='h5']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SIDEBAR_MENU_ITEM</td>
+	<td>//div[contains(@class,'lfr-icon-menu-open')]//*[normalize-space(text())='${key_menuItem}']</td>
 	<td></td>
 </tr>
 <tr>

@@ -21,14 +21,18 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 /**
- * @author Pavel Savinov
+ * @author     Pavel Savinov
+ * @deprecated As of Athanasius (7.3.x), replaced by {@link
+ *             com.liferay.layout.util.LayoutClassedModelUsageActionMenuContributorRegistryUtil}
  */
+@Deprecated
 public class AssetEntryUsageActionMenuContributorRegistryUtil {
 
 	public static AssetEntryUsageActionMenuContributor
 		getAssetEntryUsageActionMenuContributor(String className) {
 
-		return _instance._getAssetEntryUsageActionMenuContributor(className);
+		return _assetEntryUsageActionMenuContributorRegistryUtil.
+			_getAssetEntryUsageActionMenuContributor(className);
 	}
 
 	private AssetEntryUsageActionMenuContributorRegistryUtil() {
@@ -47,7 +51,8 @@ public class AssetEntryUsageActionMenuContributorRegistryUtil {
 	}
 
 	private static final AssetEntryUsageActionMenuContributorRegistryUtil
-		_instance = new AssetEntryUsageActionMenuContributorRegistryUtil();
+		_assetEntryUsageActionMenuContributorRegistryUtil =
+			new AssetEntryUsageActionMenuContributorRegistryUtil();
 
 	private final ServiceTrackerMap
 		<String, AssetEntryUsageActionMenuContributor> _serviceTrackerMap;

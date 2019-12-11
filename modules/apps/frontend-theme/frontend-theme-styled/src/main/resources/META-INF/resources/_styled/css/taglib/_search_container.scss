@@ -1,4 +1,66 @@
 .lfr-search-container-wrapper {
+	&.lfr-search-container-fixed-first-column {
+		position: relative;
+
+		.table-responsive {
+			@include media-breakpoint-up(sm) {
+				margin-left: $table-responsive-margin-left-md;
+				width: auto;
+			}
+
+			.table {
+				position: static;
+
+				.lfr-search-iterator-fixed-header {
+					left: 12px;
+					position: fixed;
+					right: 12px;
+					top: -1px;
+					z-index: $zindex-sticky;
+
+					& > th {
+						display: block;
+						padding: 0;
+
+						.lfr-search-iterator-fixed-header-inner-wrapper {
+							overflow-x: hidden;
+
+							@include media-breakpoint-up(sm) {
+								margin-left: $table-responsive-margin-left-md;
+							}
+
+							table {
+								border-collapse: collapse;
+								width: 100%;
+
+								th {
+									border-radius: 0;
+								}
+							}
+						}
+					}
+				}
+
+				td,
+				th {
+					width: auto;
+
+					&:first-child {
+						@include media-breakpoint-up(sm) {
+							left: 0;
+							position: absolute;
+							right: 15px;
+						}
+					}
+				}
+
+				th {
+					height: auto;
+				}
+			}
+		}
+	}
+
 	a {
 		color: $body-color;
 	}
@@ -116,8 +178,8 @@
 
 .lfr-description-column,
 .lfr-role-column {
-	max-width: 375px;
-	min-width: 375px;
+	max-width: $table-responsive-margin-left-md;
+	min-width: $table-responsive-margin-left-md;
 }
 
 .lfr-email-address-column,
@@ -143,24 +205,4 @@
 	.checkbox-container .form-group {
 		margin-bottom: 0;
 	}
-}
-
-.user-info .user-details {
-	.date-info {
-		color: #8c8c8c;
-	}
-
-	.user-name {
-		color: #009ae5;
-	}
-}
-
-.lfr-search-iterator-fixed-header {
-	position: absolute;
-	width: 100%;
-	z-index: $zindex-sticky;
-}
-
-.lfr-search-iterator-fixed-header-table {
-	position: relative;
 }

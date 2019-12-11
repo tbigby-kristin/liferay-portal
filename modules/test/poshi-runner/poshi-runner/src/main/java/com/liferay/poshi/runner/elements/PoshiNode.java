@@ -17,6 +17,8 @@ package com.liferay.poshi.runner.elements;
 import com.liferay.poshi.runner.script.PoshiScriptParserException;
 import com.liferay.poshi.runner.util.StringUtil;
 
+import java.net.URL;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -38,12 +40,6 @@ public interface PoshiNode<A extends Node, B extends PoshiNode<A, B>>
 		PoshiNode parentPoshiNode = (PoshiNode)getParent();
 
 		return parentPoshiNode.getFileExtension();
-	}
-
-	public default String getFilePath() {
-		PoshiNode parentPoshiNode = (PoshiNode)getParent();
-
-		return parentPoshiNode.getFilePath();
 	}
 
 	public String getPoshiScript();
@@ -122,6 +118,18 @@ public interface PoshiNode<A extends Node, B extends PoshiNode<A, B>>
 
 		return previousPoshiNode.getPoshiScriptLineNumber() +
 			StringUtil.count(previousPoshiNode.getPoshiScript(), "\n");
+	}
+
+	public default URL getURL() {
+		PoshiNode parentPoshiNode = (PoshiNode)getParent();
+
+		return parentPoshiNode.getURL();
+	}
+
+	public default boolean isValidPoshiXML() {
+		PoshiNode parentPoshiNode = (PoshiNode)getParent();
+
+		return parentPoshiNode.isValidPoshiXML();
 	}
 
 	public void parsePoshiScript(String poshiScript)

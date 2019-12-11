@@ -8,8 +8,14 @@
 	},
 	"exclude": {
 		"babel-runtime": true,
+		"core-js": true,
+		"csstype": true,
+		"fbjs": [
+			"flow/**/*"
+		],
 		"iconv-lite": true,
 		"isomorphic-fetch": true,
+		"is-stream": true,
 		"lodash": [
 			"fp/**/*",
 			"lodash*"
@@ -43,7 +49,6 @@
 			"dist/Recompose.umd.js"
 		],
 		"redux": [
-			"lib/**/*",
 			"es/**/*",
 			"src/**/*"
 		],
@@ -51,11 +56,12 @@
 		"scheduler": [
 			"umd/**/*"
 		],
+		"symbol-observable": true,
 		"tiny-warning": [
 			"src/**/*"
 		],
 		"whatwg-fetch": true
 	},
-	"output": "classes/META-INF/resources",
+	"output": "build/node/packageRunBuild/resources",
 	"preset": "liferay-npm-bundler-preset-standard"
 }

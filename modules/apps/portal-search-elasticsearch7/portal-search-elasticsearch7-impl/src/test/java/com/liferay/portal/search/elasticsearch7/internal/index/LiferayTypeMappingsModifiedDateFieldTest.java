@@ -20,7 +20,8 @@ import com.liferay.portal.search.elasticsearch7.internal.connection.IndexName;
 import java.util.Collections;
 import java.util.Date;
 
-import org.elasticsearch.index.mapper.MapperParsingException;
+import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.ElasticsearchStatusException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -51,10 +52,10 @@ public class LiferayTypeMappingsModifiedDateFieldTest {
 
 	@Test
 	public void testDate() throws Exception {
-		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expect(ElasticsearchException.class);
 		expectedException.expectMessage(
-			"Invalid format: \"1970-01-18T12:08:26.556Z\" is malformed at " +
-				"\"-01-18T12:08:26.556Z\"");
+			"failed to parse date field [1970-01-18T12:08:26.556Z] with " +
+				"format [yyyyMMddHHmmss]");
 
 		index(new Date(1512506556L));
 	}
@@ -68,9 +69,10 @@ public class LiferayTypeMappingsModifiedDateFieldTest {
 
 	@Test
 	public void testLongMalformed() throws Exception {
-		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expect(ElasticsearchException.class);
 		expectedException.expectMessage(
-			"Invalid format: \"1512506556\" is too short");
+			"failed to parse date field [1512506556] with format " +
+				"[yyyyMMddHHmmss]");
 
 		index(1512506556L);
 	}
@@ -84,10 +86,10 @@ public class LiferayTypeMappingsModifiedDateFieldTest {
 
 	@Test
 	public void testStringMalformed() throws Exception {
-		expectedException.expect(IllegalArgumentException.class);
+		expectedException.expect(ElasticsearchException.class);
 		expectedException.expectMessage(
-			"Invalid format: \"2017-11-15 05:04:02\" is malformed at " +
-				"\"-11-15 05:04:02\"");
+			"failed to parse date field [2017-11-15 05:04:02] with format " +
+				"[yyyyMMddHHmmss]");
 
 		index("2017-11-15 05:04:02");
 	}
@@ -103,8 +105,8 @@ public class LiferayTypeMappingsModifiedDateFieldTest {
 			_liferayIndexFixture.index(
 				Collections.singletonMap(Field.MODIFIED_DATE, value));
 		}
-		catch (MapperParsingException mpe) {
-			throw (Exception)mpe.getCause();
+		catch (ElasticsearchStatusException ese) {
+			throw (Exception)ese.getCause();
 		}
 	}
 

@@ -12,21 +12,16 @@
  * details.
  */
 
+import {ClayPaginationBarWithBasicItems} from '@clayui/pagination-bar';
 import React, {useContext} from 'react';
-import {ClayPaginationWithBar} from '@clayui/pagination';
-import {withEmpty} from './EmptyState.es';
-import Table from './Table.es';
+
 import {withLoading} from '../loading/Loading.es';
 import SearchContext from '../management-toolbar/search/SearchContext.es';
+import {withEmpty} from './EmptyState.es';
+import Table from './Table.es';
 
 const TableWithPagination = ({actions, columns, items, totalCount}) => {
-	const {
-		dispatch,
-		state: {
-			query: {page, pageSize}
-		}
-	} = useContext(SearchContext);
-
+	const [{page, pageSize}, dispatch] = useContext(SearchContext);
 	const deltas = [5, 10, 20, 30, 50, 75].map(size => ({label: size}));
 
 	return (
@@ -35,7 +30,7 @@ const TableWithPagination = ({actions, columns, items, totalCount}) => {
 
 			{totalCount > 5 && (
 				<div className="taglib-search-iterator-page-iterator-bottom">
-					<ClayPaginationWithBar
+					<ClayPaginationBarWithBasicItems
 						activeDelta={pageSize}
 						activePage={page}
 						deltas={deltas}

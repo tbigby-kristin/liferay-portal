@@ -68,10 +68,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.httpclient.HostConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpState;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -370,26 +367,6 @@ public class HttpImpl implements Http {
 		return path;
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             URLCodec#encodeURL(String)}
-	 */
-	@Deprecated
-	@Override
-	public String encodeURL(String url) {
-		return encodeURL(url, false);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             URLCodec#encodeURL(String, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public String encodeURL(String url, boolean escapeSpaces) {
-		return URLCodec.encodeURL(url, StringPool.UTF8, escapeSpaces);
-	}
-
 	@Override
 	public String fixPath(String path) {
 		return fixPath(path, true, true);
@@ -438,14 +415,6 @@ public class HttpImpl implements Http {
 		}
 
 		return path;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public HttpClient getClient(HostConfiguration hostConfiguration) {
-		throw new UnsupportedOperationException();
 	}
 
 	@Override
@@ -1176,15 +1145,6 @@ public class HttpImpl implements Http {
 			StringPool.EQUAL);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #shortenURL(String)}
-	 */
-	@Deprecated
-	@Override
-	public String shortenURL(String url, int count) {
-		return shortenURL(url);
-	}
-
 	@Override
 	public byte[] URLtoByteArray(Http.Options options) throws IOException {
 		return URLtoByteArray(
@@ -1418,14 +1378,6 @@ public class HttpImpl implements Http {
 		return requestConfigBuilder;
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected boolean hasRequestHeader(HttpMethod httpMethod, String name) {
-		throw new UnsupportedOperationException();
-	}
-
 	protected boolean hasRequestHeader(
 		RequestBuilder requestBuilder, String name) {
 
@@ -1434,17 +1386,6 @@ public class HttpImpl implements Http {
 		}
 
 		return true;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected void processPostMethod(
-		PostMethod postMethod, List<Http.FilePart> fileParts,
-		Map<String, String> parts) {
-
-		throw new UnsupportedOperationException();
 	}
 
 	protected void processPostMethod(
@@ -1505,36 +1446,6 @@ public class HttpImpl implements Http {
 		}
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected org.apache.commons.httpclient.Cookie toCommonsCookie(
-		Cookie cookie) {
-
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected org.apache.commons.httpclient.Cookie[] toCommonsCookies(
-		Cookie[] cookie) {
-
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected org.apache.commons.httpclient.methods.multipart.FilePart
-		toCommonsFilePart(Http.FilePart filePart) {
-
-		throw new UnsupportedOperationException();
-	}
-
 	protected org.apache.http.cookie.Cookie toHttpCookie(Cookie cookie) {
 		BasicClientCookie basicClientCookie = new BasicClientCookie(
 			cookie.getName(), cookie.getValue());
@@ -1573,16 +1484,6 @@ public class HttpImpl implements Http {
 		}
 
 		return httpCookies;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected Cookie toServletCookie(
-		org.apache.commons.httpclient.Cookie commonsCookie) {
-
-		throw new UnsupportedOperationException();
 	}
 
 	protected Cookie toServletCookie(org.apache.http.cookie.Cookie httpCookie) {
@@ -1635,16 +1536,6 @@ public class HttpImpl implements Http {
 		}
 
 		return cookies;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected Cookie[] toServletCookies(
-		org.apache.commons.httpclient.Cookie[] commonsCookies) {
-
-		throw new UnsupportedOperationException();
 	}
 
 	protected byte[] URLtoByteArray(

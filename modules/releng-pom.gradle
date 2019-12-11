@@ -19,7 +19,7 @@ buildscript {
 	apply from: file("build-buildscript.gradle"), to: buildscript
 
 	dependencies {
-		classpath group: "com.liferay", name: "com.liferay.project.templates", version: "latest.release"
+		classpath group: "com.liferay", name: "com.liferay.project.templates", version: "4.5.6"
 		classpath group: "org.apache.maven", name: "maven-model", version: "3.6.1"
 	}
 
@@ -47,7 +47,7 @@ configurations {
 }
 
 dependencies {
-	pomProjectTemplates group: "com.liferay", name: "com.liferay.project.templates", version: "latest.release"
+	pomProjectTemplates group: "com.liferay", name: "com.liferay.project.templates", version: "4.5.6"
 }
 
 generatePom {
@@ -71,7 +71,12 @@ generatePomCompileOnly {
 				mainArgs += ["--host-bundle-symbolic-name", "com.liferay.login.web", "--host-bundle-version", "1.0.0"]
 			}
 			else if (it.equals("modules-ext")) {
-				mainArgs += ["--original-module-name", "com.liferay.login.web", "--original-module-version", "2.0.4"]
+				if (project.property("gradle.releng.pom.project.templates.version").startsWith("7.0")) {
+					return
+				}
+				else {
+					mainArgs += ["--original-module-name", "com.liferay.login.web", "--original-module-version", "2.0.4"]
+				}
 			}
 			else if (it.equals("service")) {
 				mainArgs += ["--class-name", "FooAction", "--service", "com.liferay.portal.kernel.events.LifecycleAction"]
@@ -81,6 +86,9 @@ generatePomCompileOnly {
 			}
 			else if (it.equals("service-wrapper")) {
 				mainArgs += ["--service", "com.liferay.portal.kernel.service.UserLocalServiceWrapper"]
+			}
+			else if (it.equals("social-bookmark") && project.property("gradle.releng.pom.project.templates.version").startsWith("7.0")) {
+				return
 			}
 			else if (it.equals("spring-mvc-portlet")) {
 				return
@@ -285,20 +293,20 @@ generatePomThirdParty {
 
 testPomCompileOnly {
 	doLast {
-		_testPom(pomCompileOnlyArtifactId, version, true)
+		_testPom(pomCompileOnlyArtifactId, version)
 	}
 
 }
 
 testPomRelease {
 	doLast {
-		_testPom(pomReleaseArtifactId, version, false)
+		_testPom(pomReleaseArtifactId, version)
 	}
 }
 
 testPomThirdParty {
 	doLast {
-		_testPom(pomThirdPartyArtifactId, version, true)
+		_testPom(pomThirdPartyArtifactId, version)
 	}
 }
 
@@ -364,7 +372,7 @@ private Model _getModel(String artifactId) {
 	return model
 }
 
-private String _isDigitalExperiencePlatform() {
+private Boolean _isDigitalExperiencePlatform() {
 	File releaseInfoFile = file("../portal-kernel/src/com/liferay/portal/kernel/util/ReleaseInfo.java")
 
 	Matcher matcher = (releaseInfoFile.text =~ /private static final String _NAME = "(.+)";/)
@@ -378,7 +386,7 @@ private String _isDigitalExperiencePlatform() {
 	return false
 }
 
-private void _testPom(String artifactId, String version, Boolean excludeLiferayDependencies) {
+private void _testPom(String artifactId, String version) {
 	File pom = new File(buildDir, "${artifactId}-${version}.pom")
 
 	Node pomNode = new XmlParser().parseText(pom.text)
@@ -402,15 +410,12 @@ private void _testPom(String artifactId, String version, Boolean excludeLiferayD
 	assert pomNode.scm.url.text() == "https://github.com/liferay/liferay-portal"
 	assert pomNode.version.text() == version
 
-	String dependencyArtifactIdPattern = excludeLiferayDependencies ? /^(?!com\.liferay)[a-z][a-z\d.-]*[a-z\d]/ : /[a-z][a-z\d.-]*[a-z\d]/
-	String dependencyGroupIdPattern = excludeLiferayDependencies ? /^(?!com\.liferay)[a-z][a-z\d.-]*[a-z\d]/ : /[a-z][a-z\d.-]*[a-z\d]/
-
 	String[] failedDependencies = []
 
 	pomNode.dependencyManagement.dependencies.dependency.each {
-		assert it.artifactId.text().matches(dependencyArtifactIdPattern)
-		assert it.groupId.text().matches(dependencyGroupIdPattern)
-		assert it.version.text().matches(/\d(?:[A-Za-z\d.-]*[A-Za-z\d])?/)
+		assert it.artifactId.text().matches(/[A-Za-z][\w.-]*[A-Za-z\d]/)
+		assert it.groupId.text().matches(/[A-Za-z][\w.-]*[A-Za-z\d]/)
+		assert it.version.text().matches(/v?\d(?:[A-Za-z\d.-]*[A-Za-z\d])?/)
 
 		String groupPath = it.groupId.text().replaceAll(/\./, "/")
 

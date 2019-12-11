@@ -78,16 +78,16 @@
 		}
 	}
 
-	.edit-tags .clay-multi-select {
-		margin-top: 1em;
-	}
-
 	.document-container {
 		&:after {
 			clear: both;
 			content: '';
 			display: block;
 			height: 0;
+		}
+
+		.card-type-directory .sticker {
+			font-size: 1rem;
 		}
 
 		.list-group .list-group-item {
@@ -118,6 +118,10 @@
 			}
 		}
 
+		.table .sticker-document .lexicon-icon {
+			height: 1rem;
+		}
+
 		span.h5 {
 			margin-right: 12px;
 		}
@@ -133,27 +137,11 @@
 		}
 	}
 
-	.manage-collaborators {
-		.manage-collaborators-owner {
-			margin-right: 1.5rem;
-		}
-
-		.manage-collaborators-collaborator {
-			margin-right: 0.25rem;
-		}
-	}
-
-	.manage-collaborators-btn {
-		margin-top: -1em;
-		padding-left: 0;
-	}
-
 	.metadata-panel-container {
 		margin-top: 1em;
 	}
 
-	.modal .edit-categories,
-	.modal .edit-tags {
+	.modal .edit-categories {
 		.modal-content {
 			height: 445px;
 		}

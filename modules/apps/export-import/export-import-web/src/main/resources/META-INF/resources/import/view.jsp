@@ -39,15 +39,6 @@ String searchContainerId = "importLayoutProcesses";
 GroupDisplayContextHelper groupDisplayContextHelper = new GroupDisplayContextHelper(request);
 %>
 
-<c:if test="<%= StagingUtil.isChangeTrackingEnabled(company.getCompanyId()) %>">
-	<liferay-staging:alert
-		dismissible="<%= true %>"
-		type="WARNING"
-	>
-		<liferay-ui:message key='<%= LanguageUtil.get(request, "export-import-change-lists-warning") %>' />
-	</liferay-staging:alert>
-</c:if>
-
 <c:choose>
 	<c:when test="<%= !GroupPermissionUtil.contains(permissionChecker, groupDisplayContextHelper.getGroupId(), ActionKeys.EXPORT_IMPORT_LAYOUTS) %>">
 		<div class="alert alert-info">
@@ -94,16 +85,16 @@ GroupDisplayContextHelper groupDisplayContextHelper = new GroupDisplayContextHel
 		<portlet:param name="searchContainerId" value="<%= searchContainerId %>" />
 	</liferay-portlet:resourceURL>
 
-	var exportImport = new Liferay.ExportImport(
-		{
-			incompleteProcessMessageNode: '#<portlet:namespace />incompleteProcessMessage',
-			locale: '<%= locale.toLanguageTag() %>',
-			namespace: '<portlet:namespace />',
-			processesNode: '#importProcessesSearchContainer',
-			processesResourceURL: '<%= HtmlUtil.escapeJS(importProcessesURL.toString()) %>',
-			timeZoneOffset: <%= timeZoneOffset %>
-		}
-	);
+	var exportImport = new Liferay.ExportImport({
+		incompleteProcessMessageNode:
+			'#<portlet:namespace />incompleteProcessMessage',
+		locale: '<%= locale.toLanguageTag() %>',
+		namespace: '<portlet:namespace />',
+		processesNode: '#importProcessesSearchContainer',
+		processesResourceURL:
+			'<%= HtmlUtil.escapeJS(importProcessesURL.toString()) %>',
+		timeZoneOffset: <%= timeZoneOffset %>
+	});
 
 	var destroyInstance = function(event) {
 		if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {

@@ -89,7 +89,8 @@ import org.osgi.service.component.annotations.Reference;
 	immediate = true,
 	property = {
 		"osgi.jaxrs.name=liferay-json-web-services-analytics",
-		"sap.scope.finder=true"
+		"sap.scope.finder=true", "sap.system.entry=OAUTH2_analytics.read",
+		"sap.system.entry=OAUTH2_analytics.write"
 	},
 	service = PortalInstanceLifecycleListener.class
 )
@@ -126,7 +127,8 @@ public class AnalyticsCloudPortalInstanceLifecycleListener
 				PrefixHandlerFactory.class.getName(),
 				ScopeFinder.class.getName(), ScopeMapper.class.getName()
 			},
-			new OAuth2ProviderShortcutScopeFinder(), properties);
+			new OAuth2ProviderShortcutScopeFinder(_sapEntryLocalService),
+			properties);
 	}
 
 	@Deactivate

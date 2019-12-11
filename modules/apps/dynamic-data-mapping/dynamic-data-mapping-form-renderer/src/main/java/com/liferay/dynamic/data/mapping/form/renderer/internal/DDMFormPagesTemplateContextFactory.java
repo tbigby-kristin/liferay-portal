@@ -30,6 +30,7 @@ import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -126,15 +127,13 @@ public class DDMFormPagesTemplateContextFactory {
 	protected Map<String, Object> createColumnTemplateContext(
 		DDMFormLayoutColumn ddmFormLayoutColumn) {
 
-		Map<String, Object> columnTemplateContext = new HashMap<>();
-
-		columnTemplateContext.put(
+		return HashMapBuilder.<String, Object>put(
 			"fields",
 			createFieldsTemplateContext(
-				ddmFormLayoutColumn.getDDMFormFieldNames()));
-		columnTemplateContext.put("size", ddmFormLayoutColumn.getSize());
-
-		return columnTemplateContext;
+				ddmFormLayoutColumn.getDDMFormFieldNames())
+		).put(
+			"size", ddmFormLayoutColumn.getSize()
+		).build();
 	}
 
 	protected List<Object> createFieldsTemplateContext(
@@ -187,44 +186,34 @@ public class DDMFormPagesTemplateContextFactory {
 	protected Map<String, Object> createPageTemplateContext(
 		DDMFormLayoutPage ddmFormLayoutPage, int pageIndex) {
 
-		Map<String, Object> pageTemplateContext = new HashMap<>();
-
 		LocalizedValue description = ddmFormLayoutPage.getDescription();
-
-		pageTemplateContext.put(
-			"description",
-			getValue(_ddmFormRenderingContext, description.getString(_locale)));
 
 		_pageEnabled = isPageEnabled(pageIndex);
 
-		pageTemplateContext.put("enabled", _pageEnabled);
-
-		pageTemplateContext.put(
-			"localizedDescription",
-			getLocalizedValueMap(description, _ddmFormRenderingContext));
-
 		LocalizedValue title = ddmFormLayoutPage.getTitle();
 
-		pageTemplateContext.put(
+		return HashMapBuilder.<String, Object>put(
+			"description",
+			getValue(_ddmFormRenderingContext, description.getString(_locale))
+		).put(
+			"enabled", _pageEnabled
+		).put(
+			"localizedDescription",
+			getLocalizedValueMap(description, _ddmFormRenderingContext)
+		).put(
 			"localizedTitle",
-			getLocalizedValueMap(title, _ddmFormRenderingContext));
-
-		pageTemplateContext.put(
+			getLocalizedValueMap(title, _ddmFormRenderingContext)
+		).put(
 			"rows",
-			createRowsTemplateContext(
-				ddmFormLayoutPage.getDDMFormLayoutRows()));
-
-		boolean showRequiredFieldsWarning = isShowRequiredFieldsWarning(
-			ddmFormLayoutPage.getDDMFormLayoutRows());
-
-		pageTemplateContext.put(
-			"showRequiredFieldsWarning", showRequiredFieldsWarning);
-
-		pageTemplateContext.put(
+			createRowsTemplateContext(ddmFormLayoutPage.getDDMFormLayoutRows())
+		).put(
+			"showRequiredFieldsWarning",
+			isShowRequiredFieldsWarning(
+				ddmFormLayoutPage.getDDMFormLayoutRows())
+		).put(
 			"title",
-			getValue(_ddmFormRenderingContext, title.getString(_locale)));
-
-		return pageTemplateContext;
+			getValue(_ddmFormRenderingContext, title.getString(_locale))
+		).build();
 	}
 
 	protected List<Object> createRowsTemplateContext(
@@ -242,14 +231,11 @@ public class DDMFormPagesTemplateContextFactory {
 	protected Map<String, Object> createRowTemplateContext(
 		DDMFormLayoutRow ddmFormLayoutRow) {
 
-		Map<String, Object> rowTemplateContext = new HashMap<>();
-
-		rowTemplateContext.put(
+		return HashMapBuilder.<String, Object>put(
 			"columns",
 			createColumnsTemplateContext(
-				ddmFormLayoutRow.getDDMFormLayoutColumns()));
-
-		return rowTemplateContext;
+				ddmFormLayoutRow.getDDMFormLayoutColumns())
+		).build();
 	}
 
 	protected Map<String, String> getLocalizedValueMap(

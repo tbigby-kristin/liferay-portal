@@ -21,6 +21,7 @@ import com.liferay.oauth2.provider.scope.liferay.LiferayOAuth2Scope;
 import com.liferay.oauth2.provider.scope.liferay.ScopeLocator;
 import com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalService;
 import com.liferay.oauth2.provider.service.base.OAuth2ApplicationScopeAliasesLocalServiceBaseImpl;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -83,6 +84,22 @@ public class OAuth2ApplicationScopeAliasesLocalServiceImpl
 			_oAuth2ScopeGrantLocalService.getOAuth2ScopeGrants(
 				oAuth2ApplicationScopeAliasesId, QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null);
+
+		for (OAuth2ScopeGrant oAuth2ScopeGrant : oAuth2ScopeGrants) {
+			long[] oAuth2AuthorizationPrimaryKeys =
+				_oAuth2ScopeGrantLocalService.getOAuth2AuthorizationPrimaryKeys(
+					oAuth2ScopeGrant.getOAuth2ScopeGrantId());
+
+			if (oAuth2AuthorizationPrimaryKeys.length > 0) {
+				throw new PortalException(
+					StringBundler.concat(
+						"Unable to delete required OAuth2 application scope ",
+						"aliases ", oAuth2ApplicationScopeAliasesId,
+						"because there exists at least one OAuth2 ",
+						"authorization which references its OAuth2 scope ",
+						"grants"));
+			}
+		}
 
 		for (OAuth2ScopeGrant oAuth2ScopeGrant : oAuth2ScopeGrants) {
 			_oAuth2ScopeGrantLocalService.deleteOAuth2ScopeGrant(

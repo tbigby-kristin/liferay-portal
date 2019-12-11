@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -28,7 +29,6 @@ import com.liferay.portal.kernel.util.Validator;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -53,38 +53,30 @@ public class NumericDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put(
-			"dataType",
-			getDataType(ddmFormField, ddmFormFieldRenderingContext));
-
-		LocalizedValue placeholder = (LocalizedValue)ddmFormField.getProperty(
-			"placeholder");
-
 		Locale locale = ddmFormFieldRenderingContext.getLocale();
 
-		parameters.put(
+		Map<String, Object> parameters = HashMapBuilder.<String, Object>put(
+			"dataType", getDataType(ddmFormField, ddmFormFieldRenderingContext)
+		).put(
 			"placeholder",
-			getValueString(placeholder, locale, ddmFormFieldRenderingContext));
-
-		String predefinedValue = getValueString(
-			ddmFormField.getPredefinedValue(), locale,
-			ddmFormFieldRenderingContext);
-
-		parameters.put(
+			getValueString(
+				(LocalizedValue)ddmFormField.getProperty("placeholder"), locale,
+				ddmFormFieldRenderingContext)
+		).put(
 			"predefinedValue",
 			getFormattedValue(
-				ddmFormFieldRenderingContext, locale, predefinedValue));
-
-		parameters.put("symbols", getSymbolsMap(locale));
-
-		LocalizedValue tooltip = (LocalizedValue)ddmFormField.getProperty(
-			"tooltip");
-
-		parameters.put(
+				ddmFormFieldRenderingContext, locale,
+				getValueString(
+					ddmFormField.getPredefinedValue(), locale,
+					ddmFormFieldRenderingContext))
+		).put(
+			"symbols", getSymbolsMap(locale)
+		).put(
 			"tooltip",
-			getValueString(tooltip, locale, ddmFormFieldRenderingContext));
+			getValueString(
+				(LocalizedValue)ddmFormField.getProperty("tooltip"), locale,
+				ddmFormFieldRenderingContext)
+		).build();
 
 		String value = HtmlUtil.extractText(
 			ddmFormFieldRenderingContext.getValue());
@@ -147,16 +139,13 @@ public class NumericDDMFormFieldTemplateContextContributor
 		DecimalFormatSymbols decimalFormatSymbols =
 			formatter.getDecimalFormatSymbols();
 
-		Map<String, String> symbolsMap = new HashMap<>();
-
-		symbolsMap.put(
+		return HashMapBuilder.put(
 			"decimalSymbol",
-			String.valueOf(decimalFormatSymbols.getDecimalSeparator()));
-		symbolsMap.put(
+			String.valueOf(decimalFormatSymbols.getDecimalSeparator())
+		).put(
 			"thousandsSeparator",
-			String.valueOf(decimalFormatSymbols.getGroupingSeparator()));
-
-		return symbolsMap;
+			String.valueOf(decimalFormatSymbols.getGroupingSeparator())
+		).build();
 	}
 
 	protected String getValueString(

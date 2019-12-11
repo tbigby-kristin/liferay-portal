@@ -19,8 +19,10 @@ import com.liferay.app.builder.deploy.AppDeployer;
 import com.liferay.app.builder.model.AppBuilderApp;
 import com.liferay.app.builder.service.AppBuilderAppLocalService;
 import com.liferay.app.builder.web.internal.constants.AppBuilderPortletKeys;
-import com.liferay.app.builder.web.internal.portlet.WidgetAppPortlet;
-import com.liferay.portal.kernel.util.HashMapDictionary;
+import com.liferay.app.builder.web.internal.portlet.AppPortlet;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,11 +44,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class WidgetAppDeployer implements AppDeployer {
 
-	@Activate
-	public void activate(BundleContext bundleContext) {
-		_bundleContext = bundleContext;
-	}
-
 	@Override
 	public void deploy(long appId) throws Exception {
 		AppBuilderApp appBuilderApp =
@@ -54,10 +51,17 @@ public class WidgetAppDeployer implements AppDeployer {
 
 		_serviceRegistrationsMap.computeIfAbsent(
 			appId,
-			key -> _deployAppPortlet(
-				appId,
-				appBuilderApp.getName(LocaleThreadLocal.getDefaultLocale()),
-				AppBuilderPortletKeys.WIDGET_APP + "_" + appId));
+			key -> new ServiceRegistration[] {
+				_deployPortlet(
+					appBuilderApp, _getAppName(appBuilderApp, null),
+					_getPortletName(appId, null), true, true),
+				_deployPortlet(
+					appBuilderApp, _getAppName(appBuilderApp, "Form View"),
+					_getPortletName(appId, "form_view"), true, false),
+				_deployPortlet(
+					appBuilderApp, _getAppName(appBuilderApp, "Table View"),
+					_getPortletName(appId, "table_view"), false, true)
+			});
 
 		appBuilderApp.setStatus(
 			AppBuilderAppConstants.Status.DEPLOYED.getValue());
@@ -67,57 +71,66 @@ public class WidgetAppDeployer implements AppDeployer {
 
 	@Override
 	public void undeploy(long appId) throws Exception {
-		ServiceRegistration<?> serviceRegistration =
-			_serviceRegistrationsMap.remove(appId);
-
-		if (serviceRegistration == null) {
-			return;
-		}
-
-		serviceRegistration.unregister();
-
-		AppBuilderApp appBuilderApp =
-			_appBuilderAppLocalService.getAppBuilderApp(appId);
-
-		appBuilderApp.setStatus(
-			AppBuilderAppConstants.Status.UNDEPLOYED.getValue());
-
-		_appBuilderAppLocalService.updateAppBuilderApp(appBuilderApp);
+		undeploy(_appBuilderAppLocalService, appId, _serviceRegistrationsMap);
 	}
 
-	private ServiceRegistration<?> _deployAppPortlet(
-		long appId, String appName, String portletName) {
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_bundleContext = bundleContext;
+	}
+
+	private ServiceRegistration<?> _deployPortlet(
+		AppBuilderApp appBuilderApp, String appName, String portletName,
+		boolean showFormView, boolean showTableView) {
+
+		AppPortlet appPortlet = new AppPortlet(
+			appBuilderApp, "widget", appName, portletName, showFormView,
+			showTableView);
 
 		return _bundleContext.registerService(
-			Portlet.class, new WidgetAppPortlet(appId),
-			new HashMapDictionary<String, Object>() {
-				{
-					put("com.liferay.portlet.add-default-resource", true);
-					put(
-						"com.liferay.portlet.display-category",
-						"category.collaboration");
-					put("com.liferay.portlet.use-default-template", "true");
-					put("javax.portlet.display-name", appName);
-					put("javax.portlet.name", portletName);
-					put(
-						"javax.portlet.init-param.template-path",
-						"/META-INF/resources/");
-					put(
-						"javax.portlet.init-param.view-template",
-						"/view_entries.jsp");
-					put(
-						"javax.portlet.security-role-ref",
-						"administrator,guest,power-user,user");
-					put("javax.portlet.supports.mime-type", "text/html");
-				}
-			});
+			Portlet.class, appPortlet,
+			appPortlet.getProperties(
+				HashMapBuilder.<String, Object>put(
+					"com.liferay.portlet.display-category",
+					"category.app_builder"
+				).build()));
+	}
+
+	private String _getAppName(AppBuilderApp appBuilderApp, String suffix) {
+		StringBundler sb = new StringBundler(5);
+
+		sb.append(appBuilderApp.getName(LocaleThreadLocal.getDefaultLocale()));
+
+		if (suffix != null) {
+			sb.append(StringPool.SPACE);
+			sb.append(StringPool.OPEN_PARENTHESIS);
+			sb.append(suffix);
+			sb.append(StringPool.CLOSE_PARENTHESIS);
+		}
+
+		return sb.toString();
+	}
+
+	private String _getPortletName(long appId, String suffix) {
+		StringBundler sb = new StringBundler(5);
+
+		sb.append(AppBuilderPortletKeys.WIDGET_APP);
+		sb.append(StringPool.UNDERLINE);
+		sb.append(appId);
+
+		if (suffix != null) {
+			sb.append(StringPool.UNDERLINE);
+			sb.append(suffix);
+		}
+
+		return sb.toString();
 	}
 
 	@Reference
 	private AppBuilderAppLocalService _appBuilderAppLocalService;
 
 	private BundleContext _bundleContext;
-	private final ConcurrentHashMap<Long, ServiceRegistration<?>>
+	private final ConcurrentHashMap<Long, ServiceRegistration<?>[]>
 		_serviceRegistrationsMap = new ConcurrentHashMap<>();
 
 }

@@ -89,10 +89,10 @@ definition {
 			Click(locator1 = "Button#ADD_ROW_LAST");
 		}
 		else {
-			while (!("${i}" == "${propertyNumber}")) {
-				var i = MathUtil.sum("${i}", "1");
+			while ("${i}" != "${propertyNumber}") {
+				var i = ${i} + 1;
 				var key_pathNumber = "${pathNumber}";
-				var pathNumber = MathUtil.sum("${pathNumber}", "1");
+				var pathNumber = ${pathNumber} + 1;
 
 				Type(
 					locator1 = "CategoriesEditCategory#PROPERTIES_KEY_FIELD",
@@ -295,9 +295,9 @@ definition {
 				value1 = "${propertiesValueField}");
 		}
 		else {
-			while (!("${i}" == "${propertyNumber}")) {
+			while ("${i}" != "${propertyNumber}") {
 				var key_pathNumber = "${i}";
-				var i = MathUtil.sum("${i}", "1");
+				var i = ${i} + 1;
 
 				AssertTextEquals(
 					locator1 = "Categories#CATEGORY_DETAILS_PROPERTY_KEY_2",

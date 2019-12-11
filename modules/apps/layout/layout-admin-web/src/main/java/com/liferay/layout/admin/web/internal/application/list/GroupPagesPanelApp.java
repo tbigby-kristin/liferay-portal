@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.staging.StagingGroupHelper;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -49,9 +48,7 @@ public class GroupPagesPanelApp extends BasePanelApp {
 	public boolean isShow(PermissionChecker permissionChecker, Group group)
 		throws PortalException {
 
-		if (_stagingGroupHelper.isLocalStagingGroup(group) &&
-			group.isCompany()) {
-
+		if (group.isCompany()) {
 			return false;
 		}
 
@@ -66,8 +63,5 @@ public class GroupPagesPanelApp extends BasePanelApp {
 	public void setPortlet(Portlet portlet) {
 		super.setPortlet(portlet);
 	}
-
-	@Reference
-	private StagingGroupHelper _stagingGroupHelper;
 
 }

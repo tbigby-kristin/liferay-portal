@@ -21,6 +21,7 @@ import com.liferay.blogs.service.BlogsEntryService;
 import com.liferay.info.display.contributor.InfoDisplayContributor;
 import com.liferay.info.display.contributor.InfoDisplayField;
 import com.liferay.info.display.contributor.InfoDisplayObjectProvider;
+import com.liferay.info.display.field.ExpandoInfoDisplayFieldProvider;
 import com.liferay.info.display.field.InfoDisplayFieldProvider;
 import com.liferay.portal.kernel.exception.PortalException;
 
@@ -49,8 +50,16 @@ public class BlogsEntryInfoDisplayContributor
 			long classTypeId, Locale locale)
 		throws PortalException {
 
-		return _infoDisplayFieldProvider.getContributorInfoDisplayFields(
-			locale, AssetEntry.class.getName(), BlogsEntry.class.getName());
+		Set<InfoDisplayField> infoDisplayFields =
+			_infoDisplayFieldProvider.getContributorInfoDisplayFields(
+				locale, AssetEntry.class.getName(), BlogsEntry.class.getName());
+
+		infoDisplayFields.addAll(
+			_expandoInfoDisplayFieldProvider.
+				getContributorExpandoInfoDisplayFields(
+					BlogsEntry.class.getName(), locale));
+
+		return infoDisplayFields;
 	}
 
 	@Override
@@ -60,18 +69,18 @@ public class BlogsEntryInfoDisplayContributor
 
 		Map<String, Object> infoDisplayFieldValues = new HashMap<>();
 
-		Map<String, Object> blogsInfoDisplayFieldValues =
-			_infoDisplayFieldProvider.getContributorInfoDisplayFieldsValues(
-				getClassName(), blogsEntry, locale);
-
-		infoDisplayFieldValues.putAll(blogsInfoDisplayFieldValues);
-
-		Map<String, Object> assetInfoDisplayFieldValues =
+		infoDisplayFieldValues.putAll(
 			_assetEntryInfoDisplayFieldProvider.
 				getAssetEntryInfoDisplayFieldsValues(
-					getClassName(), blogsEntry.getEntryId(), locale);
-
-		infoDisplayFieldValues.putAll(assetInfoDisplayFieldValues);
+					BlogsEntry.class.getName(), blogsEntry.getEntryId(),
+					locale));
+		infoDisplayFieldValues.putAll(
+			_expandoInfoDisplayFieldProvider.
+				getContributorExpandoInfoDisplayFieldsValues(
+					BlogsEntry.class.getName(), blogsEntry, locale));
+		infoDisplayFieldValues.putAll(
+			_infoDisplayFieldProvider.getContributorInfoDisplayFieldsValues(
+				BlogsEntry.class.getName(), blogsEntry, locale));
 
 		return infoDisplayFieldValues;
 	}
@@ -115,6 +124,9 @@ public class BlogsEntryInfoDisplayContributor
 
 	@Reference
 	private BlogsEntryService _blogsEntryService;
+
+	@Reference
+	private ExpandoInfoDisplayFieldProvider _expandoInfoDisplayFieldProvider;
 
 	@Reference
 	private InfoDisplayFieldProvider _infoDisplayFieldProvider;

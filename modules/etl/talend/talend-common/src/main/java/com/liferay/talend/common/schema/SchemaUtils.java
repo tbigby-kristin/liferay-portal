@@ -150,8 +150,7 @@ public class SchemaUtils {
 	/**
 	 * Gets the reject schema from the given properties
 	 *
-	 * @param componentProperties
-	 * @return
+	 * @param  componentProperties
 	 * @review
 	 */
 	public static Schema getRejectSchema(

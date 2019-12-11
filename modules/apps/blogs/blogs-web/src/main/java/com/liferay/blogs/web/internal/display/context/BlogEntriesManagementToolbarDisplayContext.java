@@ -32,12 +32,12 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.trash.TrashHelper;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -104,28 +104,29 @@ public class BlogEntriesManagementToolbarDisplayContext
 	}
 
 	public Map<String, Object> getComponentContext() throws PortalException {
-		Map<String, Object> context = new HashMap<>();
-
 		String cmd = Constants.DELETE;
 
 		if (_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroup())) {
 			cmd = Constants.MOVE_TO_TRASH;
 		}
 
-		context.put("deleteEntriesCmd", cmd);
+		return HashMapBuilder.<String, Object>put(
+			"deleteEntriesCmd", cmd
+		).put(
+			"deleteEntriesURL",
+			() -> {
+				PortletURL deleteEntriesURL =
+					liferayPortletResponse.createActionURL();
 
-		PortletURL deleteEntriesURL = liferayPortletResponse.createActionURL();
+				deleteEntriesURL.setParameter(
+					ActionRequest.ACTION_NAME, "/blogs/edit_entry");
 
-		deleteEntriesURL.setParameter(
-			ActionRequest.ACTION_NAME, "/blogs/edit_entry");
-
-		context.put("deleteEntriesURL", deleteEntriesURL.toString());
-
-		context.put(
+				return deleteEntriesURL.toString();
+			}
+		).put(
 			"trashEnabled",
-			_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroupId()));
-
-		return context;
+			_trashHelper.isTrashEnabled(_themeDisplay.getScopeGroupId())
+		).build();
 	}
 
 	@Override

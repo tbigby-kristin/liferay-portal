@@ -12,6 +12,7 @@
 	{@param? _handleFragmentCommentsButtonClick: any}
 	{@param? _handleFragmentRemoveButtonClick: any}
 	{@param? _hovered: bool}
+	{@param? _isDropZone: bool}
 	{@param? _showComments: bool}
 	{@param? activeItemId: string}
 	{@param? activeItemType: string}
@@ -21,19 +22,15 @@
 	{@param? dropTargetItemType: ?}
 	{@param? editableValues: ?}
 	{@param? error: bool}
+	{@param? hasUpdatePermissions: bool}
 	{@param? name: string}
 	{@param? rowType: ?}
 	{@param? showControlBar: bool}
-	{@param? showMapping: bool}
 	{@param? spritemap: string}
 	{@param? store: ?}
 
 	{let $wrapperClasses kind="text"}
-		fragments-editor__drag-source
-		{sp}fragment-entry-link-wrapper
-		{sp}fragments-editor__drag-source--fragment
-		{sp}fragments-editor__drop-target
-		{sp}fragments-editor__topper-wrapper
+		fragment-entry-link-wrapper
 
 		{if $rowType == $_fragmentsEditorRowTypes.componentRow}
 			{sp}fragments-editor__drop-target--fragment
@@ -45,18 +42,25 @@
 			{sp}{$dropTargetBorder}
 		{/if}
 
-		{if $activeItemId == $fragmentEntryLinkId and $_fragmentsEditorItemTypes and $activeItemType == $_fragmentsEditorItemTypes.fragment}
-			{sp}fragments-editor__topper-wrapper--active
-			{sp}fragment-entry-link-wrapper--active
-		{/if}
+		{if $hasUpdatePermissions}
+			{sp}fragments-editor__drag-source
+			{sp}fragments-editor__drag-source--fragment
+			{sp}fragments-editor__drop-target
+			{sp}fragments-editor__topper-wrapper
 
-		{if $_hovered}
-			{sp}fragments-editor__topper-wrapper--hovered
-			{sp}fragment-entry-link-wrapper--hovered
-		{/if}
+			{if $activeItemId == $fragmentEntryLinkId and $_fragmentsEditorItemTypes and $activeItemType == $_fragmentsEditorItemTypes.fragment}
+				{sp}fragments-editor__topper-wrapper--active
+				{sp}fragment-entry-link-wrapper--active
+			{/if}
 
-		{if $error}
-			{sp}fragments-editor__topper-wrapper--error
+			{if $_hovered}
+				{sp}fragments-editor__topper-wrapper--hovered
+				{sp}fragment-entry-link-wrapper--hovered
+			{/if}
+
+			{if $error}
+				{sp}fragments-editor__topper-wrapper--error
+			{/if}
 		{/if}
 	{/let}
 
@@ -71,17 +75,17 @@
 		ref="fragmentEntryLinkWrapper"
 		tabindex="0"
 	>
-		{if $showControlBar}
+		{if $hasUpdatePermissions and $showControlBar}
 			<nav class="fragments-editor__topper tbar">
 				<ul class="tbar-nav">
 					<li class="fragments-editor__drag-handler fragments-editor__topper__item pr-0 tbar-item">
 						<div>
-							<svg class="fragments-editor__topper__drag-icon lexicon-icon">
+							<svg class="fragments-editor__topper__icon fragments-editor__topper__drag-icon lexicon-icon">
 									<use xlink:href="{$spritemap ?: ''}#drag"></use>
 							</svg>
 						</div>
 					</li>
-					<li class="fragments-editor__topper__item fragments-editor__topper__title tbar-item tbar-item-expand">
+					<li class="fragments-editor__drag-handler fragments-editor__topper__item fragments-editor__topper__title tbar-item tbar-item-expand">
 						{$name ?: ''}
 					</li>
 
@@ -95,13 +99,15 @@
 						</li>
 					{/if}
 
-					<li class="fragments-editor__topper__item tbar-item">
-						<button class="btn btn-small btn-unstyled" data-onclick="{$_handleFragmentRemoveButtonClick}">
-							<svg class="fragments-editor__topper__icon lexicon-icon">
-								<use xlink:href="{$spritemap ?: ''}#times-circle"></use>
-							</svg>
-						</button>
-					</li>
+					{if not $_isDropZone}
+						<li class="fragments-editor__topper__item tbar-item">
+							<button class="btn btn-small btn-unstyled" data-onclick="{$_handleFragmentRemoveButtonClick}">
+								<svg class="fragments-editor__topper__icon lexicon-icon">
+									<use xlink:href="{$spritemap ?: ''}#times-circle"></use>
+								</svg>
+							</button>
+						</li>
+					{/if}
 				</ul>
 			</nav>
 		{/if}
@@ -110,7 +116,6 @@
 			{param content: $content /}
 			{param editableValues: $editableValues /}
 			{param fragmentEntryLinkId: $fragmentEntryLinkId /}
-			{param showMapping: $showMapping /}
 			{param store: $store /}
 		{/call}
 	</div>

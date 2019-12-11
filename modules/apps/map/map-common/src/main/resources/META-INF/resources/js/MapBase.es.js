@@ -12,8 +12,8 @@
  * details.
  */
 
-import State, {Config} from 'metal-state';
 import {buildFragment} from 'metal-dom';
+import State, {Config} from 'metal-state';
 
 import GeoJSONBase from './GeoJSONBase.es';
 import MarkerBase from './MarkerBase.es';
@@ -26,7 +26,7 @@ import {isSubsetOf} from './validators.es';
  * @type {string}
  */
 const TPL_HOME_BUTTON = `
-	<button class='btn btn-default home-button'>
+	<button class='btn btn-secondary home-button'>
 		<i class='glyphicon glyphicon-screenshot'></i>
 	</button>
 `;
@@ -211,8 +211,9 @@ class MapBase extends State {
 		const customControls = {};
 
 		if (controls.indexOf(this.constructor.CONTROLS.HOME) !== -1) {
-			const homeControl = buildFragment(TPL_HOME_BUTTON)
-				.firstElementChild;
+			const homeControl = buildFragment(TPL_HOME_BUTTON).querySelector(
+				'.btn.btn-secondary.home-button'
+			);
 			customControls[this.constructor.CONTROLS.HOME] = homeControl;
 			this.addControl(
 				homeControl,
@@ -224,8 +225,9 @@ class MapBase extends State {
 			controls.indexOf(this.constructor.CONTROLS.SEARCH) !== -1 &&
 			this.constructor.SearchImpl
 		) {
-			const searchControl = buildFragment(TPL_SEARCH_BOX)
-				.firstElementChild;
+			const searchControl = buildFragment(TPL_SEARCH_BOX).querySelector(
+				'div.col-md-6.search-controls'
+			);
 			customControls[
 				this.constructor.CONTROLS.SEARCH
 			] = new this.constructor.SearchImpl({

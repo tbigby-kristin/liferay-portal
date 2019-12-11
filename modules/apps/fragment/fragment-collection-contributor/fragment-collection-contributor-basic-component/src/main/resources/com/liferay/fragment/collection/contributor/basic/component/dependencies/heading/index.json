@@ -46,41 +46,39 @@
 					}
 				},
 				{
-					"dataType": "object",
-					"label": "text-color",
-					"name": "textColor",
-					"type": "colorPalette"
-				},
-				{
 					"dataType": "string",
 					"defaultValue": "3",
-					"label": "margin-bottom",
-					"name": "marginBottom",
+					"label": "bottom-spacing",
+					"name": "bottomSpacing",
 					"type": "select",
 					"typeOptions": {
 						"validValues": [
 							{
-								"label": "no-margin",
 								"value": "0"
 							},
 							{
-								"label": "small",
+								"value": "1"
+							},
+							{
 								"value": "2"
 							},
 							{
-								"label": "medium",
 								"value": "3"
 							},
 							{
-								"label": "large",
 								"value": "4"
 							},
 							{
-								"label": "extra-large",
 								"value": "5"
 							}
 						]
 					}
+				},
+				{
+					"dataType": "object",
+					"label": "text-color",
+					"name": "textColor",
+					"type": "colorPalette"
 				}
 			]
 		}

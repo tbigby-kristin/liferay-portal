@@ -595,7 +595,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 	@Override
 	public void assertPartialConfirmation(String pattern) throws Exception {
-		String confirmation = getConfirmation();
+		String confirmation = getConfirmation(null);
 
 		if (!confirmation.contains(pattern)) {
 			throw new Exception(
@@ -1043,11 +1043,6 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		WebElement webElement = getWebElement("//body");
 
 		return webElement.getText();
-	}
-
-	@Override
-	public String getConfirmation() {
-		return getConfirmation(null);
 	}
 
 	@Override
@@ -2209,7 +2204,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		open(url);
 
 		if (isAlertPresent()) {
-			getConfirmation();
+			getConfirmation(null);
 		}
 	}
 
@@ -3152,29 +3147,13 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void waitForElementNotPresent(String locator) throws Exception {
-		Condition elementNotPresentCondition = getElementNotPresentCondition(
-			locator);
-
-		elementNotPresentCondition.waitFor();
-	}
-
-	@Override
 	public void waitForElementNotPresent(String locator, String throwException)
 		throws Exception {
 
 		Condition elementNotPresentCondition = getElementNotPresentCondition(
 			locator);
 
-		elementNotPresentCondition.waitFor(
-			Boolean.parseBoolean(throwException));
-	}
-
-	@Override
-	public void waitForElementPresent(String locator) throws Exception {
-		Condition elementPresentCondition = getElementPresentCondition(locator);
-
-		elementPresentCondition.waitFor();
+		elementNotPresentCondition.waitFor(throwException);
 	}
 
 	@Override
@@ -3183,7 +3162,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 		Condition elementPresentCondition = getElementPresentCondition(locator);
 
-		elementPresentCondition.waitFor(Boolean.parseBoolean(throwException));
+		elementPresentCondition.waitFor(throwException);
 	}
 
 	@Override
@@ -3228,19 +3207,12 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void waitForNotVisible(String locator) throws Exception {
-		Condition notVisibleCondition = getNotVisibleCondition(locator);
-
-		notVisibleCondition.waitFor();
-	}
-
-	@Override
 	public void waitForNotVisible(String locator, String throwException)
 		throws Exception {
 
 		Condition notVisibleCondition = getNotVisibleCondition(locator);
 
-		notVisibleCondition.waitFor(Boolean.parseBoolean(throwException));
+		notVisibleCondition.waitFor(throwException);
 	}
 
 	@Override
@@ -3396,19 +3368,12 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 	}
 
 	@Override
-	public void waitForVisible(String locator) throws Exception {
-		Condition visibleCondition = getVisibleCondition(locator);
-
-		visibleCondition.waitFor();
-	}
-
-	@Override
 	public void waitForVisible(String locator, String throwException)
 		throws Exception {
 
 		Condition visibleCondition = getVisibleCondition(locator);
 
-		visibleCondition.waitFor(Boolean.parseBoolean(throwException));
+		visibleCondition.waitFor(throwException);
 	}
 
 	@Override
@@ -3509,8 +3474,8 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 				if (!evaluate()) {
 					String message = StringUtil.combine(
 						"Expected text \"", pattern,
-						"\" does not match actual text \"", getConfirmation(),
-						"\"");
+						"\" does not match actual text \"",
+						getConfirmation(null), "\"");
 
 					throw new Exception(message);
 				}
@@ -3518,7 +3483,7 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 
 			@Override
 			public boolean evaluate() throws Exception {
-				return pattern.equals(getConfirmation());
+				return pattern.equals(getConfirmation(null));
 			}
 
 		};
@@ -4460,10 +4425,10 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 		}
 
 		public void waitFor() throws Exception {
-			waitFor(true);
+			waitFor("true");
 		}
 
-		public void waitFor(boolean throwException) throws Exception {
+		public void waitFor(String throwException) throws Exception {
 			for (int second = 0; second < PropsValues.TIMEOUT_EXPLICIT_WAIT;
 				 second++) {
 
@@ -4478,7 +4443,9 @@ public abstract class BaseWebDriverImpl implements LiferaySelenium, WebDriver {
 				Thread.sleep(1000);
 			}
 
-			if (throwException) {
+			if ((throwException == null) ||
+				Boolean.parseBoolean(throwException)) {
+
 				assertTrue();
 			}
 		}

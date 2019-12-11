@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -138,7 +139,8 @@ public class FragmentEntryProcessorHelperImpl
 
 		String fieldId = jsonObject.getString("fieldId");
 
-		Object fieldValue = fieldsValues.getOrDefault(fieldId, null);
+		Object fieldValue = fieldsValues.getOrDefault(
+			fieldId, StringPool.BLANK);
 
 		if (fieldValue == null) {
 			return null;
@@ -157,7 +159,8 @@ public class FragmentEntryProcessorHelperImpl
 	public Object getMappedValue(
 			JSONObject jsonObject,
 			Map<Long, Map<String, Object>> infoDisplaysFieldValues, String mode,
-			Locale locale, long previewClassPK, int previewType)
+			Locale locale, long previewClassPK, long previewClassNameId,
+			int previewType)
 		throws PortalException {
 
 		DefaultFragmentEntryProcessorContext
@@ -165,6 +168,8 @@ public class FragmentEntryProcessorHelperImpl
 				new DefaultFragmentEntryProcessorContext(
 					null, null, mode, locale);
 
+		defaultFragmentEntryProcessorContext.setPreviewClassNameId(
+			previewClassNameId);
 		defaultFragmentEntryProcessorContext.setPreviewClassPK(previewClassPK);
 		defaultFragmentEntryProcessorContext.setPreviewType(previewType);
 
@@ -264,11 +269,11 @@ public class FragmentEntryProcessorHelperImpl
 	private String _getEditableValueBySegmentsExperienceAndLocale(
 		JSONObject jsonObject, Locale locale, long[] segmentsExperienceIds) {
 
-		for (long segmentsExperienceId : segmentsExperienceIds) {
+		if (ArrayUtil.isNotEmpty(segmentsExperienceIds)) {
 			String value = _getSegmentsExperienceValue(
-				jsonObject, locale, segmentsExperienceId);
+				jsonObject, locale, segmentsExperienceIds[0]);
 
-			if (Validator.isNotNull(value)) {
+			if (value != null) {
 				return value;
 			}
 		}
@@ -283,13 +288,13 @@ public class FragmentEntryProcessorHelperImpl
 			SegmentsExperienceConstants.ID_PREFIX + segmentsExperienceId);
 
 		if (segmentsExperienceJSONObject == null) {
-			return StringPool.BLANK;
+			return null;
 		}
 
 		String value = segmentsExperienceJSONObject.getString(
-			LanguageUtil.getLanguageId(locale));
+			LanguageUtil.getLanguageId(locale), null);
 
-		if (Validator.isNotNull(value)) {
+		if (value != null) {
 			return value;
 		}
 
@@ -300,7 +305,7 @@ public class FragmentEntryProcessorHelperImpl
 			return value;
 		}
 
-		return StringPool.BLANK;
+		return null;
 	}
 
 	private boolean _isPersonalizationSupported(JSONObject jsonObject) {

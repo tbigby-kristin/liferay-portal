@@ -1444,6 +1444,8 @@ definition {
 			optionValue = "Option2Name",
 			rowNumber = "2");
 
+		Pause(locator1 = "3000");
+
 		Form.closeSidebar();
 
 		Form.gotoAddField(fieldType = "Date");
@@ -1609,9 +1611,11 @@ definition {
 			configurationScope = "System Scope");
 
 		FormFields.viewTextField(
-			fieldHelpText = "How long a lock is held before releasing due to suspected deadlock",
-			fieldLabel = "Lock timeout milliseconds",
+			fieldHelpText = "Configure how long a lock is held before releasing due to suspected deadlock.",
+			fieldLabel = "Lock Timeout Milliseconds",
 			fieldName = "ds.lock.timeout.milliseconds");
+
+		Refresh();
 
 		FormFields.editTextWithBackspace(fieldName = "ds.lock.timeout.milliseconds");
 
@@ -1772,11 +1776,16 @@ definition {
 
 		Form.saveLocalized(saveButton = "Guardar formulario");
 
-		MyAccount.configureDisplaySettingsLanguageLocalized(
-			category = "Mi cuenta",
+		Click(locator1 = "UserBar#USER_AVATAR_IMAGE");
+
+		Click(
+			key_dropdownItem = "Mi cuenta",
+			locator1 = "UserBar#USER_AVATAR_DROPDOWN_ITEM");
+
+		MyAccount.changeUserLanguage(
 			languageName = "English (United States)",
-			portlet = "Mi cuenta",
-			saveButton = "Guardar");
+			saveButton = "Guardar",
+			successMessage = "Your request completed successfully.");
 
 		Navigator.openURL();
 
@@ -1920,14 +1929,6 @@ definition {
 					rowNumber = "${rowNumber}");
 			}
 
-			FormFields.viewGridOptionNotPresent(
-				gridField = "Rows",
-				rowNumber = "4");
-
-			FormFields.viewGridOptionNotPresent(
-				gridField = "Columns",
-				rowNumber = "4");
-
 			Form.closeSidebar();
 		}
 	}
@@ -2029,6 +2030,12 @@ definition {
 		Form.editName();
 
 		Form.editDescription();
+
+		var browserType = PropsUtil.get("browser.type");
+
+		if (("${browserType}" == "internetexplorer") && (IsElementPresent(locator1 = "Form#SIDEBAR_CLOSE"))) {
+			Click(locator1 = "Form#SIDEBAR_CLOSE");
+		}
 
 		Form.gotoAddField(fieldType = "Text Field");
 
@@ -2220,7 +2227,9 @@ definition {
 				fieldName = "TextField",
 				fieldValue = "${fieldValue}");
 
-			FormPortlet.submit();
+			FormPortlet.clickSubmit();
+
+			Alert.viewSuccessMessage();
 
 			Refresh();
 		}
@@ -2250,7 +2259,7 @@ definition {
 				fieldValue = "${fieldValue}");
 
 			for (var fieldValueNotVisible : list "${fieldValueList}") {
-				if (!("${fieldValueNotVisible}" == "${fieldValue}")) {
+				if ("${fieldValueNotVisible}" != "${fieldValue}") {
 					FormsAdmin.viewTableEntryNotPresent(
 						fieldLabel = "Text Field",
 						fieldValue = "${fieldValueNotVisible}");
@@ -2337,7 +2346,7 @@ definition {
 
 		FormsAdmin.viewFormTableEntry(
 			fieldLabel = "Select",
-			fieldValue = "Select 3, Select 4");
+			fieldValue = "Select3, Select4");
 	}
 
 	@priority = "5"
@@ -4194,11 +4203,11 @@ definition {
 
 		FormFields.editText(
 			fieldName = "label",
-			fieldValue = ",-+!@#$%^*()=_.?/;:{}[]\|");
+			fieldValue = ",-+!@#$%^*()=.?/;:{}[]\|");
 
-		FormFields.viewFieldName(fieldName = "text");
+		FormFields.viewFieldName(fieldName = "TextField");
 
-		FormFields.editFieldName(fieldValue = ",-+!@#$%^*()=_.?/;:{}[]\|");
+		FormFields.editFieldName(fieldValue = ",-+!@#$%^*()=.?/;:{}[]\|");
 
 		Form.closeSidebar();
 

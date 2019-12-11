@@ -247,11 +247,11 @@ definition {
 
 		if (isSet(eventCommentList)) {
 			for (var eventComment : list "${eventCommentList}") {
-				Comments.addComment(entryComment = "${eventComment}");
+				Comments.addPG(entryComment = "${eventComment}");
 			}
 		}
 		else {
-			Comments.addComment(entryComment = "${eventComment}");
+			Comments.addPG(entryComment = "${eventComment}");
 		}
 
 		if (isSet(eventCommentList)) {
@@ -557,7 +557,7 @@ definition {
 			Click(locator1 = "xpath=(//div[contains(@class,'scheduler-view-agenda-event') and contains(@data-clientid,'scheduler-event')])[${i}]");
 
 			if (IsElementNotPresent(locator1 = "Calendar#SCHEDULER_EVENT_DIALOG_BOX_DELETE_BUTTON")) {
-				var i = MathUtil.sum("${i}", "1");
+				var i = ${i} + 1;
 
 				Click(locator1 = "xpath=(//div[contains(@class,'scheduler-view-agenda-event') and contains(@data-clientid,'scheduler-event')])[${i}]");
 			}
@@ -1035,7 +1035,7 @@ definition {
 		Click(locator1 = "CalendarEditEvent#END_DATE");
 
 		var daySelected = selenium.getText("CalendarEditEvent#MINI_CALENDAR_DAY_SELECTED");
-		var tomorrow = MathUtil.sum("${daySelected}", "1");
+		var tomorrow = ${daySelected} + 1;
 		var key_daySpecific = "${tomorrow}";
 
 		if (IsElementPresent(locator1 = "CalendarEditEvent#MINI_CALENDAR_DAY_SPECIFIC")) {
@@ -1503,7 +1503,7 @@ definition {
 			locator1 = "Calendar#CURRENT_SITE_CALENDARS_CALENDAR",
 			value1 = "${siteCalendarName}");
 
-		CalendarScheduler.viewSpecificEventNotVisible(eventTitle = "${eventTitle}");
+		CalendarScheduler.viewSpecificEventNotPresent(eventTitle = "${eventTitle}");
 
 		AssertClick(
 			locator1 = "Calendar#CURRENT_SITE_CALENDARS_CALENDAR",

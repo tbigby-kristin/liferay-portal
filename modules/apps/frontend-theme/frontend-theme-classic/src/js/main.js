@@ -12,6 +12,7 @@
  * details.
  */
 
+/* eslint-disable prefer-arrow-callback */
 AUI().ready('liferay-sign-in-modal', function(A) {
 	var signIn = A.one('.sign-in > a');
 

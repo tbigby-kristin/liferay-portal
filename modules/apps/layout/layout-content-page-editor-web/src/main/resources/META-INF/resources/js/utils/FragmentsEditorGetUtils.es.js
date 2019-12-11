@@ -38,7 +38,7 @@ function deepClone(objectToClone) {
 		if (Array.isArray(cloned)) {
 			cloned = objectToClone.map(arrayItem => deepClone(arrayItem));
 		} else {
-			cloned = Object.assign({}, cloned);
+			cloned = {...cloned};
 
 			Object.keys(cloned).forEach(clonedKey => {
 				cloned[clonedKey] = deepClone(cloned[clonedKey]);
@@ -58,8 +58,7 @@ function deepClone(objectToClone) {
  */
 function editableIsMapped(editableValues) {
 	return Boolean(
-		editableValues.mappedField ||
-			editableIsMappedToAssetEntry(editableValues)
+		editableValues.mappedField || editableIsMappedToInfoItem(editableValues)
 	);
 }
 
@@ -70,7 +69,7 @@ function editableIsMapped(editableValues) {
  * @return {boolean}
  * @review
  */
-function editableIsMappedToAssetEntry(editableValues) {
+function editableIsMappedToInfoItem(editableValues) {
 	return Boolean(
 		editableValues.classNameId &&
 			editableValues.classPK &&
@@ -83,8 +82,6 @@ function editableIsMappedToAssetEntry(editableValues) {
  * @param {string} activeItemId
  * @param {string} activeItemType
  * @param {string} fragmentEntryLinkId
- * @param {string} hoveredItemId
- * @param {string} hoveredItemType
  * @param {object} structure
  * @private
  * @return {boolean}
@@ -94,8 +91,6 @@ function editableShouldBeHighlighted(
 	activeItemId,
 	activeItemType,
 	fragmentEntryLinkId,
-	hoveredItemId,
-	hoveredItemType,
 	structure
 ) {
 	const parentFragmentIsInActiveItemPath = itemIsInPath(
@@ -104,15 +99,7 @@ function editableShouldBeHighlighted(
 		FRAGMENTS_EDITOR_ITEM_TYPES.fragment
 	);
 
-	const parentFragmentIsInHoveredItemPath = itemIsInPath(
-		getItemPath(hoveredItemId, hoveredItemType, structure),
-		fragmentEntryLinkId,
-		FRAGMENTS_EDITOR_ITEM_TYPES.fragment
-	);
-
-	return (
-		parentFragmentIsInActiveItemPath || parentFragmentIsInHoveredItemPath
-	);
+	return parentFragmentIsInActiveItemPath;
 }
 
 /**
@@ -154,13 +141,13 @@ function getDropRowPosition(structure, targetRowId, targetBorder) {
 }
 
 /**
- * Get HTML element from itemId and itemType in fragment list
+ * Get HTML elements from itemId and itemType in page editor
  * @param {string} itemId
  * @param {string} itemType
  */
-function getFragmentEntryLinkListElements(itemId, itemType) {
+function getElements(itemId, itemType) {
 	return document.querySelectorAll(
-		`.fragment-entry-link-list [data-fragments-editor-item-id="${itemId}"][data-fragments-editor-item-type="${itemType}"]`
+		`[data-fragments-editor-item-id="${itemId}"][data-fragments-editor-item-type="${itemType}"]`
 	);
 }
 
@@ -455,11 +442,11 @@ function itemIsInPath(path, itemId, itemType) {
 export {
 	deepClone,
 	editableIsMapped,
-	editableIsMappedToAssetEntry,
+	editableIsMappedToInfoItem,
 	editableShouldBeHighlighted,
 	getColumn,
 	getDropRowPosition,
-	getFragmentEntryLinkListElements,
+	getElements,
 	getItemPath,
 	getFragmentColumn,
 	getFragmentRowIndex,

@@ -16,7 +16,6 @@ package com.liferay.oauth2.provider.service.impl;
 
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
-import com.liferay.document.library.kernel.store.Store;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.constants.OAuth2ProviderConstants;
 import com.liferay.oauth2.provider.exception.DuplicateOAuth2ApplicationClientIdException;
@@ -88,22 +87,12 @@ import org.osgi.service.component.annotations.Reference;
  * @author Brian Wing Shun Chan
  */
 @Component(
+	enabled = false,
 	property = "model.class.name=com.liferay.oauth2.provider.model.OAuth2Application",
 	service = AopService.class
 )
 public class OAuth2ApplicationLocalServiceImpl
 	extends OAuth2ApplicationLocalServiceBaseImpl {
-
-	@Activate
-	public void activate() {
-		String ianaRegisteredSchemes = PropsUtil.get(
-			"iana.registered.uri.schemes");
-
-		if (!Validator.isBlank(ianaRegisteredSchemes)) {
-			_ianaRegisteredUriSchemes = new HashSet<>(
-				Arrays.asList(StringUtil.split(ianaRegisteredSchemes)));
-		}
-	}
 
 	@Override
 	public OAuth2Application addOAuth2Application(
@@ -490,6 +479,17 @@ public class OAuth2ApplicationLocalServiceImpl
 		return oAuth2Application;
 	}
 
+	@Activate
+	protected void activate() {
+		String ianaRegisteredSchemes = PropsUtil.get(
+			"iana.registered.uri.schemes");
+
+		if (!Validator.isBlank(ianaRegisteredSchemes)) {
+			_ianaRegisteredUriSchemes = new HashSet<>(
+				Arrays.asList(StringUtil.split(ianaRegisteredSchemes)));
+		}
+	}
+
 	protected void validate(
 			long companyId, List<GrantType> allowedGrantTypesList,
 			String clientId, int clientProfile, String clientSecret,
@@ -698,9 +698,6 @@ public class OAuth2ApplicationLocalServiceImpl
 		target = "(class.name=com.liferay.portal.repository.portletrepository.PortletRepository)"
 	)
 	private RepositoryFactory _repositoryFactory;
-
-	@Reference(target = "(current.store=true)")
-	private Store _store;
 
 	@Reference
 	private UserLocalService _userLocalService;

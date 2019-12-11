@@ -14,7 +14,7 @@
 
 package com.liferay.site.item.selector.web.internal.display.context;
 
-import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.item.selector.criteria.group.criterion.GroupItemSelectorCriterion;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portlet.usersadmin.search.GroupSearch;
-import com.liferay.site.item.selector.criterion.SiteItemSelectorCriterion;
 import com.liferay.site.util.GroupSearchProvider;
 import com.liferay.sites.kernel.util.SitesUtil;
 
@@ -41,23 +40,24 @@ public class MySitesItemSelectorViewDisplayContext
 
 	public MySitesItemSelectorViewDisplayContext(
 		HttpServletRequest httpServletRequest,
-		SiteItemSelectorCriterion siteItemSelectorCriterion,
+		GroupItemSelectorCriterion groupItemSelectorCriterion,
 		String itemSelectedEventName, PortletURL portletURL,
 		GroupSearchProvider groupSearchProvider) {
 
 		super(
-			httpServletRequest, siteItemSelectorCriterion,
+			httpServletRequest, groupItemSelectorCriterion,
 			itemSelectedEventName, portletURL);
 
 		_groupSearchProvider = groupSearchProvider;
 		_portletRequest = getPortletRequest();
 
-		addBreadcrumbEntries(portletURL);
+		addBreadcrumbEntries();
 	}
 
 	@Override
-	public GroupSearch getGroupSearch() throws PortalException {
-		return _groupSearchProvider.getGroupSearch(_portletRequest, portletURL);
+	public GroupSearch getGroupSearch() throws Exception {
+		return _groupSearchProvider.getGroupSearch(
+			_portletRequest, getPortletURL());
 	}
 
 	@Override
@@ -70,17 +70,20 @@ public class MySitesItemSelectorViewDisplayContext
 		return true;
 	}
 
-	protected void addBreadcrumbEntries(PortletURL portletURL) {
+	protected void addBreadcrumbEntries() {
 		Group group = getGroup();
 
 		if (group == null) {
 			return;
 		}
 
-		PortalUtil.addPortletBreadcrumbEntry(
-			request, LanguageUtil.get(request, "all"), portletURL.toString());
-
 		try {
+			PortletURL portletURL = getPortletURL();
+
+			PortalUtil.addPortletBreadcrumbEntry(
+				request, LanguageUtil.get(request, "all"),
+				portletURL.toString());
+
 			SitesUtil.addPortletBreadcrumbEntries(group, request, portletURL);
 		}
 		catch (Exception e) {

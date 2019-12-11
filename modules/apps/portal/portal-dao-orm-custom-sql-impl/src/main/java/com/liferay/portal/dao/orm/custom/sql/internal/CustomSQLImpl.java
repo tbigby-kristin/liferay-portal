@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
@@ -96,122 +95,6 @@ public class CustomSQLImpl implements CustomSQL {
 	public static final String SYBASE_FUNCTION_IS_NULL =
 		"CONVERT(VARCHAR,?) IS NULL";
 
-	@Activate
-	public void activate(BundleContext bundleContext) throws SQLException {
-		_bundleContext = bundleContext;
-
-		_portal.initCustomSQL();
-
-		Connection con = DataAccess.getConnection();
-
-		String functionIsNull = _portal.getCustomSQLFunctionIsNull();
-		String functionIsNotNull = _portal.getCustomSQLFunctionIsNotNull();
-
-		try {
-			if (Validator.isNotNull(functionIsNull) &&
-				Validator.isNotNull(functionIsNotNull)) {
-
-				_functionIsNull = functionIsNull;
-				_functionIsNotNull = functionIsNotNull;
-
-				if (_log.isDebugEnabled()) {
-					_log.debug(
-						"functionIsNull is manually set to " + functionIsNull);
-					_log.debug(
-						"functionIsNotNull is manually set to " +
-							functionIsNotNull);
-				}
-			}
-			else if (con != null) {
-				DatabaseMetaData metaData = con.getMetaData();
-
-				String dbName = GetterUtil.getString(
-					metaData.getDatabaseProductName());
-
-				if (_log.isInfoEnabled()) {
-					_log.info("Database name " + dbName);
-				}
-
-				if (dbName.startsWith("DB2")) {
-					_vendorDB2 = true;
-					_functionIsNull = DB2_FUNCTION_IS_NULL;
-					_functionIsNotNull = DB2_FUNCTION_IS_NOT_NULL;
-
-					if (_log.isInfoEnabled()) {
-						_log.info("Detected DB2 with database name " + dbName);
-					}
-				}
-				else if (dbName.startsWith("HSQL")) {
-					_vendorHSQL = true;
-
-					if (_log.isInfoEnabled()) {
-						_log.info("Detected HSQL with database name " + dbName);
-					}
-				}
-				else if (dbName.startsWith("Informix")) {
-					_vendorInformix = true;
-					_functionIsNull = INFORMIX_FUNCTION_IS_NULL;
-					_functionIsNotNull = INFORMIX_FUNCTION_IS_NOT_NULL;
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Detected Informix with database name " + dbName);
-					}
-				}
-				else if (dbName.startsWith("MySQL")) {
-					_vendorMySQL = true;
-					//_functionIsNull = MYSQL_FUNCTION_IS_NULL;
-					//_functionIsNotNull = MYSQL_FUNCTION_IS_NOT_NULL;
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Detected MySQL with database name " + dbName);
-					}
-				}
-				else if (dbName.startsWith("Sybase") || dbName.equals("ASE")) {
-					_vendorSybase = true;
-					_functionIsNull = SYBASE_FUNCTION_IS_NULL;
-					_functionIsNotNull = SYBASE_FUNCTION_IS_NOT_NULL;
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Detected Sybase with database name " + dbName);
-					}
-				}
-				else if (dbName.startsWith("Oracle")) {
-					_vendorOracle = true;
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Detected Oracle with database name " + dbName);
-					}
-				}
-				else if (dbName.startsWith("PostgreSQL")) {
-					_vendorPostgreSQL = true;
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Detected PostgreSQL with database name " + dbName);
-					}
-				}
-				else {
-					if (_log.isDebugEnabled()) {
-						_log.debug(
-							"Unable to detect database with name " + dbName);
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-		finally {
-			DataAccess.cleanUp(con);
-		}
-
-		_bundleContext.addBundleListener(_synchronousBundleListener);
-	}
-
 	@Override
 	public String appendCriteria(String sql, String criteria) {
 		if (Validator.isNull(criteria)) {
@@ -253,11 +136,6 @@ public class CustomSQLImpl implements CustomSQL {
 		return sql.concat(criteria);
 	}
 
-	@Deactivate
-	public void deactive() {
-		_bundleContext.removeBundleListener(_synchronousBundleListener);
-	}
-
 	@Override
 	public String get(Class<?> clazz, String id) {
 		CustomSQLContainer customSQLContainer =
@@ -292,17 +170,18 @@ public class CustomSQLImpl implements CustomSQL {
 		}
 
 		if (queryDefinition.getStatus() == WorkflowConstants.STATUS_ANY) {
-			sql = sql.replace(_STATUS_KEYWORD, _STATUS_CONDITION_EMPTY);
+			sql = StringUtil.replace(
+				sql, _STATUS_KEYWORD, _STATUS_CONDITION_EMPTY);
 		}
 		else {
 			if (queryDefinition.isExcludeStatus()) {
-				sql = sql.replace(
-					_STATUS_KEYWORD,
+				sql = StringUtil.replace(
+					sql, _STATUS_KEYWORD,
 					tableName.concat(_STATUS_CONDITION_INVERSE));
 			}
 			else {
-				sql = sql.replace(
-					_STATUS_KEYWORD,
+				sql = StringUtil.replace(
+					sql, _STATUS_KEYWORD,
 					tableName.concat(_STATUS_CONDITION_DEFAULT));
 			}
 		}
@@ -319,23 +198,27 @@ public class CustomSQLImpl implements CustomSQL {
 				sb.append(_STATUS_CONDITION_INVERSE);
 				sb.append(StringPool.CLOSE_PARENTHESIS);
 
-				sql = sql.replace(_OWNER_USER_ID_KEYWORD, sb.toString());
+				sql = StringUtil.replace(
+					sql, _OWNER_USER_ID_KEYWORD, sb.toString());
 
-				sql = sql.replace(_OWNER_USER_ID_AND_OR_CONNECTOR, " OR ");
+				sql = StringUtil.replace(
+					sql, _OWNER_USER_ID_AND_OR_CONNECTOR, " OR ");
 			}
 			else {
-				sql = sql.replace(
-					_OWNER_USER_ID_KEYWORD,
+				sql = StringUtil.replace(
+					sql, _OWNER_USER_ID_KEYWORD,
 					tableName.concat(_OWNER_USER_ID_CONDITION_DEFAULT));
 
-				sql = sql.replace(_OWNER_USER_ID_AND_OR_CONNECTOR, " AND ");
+				sql = StringUtil.replace(
+					sql, _OWNER_USER_ID_AND_OR_CONNECTOR, " AND ");
 			}
 		}
 		else {
-			sql = sql.replace(_OWNER_USER_ID_KEYWORD, StringPool.BLANK);
+			sql = StringUtil.replace(
+				sql, _OWNER_USER_ID_KEYWORD, StringPool.BLANK);
 
-			sql = sql.replace(
-				_OWNER_USER_ID_AND_OR_CONNECTOR, StringPool.BLANK);
+			sql = StringUtil.replace(
+				sql, _OWNER_USER_ID_AND_OR_CONNECTOR, StringPool.BLANK);
 		}
 
 		return sql;
@@ -810,6 +693,127 @@ public class CustomSQLImpl implements CustomSQL {
 		return sql;
 	}
 
+	@Activate
+	protected void activate(BundleContext bundleContext) throws SQLException {
+		_bundleContext = bundleContext;
+
+		_portal.initCustomSQL();
+
+		Connection con = DataAccess.getConnection();
+
+		String functionIsNull = _portal.getCustomSQLFunctionIsNull();
+		String functionIsNotNull = _portal.getCustomSQLFunctionIsNotNull();
+
+		try {
+			if (Validator.isNotNull(functionIsNull) &&
+				Validator.isNotNull(functionIsNotNull)) {
+
+				_functionIsNull = functionIsNull;
+				_functionIsNotNull = functionIsNotNull;
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"functionIsNull is manually set to " + functionIsNull);
+					_log.debug(
+						"functionIsNotNull is manually set to " +
+							functionIsNotNull);
+				}
+			}
+			else if (con != null) {
+				DatabaseMetaData metaData = con.getMetaData();
+
+				String dbName = GetterUtil.getString(
+					metaData.getDatabaseProductName());
+
+				if (_log.isInfoEnabled()) {
+					_log.info("Database name " + dbName);
+				}
+
+				if (dbName.startsWith("DB2")) {
+					_vendorDB2 = true;
+					_functionIsNull = DB2_FUNCTION_IS_NULL;
+					_functionIsNotNull = DB2_FUNCTION_IS_NOT_NULL;
+
+					if (_log.isInfoEnabled()) {
+						_log.info("Detected DB2 with database name " + dbName);
+					}
+				}
+				else if (dbName.startsWith("HSQL")) {
+					_vendorHSQL = true;
+
+					if (_log.isInfoEnabled()) {
+						_log.info("Detected HSQL with database name " + dbName);
+					}
+				}
+				else if (dbName.startsWith("Informix")) {
+					_vendorInformix = true;
+					_functionIsNull = INFORMIX_FUNCTION_IS_NULL;
+					_functionIsNotNull = INFORMIX_FUNCTION_IS_NOT_NULL;
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Detected Informix with database name " + dbName);
+					}
+				}
+				else if (dbName.startsWith("MySQL")) {
+					_vendorMySQL = true;
+					//_functionIsNull = MYSQL_FUNCTION_IS_NULL;
+					//_functionIsNotNull = MYSQL_FUNCTION_IS_NOT_NULL;
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Detected MySQL with database name " + dbName);
+					}
+				}
+				else if (dbName.startsWith("Sybase") || dbName.equals("ASE")) {
+					_vendorSybase = true;
+					_functionIsNull = SYBASE_FUNCTION_IS_NULL;
+					_functionIsNotNull = SYBASE_FUNCTION_IS_NOT_NULL;
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Detected Sybase with database name " + dbName);
+					}
+				}
+				else if (dbName.startsWith("Oracle")) {
+					_vendorOracle = true;
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Detected Oracle with database name " + dbName);
+					}
+				}
+				else if (dbName.startsWith("PostgreSQL")) {
+					_vendorPostgreSQL = true;
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Detected PostgreSQL with database name " + dbName);
+					}
+				}
+				else {
+					if (_log.isDebugEnabled()) {
+						_log.debug(
+							"Unable to detect database with name " + dbName);
+					}
+				}
+			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+		finally {
+			DataAccess.cleanUp(con);
+		}
+
+		_bundleContext.addBundleListener(_synchronousBundleListener);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_bundleContext.removeBundleListener(_synchronousBundleListener);
+	}
+
 	protected String insertWildcard(String keyword, WildcardMode wildcardMode) {
 		if (wildcardMode == WildcardMode.LEADING) {
 			return StringPool.PERCENT.concat(keyword);
@@ -963,9 +967,6 @@ public class CustomSQLImpl implements CustomSQL {
 		new ConcurrentHashMap<>();
 	private String _functionIsNotNull;
 	private String _functionIsNull;
-
-	@Reference(target = ModuleServiceLifecycle.DATABASE_INITIALIZED)
-	private ModuleServiceLifecycle _moduleServiceLifecycle;
 
 	@Reference
 	private Portal _portal;

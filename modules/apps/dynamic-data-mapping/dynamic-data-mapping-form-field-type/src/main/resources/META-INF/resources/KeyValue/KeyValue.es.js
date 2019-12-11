@@ -13,14 +13,17 @@
  */
 
 import '../FieldBase/FieldBase.es';
+
 import '../Text/Text.es';
+
 import './KeyValueRegister.soy.js';
 
+import {normalizeFieldName} from 'dynamic-data-mapping-form-renderer/js/util/fields.es';
 import Component from 'metal-component';
 import Soy from 'metal-soy';
-import templates from './KeyValue.soy.js';
 import {Config} from 'metal-state';
-import {normalizeFieldName} from 'dynamic-data-mapping-form-renderer/js/util/fields.es';
+
+import templates from './KeyValue.soy.js';
 
 /**
  * KeyValue.
@@ -43,7 +46,7 @@ class KeyValue extends Component {
 	}
 
 	_handleKeywordInputBlurred(event) {
-		this.emit('fieldBlurred', {
+		this.emit('fieldKeywordBlurred', {
 			fieldInstance: this,
 			originalEvent: event,
 			value: event.target.value
@@ -96,11 +99,14 @@ class KeyValue extends Component {
 				value
 			},
 			() => {
-				this.emit('fieldKeywordEdited', {
-					fieldInstance: this,
-					originalEvent,
-					value: keyword
-				});
+				if (generateKeyword) {
+					this.emit('fieldKeywordEdited', {
+						fieldInstance: this,
+						originalEvent,
+						value: keyword
+					});
+				}
+
 				this.emit('fieldEdited', {
 					fieldInstance: this,
 					originalEvent,

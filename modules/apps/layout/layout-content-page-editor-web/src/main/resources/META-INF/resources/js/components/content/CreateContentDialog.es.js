@@ -13,33 +13,36 @@
  */
 
 import {Config} from 'metal-state';
+
 import 'frontend-js-web/liferay/compat/modal/Modal.es';
 import Component from 'metal-component';
 import Soy from 'metal-soy';
 
 import getConnectedComponent from '../../store/ConnectedComponent.es';
 import templates from './CreateContentDialog.soy';
+
 import './CreateContentForm.es';
+
 import './MapContentForm.es';
-import {setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
 import {
-	addStructuredContent,
-	getContentStructureMappingFields,
-	updateEditableValues
-} from '../../utils/FragmentsEditorFetchUtils.es';
-import {
-	COMPATIBLE_TYPES,
-	EDITABLE_FRAGMENT_ENTRY_PROCESSOR
-} from '../../utils/constants';
+	ADD_MAPPED_INFO_ITEM,
+	UPDATE_EDITABLE_VALUE_LOADING
+} from '../../actions/actions.es';
 import {
 	disableSavingChangesStatusAction,
 	enableSavingChangesStatusAction
 } from '../../actions/saveChanges.es';
 import {updatePageContentsAction} from '../../actions/updatePageContents.es';
 import {
-	ADD_MAPPED_ASSET_ENTRY,
-	UPDATE_EDITABLE_VALUE_LOADING
-} from '../../actions/actions.es';
+	addStructuredContent,
+	getContentStructureMappingFields,
+	updateEditableValues
+} from '../../utils/FragmentsEditorFetchUtils.es';
+import {setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
+import {
+	COMPATIBLE_TYPES,
+	EDITABLE_FRAGMENT_ENTRY_PROCESSOR
+} from '../../utils/constants';
 
 /**
  * CreateContentDialog
@@ -164,7 +167,7 @@ class CreateContentDialog extends Component {
 							.dispatch(updatePageContentsAction())
 							.dispatch({
 								...response,
-								type: ADD_MAPPED_ASSET_ENTRY
+								type: ADD_MAPPED_INFO_ITEM
 							})
 							.dispatch(disableSavingChangesStatusAction())
 							.done(() => this.dispose());

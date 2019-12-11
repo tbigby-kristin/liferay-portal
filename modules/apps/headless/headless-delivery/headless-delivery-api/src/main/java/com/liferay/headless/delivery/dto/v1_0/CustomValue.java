@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -45,6 +47,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class CustomValue {
 
 	@Schema(description = "The field's content for simple types.")
+	@Valid
 	public Object getData() {
 		return data;
 	}
@@ -66,11 +69,12 @@ public class CustomValue {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The field's content for simple types.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Object data;
 
 	@Schema(description = "A point determined by latitude and longitude.")
+	@Valid
 	public Geo getGeo() {
 		return geo;
 	}
@@ -92,7 +96,7 @@ public class CustomValue {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A point determined by latitude and longitude.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Geo geo;
 
@@ -151,6 +155,12 @@ public class CustomValue {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.CustomValue",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

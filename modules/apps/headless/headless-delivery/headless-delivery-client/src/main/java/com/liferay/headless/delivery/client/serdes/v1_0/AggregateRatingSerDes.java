@@ -65,6 +65,16 @@ public class AggregateRatingSerDes {
 			sb.append(aggregateRating.getBestRating());
 		}
 
+		if (aggregateRating.getRatingAverage() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"ratingAverage\": ");
+
+			sb.append(aggregateRating.getRatingAverage());
+		}
+
 		if (aggregateRating.getRatingCount() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -122,6 +132,15 @@ public class AggregateRatingSerDes {
 				"bestRating", String.valueOf(aggregateRating.getBestRating()));
 		}
 
+		if (aggregateRating.getRatingAverage() == null) {
+			map.put("ratingAverage", null);
+		}
+		else {
+			map.put(
+				"ratingAverage",
+				String.valueOf(aggregateRating.getRatingAverage()));
+		}
+
 		if (aggregateRating.getRatingCount() == null) {
 			map.put("ratingCount", null);
 		}
@@ -176,6 +195,12 @@ public class AggregateRatingSerDes {
 						Double.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "ratingAverage")) {
+				if (jsonParserFieldValue != null) {
+					aggregateRating.setRatingAverage(
+						Double.valueOf((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "ratingCount")) {
 				if (jsonParserFieldValue != null) {
 					aggregateRating.setRatingCount(
@@ -205,9 +230,11 @@ public class AggregateRatingSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

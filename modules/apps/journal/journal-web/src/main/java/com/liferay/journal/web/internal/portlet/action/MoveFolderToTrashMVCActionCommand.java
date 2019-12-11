@@ -15,16 +15,15 @@
 package com.liferay.journal.web.internal.portlet.action;
 
 import com.liferay.journal.constants.JournalPortletKeys;
-import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalFolderService;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.portlet.ActionRequest;
@@ -51,14 +50,12 @@ public class MoveFolderToTrashMVCActionCommand extends BaseMVCActionCommand {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		long folderId = ParamUtil.getLong(actionRequest, "folderId");
-
-		JournalFolder folder = _journalFolderService.moveFolderToTrash(
-			folderId);
-
-		Map<String, Object> data = new HashMap<>();
-
-		data.put("trashedModels", Collections.singletonList(folder));
+		Map<String, Object> data = HashMapBuilder.<String, Object>put(
+			"trashedModels",
+			Collections.singletonList(
+				_journalFolderService.moveFolderToTrash(
+					ParamUtil.getLong(actionRequest, "folderId")))
+		).build();
 
 		SessionMessages.add(
 			actionRequest,

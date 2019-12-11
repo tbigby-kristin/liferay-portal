@@ -13,12 +13,25 @@
  */
 
 import {ClayInput} from '@clayui/form';
-import React from 'react';
+import classNames from 'classnames';
+import React, {useContext} from 'react';
+
+import {AppContext} from '../../AppContext.es';
 import Button from '../button/Button.es';
 
 const UpperToolbar = ({children}) => {
+	const {appDeploymentType} = useContext(AppContext);
+
 	return (
-		<nav className="app-builder-upper-toolbar component-tbar subnav-tbar-light tbar">
+		<nav
+			className={classNames(
+				'app-builder-upper-toolbar',
+				'component-tbar',
+				'subnav-tbar-light',
+				'tbar',
+				appDeploymentType
+			)}
+		>
 			<div className="container-fluid container-fluid-max-xl">
 				<ul className="tbar-nav">{children}</ul>
 			</div>
@@ -59,9 +72,13 @@ const UpperToolbarInput = ({
 	);
 };
 
-const UpperToolbarItem = ({children, expand}) => {
+const UpperToolbarItem = ({children, className, expand}) => {
 	return (
-		<li className={`tbar-item ${expand ? 'tbar-item-expand' : ''}`}>
+		<li
+			className={classNames(className, 'tbar-item', {
+				'tbar-item-expand': expand
+			})}
+		>
 			<div className="tbar-section">{children}</div>
 		</li>
 	);

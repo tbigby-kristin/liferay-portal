@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.product.navigation.personal.menu.PersonalMenuEntry;
 import com.liferay.product.navigation.personal.menu.constants.PersonalMenuPortletKeys;
+import com.liferay.product.navigation.personal.menu.util.PersonalApplicationURLUtil;
 import com.liferay.product.navigation.personal.menu.web.internal.PersonalMenuEntryRegistry;
 
 import java.util.List;
@@ -88,23 +89,51 @@ public class GetPersonalMenuItemsMVCResourceCommand
 	}
 
 	private JSONArray _getImpersonationItemsJSONArray(
-		PortletRequest portletRequest, ThemeDisplay themeDisplay) {
-
-		JSONObject jsonObject1 = JSONUtil.put(
-			"href",
-			_http.removeParameter(
-				ParamUtil.getString(portletRequest, "currentURL"), "doAsUserId")
-		).put(
-			"icon", "change"
-		).put(
-			"label",
-			LanguageUtil.get(themeDisplay.getLocale(), "be-yourself-again")
-		);
-
-		JSONArray jsonArray = JSONUtil.put(jsonObject1);
+			PortletRequest portletRequest, ThemeDisplay themeDisplay)
+		throws PortalException {
 
 		User realUser = themeDisplay.getRealUser();
 		User user = themeDisplay.getUser();
+
+		String realUserURL = _http.removeParameter(
+			ParamUtil.getString(portletRequest, "currentURL"), "doAsUserId");
+
+		String userProfileURL = _http.getPath(
+			user.getDisplayURL(themeDisplay, false));
+
+		if (realUserURL.startsWith(userProfileURL)) {
+			realUserURL = StringUtil.replace(
+				realUserURL, userProfileURL,
+				_http.getPath(realUser.getDisplayURL(themeDisplay, false)));
+
+			PersonalApplicationURLUtil.
+				getOrAddEmbeddedPersonalApplicationLayout(
+					realUser, realUser.getGroup(), false);
+		}
+
+		String userDashboardURL = _http.getPath(
+			user.getDisplayURL(themeDisplay, true));
+
+		if (realUserURL.startsWith(userDashboardURL)) {
+			realUserURL = StringUtil.replace(
+				realUserURL, userDashboardURL,
+				_http.getPath(realUser.getDisplayURL(themeDisplay, true)));
+
+			PersonalApplicationURLUtil.
+				getOrAddEmbeddedPersonalApplicationLayout(
+					realUser, realUser.getGroup(), true);
+		}
+
+		JSONObject jsonObject1 = JSONUtil.put(
+			"href", realUserURL
+		).put(
+			"label",
+			LanguageUtil.get(themeDisplay.getLocale(), "be-yourself-again")
+		).put(
+			"symbolRight", "change"
+		);
+
+		JSONArray jsonArray = JSONUtil.put(jsonObject1);
 
 		Locale realUserLocale = realUser.getLocale();
 		Locale userLocale = user.getLocale();
@@ -147,9 +176,9 @@ public class GetPersonalMenuItemsMVCResourceCommand
 					ParamUtil.getString(portletRequest, "currentURL"),
 					"doAsUserLanguageId", doAsUserLanguageId)
 			).put(
-				"icon", "globe"
-			).put(
 				"label", changeLanguageLabel
+			).put(
+				"symbolRight", "globe"
 			);
 
 			jsonArray.put(jsonObject2);
@@ -192,9 +221,9 @@ public class GetPersonalMenuItemsMVCResourceCommand
 			}
 
 			jsonObject.put(
-				"icon", personalMenuEntry.getIcon(portletRequest)
-			).put(
 				"label", personalMenuEntry.getLabel(themeDisplay.getLocale())
+			).put(
+				"symbolRight", personalMenuEntry.getIcon(portletRequest)
 			);
 
 			jsonArray.put(jsonObject);
@@ -228,31 +257,34 @@ public class GetPersonalMenuItemsMVCResourceCommand
 					user.getFullName(),
 					LanguageUtil.get(themeDisplay.getLocale(), "impersonated"))
 			).put(
-				"separator", true
-			).put(
 				"type", "group"
 			);
 
 			jsonArray.put(impersonationJSONObject);
 		}
 
-		for (int i = 0; i < groupedPersonalMenuEntries.size(); i++) {
+		JSONObject dividerJSONObject = JSONUtil.put("type", "divider");
+
+		for (List<PersonalMenuEntry> groupedPersonalMenuEntry :
+				groupedPersonalMenuEntries) {
+
 			JSONArray personalMenuEntriesJSONArray =
 				_getPersonalMenuEntriesJSONArray(
-					portletRequest, groupedPersonalMenuEntries.get(i));
+					portletRequest, groupedPersonalMenuEntry);
 
 			if (personalMenuEntriesJSONArray.length() == 0) {
 				continue;
 			}
 
-			JSONObject jsonObject = JSONUtil.put(
-				"items", personalMenuEntriesJSONArray);
-
-			if (i < (groupedPersonalMenuEntries.size() - 1)) {
-				jsonObject.put("separator", true);
+			if (jsonArray.length() > 0) {
+				jsonArray.put(dividerJSONObject);
 			}
 
-			jsonObject.put("type", "group");
+			JSONObject jsonObject = JSONUtil.put(
+				"items", personalMenuEntriesJSONArray
+			).put(
+				"type", "group"
+			);
 
 			jsonArray.put(jsonObject);
 		}

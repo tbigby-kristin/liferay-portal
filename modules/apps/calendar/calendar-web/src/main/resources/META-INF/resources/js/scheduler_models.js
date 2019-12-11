@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-scheduler-models',
-	function(A) {
+	A => {
 		var AObject = A.Object;
 
 		var DateMath = A.DataType.DateMath;
@@ -28,7 +28,7 @@ AUI.add(
 		var isObject = Lang.isObject;
 		var isValue = Lang.isValue;
 
-		var toInitialCap = A.cached(function(str) {
+		var toInitialCap = A.cached(str => {
 			return str.substring(0, 1).toUpperCase() + str.substring(1);
 		});
 
@@ -421,6 +421,29 @@ AUI.add(
 					}
 				},
 
+				syncNodeTitleUI() {
+					var instance = this,
+						format = instance.get('titleDateFormat'),
+						startDate = instance.get('startDate'),
+						endDate = instance.get('endDate'),
+						title = [];
+
+					if (format.startDate) {
+						title.push(
+							instance._formatDate(startDate, format.startDate) +
+								' '
+						);
+					}
+
+					if (format.endDate) {
+						title.push(
+							instance._formatDate(endDate, format.endDate)
+						);
+					}
+
+					instance.setTitle(title.join(''));
+				},
+
 				syncUI() {
 					var instance = this;
 
@@ -630,7 +653,7 @@ AUI.add(
 							CalendarWorkflow.STATUS_MAYBE,
 							CalendarWorkflow.STATUS_PENDING
 						],
-						function(calendarBookings) {
+						calendarBookings => {
 							if (filterCalendarBookings) {
 								calendarBookings = calendarBookings.filter(
 									filterCalendarBookings

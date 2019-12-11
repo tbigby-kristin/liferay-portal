@@ -19,10 +19,13 @@ import com.liferay.document.library.internal.upgrade.v1_0_1.UpgradeDLConfigurati
 import com.liferay.document.library.internal.upgrade.v1_0_1.UpgradeDLFileEntryConfiguration;
 import com.liferay.document.library.internal.upgrade.v1_0_2.UpgradeDLFileShortcut;
 import com.liferay.document.library.internal.upgrade.v1_1_0.UpgradeSchema;
+import com.liferay.document.library.internal.upgrade.v2_0_0.UpgradeCompanyId;
+import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.store.Store;
 import com.liferay.portal.configuration.upgrade.PrefsPropsToConfigurationUpgradeHelper;
-import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
+import com.liferay.portal.kernel.upgrade.UpgradeViewCount;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
+import com.liferay.view.count.service.ViewCountEntryLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -30,13 +33,11 @@ import org.osgi.service.component.annotations.Reference;
 /**
  * @author Miguel Pastor
  */
-@Component(immediate = true, service = UpgradeStepRegistrator.class)
+@Component(service = UpgradeStepRegistrator.class)
 public class DLServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Override
 	public void register(Registry registry) {
-		registry.register("0.0.0", "1.0.0", new DummyUpgradeStep());
-
 		registry.register("0.0.1", "1.0.0", new UpgradeDocumentLibrary(_store));
 
 		registry.register("1.0.0", "1.0.1", new UpgradeDLFileShortcut());
@@ -48,6 +49,13 @@ public class DLServiceUpgrade implements UpgradeStepRegistrator {
 				_prefsPropsToConfigurationUpgradeHelper));
 
 		registry.register("1.0.2", "1.1.0", new UpgradeSchema());
+
+		registry.register("1.1.0", "2.0.0", new UpgradeCompanyId());
+
+		registry.register(
+			"2.0.0", "3.0.0",
+			new UpgradeViewCount(
+				"DlFileEntry", DLFileEntry.class, "fileEntryId", "readCount"));
 	}
 
 	@Reference
@@ -56,5 +64,8 @@ public class DLServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Reference(target = "(dl.store.upgrade=true)")
 	private Store _store;
+
+	@Reference
+	private ViewCountEntryLocalService _viewCountEntryLocalService;
 
 }

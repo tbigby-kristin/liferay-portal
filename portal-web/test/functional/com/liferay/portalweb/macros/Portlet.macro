@@ -33,8 +33,8 @@ definition {
 
 		var i = "0";
 
-		while (!("${i}" == "${portletCount}")) {
-			var i = MathUtil.sum("${i}", "1");
+		while ("${i}" != "${portletCount}") {
+			var i = ${i} + 1;
 
 			Refresh();
 
@@ -58,7 +58,7 @@ definition {
 		var key_portletName = "${portletName}";
 
 		while (!((IsElementPresent(locator1 = "Home#PORTLET")) || ("${i}" == "3"))) {
-			var i = MathUtil.sum("${i}", "1");
+			var i = ${i} + 1;
 
 			Pause(locator1 = "30000");
 
@@ -105,12 +105,12 @@ definition {
 	macro assertServerShutdown {
 		var shutdownPauseCount = "0";
 
-		while ((IsElementPresent(locator1 = "//body")) && (!("${shutdownPauseCount}" == "12"))) {
+		while ((IsElementPresent(locator1 = "//body")) && ("${shutdownPauseCount}" != "12")) {
 			Refresh();
 
 			Pause(locator1 = "10000");
 
-			var shutdownPauseCount = MathUtil.sum("${shutdownPauseCount}", "1");
+			var shutdownPauseCount = ${shutdownPauseCount} + 1;
 
 			echo("Shutdown pause count: ${shutdownPauseCount}");
 		}
@@ -119,12 +119,12 @@ definition {
 	macro assertServerStartup {
 		var startupPauseCount = "0";
 
-		while ((!(IsElementPresent(locator1 = "UserBar#USER_SIGN_IN"))) && (!("${startupPauseCount}" == "12"))) {
+		while ((!(IsElementPresent(locator1 = "UserBar#USER_SIGN_IN"))) && ("${startupPauseCount}" != "12")) {
 			Refresh();
 
 			Pause(locator1 = "10000");
 
-			var startupPauseCount = MathUtil.sum("${startupPauseCount}", "1");
+			var startupPauseCount = ${startupPauseCount} + 1;
 
 			echo("Startup pause count: ${startupPauseCount}");
 		}
@@ -143,13 +143,23 @@ definition {
 	}
 
 	macro clickPortletPlusIconPG {
-		MouseOver.mouseOverNotVisible(
-			key_portletName = "${portletName}",
-			locator1 = "Portlet#ICON_PLUS_SIGN");
+		var browserType = PropsUtil.get("browser.type");
+		var key_portletName = "${portletName}";
 
-		Click(
-			key_portletName = "${portletName}",
-			locator1 = "Portlet#ICON_PLUS_SIGN");
+		if ("${browserType}" == "internetexplorer") {
+			Click.javaScriptClick(locator1 = "Portlet#ICON_PLUS_SIGN");
+
+			AssertVisible(locator1 = "Portlet#ICON_PLUS_SIGN");
+		}
+		else {
+			MouseOver.mouseOverNotVisible(
+				key_portletName = "${portletName}",
+				locator1 = "Portlet#ICON_PLUS_SIGN");
+
+			Click(
+				key_portletName = "${portletName}",
+				locator1 = "Portlet#ICON_PLUS_SIGN");
+		}
 	}
 
 	macro configureApplicationDecoratorViaLookandfeelPG {
@@ -249,10 +259,18 @@ definition {
 	macro gotoPortletOptions {
 		if (isSet(portletName)) {
 			var key_portletName = "${portletName}";
+			var browserType = PropsUtil.get("browser.type");
 
-			MouseOver.mouseOverNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+			if ("${browserType}" == "internetexplorer") {
+				Click.javaScriptClick(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
 
-			Click(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+				AssertVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+			}
+			else {
+				MouseOver.mouseOverNotVisible(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+
+				Click(locator1 = "Portlet#SPECIFIC_BORDERLESS_ELLIPSIS_ICON");
+			}
 		}
 		else {
 			MouseOver.mouseOverNotVisible(locator1 = "Portlet#OPTIONS_ICON");
@@ -337,9 +355,17 @@ definition {
 	}
 
 	macro viewApplicationDecorator {
-		AssertElementPresent(
-			key_decorator = StringUtil.lowerCase("${decorator}"),
-			locator1 = "Portlet#PORTLET_BORDER_DECORATOR");
+		if (isSet(portletName)) {
+			key_decorator = StringUtil.lowerCase("${decorator}");
+			var key_portletTitleName = "${portletName}";
+
+			AssertElementPresent(locator1 = "Portlet#SPECIFIC_PORTLET_BORDER_DECORATOR");
+		}
+		else {
+			AssertElementPresent(
+				key_decorator = StringUtil.lowerCase("${decorator}"),
+				locator1 = "Portlet#PORTLET_BORDER_DECORATOR");
+		}
 	}
 
 	@summary = "Assert that the ${portletName} portlet body has the text '${portletBody}'"
@@ -394,8 +420,8 @@ definition {
 	macro viewDuplicatePG {
 		var i = "0";
 
-		while (!("${i}" == "${totalPortletCount}")) {
-			var i = MathUtil.sum("${i}", "1");
+		while ("${i}" != "${totalPortletCount}") {
+			var i = ${i} + 1;
 
 			AssertElementPresent(locator1 = "xpath=(//h2[contains(.,'${portletName}')])[${i}]");
 		}

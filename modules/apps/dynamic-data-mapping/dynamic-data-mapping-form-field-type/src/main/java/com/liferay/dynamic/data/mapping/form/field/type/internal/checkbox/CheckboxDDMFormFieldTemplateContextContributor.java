@@ -19,8 +19,8 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -43,24 +43,17 @@ public class CheckboxDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put(
+		return HashMapBuilder.<String, Object>put(
 			"predefinedValue",
 			GetterUtil.getBoolean(
-				getPredefinedValue(
-					ddmFormField, ddmFormFieldRenderingContext)));
-
-		boolean showAsSwitcher = GetterUtil.getBoolean(
-			ddmFormField.getProperty("showAsSwitcher"));
-
-		parameters.put("showAsSwitcher", showAsSwitcher);
-
-		parameters.put(
+				getPredefinedValue(ddmFormField, ddmFormFieldRenderingContext))
+		).put(
+			"showAsSwitcher",
+			GetterUtil.getBoolean(ddmFormField.getProperty("showAsSwitcher"))
+		).put(
 			"value",
-			GetterUtil.getBoolean(ddmFormFieldRenderingContext.getValue()));
-
-		return parameters;
+			GetterUtil.getBoolean(ddmFormFieldRenderingContext.getValue())
+		).build();
 	}
 
 	protected String getPredefinedValue(

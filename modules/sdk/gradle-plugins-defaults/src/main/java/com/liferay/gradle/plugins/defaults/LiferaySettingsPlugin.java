@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Set;
 
 import org.gradle.api.Plugin;
@@ -170,11 +171,14 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 			final String projectPathPrefix)
 		throws IOException {
 
+		final String buildProfile = System.getProperty("build.profile");
+
 		final Set<String> buildProfileFileNames =
 			GradlePluginsDefaultsUtil.getBuildProfileFileNames(
-				System.getProperty("build.profile"),
+				buildProfile,
 				GradleUtil.getProperty(
 					settings, "liferay.releng.public", true));
+
 		final Set<Path> excludedDirPaths = _getDirPaths(
 			"build.exclude.dirs", projectPathRootDirPath);
 		final Set<Path> includedDirPaths = _getDirPaths(
@@ -197,6 +201,16 @@ public class LiferaySettingsPlugin implements Plugin<Settings> {
 
 					if (excludedDirPaths.contains(dirPath)) {
 						return FileVisitResult.SKIP_SUBTREE;
+					}
+
+					if ((buildProfileFileNames != null) &&
+						!Objects.equals(buildProfile, "dxp")) {
+
+						Path dxpPath = projectPathRootDirPath.resolve("dxp");
+
+						if (dirPath.equals(dxpPath)) {
+							return FileVisitResult.SKIP_SUBTREE;
+						}
 					}
 
 					String dirName = String.valueOf(dirPath.getFileName());

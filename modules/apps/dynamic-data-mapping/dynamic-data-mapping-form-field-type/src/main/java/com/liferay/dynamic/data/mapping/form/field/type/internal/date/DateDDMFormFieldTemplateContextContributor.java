@@ -18,13 +18,19 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateCont
 import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -46,19 +52,45 @@ public class DateDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put(
+		return HashMapBuilder.<String, Object>put(
+			"months",
+			Arrays.asList(
+				CalendarUtil.getMonths(
+					LocaleThreadLocal.getThemeDisplayLocale()))
+		).put(
 			"predefinedValue",
-			GetterUtil.getString(ddmFormField.getPredefinedValue(), ""));
+			_getPredefinedValue(ddmFormField, ddmFormFieldRenderingContext)
+		).put(
+			"weekdaysShort",
+			Stream.of(
+				CalendarUtil.DAYS_ABBREVIATION
+			).map(
+				day -> LanguageUtil.get(
+					LocaleThreadLocal.getThemeDisplayLocale(), day)
+			).collect(
+				Collectors.toList()
+			)
+		).put(
+			"years", _getYears()
+		).build();
+	}
 
-		String predefinedValue = getPredefinedValue(
-			ddmFormField, ddmFormFieldRenderingContext);
+	private String _getPredefinedValue(
+		DDMFormField ddmFormField,
+		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		if (predefinedValue != null) {
-			parameters.put("predefinedValue", predefinedValue);
+		LocalizedValue predefinedValue = ddmFormField.getPredefinedValue();
+
+		if (predefinedValue == null) {
+			return null;
 		}
 
+		return GetterUtil.getString(
+			predefinedValue.getString(
+				ddmFormFieldRenderingContext.getLocale()));
+	}
+
+	private List<Integer> _getYears() {
 		List<Integer> years = new ArrayList<>();
 
 		Calendar calendar = Calendar.getInstance();
@@ -71,23 +103,7 @@ public class DateDDMFormFieldTemplateContextContributor
 			calendar.add(Calendar.YEAR, 1);
 		}
 
-		parameters.put("years", years);
-
-		return parameters;
-	}
-
-	protected String getPredefinedValue(
-		DDMFormField ddmFormField,
-		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
-
-		LocalizedValue predefinedValue = ddmFormField.getPredefinedValue();
-
-		if (predefinedValue == null) {
-			return null;
-		}
-
-		return predefinedValue.getString(
-			ddmFormFieldRenderingContext.getLocale());
+		return years;
 	}
 
 }

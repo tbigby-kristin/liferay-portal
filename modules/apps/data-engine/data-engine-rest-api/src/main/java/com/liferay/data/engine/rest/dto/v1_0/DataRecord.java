@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -73,6 +75,7 @@ public class DataRecord {
 	protected Long dataRecordCollectionId;
 
 	@Schema
+	@Valid
 	public Map<String, Object> getDataRecordValues() {
 		return dataRecordValues;
 	}
@@ -188,6 +191,12 @@ public class DataRecord {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.data.engine.rest.dto.v1_0.DataRecord",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

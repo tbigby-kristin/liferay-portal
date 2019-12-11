@@ -18,6 +18,7 @@
 
 <%
 String productMenuState = SessionClicks.get(request, "com.liferay.product.navigation.product.menu.web_productMenuState", "closed");
+String pagesTreeState = SessionClicks.get(request, "com.liferay.product.navigation.product.menu.web_pagesTreeState", "closed");
 %>
 
 <div class="lfr-product-menu-sidebar" id="productMenuSidebar">
@@ -27,7 +28,7 @@ String productMenuState = SessionClicks.get(request, "com.liferay.product.naviga
 		<div class="autofit-row">
 			<div class="autofit-col autofit-col-expand">
 				<a href="<%= PortalUtil.addPreservedParameters(themeDisplay, themeDisplay.getURLPortal(), false, true) %>">
-					<span class="company-details truncate-text">
+					<span class="company-details text-truncate">
 						<img alt="" class="company-logo" src="<%= themeDisplay.getPathImage() + "/company_logo?img_id=" + company.getLogoId() + "&t=" + WebServerServletTokenUtil.getToken(company.getLogoId()) %>" />
 
 						<span class="company-name"><%= HtmlUtil.escape(company.getName()) %></span>
@@ -42,39 +43,47 @@ String productMenuState = SessionClicks.get(request, "com.liferay.product.naviga
 	</div>
 
 	<div class="sidebar-body">
-		<c:if test='<%= Objects.equals(productMenuState, "open") %>'>
-			<liferay-util:include page="/portlet/product_menu.jsp" servletContext="<%= application %>" />
-		</c:if>
+		<c:choose>
+			<c:when test='<%= Objects.equals(productMenuState, "open") && !Objects.equals(pagesTreeState, "open") %>'>
+				<liferay-util:include page="/portlet/product_menu.jsp" servletContext="<%= application %>" />
+			</c:when>
+			<c:when test='<%= Objects.equals(productMenuState, "open") && Objects.equals(pagesTreeState, "open") %>'>
+				<div class="pages-tree">
+					<liferay-util:include page="/portlet/pages_tree.jsp" servletContext="<%= application %>" />
+				</div>
+			</c:when>
+		</c:choose>
 	</div>
 </div>
 
 <aui:script use="aui-base">
-	var sidenavToggle = document.getElementById('<portlet:namespace />sidenavToggleId');
+	var sidenavToggle = document.getElementById(
+		'<portlet:namespace />sidenavToggleId'
+	);
 
-	var sidenavInstance = Liferay.SideNavigation.initialize(sidenavToggle);
+	if (sidenavToggle) {
+		var sidenavInstance = Liferay.SideNavigation.initialize(sidenavToggle);
 
-	Liferay.once(
-		'screenLoad',
-		function() {
+		Liferay.once('screenLoad', function() {
 			Liferay.SideNavigation.destroy(sidenavToggle);
-		}
-	);
+		});
 
-	sidenavInstance.on(
-		'closed.lexicon.sidenav',
-		function(event) {
-			Liferay.Util.Session.set('com.liferay.product.navigation.product.menu.web_productMenuState', 'closed');
-		}
-	);
+		sidenavInstance.on('closed.lexicon.sidenav', function(event) {
+			Liferay.Util.Session.set(
+				'com.liferay.product.navigation.product.menu.web_productMenuState',
+				'closed'
+			);
+		});
 
-	sidenavInstance.on(
-		'open.lexicon.sidenav',
-		function(event) {
-			Liferay.Util.Session.set('com.liferay.product.navigation.product.menu.web_productMenuState', 'open');
-		}
-	);
+		sidenavInstance.on('open.lexicon.sidenav', function(event) {
+			Liferay.Util.Session.set(
+				'com.liferay.product.navigation.product.menu.web_productMenuState',
+				'open'
+			);
+		});
+	}
 
-	if (Liferay.Util.isPhone() && (document.body.classList.contains('open'))) {
+	if (Liferay.Util.isPhone() && document.body.classList.contains('open')) {
 		Liferay.SideNavigation.hide(sidenavToggle);
 	}
 </aui:script>

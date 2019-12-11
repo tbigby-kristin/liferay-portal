@@ -21,9 +21,9 @@ import com.liferay.data.engine.rest.client.pagination.Pagination;
 import com.liferay.data.engine.rest.resource.v1_0.test.util.DataDefinitionTestUtil;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import org.junit.Assert;
@@ -78,6 +78,12 @@ public class DataRecordCollectionResourceTest
 	@Override
 	@Test
 	public void testGraphQLDeleteDataRecordCollection() {
+	}
+
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetDataDefinitionDataRecordCollection() {
 	}
 
 	@Ignore
@@ -161,6 +167,17 @@ public class DataRecordCollectionResourceTest
 	}
 
 	@Override
+	protected DataRecordCollection
+			testGetDataDefinitionDataRecordCollection_addDataRecordCollection()
+		throws Exception {
+
+		return dataRecordCollectionResource.
+			postDataDefinitionDataRecordCollection(
+				_ddmStructure.getStructureId(),
+				_randomDataRecordCollection(_ddmStructure.getStructureKey()));
+	}
+
+	@Override
 	protected Long
 			testGetDataDefinitionDataRecordCollectionsPage_getDataDefinitionId()
 		throws Exception {
@@ -225,28 +242,40 @@ public class DataRecordCollectionResourceTest
 	private DataRecordCollection _createDataRecordCollection(
 		String description, String name) {
 
+		return _createDataRecordCollection(
+			RandomTestUtil.randomString(), description, name);
+	}
+
+	private DataRecordCollection _createDataRecordCollection(
+		String dataRecordCollectionKey, String description, String name) {
+
 		DataRecordCollection dataRecordCollection = new DataRecordCollection() {
 			{
 				dataDefinitionId = _ddmStructure.getStructureId();
-				dataRecordCollectionKey = RandomTestUtil.randomString();
 				siteId = testGroup.getGroupId();
 			}
 		};
 
+		dataRecordCollection.setDataRecordCollectionKey(
+			dataRecordCollectionKey);
 		dataRecordCollection.setDescription(
-			new HashMap<String, Object>() {
-				{
-					put("en_US", description);
-				}
-			});
+			HashMapBuilder.<String, Object>put(
+				"en_US", description
+			).build());
 		dataRecordCollection.setName(
-			new HashMap<String, Object>() {
-				{
-					put("en_US", name);
-				}
-			});
+			HashMapBuilder.<String, Object>put(
+				"en_US", name
+			).build());
 
 		return dataRecordCollection;
+	}
+
+	private DataRecordCollection _randomDataRecordCollection(
+		String dataRecordCollectionKey) {
+
+		return _createDataRecordCollection(
+			dataRecordCollectionKey, RandomTestUtil.randomString(),
+			RandomTestUtil.randomString());
 	}
 
 	private void _testGetDataDefinitionDataRecordCollectionsPage(

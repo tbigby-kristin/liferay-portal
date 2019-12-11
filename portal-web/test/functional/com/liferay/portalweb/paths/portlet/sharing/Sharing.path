@@ -33,7 +33,7 @@
 <!--MANAGE_COLLABORATORS-->
 <tr>
 	<td>MANAGE_COLLABORATORS_ACCESS_DROPDOWN</td>
-	<td>//li/div[contains(.,'${key_userName}')]//div[4]/div/select</td>
+	<td>//li/div[contains(.,'${key_userName}')]//div[4]/select</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,7 +59,7 @@
 <!--MODAL-->
 <tr>
 	<td>MODAL_INVITE_TO_COLLABORATE_DROPDOWN</td>
-	<td>//ul[contains(@class,'dropdown-menu')]//a[contains(@class,'dropdown-item')]</td>
+	<td>//div[contains(@class,'dropdown-menu')]//*[contains(@class,'dropdown-item')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -74,7 +74,7 @@
 </tr>
 <tr>
 	<td>MODAL_INVITE_TO_COLLABORATE_FEEDBACK_ITEM</td>
-	<td>//div[contains(@class,'form-feedback-item') and contains(.,"User ${key_userEmailAddress} does not exist.")]</td>
+	<td>//div[contains(@class,'form-feedback-item') and contains(.,"User ${key_userEmailAddress}  does not exist.")]</td>
 	<td></td>
 </tr>
 <tr>
@@ -142,6 +142,11 @@
 <tr>
 	<td>SHARED_CONTENT_ELLIPSIS</td>
 	<td>//tr[contains(.,'${key_contentTitle}')]//a[contains(@title,'Actions')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SHARED_CONTENT_REPLY_TO_COMMENT</td>
+	<td>//div[contains(@class,'autofit-col')]/button[contains(.,'Reply')]</td>
 	<td></td>
 </tr>
 <tr>

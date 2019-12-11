@@ -68,7 +68,7 @@ public class ParentKnowledgeBaseFolder {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The parent folder's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Long folderId;
 
@@ -96,7 +96,7 @@ public class ParentKnowledgeBaseFolder {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The parent folder's name.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String folderName;
 
@@ -156,6 +156,12 @@ public class ParentKnowledgeBaseFolder {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.ParentKnowledgeBaseFolder",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

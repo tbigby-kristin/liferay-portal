@@ -27,6 +27,8 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.validation.constraints.NotEmpty;
+
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
@@ -98,8 +100,8 @@ public class Query {
 				${javaMethodSignature.returnType}
 			</#if>
 
-			${freeMarkerTool.getGraphQLRelationName(javaMethodSignature, javaMethodSignatures)}(${freeMarkerTool.getGraphQLParameters(javaMethodSignature.javaMethodParameters, javaMethodSignature.operation, true)}) throws Exception {
-				<#assign arguments = freeMarkerTool.getGraphQLArguments(javaMethodSignature.javaMethodParameters, freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)) />
+			${freeMarkerTool.getGraphQLRelationName(javaMethodSignature, javaMethodSignatures)}(${freeMarkerTool.getGraphQLParameters(javaMethodSignature.javaMethodParameters[1..*(javaMethodSignature.javaMethodParameters?size - 1)], javaMethodSignature.operation, true)}) throws Exception {
+				<#assign arguments = freeMarkerTool.getGraphQLArguments(javaMethodSignature.javaMethodParameters[1..*(javaMethodSignature.javaMethodParameters?size - 1)], freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)) />
 
 				<#if javaMethodSignature.returnType?contains("Collection<")>
 					return _applyComponentServiceObjects(
@@ -107,18 +109,14 @@ public class Query {
 						Query.this::_populateResourceContext,
 						${freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)}Resource ->
 							new ${javaMethodSignature.schemaName}Page(
-								${freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)}Resource.${javaMethodSignature.methodName}(_${javaMethodSignature.parentSchemaName?uncap_first}.getId()
+								${freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)}Resource.${javaMethodSignature.methodName}(_${javaMethodSignature.parentSchemaName?uncap_first}.get${freeMarkerTool.getGraphQLJavaParameterName(configYAML, openAPIYAML, javaMethodSignature.parentSchemaName, javaMethodSignature.javaMethodParameters[0])}()
 
 								<#if arguments?has_content>
 									, ${arguments}
 								</#if>)));
 				<#else>
 					return _applyComponentServiceObjects(_${freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)}ResourceComponentServiceObjects, Query.this::_populateResourceContext, ${freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)}Resource -> ${freeMarkerTool.getSchemaVarName(javaMethodSignature.schemaName)}Resource.${javaMethodSignature.methodName}(
-						<#if javaMethodSignature.methodName?contains(javaMethodSignature.parentSchemaName)>
-							_${javaMethodSignature.parentSchemaName?uncap_first}.getId()
-						<#else>
-							_${javaMethodSignature.parentSchemaName?uncap_first}.${javaMethodSignature.methodName}Id()
-						</#if>
+						_${javaMethodSignature.parentSchemaName?uncap_first}.get${freeMarkerTool.getGraphQLJavaParameterName(configYAML, openAPIYAML, javaMethodSignature.parentSchemaName, javaMethodSignature.javaMethodParameters[0])}()
 
 						<#if arguments?has_content>
 							, ${arguments}
@@ -137,6 +135,7 @@ public class Query {
 
 			public ${schemaName}Page(Page ${freeMarkerTool.getSchemaVarName(schemaName)}Page) {
 				items = ${freeMarkerTool.getSchemaVarName(schemaName)}Page.getItems();
+				lastPage = ${freeMarkerTool.getSchemaVarName(schemaName)}Page.getLastPage();
 				page = ${freeMarkerTool.getSchemaVarName(schemaName)}Page.getPage();
 				pageSize = ${freeMarkerTool.getSchemaVarName(schemaName)}Page.getPageSize();
 				totalCount = ${freeMarkerTool.getSchemaVarName(schemaName)}Page.getTotalCount();
@@ -144,6 +143,9 @@ public class Query {
 
 			@GraphQLField
 			protected java.util.Collection<${schemaName}> items;
+
+			@GraphQLField
+			protected long lastPage;
 
 			@GraphQLField
 			protected long page;

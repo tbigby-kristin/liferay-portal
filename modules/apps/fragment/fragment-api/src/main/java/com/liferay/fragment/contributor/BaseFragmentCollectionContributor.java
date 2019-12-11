@@ -69,6 +69,21 @@ public abstract class BaseFragmentCollectionContributor
 	implements FragmentCollectionContributor {
 
 	@Override
+	public List<FragmentEntry> getFragmentEntries() {
+		_initialize();
+
+		List<FragmentEntry> fragmentEntries = new ArrayList<>();
+
+		for (Map.Entry<Integer, List<FragmentEntry>> entry :
+				_fragmentEntries.entrySet()) {
+
+			fragmentEntries.addAll(entry.getValue());
+		}
+
+		return fragmentEntries;
+	}
+
+	@Override
 	public List<FragmentEntry> getFragmentEntries(int type) {
 		_initialize();
 
@@ -77,38 +92,25 @@ public abstract class BaseFragmentCollectionContributor
 
 	@Override
 	public List<FragmentEntry> getFragmentEntries(int type, Locale locale) {
-		_initialize();
+		return _getFragmentEntries(getFragmentEntries(type), locale);
+	}
 
-		List<FragmentEntry> fragmentEntries = _fragmentEntries.getOrDefault(
-			type, Collections.emptyList());
-
-		Stream<FragmentEntry> stream = fragmentEntries.stream();
-
-		return stream.map(
-			fragmentEntry -> {
-				Map<Locale, String> names = _fragmentEntryNames.getOrDefault(
-					fragmentEntry.getFragmentEntryKey(),
-					Collections.emptyMap());
-
-				fragmentEntry.setName(
-					names.getOrDefault(
-						locale,
-						names.getOrDefault(
-							LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
-							fragmentEntry.getName())));
-
-				return fragmentEntry;
-			}
-		).collect(
-			Collectors.toList()
-		);
+	@Override
+	public List<FragmentEntry> getFragmentEntries(Locale locale) {
+		return _getFragmentEntries(getFragmentEntries(), locale);
 	}
 
 	@Override
 	public String getName() {
 		_initialize();
 
-		return _names.get(LocaleUtil.getDefault());
+		String name = _names.get(LocaleUtil.getDefault());
+
+		if (Validator.isNotNull(name)) {
+			return name;
+		}
+
+		return getFragmentCollectionKey();
 	}
 
 	@Override
@@ -122,6 +124,17 @@ public abstract class BaseFragmentCollectionContributor
 		}
 
 		return getName();
+	}
+
+	@Override
+	public Map<Locale, String> getNames() {
+		_initialize();
+
+		if (_names != null) {
+			return Collections.unmodifiableMap(_names);
+		}
+
+		return Collections.emptyMap();
 	}
 
 	@Override
@@ -152,12 +165,13 @@ public abstract class BaseFragmentCollectionContributor
 				StringPool.BLANK,
 				FragmentExportImportConstants.FILE_NAME_FRAGMENT_CONFIG, true);
 
+			_fragmentEntries = new HashMap<>();
+			_fragmentEntryNames = new HashMap<>();
+
 			if (MapUtil.isEmpty(names) || !enumeration.hasMoreElements()) {
 				return;
 			}
 
-			_fragmentEntries = new HashMap<>();
-			_fragmentEntryNames = new HashMap<>();
 			_names = names;
 
 			while (enumeration.hasMoreElements()) {
@@ -219,6 +233,31 @@ public abstract class BaseFragmentCollectionContributor
 		_setLocalizedNames(name, names, getResourceBundleLoader());
 
 		return names;
+	}
+
+	private List<FragmentEntry> _getFragmentEntries(
+		List<FragmentEntry> fragmentEntries, Locale locale) {
+
+		Stream<FragmentEntry> stream = fragmentEntries.stream();
+
+		return stream.map(
+			fragmentEntry -> {
+				Map<Locale, String> names = _fragmentEntryNames.getOrDefault(
+					fragmentEntry.getFragmentEntryKey(),
+					Collections.emptyMap());
+
+				fragmentEntry.setName(
+					names.getOrDefault(
+						locale,
+						names.getOrDefault(
+							LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+							fragmentEntry.getName())));
+
+				return fragmentEntry;
+			}
+		).collect(
+			Collectors.toList()
+		);
 	}
 
 	private FragmentEntry _getFragmentEntry(URL url) throws Exception {

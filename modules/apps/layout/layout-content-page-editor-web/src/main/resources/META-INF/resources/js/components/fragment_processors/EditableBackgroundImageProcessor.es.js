@@ -12,8 +12,8 @@
  * details.
  */
 
-import {FLOATING_TOOLBAR_BUTTONS} from '../../utils/constants';
 import {openImageSelector} from '../../utils/FragmentsEditorDialogUtils';
+import {FLOATING_TOOLBAR_BUTTONS} from '../../utils/constants';
 
 /**
  * Do nothing, as LiferayItemSelectorDialog is automatically
@@ -49,16 +49,10 @@ function getFloatingToolbarButtons(editableValues) {
  * Show the image selector dialog and calls the given callback when an
  * image is selected.
  * @param {function} callback
- * @param {string} imageSelectorURL
- * @param {string} portletNamespace
  * @review
  */
-function init(callback, imageSelectorURL, portletNamespace) {
-	openImageSelector({
-		callback,
-		imageSelectorURL,
-		portletNamespace
-	});
+function init(callback) {
+	openImageSelector(callback);
 }
 
 /**

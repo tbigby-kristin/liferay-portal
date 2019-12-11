@@ -31,11 +31,9 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.PropsValues;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -46,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -218,19 +217,25 @@ public class DDMFormValuesJSONDeserializer
 		return new UnlocalizedValue(jsonObject.getString("value"));
 	}
 
+	protected boolean invalidLocale(String languageId) {
+		if (LocaleUtil.fromLanguageId(languageId, true, false) == null) {
+			return true;
+		}
+
+		return false;
+	}
+
 	protected boolean isLocalized(JSONObject jsonObject) {
 		if (jsonObject == null) {
 			return false;
 		}
 
-		Iterator<String> keys = jsonObject.keys();
+		Set<String> keys = jsonObject.keySet();
 
-		while (keys.hasNext()) {
-			String key = keys.next();
+		Stream<String> stream = keys.stream();
 
-			if (!ArrayUtil.contains(PropsValues.LOCALES, key)) {
-				return false;
-			}
+		if (stream.anyMatch(this::invalidLocale)) {
+			return false;
 		}
 
 		return true;

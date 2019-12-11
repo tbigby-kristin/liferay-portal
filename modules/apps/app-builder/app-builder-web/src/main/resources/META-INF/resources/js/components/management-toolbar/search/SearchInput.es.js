@@ -14,62 +14,103 @@
 
 import {ClayButtonWithIcon} from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
-import React, {useContext, useEffect, useState} from 'react';
-import SearchContext from './SearchContext.es';
+import React, {useEffect, useRef, useState} from 'react';
 
-export default ({disabled}) => {
-	const {
-		dispatch,
-		state: {query}
-	} = useContext(SearchContext);
+const SearchInput = React.forwardRef(
+	(
+		{
+			clearButton = true,
+			onChange = () => {},
+			onSubmit = () => {},
+			searchText = '',
+			...restProps
+		},
+		ref
+	) => {
+		const [value, setValue] = useState(searchText);
+		const searchInputRef = ref ? ref : useRef(null);
 
-	const [keywords, setKeywords] = useState('');
+		useEffect(() => {
+			setValue(searchText);
+		}, [searchText]);
 
-	useEffect(() => {
-		setKeywords(query.keywords);
-	}, [query.keywords]);
+		const onClear = () => {
+			setValue('');
+			onChange('');
+			searchInputRef.current.focus();
+		};
 
-	const onChange = event => {
-		setKeywords(event.target.value);
-	};
+		let SearchButton = (
+			<ClayButtonWithIcon
+				displayType="unstyled"
+				key="searcgButton"
+				onClick={_ => onSubmit(value)}
+				symbol="search"
+				{...restProps}
+			/>
+		);
 
-	const handleSubmit = () => {
-		dispatch({keywords: keywords.trim(), type: 'SEARCH'});
+		if (clearButton && value) {
+			SearchButton = (
+				<ClayButtonWithIcon
+					displayType="unstyled"
+					key="clearButton"
+					onClick={onClear}
+					symbol="times"
+				/>
+			);
+		}
+
+		return (
+			<ClayInput.Group>
+				<ClayInput.GroupItem>
+					<ClayInput
+						aria-label={Liferay.Language.get('search')}
+						className="input-group-inset input-group-inset-after"
+						onChange={({target: {value}}) => {
+							setValue(value);
+							onChange(value);
+						}}
+						placeholder={`${Liferay.Language.get('search')}...`}
+						ref={searchInputRef}
+						type="text"
+						value={value}
+						{...restProps}
+					/>
+
+					<ClayInput.GroupInsetItem after>
+						{SearchButton}
+					</ClayInput.GroupInsetItem>
+				</ClayInput.GroupItem>
+			</ClayInput.Group>
+		);
+	}
+);
+
+const SearchInputWithForm = ({onSubmit = () => {}, ...restProps}) => {
+	const [searchText, setSearchText] = useState('');
+
+	const handleSubmit = value => {
+		onSubmit(value.trim());
 	};
 
 	return (
-		<div className="navbar-form navbar-form-autofit navbar-overlay navbar-overlay-sm-down">
-			<div className="container-fluid container-fluid-max-xl">
-				<ClayForm
-					onSubmit={event => {
-						event.preventDefault();
-
-						handleSubmit();
-					}}
-				>
-					<ClayInput.Group>
-						<ClayInput.GroupItem>
-							<ClayInput
-								aria-label={Liferay.Language.get('search-for')}
-								className="input-group-inset input-group-inset-after"
-								disabled={disabled}
-								onChange={onChange}
-								placeholder={Liferay.Language.get('search-for')}
-								type="text"
-								value={keywords}
-							/>
-							<ClayInput.GroupInsetItem after>
-								<ClayButtonWithIcon
-									disabled={disabled}
-									displayType="unstyled"
-									onClick={handleSubmit}
-									symbol="search"
-								/>
-							</ClayInput.GroupInsetItem>
-						</ClayInput.GroupItem>
-					</ClayInput.Group>
-				</ClayForm>
-			</div>
-		</div>
+		<ClayForm
+			onSubmit={event => {
+				event.preventDefault();
+				handleSubmit(searchText);
+			}}
+		>
+			<SearchInput
+				clearButton={false}
+				onChange={searchText => setSearchText(searchText)}
+				onSubmit={handleSubmit}
+				{...restProps}
+			/>
+		</ClayForm>
 	);
 };
+
+export default SearchInput;
+
+export {SearchInputWithForm};

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.3.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_3_0.dtd">
 
 <service-builder api-package-path="com.liferay.document.library.kernel" auto-import-default-references="false" mvcc-enabled="true" package-path="com.liferay.portlet.documentlibrary">
 	<namespace>DL</namespace>
@@ -66,7 +66,6 @@
 		<column name="fileEntryTypeId" type="long" />
 		<column name="version" type="String" />
 		<column name="size" type="long" />
-		<column name="readCount" type="int" />
 		<column name="smallImageId" type="long" />
 		<column name="largeImageId" type="long" />
 		<column name="custom1ImageId" type="long" />
@@ -562,8 +561,6 @@
 	</entity>
 	<exceptions>
 		<exception>DirectoryName</exception>
-		<exception>DuplicateDirectory</exception>
-		<exception>DuplicateFile</exception>
 		<exception>DuplicateFileEntry</exception>
 		<exception>DuplicateFileEntryType</exception>
 		<exception>DuplicateFolderName</exception>
@@ -579,7 +576,6 @@
 		<exception>InvalidFileEntryType</exception>
 		<exception>InvalidFileVersion</exception>
 		<exception>InvalidFolder</exception>
-		<exception>NoSuchDirectory</exception>
 		<exception>NoSuchFile</exception>
 		<exception>NoSuchMetadataSet</exception>
 		<exception>RepositoryName</exception>

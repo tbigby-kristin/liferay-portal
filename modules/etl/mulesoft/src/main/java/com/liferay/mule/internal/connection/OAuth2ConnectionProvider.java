@@ -40,11 +40,8 @@ public class OAuth2ConnectionProvider extends BaseConnectionProvider {
 		return LiferayConnection.withOAuth2Authentication(
 			_httpService, _openApiSpecPath,
 			_oAuth2AuthenticationConfig.getConsumerKey(),
-			_oAuth2AuthenticationConfig.getConsumerSecret());
-	}
-
-	@Override
-	public void disconnect(LiferayConnection liferayConnection) {
+			_oAuth2AuthenticationConfig.getConsumerSecret(),
+			liferayProxyConfig.getProxyConfig());
 	}
 
 	@Inject

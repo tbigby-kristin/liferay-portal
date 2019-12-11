@@ -16,12 +16,16 @@ package com.liferay.mule.internal;
 
 import com.liferay.mule.internal.connection.BasicConnectionProvider;
 import com.liferay.mule.internal.connection.OAuth2ConnectionProvider;
+import com.liferay.mule.internal.error.LiferayError;
 import com.liferay.mule.internal.operation.LiferayOperations;
 
+import org.mule.runtime.api.meta.Category;
 import org.mule.runtime.extension.api.annotation.Extension;
 import org.mule.runtime.extension.api.annotation.Operations;
 import org.mule.runtime.extension.api.annotation.connectivity.ConnectionProviders;
 import org.mule.runtime.extension.api.annotation.dsl.xml.Xml;
+import org.mule.runtime.extension.api.annotation.error.ErrorTypes;
+import org.mule.runtime.extension.api.annotation.license.RequiresEnterpriseLicense;
 
 /**
  * @author Matija Petanjek
@@ -29,8 +33,10 @@ import org.mule.runtime.extension.api.annotation.dsl.xml.Xml;
 @ConnectionProviders(
 	{BasicConnectionProvider.class, OAuth2ConnectionProvider.class}
 )
-@Extension(name = "Liferay")
+@ErrorTypes(LiferayError.class)
+@Extension(category = Category.CERTIFIED, name = "Liferay", vendor = "Liferay")
 @Operations(LiferayOperations.class)
+@RequiresEnterpriseLicense(allowEvaluationLicense = true)
 @Xml(prefix = "liferay")
 public class LiferayExtension {
 }

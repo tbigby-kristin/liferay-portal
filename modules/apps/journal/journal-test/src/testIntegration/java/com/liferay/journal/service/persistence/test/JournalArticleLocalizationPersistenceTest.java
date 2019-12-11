@@ -127,6 +127,9 @@ public class JournalArticleLocalizationPersistenceTest {
 
 		newJournalArticleLocalization.setMvccVersion(RandomTestUtil.nextLong());
 
+		newJournalArticleLocalization.setCtCollectionId(
+			RandomTestUtil.nextLong());
+
 		newJournalArticleLocalization.setCompanyId(RandomTestUtil.nextLong());
 
 		newJournalArticleLocalization.setArticlePK(RandomTestUtil.nextLong());
@@ -149,6 +152,9 @@ public class JournalArticleLocalizationPersistenceTest {
 		Assert.assertEquals(
 			existingJournalArticleLocalization.getMvccVersion(),
 			newJournalArticleLocalization.getMvccVersion());
+		Assert.assertEquals(
+			existingJournalArticleLocalization.getCtCollectionId(),
+			newJournalArticleLocalization.getCtCollectionId());
 		Assert.assertEquals(
 			existingJournalArticleLocalization.getArticleLocalizationId(),
 			newJournalArticleLocalization.getArticleLocalizationId());
@@ -215,9 +221,9 @@ public class JournalArticleLocalizationPersistenceTest {
 		getOrderByComparator() {
 
 		return OrderByComparatorFactoryUtil.create(
-			"JournalArticleLocalization", "mvccVersion", true,
-			"articleLocalizationId", true, "companyId", true, "articlePK", true,
-			"title", true, "description", true, "languageId", true);
+			"JournalArticleLocalization", "mvccVersion", true, "ctCollectionId",
+			true, "articleLocalizationId", true, "companyId", true, "articlePK",
+			true, "title", true, "description", true, "languageId", true);
 	}
 
 	@Test
@@ -468,6 +474,8 @@ public class JournalArticleLocalizationPersistenceTest {
 			_persistence.create(pk);
 
 		journalArticleLocalization.setMvccVersion(RandomTestUtil.nextLong());
+
+		journalArticleLocalization.setCtCollectionId(RandomTestUtil.nextLong());
 
 		journalArticleLocalization.setCompanyId(RandomTestUtil.nextLong());
 

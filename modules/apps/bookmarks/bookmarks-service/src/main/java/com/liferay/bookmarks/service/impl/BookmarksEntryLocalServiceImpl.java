@@ -57,6 +57,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.settings.GroupServiceSettingsLocator;
 import com.liferay.portal.kernel.settings.LocalizedValuesMap;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GroupSubscriptionCheckSubscriptionSender;
@@ -65,6 +66,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.SubscriptionSender;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.view.count.ViewCountManager;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
@@ -223,6 +225,13 @@ public class BookmarksEntryLocalServiceImpl
 				BookmarksEntry.class.getName(), entry.getEntryId());
 		}
 
+		// View count
+
+		_viewCountManager.deleteViewCount(
+			entry.getCompanyId(),
+			classNameLocalService.getClassNameId(BookmarksEntry.class),
+			entry.getEntryId());
+
 		return entry;
 	}
 
@@ -336,15 +345,6 @@ public class BookmarksEntryLocalServiceImpl
 			groupId, userId, WorkflowConstants.STATUS_APPROVED);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public List<BookmarksEntry> getNoAssetEntries() {
-		return bookmarksEntryFinder.findByNoAssets();
-	}
-
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public BookmarksEntry moveEntry(long entryId, long parentFolderId)
@@ -427,13 +427,12 @@ public class BookmarksEntryLocalServiceImpl
 	}
 
 	@Override
+	@Transactional(enabled = false)
 	public BookmarksEntry openEntry(long userId, BookmarksEntry entry) {
-		entry.setVisits(entry.getVisits() + 1);
-
-		entry = bookmarksEntryPersistence.update(entry);
-
-		assetEntryLocalService.incrementViewCounter(
-			userId, BookmarksEntry.class.getName(), entry.getEntryId(), 1);
+		_viewCountManager.incrementViewCount(
+			entry.getCompanyId(),
+			classNameLocalService.getClassNameId(BookmarksEntry.class),
+			entry.getEntryId(), 1);
 
 		return entry;
 	}
@@ -880,5 +879,8 @@ public class BookmarksEntryLocalServiceImpl
 
 	@Reference
 	private TrashVersionLocalService _trashVersionLocalService;
+
+	@Reference
+	private ViewCountManager _viewCountManager;
 
 }

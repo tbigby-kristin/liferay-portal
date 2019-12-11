@@ -38,11 +38,11 @@ import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateManager;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
@@ -117,18 +117,17 @@ public class FreeMarkerFragmentEntryProcessor
 			TemplateManagerUtil.getTemplateManager(
 				TemplateConstants.LANG_TYPE_FTL);
 
-		Map<String, Object> contextObjects = new HashMap<>();
-
 		JSONObject configurationValuesJSONObject =
 			FragmentEntryConfigUtil.getConfigurationJSONObject(
 				fragmentEntryLink.getConfiguration(),
 				fragmentEntryLink.getEditableValues(),
 				fragmentEntryProcessorContext.getSegmentsExperienceIds());
 
-		contextObjects.put("configuration", configurationValuesJSONObject);
-
-		contextObjects.put(
-			"fragmentEntryLinkNamespace", fragmentEntryLink.getNamespace());
+		Map<String, Object> contextObjects = HashMapBuilder.<String, Object>put(
+			"configuration", configurationValuesJSONObject
+		).put(
+			"fragmentEntryLinkNamespace", fragmentEntryLink.getNamespace()
+		).build();
 
 		contextObjects.putAll(
 			FragmentEntryConfigUtil.getContextObjects(
@@ -191,17 +190,16 @@ public class FreeMarkerFragmentEntryProcessor
 					TemplateManagerUtil.getTemplateManager(
 						TemplateConstants.LANG_TYPE_FTL);
 
-				Map<String, Object> contextObjects = new HashMap<>();
-
 				JSONObject configurationDefaultValuesJSONObject =
 					FragmentEntryConfigUtil.
 						getConfigurationDefaultValuesJSONObject(configuration);
 
-				contextObjects.put(
-					"configuration", configurationDefaultValuesJSONObject);
-
-				contextObjects.put(
-					"fragmentEntryLinkNamespace", StringPool.BLANK);
+				Map<String, Object> contextObjects =
+					HashMapBuilder.<String, Object>put(
+						"configuration", configurationDefaultValuesJSONObject
+					).put(
+						"fragmentEntryLinkNamespace", StringPool.BLANK
+					).build();
 
 				contextObjects.putAll(
 					FragmentEntryConfigUtil.getContextObjects(

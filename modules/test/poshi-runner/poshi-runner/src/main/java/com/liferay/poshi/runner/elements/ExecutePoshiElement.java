@@ -118,12 +118,12 @@ public class ExecutePoshiElement extends PoshiElement {
 			executeCommandName = executeCommandName.replace(
 				namespace + ".", "");
 
-			executeCommandName = executeCommandName.replace(".", "#");
+			executeCommandName = executeCommandName.replace('.', '#');
 
 			executeCommandName = namespace + "." + executeCommandName;
 		}
 		else {
-			executeCommandName = executeCommandName.replace(".", "#");
+			executeCommandName = executeCommandName.replace('.', '#');
 		}
 
 		if (fileExtension.equals("function") ||
@@ -281,7 +281,7 @@ public class ExecutePoshiElement extends PoshiElement {
 
 		sb.append("\n\n");
 		sb.append(pad);
-		sb.append(blockName.replace("#", "."));
+		sb.append(blockName.replace('#', '.'));
 		sb.append("(");
 
 		boolean multilineSnippet = false;

@@ -170,22 +170,6 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 							value="<%= StringUtil.shorten(HtmlUtil.stripHtml(curArticle.getDescription(locale)), 200) %>"
 						/>
 
-						<c:if test="<%= journalDisplayContext.isChangeListColumnVisible() %>">
-							<liferay-ui:search-container-column-text
-								cssClass="check-circle-center table-cell-expand table-cell-minw-50 table-column-text-center"
-								name="change-list"
-							>
-								<c:if test="<%= journalDisplayContext.isJournalArticleInChangeList(curArticle) %>">
-									<liferay-ui:icon
-										cssClass="green"
-										icon="check-circle"
-										markupView="lexicon"
-										toolTip=""
-									/>
-								</c:if>
-							</liferay-ui:search-container-column-text>
-						</c:if>
-
 						<c:if test="<%= journalDisplayContext.isSearch() && ((curArticle.getFolderId() <= 0) || JournalFolderPermission.contains(permissionChecker, curArticle.getFolder(), ActionKeys.VIEW)) %>">
 							<liferay-ui:search-container-column-text
 								cssClass="table-cell-expand-smallest table-cell-minw-200"
@@ -341,14 +325,6 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 							value="<%= HtmlUtil.escape(curFolder.getDescription()) %>"
 						/>
 
-						<c:if test="<%= journalDisplayContext.isChangeListColumnVisible() %>">
-							<liferay-ui:search-container-column-text
-								cssClass="check-circle-center table-cell-expand table-cell-minw-50 table-column-text-center"
-								name="change-list"
-							>
-							</liferay-ui:search-container-column-text>
-						</c:if>
-
 						<liferay-ui:search-container-column-text
 							cssClass="table-cell-expand-smallest table-cell-minw-150"
 							name="author"
@@ -405,18 +381,17 @@ String referringPortletResource = ParamUtil.getString(request, "referringPortlet
 />
 
 <aui:script use="liferay-journal-navigation">
-	var journalNavigation = new Liferay.Portlet.JournalNavigation(
-		{
-			editEntryUrl: '<portlet:actionURL />',
-			form: {
-				method: 'POST',
-				node: A.one(document.<portlet:namespace />fm)
-			},
-			moveEntryUrl: '<portlet:renderURL><portlet:param name="mvcPath" value="/move_entries.jsp" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>',
-			namespace: '<portlet:namespace />',
-			searchContainerId: 'articles'
-		}
-	);
+	var journalNavigation = new Liferay.Portlet.JournalNavigation({
+		editEntryUrl: '<portlet:actionURL />',
+		form: {
+			method: 'POST',
+			node: A.one(document.<portlet:namespace />fm)
+		},
+		moveEntryUrl:
+			'<portlet:renderURL><portlet:param name="mvcPath" value="/move_entries.jsp" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>',
+		namespace: '<portlet:namespace />',
+		searchContainerId: 'articles'
+	});
 
 	var clearJournalNavigationHandles = function(event) {
 		if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {

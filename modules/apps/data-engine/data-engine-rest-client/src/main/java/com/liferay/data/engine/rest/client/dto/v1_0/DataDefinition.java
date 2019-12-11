@@ -52,6 +52,27 @@ public class DataDefinition {
 
 	protected String[] availableLanguageIds;
 
+	public Long getClassNameId() {
+		return classNameId;
+	}
+
+	public void setClassNameId(Long classNameId) {
+		this.classNameId = classNameId;
+	}
+
+	public void setClassNameId(
+		UnsafeSupplier<Long, Exception> classNameIdUnsafeSupplier) {
+
+		try {
+			classNameId = classNameIdUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long classNameId;
+
 	public DataDefinitionField[] getDataDefinitionFields() {
 		return dataDefinitionFields;
 	}

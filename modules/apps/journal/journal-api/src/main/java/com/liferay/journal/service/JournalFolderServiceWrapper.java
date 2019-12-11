@@ -14,6 +14,7 @@
 
 package com.liferay.journal.service;
 
+import com.liferay.journal.model.JournalFolder;
 import com.liferay.portal.kernel.service.ServiceWrapper;
 
 /**
@@ -38,7 +39,7 @@ public class JournalFolderServiceWrapper
 	 * Never modify or reference this interface directly. Always use {@link JournalFolderServiceUtil} to access the journal folder remote service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFolderServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder addFolder(
+	public JournalFolder addFolder(
 			long groupId, long parentFolderId, String name, String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -62,7 +63,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder fetchFolder(long folderId)
+	public JournalFolder fetchFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderService.fetchFolder(folderId);
@@ -79,7 +80,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder getFolder(long folderId)
+	public JournalFolder getFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderService.getFolder(folderId);
@@ -93,21 +94,19 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
-		long groupId) {
-
+	public java.util.List<JournalFolder> getFolders(long groupId) {
 		return _journalFolderService.getFolders(groupId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId) {
 
 		return _journalFolderService.getFolders(groupId, parentFolderId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId, int status) {
 
 		return _journalFolderService.getFolders(
@@ -115,7 +114,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId, int start, int end) {
 
 		return _journalFolderService.getFolders(
@@ -123,7 +122,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId, int status, int start, int end) {
 
 		return _journalFolderService.getFolders(
@@ -218,18 +217,6 @@ public class JournalFolderServiceWrapper
 		return _journalFolderService.getOSGiServiceIdentifier();
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x), replaced by {@link
-	 #getSubfolderIds(List, long, long, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public void getSubfolderIds(
-		java.util.List<Long> folderIds, long groupId, long folderId) {
-
-		_journalFolderService.getSubfolderIds(folderIds, groupId, folderId);
-	}
-
 	@Override
 	public void getSubfolderIds(
 		java.util.List<Long> folderIds, long groupId, long folderId,
@@ -248,7 +235,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder moveFolder(
+	public JournalFolder moveFolder(
 			long folderId, long parentFolderId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -258,7 +245,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder moveFolderFromTrash(
+	public JournalFolder moveFolderFromTrash(
 			long folderId, long parentFolderId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -268,8 +255,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder moveFolderToTrash(
-			long folderId)
+	public JournalFolder moveFolderToTrash(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderService.moveFolderToTrash(folderId);
@@ -311,7 +297,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder updateFolder(
+	public JournalFolder updateFolder(
 			long groupId, long folderId, long parentFolderId, String name,
 			String description, boolean mergeWithParentFolder,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -323,7 +309,7 @@ public class JournalFolderServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder updateFolder(
+	public JournalFolder updateFolder(
 			long groupId, long folderId, long parentFolderId, String name,
 			String description, long[] ddmStructureIds, int restrictionType,
 			boolean mergeWithParentFolder,

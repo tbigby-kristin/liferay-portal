@@ -19,8 +19,11 @@ package com.liferay.portal.change.tracking.registry;
  */
 public class CTModelRegistration {
 
-	public CTModelRegistration(Class<?> modelClass, String primaryColumnName) {
+	public CTModelRegistration(
+		Class<?> modelClass, String tableName, String primaryColumnName) {
+
 		_modelClass = modelClass;
+		_tableName = tableName;
 		_primaryColumnName = primaryColumnName;
 	}
 
@@ -32,7 +35,12 @@ public class CTModelRegistration {
 		return _primaryColumnName;
 	}
 
+	public String getTableName() {
+		return _tableName;
+	}
+
 	private final Class<?> _modelClass;
 	private final String _primaryColumnName;
+	private final String _tableName;
 
 }

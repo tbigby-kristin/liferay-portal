@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -45,7 +44,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import org.junit.After;
@@ -130,8 +128,6 @@ public class CTCollectionPersistenceTest {
 
 		newCTCollection.setUserId(RandomTestUtil.nextLong());
 
-		newCTCollection.setUserName(RandomTestUtil.randomString());
-
 		newCTCollection.setCreateDate(RandomTestUtil.nextDate());
 
 		newCTCollection.setModifiedDate(RandomTestUtil.nextDate());
@@ -143,8 +139,6 @@ public class CTCollectionPersistenceTest {
 		newCTCollection.setStatus(RandomTestUtil.nextInt());
 
 		newCTCollection.setStatusByUserId(RandomTestUtil.nextLong());
-
-		newCTCollection.setStatusByUserName(RandomTestUtil.randomString());
 
 		newCTCollection.setStatusDate(RandomTestUtil.nextDate());
 
@@ -165,8 +159,6 @@ public class CTCollectionPersistenceTest {
 		Assert.assertEquals(
 			existingCTCollection.getUserId(), newCTCollection.getUserId());
 		Assert.assertEquals(
-			existingCTCollection.getUserName(), newCTCollection.getUserName());
-		Assert.assertEquals(
 			Time.getShortTimestamp(existingCTCollection.getCreateDate()),
 			Time.getShortTimestamp(newCTCollection.getCreateDate()));
 		Assert.assertEquals(
@@ -183,9 +175,6 @@ public class CTCollectionPersistenceTest {
 			existingCTCollection.getStatusByUserId(),
 			newCTCollection.getStatusByUserId());
 		Assert.assertEquals(
-			existingCTCollection.getStatusByUserName(),
-			newCTCollection.getStatusByUserName());
-		Assert.assertEquals(
 			Time.getShortTimestamp(existingCTCollection.getStatusDate()),
 			Time.getShortTimestamp(newCTCollection.getStatusDate()));
 	}
@@ -195,15 +184,6 @@ public class CTCollectionPersistenceTest {
 		_persistence.countByCompanyId(RandomTestUtil.nextLong());
 
 		_persistence.countByCompanyId(0L);
-	}
-
-	@Test
-	public void testCountByC_N() throws Exception {
-		_persistence.countByC_N(RandomTestUtil.nextLong(), "");
-
-		_persistence.countByC_N(0L, "null");
-
-		_persistence.countByC_N(0L, (String)null);
 	}
 
 	@Test
@@ -240,10 +220,9 @@ public class CTCollectionPersistenceTest {
 	protected OrderByComparator<CTCollection> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
 			"CTCollection", "mvccVersion", true, "ctCollectionId", true,
-			"companyId", true, "userId", true, "userName", true, "createDate",
-			true, "modifiedDate", true, "name", true, "description", true,
-			"status", true, "statusByUserId", true, "statusByUserName", true,
-			"statusDate", true);
+			"companyId", true, "userId", true, "createDate", true,
+			"modifiedDate", true, "name", true, "description", true, "status",
+			true, "statusByUserId", true, "statusDate", true);
 	}
 
 	@Test
@@ -459,26 +438,6 @@ public class CTCollectionPersistenceTest {
 		Assert.assertEquals(0, result.size());
 	}
 
-	@Test
-	public void testResetOriginalValues() throws Exception {
-		CTCollection newCTCollection = addCTCollection();
-
-		_persistence.clearCache();
-
-		CTCollection existingCTCollection = _persistence.findByPrimaryKey(
-			newCTCollection.getPrimaryKey());
-
-		Assert.assertEquals(
-			Long.valueOf(existingCTCollection.getCompanyId()),
-			ReflectionTestUtil.<Long>invoke(
-				existingCTCollection, "getOriginalCompanyId", new Class<?>[0]));
-		Assert.assertTrue(
-			Objects.equals(
-				existingCTCollection.getName(),
-				ReflectionTestUtil.invoke(
-					existingCTCollection, "getOriginalName", new Class<?>[0])));
-	}
-
 	protected CTCollection addCTCollection() throws Exception {
 		long pk = RandomTestUtil.nextLong();
 
@@ -489,8 +448,6 @@ public class CTCollectionPersistenceTest {
 		ctCollection.setCompanyId(RandomTestUtil.nextLong());
 
 		ctCollection.setUserId(RandomTestUtil.nextLong());
-
-		ctCollection.setUserName(RandomTestUtil.randomString());
 
 		ctCollection.setCreateDate(RandomTestUtil.nextDate());
 
@@ -503,8 +460,6 @@ public class CTCollectionPersistenceTest {
 		ctCollection.setStatus(RandomTestUtil.nextInt());
 
 		ctCollection.setStatusByUserId(RandomTestUtil.nextLong());
-
-		ctCollection.setStatusByUserName(RandomTestUtil.randomString());
 
 		ctCollection.setStatusDate(RandomTestUtil.nextDate());
 

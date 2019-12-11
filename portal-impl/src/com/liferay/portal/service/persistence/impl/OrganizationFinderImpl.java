@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.service.persistence.OrganizationFinder;
 import com.liferay.portal.kernel.service.persistence.OrganizationUtil;
 import com.liferay.portal.kernel.service.persistence.UserUtil;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -109,7 +110,7 @@ public class OrganizationFinderImpl
 	/**
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
 	 *             #countO_ByKeywords(long, long, String, String, String, Long,
-	 *             Long, LinkedHashMap<String, Object>)}
+	 *             Long, LinkedHashMap)}
 	 */
 	@Deprecated
 	@Override
@@ -136,8 +137,8 @@ public class OrganizationFinderImpl
 	/**
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
 	 *             #countO_ByC_PO_N_T_S_C_Z_R_C(long, long, String, String,
-	 *             String, String, String, String, Long, Long,
-	 *             LinkedHashMap<String, Object>, boolean)}
+	 *             String, String, String, String, Long, Long, LinkedHashMap,
+	 *             boolean)}
 	 */
 	@Deprecated
 	@Override
@@ -157,7 +158,7 @@ public class OrganizationFinderImpl
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
 	 *             #countO_ByC_PO_N_T_S_C_Z_R_C(long, long, String, String[],
 	 *             String, String[], String[], String[], Long, Long,
-	 *             LinkedHashMap<String, Object>, boolean)}
+	 *             LinkedHashMap, boolean)}
 	 */
 	@Deprecated
 	@Override
@@ -204,9 +205,10 @@ public class OrganizationFinderImpl
 
 	@Override
 	public int countO_ByO_U(long organizationId, long userId) {
-		LinkedHashMap<String, Object> params1 = new LinkedHashMap<>();
-
-		params1.put("usersOrgs", userId);
+		LinkedHashMap<String, Object> params1 =
+			LinkedHashMapBuilder.<String, Object>put(
+				"usersOrgs", userId
+			).build();
 
 		Session session = null;
 
@@ -449,8 +451,7 @@ public class OrganizationFinderImpl
 	/**
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
 	 *             #findO_ByKeywords(long, long, String, String, String, Long,
-	 *             Long, LinkedHashMap<String, Object>, int, int,
-	 *             OrderByComparator<Organization>)}
+	 *             Long, LinkedHashMap, int, int, OrderByComparator)}
 	 */
 	@Deprecated
 	@Override
@@ -491,9 +492,8 @@ public class OrganizationFinderImpl
 	/**
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
 	 *             #findO_ByC_PO_N_T_S_C_Z_R_C(long, long, String, String,
-	 *             String, String, String, String, Long, Long,
-	 *             LinkedHashMap<String, Object>, boolean, int, int,
-	 *             OrderByComparator<Organization>)}
+	 *             String, String, String, String, Long, Long, LinkedHashMap,
+	 *             boolean, int, int, OrderByComparator)}
 	 */
 	@Deprecated
 	@Override
@@ -514,8 +514,7 @@ public class OrganizationFinderImpl
 	 * @deprecated As of Judson (7.1.x), replaced by {@link
 	 *             #findO_ByC_PO_N_T_S_C_Z_R_C(long, long, String, String[],
 	 *             String, String[], String[], String[], Long, Long,
-	 *             LinkedHashMap<String, Object>, boolean, int, int
-	 *             OrderByComparator<Organization>)}
+	 *             LinkedHashMap, boolean, int, int, OrderByComparator)}
 	 */
 	@Deprecated
 	@Override

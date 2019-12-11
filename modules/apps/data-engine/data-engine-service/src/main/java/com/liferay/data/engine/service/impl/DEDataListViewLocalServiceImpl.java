@@ -74,11 +74,21 @@ public class DEDataListViewLocalServiceImpl
 	}
 
 	@Override
+	public void deleteDEDataListViews(long ddmStructureId) {
+		deDataListViewPersistence.removeByDDMStructureId(ddmStructureId);
+	}
+
+	@Override
+	public List<DEDataListView> getDEDataListViews(long ddmStructureId) {
+		return deDataListViewPersistence.findByDDMStructureId(ddmStructureId);
+	}
+
+	@Override
 	public List<DEDataListView> getDEDataListViews(
 		long groupId, long companyId, long ddmStructureId, int start, int end,
 		OrderByComparator<DEDataListView> orderByComparator) {
 
-		return deDataListViewPersistence.findByG_C_D(
+		return deDataListViewPersistence.findByG_C_DDMSI(
 			groupId, companyId, ddmStructureId, start, end, orderByComparator);
 	}
 
@@ -86,7 +96,7 @@ public class DEDataListViewLocalServiceImpl
 	public int getDEDataListViewsCount(
 		long groupId, long companyId, long ddmStructureId) {
 
-		return deDataListViewPersistence.countByG_C_D(
+		return deDataListViewPersistence.countByG_C_DDMSI(
 			groupId, companyId, ddmStructureId);
 	}
 

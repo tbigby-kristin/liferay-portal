@@ -1,0 +1,78 @@
+definition {
+
+	macro addFieldByDoubleClick {
+
+		var key_fieldType = "${fieldType}";
+
+		DoubleClick(locator1 = "FormViewBuilder#ADD_FIELD_TYPE");
+
+		AssertElementPresent(locator1 = "FormViewBuilder#SIDEBAR_BASIC_TAB");
+	}
+
+	macro addFieldByDragAndDrop {
+
+		Pause(locator1 = "10000");
+
+		var key_fieldType = "${fieldType}";
+
+		DragAndDrop.javaScriptDragAndDropToObject(
+			locator1 = "FormViewBuilder#ADD_FIELD_TYPE",
+			locator2 = "Form#ADD_FIELD_POSITION",
+			value1 = "${fieldType}");
+
+		AssertElementPresent(locator1 = "FormViewBuilder#SIDEBAR_BASIC_TAB");
+	}
+
+	macro addFormView {
+
+		if (IsElementNotPresent(locator1 = "FormViewBuilder#SIDEBAR_FIELDS_TAB") && IsElementPresent(locator1 = "AppBuilder#FORM_VIEW_TAB")) {
+			FormViewBuilder.switchToFormViewTab();
+			AppBuilderAdmin.add();
+		}
+
+		FormViewBuilder.addFieldByDoubleClick(fieldType = "${fieldType}");
+
+		FormViewBuilder.setName(formViewName = "${formViewName}");
+
+		FormViewBuilder.save();
+	}
+
+	macro addFormViewAndValidateFieldLabel {
+
+		FormViewBuilder.addFormView(
+			fieldType = "${fieldType}",
+			formViewName = "${formViewName}");
+
+		AppBuilderAdmin.validateItemNameOnTable(itemName = "${formViewName}");
+
+		AppBuilderAdmin.openItem(itemName = "${formViewName}");
+
+		FormViewBuilder.validateFieldLabel(fieldLabel = "${fieldType}");
+
+		AppBuilderAdmin.gotoBack();
+	}
+
+	macro openFormView {
+		AppBuilderAdmin.openItem(itemName = "${formViewName}");
+	}
+
+	macro save {
+		AppBuilderAdmin.save();
+	}
+
+	macro setName {
+
+		AppBuilderAdmin.setName(title = "${formViewName}");
+	}
+
+	macro switchToFormViewTab {
+		AppBuilderAdmin.switchTab(tabName = "Form Views");
+	}
+
+	macro validateFieldLabel {
+		AssertTextEquals(
+			locator1 = "FormViewBuilder#FIELD_LABEL",
+			value1 = "${fieldLabel}");
+	}
+
+}

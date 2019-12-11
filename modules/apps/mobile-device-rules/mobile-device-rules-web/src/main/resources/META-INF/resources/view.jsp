@@ -45,7 +45,7 @@ ruleGroupSearch.setResults(mdrRuleGroups);
 
 <clay:navigation-bar
 	inverted="<%= true %>"
-	navigationItems="<%=
+	navigationItems='<%=
 		new JSPNavigationItemList(pageContext) {
 			{
 				add(
@@ -56,7 +56,7 @@ ruleGroupSearch.setResults(mdrRuleGroups);
 					});
 			}
 		}
-	%>"
+	%>'
 />
 
 <liferay-frontend:management-bar
@@ -251,13 +251,19 @@ ruleGroupSearch.setResults(mdrRuleGroups);
 
 <script>
 	(function() {
-		var deleteSelectedDeviceFamiliesButton = document.getElementById('<portlet:namespace />deleteSelectedDeviceFamilies');
+		var deleteSelectedDeviceFamiliesButton = document.getElementById(
+			'<portlet:namespace />deleteSelectedDeviceFamilies'
+		);
 
 		if (deleteSelectedDeviceFamiliesButton) {
 			deleteSelectedDeviceFamiliesButton.addEventListener(
 				'click',
 				function() {
-					if (confirm('<%= UnicodeLanguageUtil.get(resourceBundle, "are-you-sure-you-want-to-delete-this") %>')) {
+					if (
+						confirm(
+							'<%= UnicodeLanguageUtil.get(resourceBundle, "are-you-sure-you-want-to-delete-this") %>'
+						)
+					) {
 						submitForm(document.<portlet:namespace />fm);
 					}
 				}

@@ -118,7 +118,7 @@ public class RoleLocalServiceTest {
 
 		typeSettingsProperties = _group.getTypeSettingsProperties();
 
-		List<Long> defaultSiteRoleIds = ListUtil.toList(
+		List<Long> defaultSiteRoleIds = ListUtil.fromArray(
 			StringUtil.split(
 				typeSettingsProperties.getProperty("defaultSiteRoleIds"), 0L));
 
@@ -162,10 +162,13 @@ public class RoleLocalServiceTest {
 	public void testGetAssigneesTotalSiteRole() throws Exception {
 		_group = GroupTestUtil.addGroup();
 		_role = RoleTestUtil.addRole(RoleConstants.TYPE_SITE);
+
 		_user = UserTestUtil.addUser();
+
 		_userGroup = UserGroupTestUtil.addUserGroup();
 
 		_groupLocalService.addUserGroup(_user.getUserId(), _group);
+
 		_groupLocalService.addUserGroupGroup(
 			_userGroup.getUserGroupId(), _group);
 

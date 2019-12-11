@@ -14,10 +14,7 @@
 
 import {fetch} from 'frontend-js-web';
 
-/**
- * @type {object}
- */
-let _store;
+import {getState} from '../store/store.es';
 
 /**
  * @param {object} body
@@ -43,7 +40,7 @@ function _getFormData(body, portletNamespace, _formData = new FormData()) {
  */
 function _fetch(url, body = {}) {
 	return fetch(url, {
-		body: _getFormData(body, _store.getState().portletNamespace),
+		body: _getFormData(body, getState().portletNamespace),
 		method: 'POST'
 	})
 		.then(
@@ -80,7 +77,7 @@ function _fetch(url, body = {}) {
  * @param {string} body
  */
 function addFragmentEntryLinkComment(fragmentEntryLinkId, body) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.addFragmentEntryLinkCommentURL, {
 		body,
@@ -98,7 +95,7 @@ function addFragmentEntryLinkCommentReply(
 	parentCommentId,
 	body
 ) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.addFragmentEntryLinkCommentURL, {
 		body,
@@ -112,7 +109,7 @@ function addFragmentEntryLinkCommentReply(
  * @param {string} ddmStructureId
  */
 function addStructuredContent(ddmFormValues, ddmStructureId, title) {
-	return _fetch(_store.getState().addStructuredContentURL, {
+	return _fetch(getState().addStructuredContentURL, {
 		ddmFormValues,
 		ddmStructureId,
 		title
@@ -138,7 +135,7 @@ function addStructuredContent(ddmFormValues, ddmStructureId, title) {
  * @return {Promise<Response>}
  */
 function duplicateFragmentEntryLink(fragmentEntryLinkId) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.duplicateFragmentEntryLinkURL, {
 		fragmentEntryLinkId
@@ -149,7 +146,7 @@ function duplicateFragmentEntryLink(fragmentEntryLinkId) {
  * @param {string} commentId
  */
 function deleteFragmentEntryLinkComment(commentId) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.deleteFragmentEntryLinkCommentURL, {
 		commentId
@@ -161,7 +158,7 @@ function deleteFragmentEntryLinkComment(commentId) {
  * @param {string} body
  */
 function editFragmentEntryLinkComment(commentId, body, resolved) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.editFragmentEntryLinkCommentURL, {
 		body,
@@ -176,16 +173,31 @@ function editFragmentEntryLinkComment(commentId, body, resolved) {
  * @param {string} fieldId
  */
 function getAssetFieldValue(classNameId, classPK, fieldId) {
-	return _fetch(_store.getState().getAssetFieldValueURL, {
+	return _fetch(getState().getAssetFieldValueURL, {
 		classNameId,
 		classPK,
 		fieldId
 	});
 }
 
+/**
+ * @param {string} classNameId
+ * @param {string} classPK
+ */
 function getAssetMappingFields(classNameId, classPK) {
-	return _fetch(_store.getState().getAssetMappingFieldsURL, {
+	return _fetch(getState().getAssetMappingFieldsURL, {
 		classNameId,
+		classPK
+	});
+}
+
+/**
+ * @param {string} className
+ * @param {string} classPK
+ */
+function getAvailableTemplates(className, classPK) {
+	return _fetch(getState().getAvailableTemplatesURL, {
+		className,
 		classPK
 	});
 }
@@ -194,19 +206,19 @@ function getAssetMappingFields(classNameId, classPK) {
  * @param {string} ddmStructureId
  */
 function getContentStructureMappingFields(ddmStructureId) {
-	return _fetch(_store.getState().getContentStructureMappingFieldsURL, {
+	return _fetch(getState().getContentStructureMappingFieldsURL, {
 		ddmStructureId
 	});
 }
 
 function getExperienceUsedPortletIds(segmentsExperienceId) {
-	return _fetch(_store.getState().getExperienceUsedPortletsURL, {
+	return _fetch(getState().getExperienceUsedPortletsURL, {
 		segmentsExperienceId
 	});
 }
 
 function getPageContents() {
-	const state = _store.getState();
+	const state = getState();
 	const {getPageContentsURL} = state;
 
 	const url = new URL(window.location.href);
@@ -220,8 +232,12 @@ function getPageContents() {
 	return _fetch(getPageContentsURL, {backURL});
 }
 
+/**
+ * @param {string} classNameId
+ * @param {string} classTypeId
+ */
 function getStructureMappingFields(classNameId, classTypeId) {
-	return _fetch(_store.getState().mappingFieldsURL, {
+	return _fetch(getState().mappingFieldsURL, {
 		classNameId,
 		classTypeId
 	});
@@ -237,7 +253,7 @@ function removeExperience(
 	fragmentEntryLinkIds = [],
 	deleteSegmentsExperience = true
 ) {
-	const state = _store.getState();
+	const state = getState();
 
 	const body = {
 		deleteSegmentsExperience,
@@ -257,8 +273,8 @@ function removeExperience(
  * @return {Promise<Response>}
  */
 function addSegmentsExperience({name, segmentsEntryId}) {
-	const state = _store.getState();
-	const {classNameId, classPK, addSegmentsExperienceURL} = state;
+	const state = getState();
+	const {addSegmentsExperienceURL, classNameId, classPK} = state;
 
 	const body = {
 		active: true,
@@ -276,7 +292,7 @@ function addSegmentsExperience({name, segmentsEntryId}) {
  * @return {Promise<Response[]>}
  */
 function removeFragmentEntryLinks(fragmentEntryLinkIds) {
-	const state = _store.getState();
+	const state = getState();
 
 	return Promise.all(
 		fragmentEntryLinkIds.map(fragmentEntryLinkId =>
@@ -285,14 +301,6 @@ function removeFragmentEntryLinks(fragmentEntryLinkIds) {
 			})
 		)
 	);
-}
-
-/**
- * Sets the store
- * @param {object} store
- */
-function setStore(store) {
-	_store = store;
 }
 
 /**
@@ -307,7 +315,7 @@ function updateEditableValues(
 	editableValues,
 	updateClassedModel = true
 ) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.editFragmentEntryLinkURL, {
 		editableValues: JSON.stringify(editableValues),
@@ -322,7 +330,7 @@ function updateEditableValues(
  * @return {Promise<Response>}
  */
 function updatePageEditorLayoutData(layoutData, segmentsExperienceId) {
-	const state = _store.getState();
+	const state = getState();
 
 	return _fetch(state.updateLayoutPageTemplateDataURL, {
 		classNameId: state.classNameId,
@@ -342,13 +350,13 @@ export {
 	editFragmentEntryLinkComment,
 	getAssetFieldValue,
 	getAssetMappingFields,
+	getAvailableTemplates,
 	getContentStructureMappingFields,
 	getExperienceUsedPortletIds,
 	getPageContents,
 	getStructureMappingFields,
 	removeExperience,
 	removeFragmentEntryLinks,
-	setStore,
 	updateEditableValues,
 	updatePageEditorLayoutData
 };

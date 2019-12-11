@@ -106,12 +106,14 @@ public class MessageBoardMessageResourceImpl
 	@Override
 	public Page<MessageBoardMessage>
 			getMessageBoardMessageMessageBoardMessagesPage(
-				Long parentMessageBoardMessageId, String search, Filter filter,
-				Pagination pagination, Sort[] sorts)
+				Long parentMessageBoardMessageId, Boolean flatten,
+				String search, Filter filter, Pagination pagination,
+				Sort[] sorts)
 		throws Exception {
 
 		return _getMessageBoardMessagesPage(
-			parentMessageBoardMessageId, search, filter, pagination, sorts);
+			parentMessageBoardMessageId, search, filter, pagination, sorts,
+			flatten, null);
 	}
 
 	@Override
@@ -134,7 +136,18 @@ public class MessageBoardMessageResourceImpl
 			messageBoardThreadId);
 
 		return _getMessageBoardMessagesPage(
-			mbThread.getRootMessageId(), search, filter, pagination, sorts);
+			mbThread.getRootMessageId(), search, filter, pagination, sorts,
+			false, null);
+	}
+
+	@Override
+	public Page<MessageBoardMessage> getSiteMessageBoardMessagesPage(
+			Long siteId, Boolean flatten, String search, Filter filter,
+			Pagination pagination, Sort[] sorts)
+		throws Exception {
+
+		return _getMessageBoardMessagesPage(
+			null, search, filter, pagination, sorts, flatten, siteId);
 	}
 
 	@Override
@@ -221,6 +234,20 @@ public class MessageBoardMessageResourceImpl
 			rating.getRatingValue(), messageBoardMessageId);
 	}
 
+	@Override
+	public void putMessageBoardMessageSubscribe(Long messageBoardMessageId)
+		throws Exception {
+
+		_mbMessageService.subscribeMessage(messageBoardMessageId);
+	}
+
+	@Override
+	public void putMessageBoardMessageUnsubscribe(Long messageBoardMessageId)
+		throws Exception {
+
+		_mbMessageService.unsubscribeMessage(messageBoardMessageId);
+	}
+
 	private MessageBoardMessage _addMessageBoardThread(
 			Long messageBoardMessageId, MessageBoardMessage messageBoardMessage)
 		throws Exception {
@@ -263,7 +290,7 @@ public class MessageBoardMessageResourceImpl
 
 	private Page<MessageBoardMessage> _getMessageBoardMessagesPage(
 			Long messageBoardMessageId, String search, Filter filter,
-			Pagination pagination, Sort[] sorts)
+			Pagination pagination, Sort[] sorts, Boolean flatten, Long siteId)
 		throws Exception {
 
 		return SearchUtil.search(
@@ -271,16 +298,35 @@ public class MessageBoardMessageResourceImpl
 				BooleanFilter booleanFilter =
 					booleanQuery.getPreBooleanFilter();
 
-				booleanFilter.add(
-					new TermFilter(
-						Field.ENTRY_CLASS_PK,
-						String.valueOf(messageBoardMessageId)),
-					BooleanClauseOccur.MUST_NOT);
-				booleanFilter.add(
-					new TermFilter(
-						"parentMessageId",
-						String.valueOf(messageBoardMessageId)),
-					BooleanClauseOccur.MUST);
+				if (siteId == null) {
+					booleanFilter.add(
+						new TermFilter(
+							Field.ENTRY_CLASS_PK,
+							String.valueOf(messageBoardMessageId)),
+						BooleanClauseOccur.MUST_NOT);
+
+					String field = "parentMessageId";
+
+					if (GetterUtil.getBoolean(flatten)) {
+						field = "treePath";
+					}
+
+					booleanFilter.add(
+						new TermFilter(
+							field, String.valueOf(messageBoardMessageId)),
+						BooleanClauseOccur.MUST);
+				}
+				else {
+					if (!GetterUtil.getBoolean(flatten)) {
+						booleanFilter.add(
+							new TermFilter("categoryId", "0"),
+							BooleanClauseOccur.MUST);
+					}
+
+					booleanFilter.add(
+						new TermFilter(Field.GROUP_ID, String.valueOf(siteId)),
+						BooleanClauseOccur.MUST);
+				}
 			},
 			filter, MBMessage.class, search, pagination,
 			queryConfig -> queryConfig.setSelectedFieldNames(
@@ -305,7 +351,8 @@ public class MessageBoardMessageResourceImpl
 		throws Exception {
 
 		return _messageBoardMessageDTOConverter.toDTO(
-			new DefaultDTOConverterContext(null, mbMessage.getPrimaryKey()));
+			new DefaultDTOConverterContext(
+				null, mbMessage.getPrimaryKey(), contextUriInfo, contextUser));
 	}
 
 	private void _updateAnswer(

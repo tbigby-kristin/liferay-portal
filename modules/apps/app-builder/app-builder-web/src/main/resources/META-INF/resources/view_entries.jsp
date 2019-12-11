@@ -19,14 +19,22 @@
 <div id="<portlet:namespace />-app-builder-root">
 
 	<%
+	AppBuilderApp appBuilderApp = (AppBuilderApp)request.getAttribute(AppBuilderWebKeys.APP);
+
 	Map<String, Object> data = new HashMap<>();
 
-	data.put("appId", request.getAttribute(AppBuilderWebKeys.APP_ID));
+	data.put("appDeploymentType", request.getAttribute(AppBuilderWebKeys.APP_DEPLOYMENT_TYPE));
+	data.put("appId", appBuilderApp.getAppBuilderAppId());
 	data.put("basePortletURL", String.valueOf(renderResponse.createRenderURL()));
+	data.put("dataDefinitionId", appBuilderApp.getDdmStructureId());
+	data.put("dataLayoutId", appBuilderApp.getDdmStructureLayoutId());
+	data.put("dataListViewId", appBuilderApp.getDeDataListViewId());
+	data.put("showFormView", request.getAttribute(AppBuilderWebKeys.SHOW_FORM_VIEW));
+	data.put("showTableView", request.getAttribute(AppBuilderWebKeys.SHOW_TABLE_VIEW));
 	%>
 
 	<react:component
 		data="<%= data %>"
-		module="js/pages/entry/ListEntriesApp.es"
+		module="js/pages/entry/ViewEntriesApp.es"
 	/>
 </div>

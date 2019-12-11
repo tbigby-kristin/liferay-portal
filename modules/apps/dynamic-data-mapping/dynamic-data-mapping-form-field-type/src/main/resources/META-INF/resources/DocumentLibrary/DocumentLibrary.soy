@@ -42,6 +42,7 @@
 		{param id: $id /}
 		{param label: $label /}
 		{param name: $name /}
+		{param readOnly: $readOnly /}
 		{param repeatable: $repeatable /}
 		{param required: $required /}
 		{param showLabel: $showLabel /}
@@ -172,9 +173,9 @@
 	{@param? fileEntryURL: string}
 
 	<div class="card card-horizontal">
-		<div class="card-row card-row-padded">
+		<div class="card-body">
 			<div class="card-col-content card-col-gutters">
-				<h4 class="truncate-text" title="{$fileEntryTitle}">{$fileEntryTitle}</h4>
+				<h4 class="text-truncate" title="{$fileEntryTitle}">{$fileEntryTitle}</h4>
 			</div>
 
 			<div class="card-col-field">

@@ -28,7 +28,7 @@ public class OperatorOperandCheck extends BaseCheck {
 	@Override
 	public int[] getDefaultTokens() {
 		return ArrayUtil.append(
-			_ARITHMETIC_OPERATOR_TOKEN_TYPES, _RELATIONAL_OPERATOR_TOKEN_TYPES);
+			ARITHMETIC_OPERATOR_TOKEN_TYPES, RELATIONAL_OPERATOR_TOKEN_TYPES);
 	}
 
 	@Override
@@ -37,30 +37,42 @@ public class OperatorOperandCheck extends BaseCheck {
 			return;
 		}
 
+		_checkOperand(detailAST, detailAST.getFirstChild(), "left");
+
+		if (ArrayUtil.contains(
+				ARITHMETIC_OPERATOR_TOKEN_TYPES, detailAST.getType())) {
+
+			_checkOperand(detailAST, detailAST.getLastChild(), "right");
+		}
+	}
+
+	private void _checkOperand(
+		DetailAST operatorDetailAST, DetailAST detailAST, String side) {
+
+		if (detailAST.getType() != TokenTypes.METHOD_CALL) {
+			return;
+		}
+
+		if (DetailASTUtil.isAtLineEnd(
+				detailAST, getLine(detailAST.getLineNo() - 1))) {
+
+			log(
+				detailAST, _MSG_IMPROVE_READABILITY, side,
+				operatorDetailAST.getText());
+
+			return;
+		}
+
 		DetailAST firstChildDetailAST = detailAST.getFirstChild();
 
-		if ((firstChildDetailAST.getType() == TokenTypes.METHOD_CALL) &&
+		if ((firstChildDetailAST.getType() == TokenTypes.DOT) &&
 			DetailASTUtil.isAtLineEnd(
 				firstChildDetailAST,
 				getLine(firstChildDetailAST.getLineNo() - 1))) {
 
 			log(
-				firstChildDetailAST, _MSG_IMPROVE_READABILITY, "left",
-				detailAST.getText());
-		}
-
-		DetailAST lastChildDetailAST = detailAST.getLastChild();
-
-		if ((lastChildDetailAST.getType() == TokenTypes.METHOD_CALL) &&
-			ArrayUtil.contains(
-				_ARITHMETIC_OPERATOR_TOKEN_TYPES, detailAST.getType()) &&
-			DetailASTUtil.isAtLineEnd(
-				lastChildDetailAST,
-				getLine(lastChildDetailAST.getLineNo() - 1))) {
-
-			log(
-				lastChildDetailAST, _MSG_IMPROVE_READABILITY, "right",
-				detailAST.getText());
+				firstChildDetailAST, _MSG_IMPROVE_READABILITY, side,
+				operatorDetailAST.getText());
 		}
 	}
 
@@ -89,17 +101,7 @@ public class OperatorOperandCheck extends BaseCheck {
 		}
 	}
 
-	private static final int[] _ARITHMETIC_OPERATOR_TOKEN_TYPES = {
-		TokenTypes.DIV, TokenTypes.MINUS, TokenTypes.MOD, TokenTypes.PLUS,
-		TokenTypes.STAR
-	};
-
 	private static final String _MSG_IMPROVE_READABILITY =
 		"readability.improve";
-
-	private static final int[] _RELATIONAL_OPERATOR_TOKEN_TYPES = {
-		TokenTypes.EQUAL, TokenTypes.GE, TokenTypes.GT, TokenTypes.LE,
-		TokenTypes.LT, TokenTypes.NOT_EQUAL
-	};
 
 }

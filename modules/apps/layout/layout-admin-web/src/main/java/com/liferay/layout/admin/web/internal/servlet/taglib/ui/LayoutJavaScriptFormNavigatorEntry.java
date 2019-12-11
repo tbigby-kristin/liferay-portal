@@ -37,31 +37,6 @@ import org.osgi.service.component.annotations.Reference;
 public class LayoutJavaScriptFormNavigatorEntry
 	extends BaseLayoutFormNavigatorEntry {
 
-	@Activate
-	public void activate(BundleContext bundleContext) {
-		boolean enableJavaScript =
-			PropsValues.
-				FIELD_ENABLE_COM_LIFERAY_PORTAL_KERNEL_MODEL_LAYOUT_JAVASCRIPT;
-
-		if (!enableJavaScript) {
-			return;
-		}
-
-		Dictionary<String, Object> properties = new HashMapDictionary<>();
-
-		properties.put("form.navigator.entry.order", 90);
-
-		_serviceRegistration = bundleContext.registerService(
-			FormNavigatorEntry.class, this, properties);
-	}
-
-	@Deactivate
-	public void deactivate() {
-		if (_serviceRegistration != null) {
-			_serviceRegistration.unregister();
-		}
-	}
-
 	@Override
 	public String getCategoryKey() {
 		return FormNavigatorConstants.CATEGORY_KEY_LAYOUT_ADVANCED;
@@ -79,6 +54,31 @@ public class LayoutJavaScriptFormNavigatorEntry
 	)
 	public void setServletContext(ServletContext servletContext) {
 		super.setServletContext(servletContext);
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		boolean enableJavaScript =
+			PropsValues.
+				FIELD_ENABLE_COM_LIFERAY_PORTAL_KERNEL_MODEL_LAYOUT_JAVASCRIPT;
+
+		if (!enableJavaScript) {
+			return;
+		}
+
+		Dictionary<String, Object> properties = new HashMapDictionary<>();
+
+		properties.put("form.navigator.entry.order", 90);
+
+		_serviceRegistration = bundleContext.registerService(
+			FormNavigatorEntry.class, this, properties);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		if (_serviceRegistration != null) {
+			_serviceRegistration.unregister();
+		}
 	}
 
 	@Override

@@ -47,7 +47,7 @@
 
 				if (browseButton) {
 					browseButton.onClick = function() {
-						editor.execCommand(commandName, function(newVal) {
+						editor.execCommand(commandName, newVal => {
 							dialogDefinition.dialog.setValueOf(
 								tabName,
 								targetField,
@@ -92,22 +92,19 @@
 			if (mediaPlugin) {
 				var eventName = editor.name + 'selectItem';
 
-				Liferay.Util.getWindow(eventName).onceAfter(
-					'destroy',
-					function() {
-						mediaPlugin.onOkCallback(
-							{
-								commitContent: instance._getCommitMediaValueFn(
-									value,
-									editor,
-									type
-								)
-							},
-							editor,
-							type
-						);
-					}
-				);
+				Liferay.Util.getWindow(eventName).onceAfter('destroy', () => {
+					mediaPlugin.onOkCallback(
+						{
+							commitContent: instance._getCommitMediaValueFn(
+								value,
+								editor,
+								type
+							)
+						},
+						editor,
+						type
+					);
+				});
 			}
 		},
 
@@ -193,23 +190,27 @@
 			var itemSelectorDialog = instance._itemSelectorDialog;
 
 			if (itemSelectorDialog) {
-				itemSelectorDialog.set('eventName', eventName);
-				itemSelectorDialog.set('url', url);
-				itemSelectorDialog.set('zIndex', CKEDITOR.getNextZIndex());
+				itemSelectorDialog.eventName = eventName;
+				itemSelectorDialog.url = url;
+				itemSelectorDialog.zIndex = CKEDITOR.getNextZIndex();
 
 				callback(itemSelectorDialog);
 			} else {
-				AUI().use('liferay-item-selector-dialog', function(A) {
-					itemSelectorDialog = new A.LiferayItemSelectorDialog({
-						eventName,
-						url,
-						zIndex: CKEDITOR.getNextZIndex()
-					});
+				Liferay.Loader.require(
+					'frontend-js-web/liferay/ItemSelectorDialog.es',
+					ItemSelectorDialog => {
+						itemSelectorDialog = new ItemSelectorDialog.default({
+							eventName,
+							singleSelect: true,
+							url,
+							zIndex: CKEDITOR.getNextZIndex()
+						});
 
-					instance._itemSelectorDialog = itemSelectorDialog;
+						instance._itemSelectorDialog = itemSelectorDialog;
 
-					callback(itemSelectorDialog);
-				});
+						callback(itemSelectorDialog);
+					}
+				);
 			}
 		},
 
@@ -244,7 +245,7 @@
 		_onSelectedAudioChange(editor, callback, event) {
 			var instance = this;
 
-			var selectedItem = event.newVal;
+			var selectedItem = event.selectedItem;
 
 			if (selectedItem) {
 				var audioSrc = instance._getItemSrc(editor, selectedItem);
@@ -262,92 +263,84 @@
 		_onSelectedImageChange(editor, callback, event) {
 			var instance = this;
 
-			var selectedItem = event.newVal;
+			var selectedItem = event.selectedItem;
 
 			if (selectedItem) {
 				var eventName = editor.name + 'selectItem';
 				var imageSrc = instance._getItemSrc(editor, selectedItem);
 
-				Liferay.Util.getWindow(eventName).onceAfter(
-					'destroy',
-					function() {
-						if (imageSrc) {
-							if (typeof callback === 'function') {
-								callback(imageSrc, selectedItem);
-							} else {
-								var elementOuterHtml =
-									'<img src="' + imageSrc + '">';
+				Liferay.Util.getWindow(eventName).onceAfter('destroy', () => {
+					if (imageSrc) {
+						if (typeof callback === 'function') {
+							callback(imageSrc, selectedItem);
+						} else {
+							var elementOuterHtml =
+								'<img src="' + imageSrc + '">';
 
-								editor.insertHtml(elementOuterHtml);
+							editor.insertHtml(elementOuterHtml);
 
-								if (instance._isEmptySelection(editor)) {
-									if (IE9AndLater) {
-										var usingAlloyEditor =
-											typeof editor.window.$
-												.AlloyEditor === 'undefined';
+							if (instance._isEmptySelection(editor)) {
+								if (IE9AndLater) {
+									var usingAlloyEditor =
+										typeof editor.window.$.AlloyEditor ===
+										'undefined';
 
-										if (!usingAlloyEditor) {
-											var emptySelectionMarkup = '&nbsp;';
+									if (!usingAlloyEditor) {
+										var emptySelectionMarkup = '&nbsp;';
 
-											emptySelectionMarkup =
-												elementOuterHtml +
-												emptySelectionMarkup;
+										emptySelectionMarkup =
+											elementOuterHtml +
+											emptySelectionMarkup;
 
-											editor.insertHtml(
-												emptySelectionMarkup
-											);
-										}
-
-										var element = new CKEDITOR.dom.element(
-											'br'
-										);
-
-										editor.insertElement(element);
-										editor.getSelection();
-
-										editor.fire('editorInteraction', {
-											nativeEvent: {},
-											selectionData: {
-												element,
-												region: element.getClientRect()
-											}
-										});
-									} else {
-										editor.execCommand('enter');
+										editor.insertHtml(emptySelectionMarkup);
 									}
-								}
 
-								editor.focus();
+									var element = new CKEDITOR.dom.element(
+										'br'
+									);
+
+									editor.insertElement(element);
+									editor.getSelection();
+
+									editor.fire('editorInteraction', {
+										nativeEvent: {},
+										selectionData: {
+											element,
+											region: element.getClientRect()
+										}
+									});
+								} else {
+									editor.execCommand('enter');
+								}
 							}
+
+							editor.focus();
 						}
 					}
-				);
+				});
 			}
 		},
 
 		_onSelectedLinkChange(editor, callback, event) {
-			var selectedItem = event.newVal;
+			var selectedItem = event.selectedItem;
 
 			if (selectedItem) {
 				var eventName = editor.name + 'selectItem';
 
 				var linkUrl = selectedItem.value;
 
-				Liferay.Util.getWindow(eventName).onceAfter(
-					'destroy',
-					function() {
-						if (typeof callback === 'function') {
-							callback(linkUrl, selectedItem);
-						}
+				Liferay.Util.getWindow(eventName).onceAfter('destroy', () => {
+					if (typeof callback === 'function') {
+						callback(linkUrl, selectedItem);
 					}
-				);
+				});
 			}
 		},
 
 		_onSelectedVideoChange(editor, callback, event) {
 			var instance = this;
 
-			var selectedItem = event.newVal;
+			var selectedItem = event.selectedItem;
 
 			if (selectedItem) {
 				var videoSrc = instance._getItemSrc(editor, selectedItem);
@@ -381,7 +374,7 @@
 					instance._getItemSelectorDialog(
 						editor,
 						editor.config.filebrowserAudioBrowseUrl,
-						function(itemSelectorDialog) {
+						itemSelectorDialog => {
 							itemSelectorDialog.once(
 								'selectedItemChange',
 								onSelectedAudioChangeFn
@@ -405,7 +398,7 @@
 					instance._getItemSelectorDialog(
 						editor,
 						editor.config.filebrowserImageBrowseUrl,
-						function(itemSelectorDialog) {
+						itemSelectorDialog => {
 							itemSelectorDialog.once(
 								'selectedItemChange',
 								onSelectedImageChangeFn
@@ -429,7 +422,7 @@
 					instance._getItemSelectorDialog(
 						editor,
 						editor.config.filebrowserBrowseUrl,
-						function(itemSelectorDialog) {
+						itemSelectorDialog => {
 							itemSelectorDialog.once(
 								'selectedItemChange',
 								onSelectedLinkChangeFn
@@ -453,7 +446,7 @@
 					instance._getItemSelectorDialog(
 						editor,
 						editor.config.filebrowserVideoBrowseUrl,
-						function(itemSelectorDialog) {
+						itemSelectorDialog => {
 							itemSelectorDialog.once(
 								'selectedItemChange',
 								onSelectedVideoChangeFn
@@ -484,7 +477,7 @@
 				});
 			}
 
-			CKEDITOR.on('dialogDefinition', function(event) {
+			CKEDITOR.on('dialogDefinition', event => {
 				var dialogName = event.data.name;
 
 				var dialogDefinition = event.data.definition;
@@ -532,9 +525,9 @@
 				}
 			});
 
-			editor.once('destroy', function() {
+			editor.once('destroy', () => {
 				if (instance._itemSelectorDialog) {
-					instance._itemSelectorDialog.destroy();
+					instance._itemSelectorDialog.dispose();
 				}
 			});
 		}

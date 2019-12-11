@@ -8,8 +8,7 @@
 		"liferay-frontend-common-css": "1.0.4",
 		"liferay-karma-alloy-config": "0.0.15",
 		"liferay-karma-config": "0.0.3",
-		"liferay-npm-scripts": "9.5.0",
-		"liferay-theme-es2015-hook": "8.0.0-rc.2",
+		"liferay-npm-scripts": "16.0.0",
 		"metal-jest-serializer": "2.0.0"
 	},
 	"private": true,
@@ -43,6 +42,7 @@
 			"apps/frontend-taglib/frontend-taglib-clay",
 			"apps/frontend-theme/frontend-theme-admin",
 			"apps/frontend-theme/frontend-theme-classic",
+			"apps/frontend-theme/frontend-theme-styled",
 			"apps/frontend-theme/frontend-theme-unstyled",
 			"apps/frontend-theme-fjord/frontend-theme-fjord",
 			"apps/frontend-theme-porygon/frontend-theme-porygon",
@@ -52,7 +52,9 @@
 			"apps/map/map-openstreetmap",
 			"apps/portal-portlet-bridge/portal-portlet-bridge-soy-impl",
 			"apps/portal-template/portal-template-react-renderer-impl",
-			"apps/product-navigation/product-navigation-simulation-device"
+			"apps/product-navigation/product-navigation-simulation-device",
+			"dxp/apps/*/*-taglib",
+			"dxp/apps/*/*-web"
 		]
 	}
 }

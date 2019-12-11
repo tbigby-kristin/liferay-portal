@@ -66,7 +66,7 @@ public class WebUrl {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The URL's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -92,7 +92,7 @@ public class WebUrl {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The absolute URL.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String url;
 
@@ -120,7 +120,7 @@ public class WebUrl {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The URL's type.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String urlType;
 
@@ -193,6 +193,12 @@ public class WebUrl {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.user.dto.v1_0.WebUrl",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -36,11 +36,9 @@ import com.liferay.portal.json.JSONFactoryImpl;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
-import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsImpl;
 
 import java.lang.reflect.Field;
@@ -51,7 +49,6 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -72,7 +69,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest(LocaleUtil.class)
+@PrepareForTest({LocaleThreadLocal.class, LocaleUtil.class})
 @RunWith(PowerMockRunner.class)
 public class DDMFormValuesFactoryTest extends PowerMockito {
 
@@ -91,18 +88,10 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 		setUpLocaleUtil();
 	}
 
-	@After
-	public void tearDown() {
-		LocaleThreadLocal.setSiteDefaultLocale(_originalSiteDefaultLocale);
-	}
-
 	@Test
 	public void testCreateDefaultWithEmptyRequest() throws Exception {
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
-
-		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, mockThemeDisplay());
 
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
 
@@ -200,9 +189,6 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
-
-		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, mockThemeDisplay());
 
 		mockHttpServletRequest.addParameter(
 			"languageId", LocaleUtil.toLanguageId(LocaleUtil.US));
@@ -647,8 +633,6 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 
 		mockHttpServletRequest.addParameter(
 			"languageId", LocaleUtil.toLanguageId(LocaleUtil.US));
-		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, mockThemeDisplay());
 
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
 
@@ -800,8 +784,6 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 
 		mockHttpServletRequest.addParameter(
 			"languageId", LocaleUtil.toLanguageId(LocaleUtil.US));
-		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, mockThemeDisplay());
 
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
 
@@ -883,8 +865,6 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 
 		mockHttpServletRequest.addParameter(
 			"languageId", LocaleUtil.toLanguageId(LocaleUtil.US));
-		mockHttpServletRequest.setAttribute(
-			WebKeys.THEME_DISPLAY, mockThemeDisplay());
 
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm();
 
@@ -1028,18 +1008,6 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 		return avaiablesLocaleArray;
 	}
 
-	protected ThemeDisplay mockThemeDisplay() {
-		ThemeDisplay themeDisplay = mock(ThemeDisplay.class);
-
-		when(
-			themeDisplay.getLanguageId()
-		).thenReturn(
-			"pt_BR"
-		);
-
-		return themeDisplay;
-	}
-
 	protected String serialize(DDMFormValues ddmFormValues) {
 		DDMFormValuesSerializerSerializeRequest.Builder builder =
 			DDMFormValuesSerializerSerializeRequest.Builder.newBuilder(
@@ -1090,15 +1058,31 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 			"es_ES"
 		);
 
+		when(
+			_language.getLanguageId(LocaleUtil.BRAZIL)
+		).thenReturn(
+			"pt_BR"
+		);
+
 		LanguageUtil languageUtil = new LanguageUtil();
 
 		languageUtil.setLanguage(_language);
 	}
 
 	protected void setUpLocaleThreadLocal() {
-		_originalSiteDefaultLocale = LocaleThreadLocal.getSiteDefaultLocale();
+		mockStatic(LocaleThreadLocal.class);
 
-		LocaleThreadLocal.setSiteDefaultLocale(LocaleUtil.US);
+		when(
+			LocaleThreadLocal.getSiteDefaultLocale()
+		).thenReturn(
+			LocaleUtil.US
+		);
+
+		when(
+			LocaleThreadLocal.getThemeDisplayLocale()
+		).thenReturn(
+			LocaleUtil.BRAZIL
+		);
 	}
 
 	protected void setUpLocaleUtil() {
@@ -1142,8 +1126,6 @@ public class DDMFormValuesFactoryTest extends PowerMockito {
 
 	@Mock
 	private Language _language;
-
-	private Locale _originalSiteDefaultLocale;
 
 	@Mock
 	private ServiceTrackerMap

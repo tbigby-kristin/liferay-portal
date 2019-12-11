@@ -33,8 +33,11 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
 /**
- * @author Eudaldo Alonso
+ * @author     Eudaldo Alonso
+ * @deprecated As of Athanasius (7.3.x), replaced by {@link
+ *             com.liferay.layout.taglib.servlet.taglib.LayoutClassedModelUsagesAdminTag}
  */
+@Deprecated
 public class AssetEntryUsagesTag extends IncludeTag {
 
 	@Override

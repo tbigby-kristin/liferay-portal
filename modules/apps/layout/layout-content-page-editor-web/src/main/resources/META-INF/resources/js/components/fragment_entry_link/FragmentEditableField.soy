@@ -6,34 +6,32 @@
 {template .render}
 	{@param content: html}
 	{@param type: string}
+	{@param? _activable: bool}
+	{@param? _active: bool}
 	{@param? _handleEditableClick: any}
 	{@param? _handleEditableFocus: any}
 	{@param? _highlighted: any}
+	{@param? _hovered: bool}
+	{@param? _itemId: string}
 	{@param? _mapped: bool}
 	{@param? _mappedItemHovered: bool}
 	{@param? _mappedFieldLabel: string}
 	{@param? _selected: any}
 	{@param? _translated: bool}
-	{@param? activeItemId: string}
-	{@param? activeItemType: string}
-	{@param? defaultLanguageId: string}
+	{@param? _translating: bool}
+	{@param? _value: html}
 	{@param? editableId: string}
 	{@param? editableValues: ?}
 	{@param? fragmentEntryLinkId: string}
-	{@param? hoveredItemId: string}
-	{@param? hoveredItemType: string}
-	{@param? itemId: string}
-	{@param? itemTypes: ?}
-	{@param? languageId: string}
 
 	{let $editableClasses kind="text"}
 		fragments-editor__editable
 
-		{if $activeItemId == $itemId and $activeItemType == $itemTypes.editable}
+		{if $_active}
 			{sp}fragments-editor__editable--active
 		{/if}
 
-		{if $hoveredItemId == $itemId and $hoveredItemType == $itemTypes.editable}
+		{if $_hovered}
 			{sp}fragments-editor__editable--hovered
 		{/if}
 
@@ -45,7 +43,7 @@
 			{sp}fragments-editor__editable--highlighted
 		{/if}
 
-		{if $languageId != $defaultLanguageId}
+		{if $_translating}
 			{sp}fragments-editor__editable--translating
 
 			{if $_translated}
@@ -82,16 +80,19 @@
 		class="{$editableClasses}"
 		data-editable-id="{$editableId}"
 		data-fragment-entry-link-id="{$fragmentEntryLinkId}"
-		data-fragments-editor-item-id="{$itemId}"
-		data-fragments-editor-item-type="fragments-editor-editable-field"
 		data-onfocus="{$_handleEditableFocus}"
-		id="{$itemId}"
+		id="{$_itemId}"
 		ref="editable"
 		tabindex="0"
 		title="{$_mappedFieldLabel ?: ''}"
 		type="{$type}"
 
-		{if (not $_mapped) and ($activeItemId == $itemId) and ($activeItemType == $itemTypes.editable)}
+		{if $_activable}
+			data-fragments-editor-item-id="{$_itemId}"
+			data-fragments-editor-item-type="fragments-editor-editable-field"
+		{/if}
+
+		{if (not $_mapped) and $_active}
 			data-onclick="{$_handleEditableClick}"
 		{/if}
 	{/let}
@@ -106,10 +107,10 @@
 			{/let}
 
 			<a {$linkAttributes}>
-				{$content}
+				{$_value ?: $content}
 			</a>
 		{else}
-			{$content}
+			{$_value ?: $content}
 		{/if}
 	</lfr-editable>
 {/template}

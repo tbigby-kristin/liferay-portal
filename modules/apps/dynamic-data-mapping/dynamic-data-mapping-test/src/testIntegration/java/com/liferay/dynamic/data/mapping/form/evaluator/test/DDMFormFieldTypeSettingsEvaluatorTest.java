@@ -72,30 +72,28 @@ public class DDMFormFieldTypeSettingsEvaluatorTest {
 
 		List<DDMDataProviderOutputParametersSettings> outputParametersSettings =
 			ListUtil.fromArray(
-				new DDMDataProviderOutputParametersSettings[] {
-					new DDMDataProviderOutputParametersSettings() {
+				new DDMDataProviderOutputParametersSettings() {
 
-						@Override
-						public String outputParameterId() {
-							return StringUtil.randomString();
-						}
-
-						@Override
-						public String outputParameterName() {
-							return "Countries";
-						}
-
-						@Override
-						public String outputParameterPath() {
-							return "nameCurrentValue";
-						}
-
-						@Override
-						public String outputParameterType() {
-							return "[\"list\"]";
-						}
-
+					@Override
+					public String outputParameterId() {
+						return StringUtil.randomString();
 					}
+
+					@Override
+					public String outputParameterName() {
+						return "Countries";
+					}
+
+					@Override
+					public String outputParameterPath() {
+						return "nameCurrentValue";
+					}
+
+					@Override
+					public String outputParameterType() {
+						return "[\"list\"]";
+					}
+
 				});
 
 		Map<String, Object> ddmDataProviderInstanceOutputFielPropertyChanges =
@@ -132,7 +130,8 @@ public class DDMFormFieldTypeSettingsEvaluatorTest {
 		DDMFormFieldValue dataSourceTypeFormFieldValue = ddmFormFieldValues.get(
 			0);
 
-		dataSourceTypeFormFieldValue.setValue(new UnlocalizedValue("manual"));
+		dataSourceTypeFormFieldValue.setValue(
+			new UnlocalizedValue("[\"manual\"]"));
 
 		DDMFormEvaluatorEvaluateRequest.Builder builder =
 			DDMFormEvaluatorEvaluateRequest.Builder.newBuilder(

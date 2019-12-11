@@ -81,6 +81,7 @@ public class AssetVocabularyModelImpl
 	public static final String TABLE_NAME = "AssetVocabulary";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"uuid_", Types.VARCHAR}, {"externalReferenceCode", Types.VARCHAR},
 		{"vocabularyId", Types.BIGINT}, {"groupId", Types.BIGINT},
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
@@ -94,6 +95,8 @@ public class AssetVocabularyModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("externalReferenceCode", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("vocabularyId", Types.BIGINT);
@@ -111,7 +114,7 @@ public class AssetVocabularyModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetVocabulary (uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,vocabularyId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,title STRING null,description STRING null,settings_ STRING null,lastPublishDate DATE null)";
+		"create table AssetVocabulary (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,externalReferenceCode VARCHAR(75) null,vocabularyId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,title STRING null,description STRING null,settings_ STRING null,lastPublishDate DATE null,primary key (vocabularyId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table AssetVocabulary";
 
@@ -165,6 +168,8 @@ public class AssetVocabularyModelImpl
 
 		AssetVocabulary model = new AssetVocabularyImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
+		model.setCtCollectionId(soapModel.getCtCollectionId());
 		model.setUuid(soapModel.getUuid());
 		model.setExternalReferenceCode(soapModel.getExternalReferenceCode());
 		model.setVocabularyId(soapModel.getVocabularyId());
@@ -336,6 +341,17 @@ public class AssetVocabularyModelImpl
 		Map<String, BiConsumer<AssetVocabulary, ?>> attributeSetterBiConsumers =
 			new LinkedHashMap<String, BiConsumer<AssetVocabulary, ?>>();
 
+		attributeGetterFunctions.put(
+			"mvccVersion", AssetVocabulary::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<AssetVocabulary, Long>)AssetVocabulary::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", AssetVocabulary::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<AssetVocabulary, Long>)
+				AssetVocabulary::setCtCollectionId);
 		attributeGetterFunctions.put("uuid", AssetVocabulary::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid",
@@ -409,6 +425,28 @@ public class AssetVocabularyModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -987,6 +1025,8 @@ public class AssetVocabularyModelImpl
 	public Object clone() {
 		AssetVocabularyImpl assetVocabularyImpl = new AssetVocabularyImpl();
 
+		assetVocabularyImpl.setMvccVersion(getMvccVersion());
+		assetVocabularyImpl.setCtCollectionId(getCtCollectionId());
 		assetVocabularyImpl.setUuid(getUuid());
 		assetVocabularyImpl.setExternalReferenceCode(
 			getExternalReferenceCode());
@@ -1088,6 +1128,10 @@ public class AssetVocabularyModelImpl
 	public CacheModel<AssetVocabulary> toCacheModel() {
 		AssetVocabularyCacheModel assetVocabularyCacheModel =
 			new AssetVocabularyCacheModel();
+
+		assetVocabularyCacheModel.mvccVersion = getMvccVersion();
+
+		assetVocabularyCacheModel.ctCollectionId = getCtCollectionId();
 
 		assetVocabularyCacheModel.uuid = getUuid();
 
@@ -1258,6 +1302,8 @@ public class AssetVocabularyModelImpl
 
 	}
 
+	private long _mvccVersion;
+	private long _ctCollectionId;
 	private String _uuid;
 	private String _originalUuid;
 	private String _externalReferenceCode;

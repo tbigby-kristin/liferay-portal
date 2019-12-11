@@ -16,6 +16,7 @@ package com.liferay.portal.tools.service.builder.test.model.impl;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSON;
@@ -27,7 +28,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.tools.service.builder.test.model.UADPartialEntry;
 import com.liferay.portal.tools.service.builder.test.model.UADPartialEntryModel;
 import com.liferay.portal.tools.service.builder.test.model.UADPartialEntrySoap;
@@ -292,94 +292,23 @@ public class UADPartialEntryModelImpl
 			new LinkedHashMap<String, BiConsumer<UADPartialEntry, ?>>();
 
 		attributeGetterFunctions.put(
-			"uadPartialEntryId",
-			new Function<UADPartialEntry, Object>() {
-
-				@Override
-				public Object apply(UADPartialEntry uadPartialEntry) {
-					return uadPartialEntry.getUadPartialEntryId();
-				}
-
-			});
+			"uadPartialEntryId", UADPartialEntry::getUadPartialEntryId);
 		attributeSetterBiConsumers.put(
 			"uadPartialEntryId",
-			new BiConsumer<UADPartialEntry, Object>() {
-
-				@Override
-				public void accept(
-					UADPartialEntry uadPartialEntry, Object uadPartialEntryId) {
-
-					uadPartialEntry.setUadPartialEntryId(
-						(Long)uadPartialEntryId);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"userId",
-			new Function<UADPartialEntry, Object>() {
-
-				@Override
-				public Object apply(UADPartialEntry uadPartialEntry) {
-					return uadPartialEntry.getUserId();
-				}
-
-			});
+			(BiConsumer<UADPartialEntry, Long>)
+				UADPartialEntry::setUadPartialEntryId);
+		attributeGetterFunctions.put("userId", UADPartialEntry::getUserId);
 		attributeSetterBiConsumers.put(
 			"userId",
-			new BiConsumer<UADPartialEntry, Object>() {
-
-				@Override
-				public void accept(
-					UADPartialEntry uadPartialEntry, Object userId) {
-
-					uadPartialEntry.setUserId((Long)userId);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"userName",
-			new Function<UADPartialEntry, Object>() {
-
-				@Override
-				public Object apply(UADPartialEntry uadPartialEntry) {
-					return uadPartialEntry.getUserName();
-				}
-
-			});
+			(BiConsumer<UADPartialEntry, Long>)UADPartialEntry::setUserId);
+		attributeGetterFunctions.put("userName", UADPartialEntry::getUserName);
 		attributeSetterBiConsumers.put(
 			"userName",
-			new BiConsumer<UADPartialEntry, Object>() {
-
-				@Override
-				public void accept(
-					UADPartialEntry uadPartialEntry, Object userName) {
-
-					uadPartialEntry.setUserName((String)userName);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"message",
-			new Function<UADPartialEntry, Object>() {
-
-				@Override
-				public Object apply(UADPartialEntry uadPartialEntry) {
-					return uadPartialEntry.getMessage();
-				}
-
-			});
+			(BiConsumer<UADPartialEntry, String>)UADPartialEntry::setUserName);
+		attributeGetterFunctions.put("message", UADPartialEntry::getMessage);
 		attributeSetterBiConsumers.put(
 			"message",
-			new BiConsumer<UADPartialEntry, Object>() {
-
-				@Override
-				public void accept(
-					UADPartialEntry uadPartialEntry, Object message) {
-
-					uadPartialEntry.setMessage((String)message);
-				}
-
-			});
+			(BiConsumer<UADPartialEntry, String>)UADPartialEntry::setMessage);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);

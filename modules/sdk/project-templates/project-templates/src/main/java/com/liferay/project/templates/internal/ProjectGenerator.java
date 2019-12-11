@@ -17,20 +17,17 @@ package com.liferay.project.templates.internal;
 import aQute.bnd.version.Version;
 import aQute.bnd.version.VersionRange;
 
-import com.liferay.project.templates.FileUtil;
-import com.liferay.project.templates.ProjectTemplateCustomizer;
-import com.liferay.project.templates.ProjectTemplates;
-import com.liferay.project.templates.ProjectTemplatesArgs;
-import com.liferay.project.templates.WorkspaceUtil;
-import com.liferay.project.templates.internal.util.ProjectTemplatesUtil;
-import com.liferay.project.templates.internal.util.Validator;
+import com.liferay.project.templates.extensions.ProjectTemplateCustomizer;
+import com.liferay.project.templates.extensions.ProjectTemplatesArgs;
+import com.liferay.project.templates.extensions.ProjectTemplatesConstants;
+import com.liferay.project.templates.extensions.util.FileUtil;
+import com.liferay.project.templates.extensions.util.ProjectTemplatesUtil;
+import com.liferay.project.templates.extensions.util.Validator;
+import com.liferay.project.templates.extensions.util.WorkspaceUtil;
 
 import java.io.File;
 
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +38,6 @@ import java.util.ServiceLoader;
 import org.apache.maven.archetype.ArchetypeGenerationRequest;
 import org.apache.maven.archetype.ArchetypeGenerationResult;
 import org.apache.maven.archetype.ArchetypeManager;
-import org.apache.maven.archetype.common.ArchetypeArtifactManager;
 
 /**
  * @author Gregory Amerson
@@ -56,18 +52,14 @@ public class ProjectGenerator {
 		String artifactId = projectTemplatesArgs.getName();
 		String author = projectTemplatesArgs.getAuthor();
 		String className = projectTemplatesArgs.getClassName();
-		String dependencyInjector =
-			projectTemplatesArgs.getDependencyInjector();
 		boolean dependencyManagementEnabled =
 			projectTemplatesArgs.isDependencyManagementEnabled();
-		String framework = projectTemplatesArgs.getFramework();
-		String frameworkDependencies =
-			projectTemplatesArgs.getFrameworkDependencies();
+
 		String groupId = projectTemplatesArgs.getGroupId();
 		String liferayVersion = projectTemplatesArgs.getLiferayVersion();
 		String packageName = projectTemplatesArgs.getPackageName();
+
 		String template = projectTemplatesArgs.getTemplate();
-		String viewType = projectTemplatesArgs.getViewType();
 
 		if (template.equals("portlet")) {
 			projectTemplatesArgs.setTemplate("mvc-portlet");
@@ -110,7 +102,7 @@ public class ProjectGenerator {
 			new ArchetypeGenerationRequest();
 
 		String archetypeArtifactId =
-			ProjectTemplates.TEMPLATE_BUNDLE_PREFIX +
+			ProjectTemplatesConstants.TEMPLATE_BUNDLE_PREFIX +
 				template.replace('-', '.');
 
 		if (archetypeArtifactId.equals(
@@ -141,17 +133,12 @@ public class ProjectGenerator {
 		_setProperty(properties, "author", author);
 		_setProperty(properties, "buildType", buildType);
 		_setProperty(properties, "className", className);
-		_setProperty(properties, "dependencyInjector", dependencyInjector);
 		_setProperty(
 			properties, "dependencyManagementEnabled",
 			String.valueOf(dependencyManagementEnabled));
-		_setProperty(properties, "framework", framework);
-		_setProperty(
-			properties, "frameworkDependencies", frameworkDependencies);
 		_setProperty(properties, "liferayVersion", liferayVersion);
 		_setProperty(properties, "package", packageName);
 		_setProperty(properties, "projectType", projectType);
-		_setProperty(properties, "viewType", viewType);
 
 		archetypeGenerationRequest.setProperties(properties);
 
@@ -159,16 +146,8 @@ public class ProjectGenerator {
 
 		Archetyper archetyper = new Archetyper(archetypesDirs);
 
-		ArchetypeArtifactManager archetypeArtifactManager =
-			archetyper.createArchetypeArtifactManager();
-
 		ProjectTemplateCustomizer projectTemplateCustomizer =
-			_getProjectTemplateCustomizer(
-				archetypeArtifactManager.getArchetypeFile(
-					archetypeGenerationRequest.getArchetypeGroupId(),
-					archetypeGenerationRequest.getArchetypeArtifactId(),
-					archetypeGenerationRequest.getArchetypeVersion(), null,
-					null, null));
+			_getProjectTemplateCustomizer(template);
 
 		if (projectTemplateCustomizer != null) {
 			projectTemplateCustomizer.onBeforeGenerateProject(
@@ -201,21 +180,23 @@ public class ProjectGenerator {
 	}
 
 	private ProjectTemplateCustomizer _getProjectTemplateCustomizer(
-			File archetypeFile)
+			String templateName)
 		throws MalformedURLException {
 
-		URI uri = archetypeFile.toURI();
-
-		URLClassLoader urlClassLoader = new URLClassLoader(
-			new URL[] {uri.toURL()});
-
 		ServiceLoader<ProjectTemplateCustomizer> serviceLoader =
-			ServiceLoader.load(ProjectTemplateCustomizer.class, urlClassLoader);
+			ServiceLoader.load(ProjectTemplateCustomizer.class);
 
 		Iterator<ProjectTemplateCustomizer> iterator = serviceLoader.iterator();
 
-		if (iterator.hasNext()) {
-			return iterator.next();
+		while (iterator.hasNext()) {
+			ProjectTemplateCustomizer projectTemplateCustomizer =
+				iterator.next();
+
+			if (templateName.equals(
+					projectTemplateCustomizer.getTemplateName())) {
+
+				return projectTemplateCustomizer;
+			}
 		}
 
 		return null;

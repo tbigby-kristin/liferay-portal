@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.ExpandoTableSearchFixture;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
@@ -47,7 +48,6 @@ import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.io.Serializable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -108,10 +108,12 @@ public class OrganizationIndexerIndexedFieldsTest {
 			Organization.class, ExpandoColumnConstants.INDEX_TYPE_KEYWORD,
 			expandoColumnObs, expandoColumnName);
 
-		Map<String, Serializable> expandoValues = new HashMap<>();
-
-		expandoValues.put(expandoColumnName, "Software Developer");
-		expandoValues.put(expandoColumnObs, "Software Engineer");
+		Map<String, Serializable> expandoValues =
+			HashMapBuilder.<String, Serializable>put(
+				expandoColumnName, "Software Developer"
+			).put(
+				expandoColumnObs, "Software Engineer"
+			).build();
 
 		Organization organization = organizationFixture.createOrganization(
 			"My Organization", expandoValues);
@@ -203,40 +205,46 @@ public class OrganizationIndexerIndexedFieldsTest {
 	private Map<String, String> _expectedFieldValues(Organization organization)
 		throws Exception {
 
-		Map<String, String> map = new HashMap<>();
-
-		String countryName = organizationFixture.getCountryNames(organization);
-
-		Region region = regionService.getRegion(organization.getRegionId());
-
-		String regionName = StringUtil.toLowerCase(region.getName());
-
-		map.put("country", countryName);
-		map.put("region", regionName);
-		map.put(
-			Field.NAME + "_sortable",
-			StringUtil.toLowerCase(organization.getName()));
-		map.put(
+		Map<String, String> map = HashMapBuilder.put(
+			Field.COMPANY_ID, String.valueOf(organization.getCompanyId())
+		).put(
+			Field.ENTRY_CLASS_NAME, Organization.class.getName()
+		).put(
 			Field.ENTRY_CLASS_PK,
-			String.valueOf(organization.getOrganizationId()));
-		map.put(
-			"nameTreePath_String_sortable",
-			StringUtil.toLowerCase(organization.getName()));
-		map.put(Field.ENTRY_CLASS_NAME, Organization.class.getName());
-		map.put(
-			Field.USER_NAME,
-			StringUtil.toLowerCase(organization.getUserName()));
-		map.put(
-			"parentOrganizationId",
-			String.valueOf(organization.getParentOrganizationId()));
-		map.put(
+			String.valueOf(organization.getOrganizationId())
+		).put(
+			Field.NAME, organization.getName()
+		).put(
+			Field.NAME + "_sortable",
+			StringUtil.toLowerCase(organization.getName())
+		).put(
 			Field.ORGANIZATION_ID,
-			String.valueOf(organization.getOrganizationId()));
-		map.put(Field.USER_ID, String.valueOf(organization.getUserId()));
-		map.put(Field.COMPANY_ID, String.valueOf(organization.getCompanyId()));
-		map.put("nameTreePath", organization.getName());
-		map.put(Field.NAME, organization.getName());
-		map.put(Field.TREE_PATH, organization.getTreePath());
+			String.valueOf(organization.getOrganizationId())
+		).put(
+			Field.TREE_PATH, organization.getTreePath()
+		).put(
+			Field.USER_ID, String.valueOf(organization.getUserId())
+		).put(
+			Field.USER_NAME, StringUtil.toLowerCase(organization.getUserName())
+		).put(
+			"country", organizationFixture.getCountryNames(organization)
+		).put(
+			"nameTreePath", organization.getName()
+		).put(
+			"nameTreePath_String_sortable",
+			StringUtil.toLowerCase(organization.getName())
+		).put(
+			"parentOrganizationId",
+			String.valueOf(organization.getParentOrganizationId())
+		).put(
+			"region",
+			() -> {
+				Region region = regionService.getRegion(
+					organization.getRegionId());
+
+				return StringUtil.toLowerCase(region.getName());
+			}
+		).build();
 
 		indexedFieldsFixture.populateUID(
 			Organization.class.getName(), organization.getOrganizationId(),

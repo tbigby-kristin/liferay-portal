@@ -14,6 +14,8 @@
 
 package com.liferay.mule.internal.connection;
 
+import com.liferay.mule.internal.config.LiferayProxyConfig;
+
 import java.io.IOException;
 
 import java.util.concurrent.TimeoutException;
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import org.mule.runtime.api.connection.ConnectionException;
 import org.mule.runtime.api.connection.ConnectionProvider;
 import org.mule.runtime.api.connection.ConnectionValidationResult;
+import org.mule.runtime.extension.api.annotation.param.ParameterGroup;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 
 /**
@@ -28,6 +31,11 @@ import org.mule.runtime.http.api.domain.message.response.HttpResponse;
  */
 public abstract class BaseConnectionProvider
 	implements ConnectionProvider<LiferayConnection> {
+
+	@Override
+	public void disconnect(LiferayConnection liferayConnection) {
+		liferayConnection.invalidate();
+	}
 
 	@Override
 	public ConnectionValidationResult validate(
@@ -53,5 +61,8 @@ public abstract class BaseConnectionProvider
 			return ConnectionValidationResult.failure(e.getMessage(), e);
 		}
 	}
+
+	@ParameterGroup(name = "Proxy config")
+	protected LiferayProxyConfig liferayProxyConfig;
 
 }

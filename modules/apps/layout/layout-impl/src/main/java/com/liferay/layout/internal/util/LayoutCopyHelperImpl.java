@@ -14,19 +14,22 @@
 
 package com.liferay.layout.internal.util;
 
-import com.liferay.asset.model.AssetEntryUsage;
-import com.liferay.asset.service.AssetEntryUsageLocalService;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.counter.kernel.service.CounterLocalService;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
+import com.liferay.layout.model.LayoutClassedModelUsage;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.seo.model.LayoutSEOEntry;
 import com.liferay.layout.seo.service.LayoutSEOEntryLocalService;
+import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.layout.util.LayoutCopyHelper;
 import com.liferay.message.boards.service.MBMessageLocalService;
 import com.liferay.portal.kernel.comment.CommentManager;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -56,6 +59,7 @@ import com.liferay.sites.kernel.util.Sites;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -83,6 +87,30 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 		catch (Throwable t) {
 			throw new Exception(t);
 		}
+	}
+
+	private void _copyAssetCategoryIdsAndAssetTagNames(
+			Layout sourceLayout, Layout targetLayout)
+		throws PortalException {
+
+		if (_isDraft(sourceLayout)) {
+			return;
+		}
+
+		long[] assetCategoryIds = _assetCategoryLocalService.getCategoryIds(
+			Layout.class.getName(), sourceLayout.getPlid());
+
+		String[] assetTagNames = _assetTagLocalService.getTagNames(
+			Layout.class.getName(), sourceLayout.getPlid());
+
+		Layout layout = targetLayout;
+
+		if (_isDraft(targetLayout)) {
+			layout = _layoutLocalService.getLayout(targetLayout.getClassPK());
+		}
+
+		_layoutLocalService.updateAsset(
+			layout.getUserId(), layout, assetCategoryIds, assetTagNames);
 	}
 
 	private void _copyLayoutPageTemplateStructure(
@@ -166,19 +194,23 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 				targetLayout, fragmentEntryLinkMap, serviceContext);
 		}
 
-		_assetEntryUsageLocalService.deleteAssetEntryUsagesByPlid(
-			targetLayout.getPlid());
+		_layoutClassedModelUsageLocalService.
+			deleteLayoutClassedModelUsagesByPlid(targetLayout.getPlid());
 
-		List<AssetEntryUsage> assetEntryUsages =
-			_assetEntryUsageLocalService.getAssetEntryUsagesByPlid(
-				sourceLayout.getPlid());
+		List<LayoutClassedModelUsage> layoutClassedModelUsages =
+			_layoutClassedModelUsageLocalService.
+				getLayoutClassedModelUsagesByPlid(sourceLayout.getPlid());
 
-		for (AssetEntryUsage assetEntryUsage : assetEntryUsages) {
-			_assetEntryUsageLocalService.addAssetEntryUsage(
-				assetEntryUsage.getGroupId(), assetEntryUsage.getAssetEntryId(),
-				assetEntryUsage.getContainerType(),
-				assetEntryUsage.getContainerKey(), targetLayout.getPlid(),
-				serviceContext);
+		for (LayoutClassedModelUsage layoutClassedModelUsage :
+				layoutClassedModelUsages) {
+
+			_layoutClassedModelUsageLocalService.addLayoutClassedModelUsage(
+				layoutClassedModelUsage.getGroupId(),
+				layoutClassedModelUsage.getClassNameId(),
+				layoutClassedModelUsage.getClassPK(),
+				layoutClassedModelUsage.getContainerKey(),
+				layoutClassedModelUsage.getContainerType(),
+				targetLayout.getPlid(), serviceContext);
 		}
 	}
 
@@ -219,6 +251,16 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 
 				for (int k = 0; k < fragmentEntryLinkIdsJSONArray.length();
 					 k++) {
+
+					if (Objects.equals(
+							fragmentEntryLinkIdsJSONArray.getString(k),
+							"drop-zone")) {
+
+						newFragmentEntryLinkIdsJSONArray.put(
+							fragmentEntryLinkIdsJSONArray.getString(k));
+
+						continue;
+					}
 
 					FragmentEntryLink fragmentEntryLink =
 						fragmentEntryLinkMap.get(
@@ -335,12 +377,29 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			new long[] {SegmentsExperienceConstants.ID_DEFAULT});
 	}
 
+	private boolean _isDraft(Layout layout) {
+		if (layout.getClassPK() <= 0) {
+			return false;
+		}
+
+		if (layout.getClassNameId() != _portal.getClassNameId(
+				Layout.class.getName())) {
+
+			return false;
+		}
+
+		return true;
+	}
+
 	private static final TransactionConfig _transactionConfig =
 		TransactionConfig.Factory.create(
 			Propagation.REQUIRED, new Class<?>[] {Exception.class});
 
 	@Reference
-	private AssetEntryUsageLocalService _assetEntryUsageLocalService;
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
+	@Reference
+	private AssetTagLocalService _assetTagLocalService;
 
 	@Reference
 	private CommentManager _commentManager;
@@ -353,6 +412,10 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 
 	@Reference
 	private ImageLocalService _imageLocalService;
+
+	@Reference
+	private LayoutClassedModelUsageLocalService
+		_layoutClassedModelUsageLocalService;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
@@ -393,6 +456,8 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 			_sites.copyLookAndFeel(_targetLayout, _sourceLayout);
 			_sites.copyPortletSetups(_sourceLayout, _targetLayout);
 			_sites.copyPortletPermissions(_targetLayout, _sourceLayout);
+
+			_copyAssetCategoryIdsAndAssetTagNames(_sourceLayout, _targetLayout);
 
 			_copyLayoutPageTemplateStructure(_sourceLayout, _targetLayout);
 
@@ -444,8 +509,14 @@ public class LayoutCopyHelperImpl implements LayoutCopyHelper {
 				_layoutSEOEntryLocalService.updateLayoutSEOEntry(
 					_targetLayout.getUserId(), _targetLayout.getGroupId(),
 					_targetLayout.isPrivateLayout(),
-					_targetLayout.getLayoutId(), layoutSEOEntry.isEnabled(),
-					layoutSEOEntry.getCanonicalURLMap(), serviceContext);
+					_targetLayout.getLayoutId(),
+					layoutSEOEntry.isCanonicalURLEnabled(),
+					layoutSEOEntry.getCanonicalURLMap(),
+					layoutSEOEntry.isOpenGraphDescriptionEnabled(),
+					layoutSEOEntry.getOpenGraphDescriptionMap(),
+					layoutSEOEntry.getOpenGraphImageFileEntryId(),
+					layoutSEOEntry.isOpenGraphTitleEnabled(),
+					layoutSEOEntry.getOpenGraphTitleMap(), serviceContext);
 			}
 
 			return _layoutLocalService.updateIconImage(

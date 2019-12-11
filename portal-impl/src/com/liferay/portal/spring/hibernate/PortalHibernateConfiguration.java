@@ -195,6 +195,18 @@ public class PortalHibernateConfiguration extends LocalSessionFactoryBean {
 
 	@Override
 	protected Configuration newConfiguration() {
+		Dialect dialect = DialectDetector.getDialect(getDataSource());
+
+		if (DBManagerUtil.getDBType(dialect) == DBType.ORACLE) {
+
+			// This must be done before the instantiating Configuration to
+			// ensure that org.hibernate.cfg.Environment's static init block can
+			// see it
+
+			System.setProperty(
+				PropsKeys.HIBERNATE_JDBC_USE_STREAMS_FOR_BINARY, "true");
+		}
+
 		Configuration configuration = new Configuration();
 
 		Properties properties = PropsUtil.getProperties();
@@ -208,15 +220,11 @@ public class PortalHibernateConfiguration extends LocalSessionFactoryBean {
 			properties.setProperty(key, value);
 		}
 
-		Dialect dialect = DialectDetector.getDialect(getDataSource());
-
 		if (DBManagerUtil.getDBType(dialect) == DBType.SYBASE) {
 			properties.setProperty(PropsKeys.HIBERNATE_JDBC_BATCH_SIZE, "0");
 		}
 
 		if (Validator.isNull(PropsValues.HIBERNATE_DIALECT)) {
-			DBManagerUtil.setDB(dialect, getDataSource());
-
 			Class<?> clazz = dialect.getClass();
 
 			properties.setProperty("hibernate.dialect", clazz.getName());
@@ -377,8 +385,6 @@ public class PortalHibernateConfiguration extends LocalSessionFactoryBean {
 		while (BaseModelImpl.class != modelClass) {
 			for (Class<?> interfaceClazz : modelClass.getInterfaces()) {
 				if (BaseModel.class.isAssignableFrom(interfaceClazz)) {
-					modelClass = interfaceClazz;
-
 					OuterJoinLoadable outerJoinLoadable =
 						(OuterJoinLoadable)classMetadata;
 
@@ -387,11 +393,11 @@ public class PortalHibernateConfiguration extends LocalSessionFactoryBean {
 							outerJoinLoadable.getIdentifierPropertyName());
 
 					CTModelRegistry.registerCTModel(
-						outerJoinLoadable.getTableName(),
 						new CTModelRegistration(
-							modelClass, identifierColumnNames[0]));
+							interfaceClazz, outerJoinLoadable.getTableName(),
+							identifierColumnNames[0]));
 
-					return modelClass;
+					return interfaceClazz;
 				}
 			}
 

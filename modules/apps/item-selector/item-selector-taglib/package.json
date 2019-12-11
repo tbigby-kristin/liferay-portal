@@ -1,9 +1,26 @@
 {
+	"dependencies": {
+		"@clayui/button": "3.0.3",
+		"@clayui/icon": "3.0.1",
+		"@clayui/navigation-bar": "3.0.4",
+		"@clayui/tabs": "3.0.4",
+		"clay-alert": "2.19.0",
+		"frontend-js-web": "*",
+		"metal-component": "2.16.8",
+		"metal-dom": "2.16.8",
+		"metal-events": "2.16.8",
+		"metal-state": "2.16.8",
+		"prop-types": "15.7.2",
+		"react": "16.9.0",
+		"react-dom": "16.9.0"
+	},
+	"main": "index.es.js",
 	"name": "item-selector-taglib",
 	"scripts": {
 		"build": "liferay-npm-scripts build",
 		"checkFormat": "liferay-npm-scripts check",
-		"format": "liferay-npm-scripts fix"
+		"format": "liferay-npm-scripts fix",
+		"test": "liferay-npm-scripts test"
 	},
 	"version": "4.0.0"
 }

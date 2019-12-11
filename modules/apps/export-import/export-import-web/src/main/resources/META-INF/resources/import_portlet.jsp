@@ -61,14 +61,6 @@ String[] tempFileNames = LayoutServiceUtil.getTempFileNames(scopeGroupId, Export
 <c:choose>
 	<c:when test='<%= tabs3.equals("new-import-process") %>'>
 		<div class="export-import-options" id="<portlet:namespace />exportImportOptions">
-			<c:if test="<%= StagingUtil.isChangeTrackingEnabled(company.getCompanyId()) %>">
-				<liferay-staging:alert
-					dismissible="<%= true %>"
-					type="WARNING"
-				>
-					<liferay-ui:message key='<%= LanguageUtil.get(request, "export-import-change-lists-warning") %>' />
-				</liferay-staging:alert>
-			</c:if>
 
 			<%
 			int incompleteBackgroundTaskCount = BackgroundTaskManagerUtil.getBackgroundTasksCount(themeDisplay.getScopeGroupId(), selPortlet.getPortletId(), BackgroundTaskExecutorNames.PORTLET_IMPORT_BACKGROUND_TASK_EXECUTOR, false);
@@ -107,15 +99,15 @@ String[] tempFileNames = LayoutServiceUtil.getTempFileNames(scopeGroupId, Export
 		<portlet:param name="portletResource" value="<%= portletResource %>" />
 	</liferay-portlet:resourceURL>
 
-	new Liferay.ExportImport(
-		{
-			form: document.<portlet:namespace />fm1,
-			incompleteProcessMessageNode: '#<portlet:namespace />incompleteProcessMessage',
-			locale: '<%= locale.toLanguageTag() %>',
-			namespace: '<portlet:namespace />',
-			processesNode: '#importProcesses',
-			processesResourceURL: '<%= HtmlUtil.escapeJS(importProcessesURL.toString()) %>',
-			timeZoneOffset: <%= timeZoneOffset %>
-		}
-	);
+	new Liferay.ExportImport({
+		form: document.<portlet:namespace />fm1,
+		incompleteProcessMessageNode:
+			'#<portlet:namespace />incompleteProcessMessage',
+		locale: '<%= locale.toLanguageTag() %>',
+		namespace: '<portlet:namespace />',
+		processesNode: '#importProcesses',
+		processesResourceURL:
+			'<%= HtmlUtil.escapeJS(importProcessesURL.toString()) %>',
+		timeZoneOffset: <%= timeZoneOffset %>
+	});
 </aui:script>

@@ -12,8 +12,8 @@
  * details.
  */
 
-import {Config} from 'metal-state';
 import {ItemSelectorDialog, PortletBase} from 'frontend-js-web';
+import {Config} from 'metal-state';
 
 /**
  * @class MoveEntries
@@ -66,8 +66,8 @@ class MoveEntries extends PortletBase {
 	 */
 	_handleSelectFolderButtonClick() {
 		const itemSelectorDialog = new ItemSelectorDialog({
-			buttonAddLabel: Liferay.Language.get('done'),
 			eventName: this.ns('selectFolder'),
+			singleSelect: true,
 			title: Liferay.Language.get('select-folder'),
 			url: this.selectFolderURL
 		});

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.3.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_3_0.dtd">
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" package-path="com.liferay.data.engine">
 	<namespace>DE</namespace>
@@ -13,6 +13,10 @@
 
 		<column name="groupId" type="long" />
 
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+
 		<!-- Other fields -->
 
 		<column name="classNameId" type="long" />
@@ -22,7 +26,19 @@
 
 		<!-- Finder methods -->
 
-		<finder name="C_C_D_F" return-type="DEDataDefinitionFieldLink" unique="true">
+		<finder name="DDMStructureId" return-type="Collection">
+			<finder-column name="ddmStructureId" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+		</finder>
+		<finder name="C_DDMSI_F" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="ddmStructureId" />
+			<finder-column name="fieldName" />
+		</finder>
+		<finder name="C_C_DDMSI_F" return-type="DEDataDefinitionFieldLink" unique="true">
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 			<finder-column name="ddmStructureId" />
@@ -57,7 +73,10 @@
 
 		<!-- Finder methods -->
 
-		<finder name="G_C_D" return-type="Collection">
+		<finder name="DDMStructureId" return-type="Collection">
+			<finder-column name="ddmStructureId" />
+		</finder>
+		<finder name="G_C_DDMSI" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="companyId" />
 			<finder-column name="ddmStructureId" />

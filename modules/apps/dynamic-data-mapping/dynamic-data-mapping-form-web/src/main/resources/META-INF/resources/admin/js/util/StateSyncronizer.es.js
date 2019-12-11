@@ -13,10 +13,10 @@
  */
 
 import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+import {EventHandler} from 'metal-events';
 import Component from 'metal-jsx';
 import {Config} from 'metal-state';
-import {EventHandler} from 'metal-events';
-import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
 
 class StateSyncronizer extends Component {
 	created() {
@@ -33,14 +33,15 @@ class StateSyncronizer extends Component {
 		);
 
 		if (translationManager) {
-			this._eventHandler.add(
-				translationManager.on('deleteAvailableLocale', ({locale}) => {
-					this.deleteLanguageId(locale);
-				}),
-				translationManager.on('editingLocaleChange', event => {
-					this.syncEditors(event.newVal);
+			this._translationManagerHandles = [
+				translationManager.on(
+					'availableLocales',
+					this.onRemoveAvailableLocales.bind(this)
+				),
+				translationManager.on('editingLocale', ({newValue}) => {
+					this.syncEditors(newValue);
 				})
-			);
+			];
 		}
 	}
 
@@ -53,10 +54,12 @@ class StateSyncronizer extends Component {
 		this.syncEditors();
 	}
 
-	disposeInternal() {
-		super.disposeInternal();
-
+	disposed() {
 		this._eventHandler.removeAllListeners();
+
+		if (this._translationManagerHandles) {
+			this._translationManagerHandles.forEach(handle => handle.detach());
+		}
 	}
 
 	getAvailableLanguageIds() {
@@ -64,10 +67,14 @@ class StateSyncronizer extends Component {
 		let availableLanguageIds = [{id: this.getDefaultLanguageId()}];
 
 		if (translationManager) {
-			availableLanguageIds = translationManager.get('availableLocales');
+			const availableLocalesMap = translationManager.get(
+				'availableLocales'
+			);
+
+			availableLanguageIds = [...availableLocalesMap.keys()];
 		}
 
-		return availableLanguageIds.map(({id}) => id);
+		return availableLanguageIds;
 	}
 
 	getDefaultLanguageId() {
@@ -112,7 +119,21 @@ class StateSyncronizer extends Component {
 	isEmpty() {
 		const {store} = this.props;
 
-		return FormSupport.emptyPages(store.state.pages);
+		return FormSupport.isEmpty(store.state.pages);
+	}
+
+	onRemoveAvailableLocales({newValue, previousValue}) {
+		const removedItems = new Map();
+
+		previousValue.forEach((value, key) => {
+			if (!newValue.has(key)) {
+				removedItems.set(key, value);
+			}
+		});
+
+		if (removedItems.length > 0) {
+			this.deleteLanguageId(removedItems.keys().next().value);
+		}
 	}
 
 	syncEditors(editingLanguageId = this.getDefaultLanguageId()) {
@@ -216,11 +237,11 @@ class StateSyncronizer extends Component {
 				const {value} = field;
 				const newValue = {};
 
-				for (const locale in value) {
+				Object.keys(value).forEach(locale => {
 					newValue[locale] = value[locale].filter(
 						({value}) => value !== ''
 					);
-				}
+				});
 
 				if (!newValue[defaultLanguageId]) {
 					newValue[defaultLanguageId] = [];

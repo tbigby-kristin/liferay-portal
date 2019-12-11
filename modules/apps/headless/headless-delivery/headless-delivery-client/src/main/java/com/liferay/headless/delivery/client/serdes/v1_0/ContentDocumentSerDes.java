@@ -55,6 +55,20 @@ public class ContentDocumentSerDes {
 
 		sb.append("{");
 
+		if (contentDocument.getContentType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(contentDocument.getContentType()));
+
+			sb.append("\"");
+		}
+
 		if (contentDocument.getContentUrl() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -164,6 +178,15 @@ public class ContentDocumentSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
+		if (contentDocument.getContentType() == null) {
+			map.put("contentType", null);
+		}
+		else {
+			map.put(
+				"contentType",
+				String.valueOf(contentDocument.getContentType()));
+		}
+
 		if (contentDocument.getContentUrl() == null) {
 			map.put("contentUrl", null);
 		}
@@ -243,7 +266,13 @@ public class ContentDocumentSerDes {
 			ContentDocument contentDocument, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "contentUrl")) {
+			if (Objects.equals(jsonParserFieldName, "contentType")) {
+				if (jsonParserFieldValue != null) {
+					contentDocument.setContentType(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "contentUrl")) {
 				if (jsonParserFieldValue != null) {
 					contentDocument.setContentUrl((String)jsonParserFieldValue);
 				}
@@ -294,9 +323,11 @@ public class ContentDocumentSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

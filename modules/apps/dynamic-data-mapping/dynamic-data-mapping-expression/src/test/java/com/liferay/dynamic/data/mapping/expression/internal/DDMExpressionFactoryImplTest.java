@@ -19,10 +19,10 @@ import com.liferay.dynamic.data.mapping.expression.DDMExpression;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunctionFactory;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFunctionTracker;
 import com.liferay.dynamic.data.mapping.expression.internal.functions.PowFunction;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import java.math.BigDecimal;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -43,18 +43,16 @@ public class DDMExpressionFactoryImplTest extends PowerMockito {
 
 	@Test
 	public void testCreateDDMExpression() throws Exception {
-		DDMExpressionFactoryImpl ddmExpressionFactory =
+		DDMExpressionFactoryImpl ddmExpressionFactoryImpl =
 			new DDMExpressionFactoryImpl();
 
-		ddmExpressionFactory.ddmExpressionFunctionTracker =
+		ddmExpressionFactoryImpl.ddmExpressionFunctionTracker =
 			_ddmExpressionFunctionTracker;
 
 		Map<String, DDMExpressionFunctionFactory> factories =
-			new HashMap<String, DDMExpressionFunctionFactory>() {
-				{
-					put("pow", () -> new PowFunction());
-				}
-			};
+			HashMapBuilder.<String, DDMExpressionFunctionFactory>put(
+				"pow", () -> new PowFunction()
+			).build();
 
 		when(
 			_ddmExpressionFunctionTracker.getDDMExpressionFunctionFactories(
@@ -67,7 +65,7 @@ public class DDMExpressionFactoryImplTest extends PowerMockito {
 			CreateExpressionRequest.Builder.newBuilder("pow(2,3)");
 
 		DDMExpression<BigDecimal> ddmExpression =
-			ddmExpressionFactory.createExpression(builder.build());
+			ddmExpressionFactoryImpl.createExpression(builder.build());
 
 		BigDecimal actual = ddmExpression.evaluate();
 

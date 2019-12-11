@@ -34,6 +34,12 @@
 		</dependency>
 #elseif (${liferayVersion.startsWith("7.1")})
 		<dependency>
+			<groupId>com.liferay</groupId>
+			<artifactId>com.liferay.frontend.taglib</artifactId>
+			<version>3.2.2</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.liferay.portal</groupId>
 			<artifactId>com.liferay.portal.kernel</artifactId>
 			<version>3.0.0</version>
@@ -42,10 +48,16 @@
 		<dependency>
 			<groupId>com.liferay.portal</groupId>
 			<artifactId>com.liferay.util.taglib</artifactId>
-			<version>3.1.2</version>
+			<version>3.4.2</version>
 			<scope>provided</scope>
 		</dependency>
 #elseif (${liferayVersion.startsWith("7.2")})
+		<dependency>
+			<groupId>com.liferay</groupId>
+			<artifactId>com.liferay.frontend.taglib</artifactId>
+			<version>4.0.15</version>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.liferay.portal</groupId>
 			<artifactId>com.liferay.portal.kernel</artifactId>
@@ -55,7 +67,7 @@
 		<dependency>
 			<groupId>com.liferay.portal</groupId>
 			<artifactId>com.liferay.util.taglib</artifactId>
-			<version>4.0.8</version>
+			<version>4.1.0</version>
 			<scope>provided</scope>
 		</dependency>
 #end

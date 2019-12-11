@@ -274,24 +274,6 @@ public class InvokerPortletImpl
 		return _headerPortlet;
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean isStrutsBridgePortlet() {
-		return false;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public boolean isStrutsPortlet() {
-		return false;
-	}
-
 	@Override
 	public void processAction(
 		ActionRequest actionRequest, ActionResponse actionResponse) {
@@ -771,6 +753,7 @@ public class InvokerPortletImpl
 		_expCache = portletModel.getExpCache();
 		_liferayPortletConfig = (LiferayPortletConfig)portletConfig;
 		_liferayPortletContext = (LiferayPortletContext)portletContext;
+
 		_portletId = _portletModel.getPortletId();
 
 		_errorKey = _portletId.concat(PortletException.class.getName());

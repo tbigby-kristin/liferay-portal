@@ -13,15 +13,15 @@
  */
 
 import Component from 'metal-component';
-import {Config} from 'metal-state';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
 
 import './FloatingToolbarFragmentBackgroundImagePanelDelegateTemplate.soy';
-import {BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR} from '../../../utils/constants';
+import {updateEditableValueContentAction} from '../../../actions/updateEditableValue.es';
 import {getConnectedComponent} from '../../../store/ConnectedComponent.es';
 import {openImageSelector} from '../../../utils/FragmentsEditorDialogUtils';
+import {BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR} from '../../../utils/constants';
 import templates from './FloatingToolbarFragmentBackgroundImagePanel.soy';
-import {updateEditableValueContentAction} from '../../../actions/updateEditableValue.es';
 
 /**
  * FloatingToolbarFragmentBackgroundImagePanel
@@ -33,11 +33,7 @@ class FloatingToolbarFragmentBackgroundImagePanel extends Component {
 	 * @review
 	 */
 	_handleSelectButtonClick() {
-		openImageSelector({
-			callback: image => this._updateFragmentBackgroundImage(image),
-			imageSelectorURL: this.imageSelectorURL,
-			portletNamespace: this.portletNamespace
-		});
+		openImageSelector(image => this._updateFragmentBackgroundImage(image));
 	}
 
 	/**
@@ -83,13 +79,7 @@ FloatingToolbarFragmentBackgroundImagePanel.STATE = {
 
 const ConnectedFloatingToolbarFragmentBackgroundImagePanel = getConnectedComponent(
 	FloatingToolbarFragmentBackgroundImagePanel,
-	[
-		'defaultSegmentsExperienceId',
-		'imageSelectorURL',
-		'languageId',
-		'portletNamespace',
-		'segmentsExperienceId'
-	]
+	['defaultSegmentsExperienceId', 'languageId', 'segmentsExperienceId']
 );
 
 Soy.register(ConnectedFloatingToolbarFragmentBackgroundImagePanel, templates);

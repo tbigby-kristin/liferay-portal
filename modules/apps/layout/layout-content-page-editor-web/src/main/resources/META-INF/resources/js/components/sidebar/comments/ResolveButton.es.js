@@ -14,6 +14,7 @@
 
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React from 'react';
 
@@ -21,31 +22,31 @@ import Loader from '../../common/Loader.es';
 
 const ResolveButton = props => {
 	let icon = (
-		<span
-			className="lfr-portal-tooltip text-lowercase"
-			data-title={Liferay.Language.get('resolve')}
-		>
+		<span className="text-lowercase">
 			<ClayIcon symbol="check-circle" />
 		</span>
 	);
+	let title = Liferay.Language.get('resolve');
 
 	if (props.loading) {
+		title = undefined;
 		icon = <Loader />;
 	} else if (props.resolved) {
 		icon = (
-			<span
-				className="lfr-portal-tooltip text-lowercase text-success"
-				data-title={Liferay.Language.get('reopen')}
-			>
+			<span className="text-lowercase text-success">
 				<ClayIcon symbol="check-circle-full" />
 			</span>
 		);
+		title = Liferay.Language.get('reopen');
 	}
 
 	return (
 		<ClayButton
 			borderless
-			className="flex-shrink-0"
+			className={classNames('flex-shrink-0', {
+				'lfr-portal-tooltip': !!title
+			})}
+			data-title={title}
 			disabled={props.disabled || props.loading}
 			displayType="secondary"
 			monospaced

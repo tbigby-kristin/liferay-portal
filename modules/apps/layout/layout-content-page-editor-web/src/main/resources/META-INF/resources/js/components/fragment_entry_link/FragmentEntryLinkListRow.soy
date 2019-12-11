@@ -9,7 +9,6 @@
 		fragmentEntryLinkIds: list<string>,
 		size: string
 	]>}
-	{@param defaultEditorConfigurations: ?}
 	{@param fragmentEntryLinks: ?}
 	{@param key: string}
 	{@param row: ?}
@@ -24,27 +23,17 @@
 	{@param? _resizeColumnIndex: number}
 	{@param? _resizeHighlightedColumn: number}
 	{@param? _resizing: bool}
+	{@param? _showDelete: bool}
 	{@param? activeItemId: string}
 	{@param? activeItemType: string}
-	{@param? defaultSegmentsExperienceId: string}
 	{@param? dropTargetItemTypes: ?}
 	{@param? empty: bool}
 	{@param? dropTargetBorder: string}
 	{@param? dropTargetItemId: string}
 	{@param? dropTargetItemType: string}
+	{@param? hasUpdatePermissions: bool}
 	{@param? hoveredItemId: string}
 	{@param? hoveredItemType: string}
-	{@param? mappingFieldsURL: string}
-	{@param? selectedMappingTypes: [
-		subtype: [
-			id: string,
-			label: string
-		],
-		type: [
-			id: string,
-			label: string
-		]
-	]}
 	{@param? spritemap: string}
 	{@param? store: ?}
 
@@ -118,30 +107,35 @@
 		style="{$rowStyle}"
 		tabindex="0"
 	>
-		<nav class="fragments-editor__topper tbar">
-			<ul class="tbar-nav">
-				<li class="fragments-editor__drag-handler fragments-editor__topper__item pr-0 tbar-item">
-					<div>
-						<svg class="fragments-editor__topper__drag-icon lexicon-icon">
-							<use xlink:href="{$spritemap ?: ''}#drag"></use>
-						</svg>
-					</div>
-				</li>
-				<li class="fragments-editor__topper__item fragments-editor__topper__title tbar-item tbar-item-expand">
-					{msg desc=""}section{/msg}
-				</li>
-				<li class="fragments-editor__topper__item tbar-item">
-					<button
-						class="btn btn-small btn-unstyled"
-						data-onclick="{$_handleRowRemoveButtonClick}"
-					>
-						<svg class="fragments-editor__topper__icon lexicon-icon">
-							<use xlink:href="{$spritemap ?: ''}#times-circle"></use>
-						</svg>
-					</button>
-				</li>
-			</ul>
-		</nav>
+	{if $hasUpdatePermissions}
+	  <nav class="fragments-editor__topper tbar">
+		<ul class="tbar-nav">
+		  <li class="fragments-editor__drag-handler fragments-editor__topper__item pr-0 tbar-item">
+			<div>
+			  <svg class="fragments-editor__topper__drag-icon lexicon-icon">
+				<use xlink:href="{$spritemap ?: ''}#drag"></use>
+			  </svg>
+			</div>
+		  </li>
+		  <li class="fragments-editor__drag-handler fragments-editor__topper__item fragments-editor__topper__title tbar-item tbar-item-expand">
+			{msg desc=""}section{/msg}
+		  </li>
+
+		  {if $_showDelete}
+			<li class="fragments-editor__topper__item tbar-item">
+				<button
+				class="btn btn-small btn-unstyled"
+				data-onclick="{$_handleRowRemoveButtonClick}"
+				>
+				<svg class="fragments-editor__topper__icon lexicon-icon">
+					<use xlink:href="{$spritemap ?: ''}#times-circle"></use>
+				</svg>
+				</button>
+			</li>
+		  {/if}
+		</ul>
+	  </nav>
+	{/if}
 
 		{let $wrapperClasses kind="text"}
 			{if $row and $row.config and $row.config.containerType == 'fluid'}
@@ -190,8 +184,6 @@
 						{param activeItemType: $activeItemType /}
 						{param columnId: $column.columnId /}
 						{param columnIndex: index($column) /}
-						{param defaultEditorConfigurations: $defaultEditorConfigurations /}
-						{param defaultSegmentsExperienceId: $defaultSegmentsExperienceId /}
 						{param dropTargetItemTypes: $dropTargetItemTypes /}
 						{param fragmentEntryLinkIds: $column.fragmentEntryLinkIds /}
 						{param fragmentEntryLinks: $fragmentEntryLinks /}
@@ -199,13 +191,12 @@
 						{param dropTargetBorder: $dropTargetBorder /}
 						{param dropTargetItemId: $dropTargetItemId /}
 						{param dropTargetItemType: $dropTargetItemType /}
+						{param hasUpdatePermissions: $hasUpdatePermissions /}
 						{param hoveredItemId: $hoveredItemId /}
 						{param hoveredItemType: $hoveredItemType /}
 						{param key: $column.columnId /}
 						{param lastColumn: isLast($column) /}
-						{param mappingFieldsURL: $mappingFieldsURL /}
 						{param rowType: $row.type /}
-						{param selectedMappingTypes: $selectedMappingTypes /}
 						{param size: $column.size /}
 						{param store: $store /}
 					{/call}
@@ -221,7 +212,6 @@
 {template .column}
 	{@param columnId: string}
 	{@param columnIndex: number}
-	{@param defaultEditorConfigurations: ?}
 	{@param fragmentEntryLinkIds: list<string>}
 	{@param fragmentEntryLinks: ?}
 	{@param fragmentsEditorRowTypes: ?}
@@ -229,7 +219,6 @@
 	{@param? _columnResizerVisible: bool}
 	{@param? _handleResizerMouseDown: any}
 	{@param? _resizeColumnIndex: number}
-	{@param? defaultSegmentsExperienceId: string}
 	{@param? dropTargetItemTypes: ?}
 	{@param? dropTargetBorder: string}
 	{@param? dropTargetItemId: string}
@@ -237,20 +226,10 @@
 	{@param? activeItemId: string}
 	{@param? activeItemType: string}
 	{@param? hoveredItemId: string}
+	{@param? hasUpdatePermissions: bool}
 	{@param? hoveredItemType: string}
 	{@param? lastColumn: bool}
-	{@param? mappingFieldsURL: string}
 	{@param? rowType: string}
-	{@param? selectedMappingTypes: [
-		subtype: [
-			id: string,
-			label: string
-		],
-		type: [
-			id: string,
-			label: string
-		]
-	]}
 	{@param? size: string}
 	{@param? store: ?}
 
@@ -270,6 +249,8 @@
 
 		{if $size}
 			{sp}col-md-{$size}
+		{else}
+			{sp}col-md-12
 		{/if}
 	{/let}
 
@@ -287,35 +268,40 @@
 
 	<div {$columnAttributes}>
 		{foreach $fragmentEntryLinkId in $fragmentEntryLinkIds}
-			{let $fragmentEntryLink: $fragmentEntryLinks[$fragmentEntryLinkId] /}
-
-			{if $fragmentEntryLink}
-				{call .fragmentEntryLink}
-					{param activeItemId: $activeItemId /}
-					{param activeItemType: $activeItemType /}
-					{param content: $fragmentEntryLink.content /}
-					{param defaultEditorConfigurations: $defaultEditorConfigurations /}
-					{param defaultSegmentsExperienceId: $defaultSegmentsExperienceId /}
-					{param dropTargetItemTypes: $dropTargetItemTypes /}
-					{param editableValues: $fragmentEntryLink.editableValues /}
-					{param error: $fragmentEntryLink.error /}
-					{param fragmentEntryLinkId: $fragmentEntryLink.fragmentEntryLinkId /}
-					{param dropTargetBorder: $dropTargetBorder /}
-					{param dropTargetItemId: $dropTargetItemId /}
-					{param dropTargetItemType: $dropTargetItemType /}
-					{param hoveredItemId: $hoveredItemId /}
-					{param hoveredItemType: $hoveredItemType /}
-					{param key: $fragmentEntryLink.fragmentEntryLinkId /}
-					{param mappingFieldsURL: $mappingFieldsURL /}
-					{param name: $fragmentEntryLink.name /}
+			{if $fragmentEntryLinkId == 'drop-zone'}
+				{call com.liferay.layout.content.page.editor.web.DropZoneFragmentEntryLink.render}
+					{param fragmentEntryLinkId: $fragmentEntryLinkId /}
+					{param key: $fragmentEntryLinkId /}
 					{param rowType: $rowType /}
-					{param selectedMappingTypes: $selectedMappingTypes /}
 					{param store: $store /}
 				{/call}
+			{else}
+				{let $fragmentEntryLink: $fragmentEntryLinks[$fragmentEntryLinkId] /}
+
+				{if $fragmentEntryLink}
+					{call .fragmentEntryLink}
+						{param activeItemId: $activeItemId /}
+						{param activeItemType: $activeItemType /}
+						{param content: $fragmentEntryLink.content /}
+						{param dropTargetItemTypes: $dropTargetItemTypes /}
+						{param editableValues: $fragmentEntryLink.editableValues /}
+						{param error: $fragmentEntryLink.error /}
+						{param fragmentEntryLinkId: $fragmentEntryLink.fragmentEntryLinkId /}
+						{param dropTargetBorder: $dropTargetBorder /}
+						{param dropTargetItemId: $dropTargetItemId /}
+						{param dropTargetItemType: $dropTargetItemType /}
+						{param hoveredItemId: $hoveredItemId /}
+						{param hoveredItemType: $hoveredItemType /}
+						{param key: $fragmentEntryLink.fragmentEntryLinkId /}
+						{param name: $fragmentEntryLink.name /}
+						{param rowType: $rowType /}
+						{param store: $store /}
+					{/call}
+				{/if}
 			{/if}
 		{/foreach}
 
-		{if not $lastColumn}
+		{if $hasUpdatePermissions and not $lastColumn}
 			{call .resizer}
 				{param columnId: $columnId /}
 				{param _handleResizerMouseDown: $_handleResizerMouseDown /}
@@ -329,14 +315,10 @@
  * FragmentEntryLink
  */
 {template .fragmentEntryLink}
-	{@param defaultEditorConfigurations: ?}
-	{@param? defaultSegmentsExperienceId: string}
 	{@param editableValues: ?}
 	{@param fragmentEntryLinkId: string}
 	{@param key: string}
-	{@param mappingFieldsURL: ?}
 	{@param name: string}
-	{@param selectedMappingTypes: ?}
 	{@param store: ?}
 	{@param? content: ?}
 	{@param? error: bool}
@@ -344,8 +326,6 @@
 
 	{call com.liferay.layout.content.page.editor.web.FragmentEntryLink.render}
 		{param content: $content /}
-		{param defaultEditorConfigurations: $defaultEditorConfigurations /}
-		{param defaultSegmentsExperienceId: $defaultSegmentsExperienceId /}
 		{param editableValues: $editableValues /}
 		{param error: $error /}
 		{param fragmentEntryLinkId: $fragmentEntryLinkId /}
@@ -353,7 +333,6 @@
 		{param name: $name /}
 		{param ref: $key /}
 		{param rowType: $rowType /}
-		{param showMapping: $selectedMappingTypes and $mappingFieldsURL ? true : false /}
 		{param store: $store /}
 	{/call}
 {/template}

@@ -28,6 +28,7 @@ definition {
 		}
 	}
 
+	@ignore = "true"
 	@priority = "4"
 	test ActivateDeactivateRemoteStaging {
 		property app.server.types = "jboss,tcserver,tomcat,weblogic,websphere,wildfly";
@@ -861,10 +862,11 @@ definition {
 
 		Staging.addSitePagesVariationPG(sitePagesVariationName = "Test Site Pages Variation");
 
-		JSONLayout.addWidgetToPublicLayout(
-			groupName = "Site Name",
-			layoutName = "Staging Test Page",
-			widgetName = "Web Content Display");
+		Navigator.gotoSitePage(
+			pageName = "Staging Test Page",
+			siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Web Content Display");
 
 		Navigator.gotoSitePage(
 			pageName = "Staging Test Page",
@@ -901,10 +903,11 @@ definition {
 
 		Staging.addPageVariationPG(pageVariationName = "Test Page Variation");
 
-		JSONLayout.addWidgetToPublicLayout(
-			groupName = "Site Name",
-			layoutName = "Test Variation Page",
-			widgetName = "Blogs");
+		Navigator.gotoSitePage(
+			pageName = "Test Variation Page",
+			siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Blogs");
 
 		Navigator.gotoSitePage(
 			pageName = "Test Variation Page",

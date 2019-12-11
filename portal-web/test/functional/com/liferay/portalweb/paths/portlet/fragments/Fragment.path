@@ -19,6 +19,21 @@
 	<td></td>
 </tr>
 <tr>
+	<td>FRAGMENT_TOPPER</td>
+	<td>//div[contains(@class,'fragment-entry-link-wrapper')][contains(.,'${key_fragmentName}')]//li[contains(@class,'fragments-editor__topper__title')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_LAYOUT_BACKGROUND_IMAGE</td>
+	<td>//div[contains(@class,'layout-content')]//section[contains(@style,'${key_imageName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONTENT_BACKGROUND_IMAGE</td>
+	<td>//div[contains(@class,'fragment-entry-link')]//div[contains(@style,'${key_imageName}')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGE_EDITOR_FRAGMENT</td>
 	<td>//section[contains(@class,'fragment-entry-link')][${key_position}]//*[contains(@class,'fragment-${key_fragmentClass}') and contains(.,'${key_content}')]</td>
 	<td></td>
@@ -31,6 +46,11 @@
 <tr>
 	<td>FRAGMENT_BODY</td>
 	<td>//div[contains(@class,'fragment-entry-link-wrapper')][contains(.,'${key_fragmentName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONFIGURABLE_FIELD</td>
+	<td>//div[contains(@class,'fragment-entry-link-content')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -59,6 +79,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDITABLE_HTML_FRAGMENT_FIELD</td>
+	<td>//div[contains(@class,'source-panel')]//div[contains(@class,'lfr-source-editor-code')]//textarea</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -68,16 +93,92 @@
 	<td>//div[contains(@class,'fragments-editor__floating-toolbar')]//label[contains(.,'${checkboxName}')]//input[@type='checkbox']</td>
 	<td></td>
 </tr>
+<tr>
+	<td>FRAGMENT_SITE_USAGE_CHECKBOX</td>
+	<td>//tr[contains(.,'${key_siteName}')]/td//input[@type='checkbox']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_SITE_USAGE_NAV_ITEM</td>
+	<td>//li[contains(@class,'navbar-breakpoint')]</td>
+	<td></td>
+</tr>
 <!--FRAGMENT_COMMENT-->
 <tr>
 	<td>FRAGMENT_COMMENT_ICON</td>
 	<td>//button[*[name()='svg'][*[contains(@class,'comments-borde')]]]</td>
 	<td></td>
 </tr>
+<!--FRAGMENT_CONFIGURAION-->
+<tr>
+	<td>FRAGMENT_CONFIGURATION_ALIGNMENT</td>
+	<td>//*[contains(@class,'component-${key_fragmentName}')][contains(@class,'text-${key_alignment}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_BORDER_COLOR</td>
+	<td>//div[contains(@class,'component-${key_fragmentName}')]//hr[contains(@style,'border-color:rgb(${key_borderColor})')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_BORDER_RADIUS</td>
+	<td>//*[contains(@class,'component-${key_fragmentName}')]//div[contains(@style,'border-radius: ${key_borderRadius}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_BOTTOM_SPACING</td>
+	<td>//*[contains(@class,'component-${key_fragmentName}')][contains(@class,'pb-${key_bottomSpacing}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_BOX_SHADOW</td>
+	<td>//*[contains(@class,'component-${key_fragmentName}')]//div[contains(@class,'shadow-${key_boxShadow}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_HEADER_H2</td>
+	<td>//h2[contains(@class,'component-${key_fragmentName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_HEIGHT</td>
+	<td>//div[contains(@class,'fragment-entry-link-content')]//div//div[contains(@class,'py-${key_height}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_IMAGE_SIZE</td>
+	<td>//div[contains(@class,'component-${key_fragmentName}')]//img[contains(@class,'w-${key_imageSize}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_SIZE</td>
+	<td>//div[contains(@class,'component-${key_fragmentName}')]//a[contains(@class,'-${key_size}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_TEXT_COLOR</td>
+	<td>//*[contains(@class,'component-${key_fragmentName}')][contains(@class,'text-${key_textColor}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_TYPE</td>
+	<td>//div[contains(@class,'component-${key_fragmentName}')]//a[contains(@class,'-${key_type}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_CONFIGURATION_VERTICAL_SPACE</td>
+	<td>//div[contains(@class,'component-${key_fragmentName}')]//hr[contains(@class,'pb-${key_verticalSpace}')]</td>
+	<td></td>
+</tr>
 <!--FRAGMENT_HEADER-->
 <tr>
 	<td>FRAGMENT_HEADER</td>
 	<td>//div[contains(@class,'fragment-entry-link-wrapper')]//li[contains(.,'${key_fragmentName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_HEADER_2</td>
+	<td>xpath=(//div[contains(@class,'fragment-entry-link-wrapper')]//li[contains(.,'${key_fragmentName}')])[2]</td>
 	<td></td>
 </tr>
 <tr>

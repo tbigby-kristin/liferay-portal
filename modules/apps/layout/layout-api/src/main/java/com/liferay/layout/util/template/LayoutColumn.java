@@ -89,8 +89,7 @@ public class LayoutColumn {
 				).put(
 					"portletId", PortletIdCodec.decodePortletName(portletId)
 				).toString(),
-				StringPool.BLANK, 0, null,
-				ServiceContextThreadLocal.getServiceContext());
+				StringPool.BLANK, 0, null, serviceContext);
 
 		_fragmentEntryLinkIds.add(fragmentEntryLink.getFragmentEntryLinkId());
 	}

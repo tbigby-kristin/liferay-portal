@@ -84,6 +84,7 @@ import com.liferay.portal.kernel.util.SessionClicks_IW;
 import com.liferay.portal.kernel.util.StaticFieldGetter;
 import com.liferay.portal.kernel.util.StringUtil_IW;
 import com.liferay.portal.kernel.util.TimeZoneUtil_IW;
+import com.liferay.portal.kernel.util.URLCodec_IW;
 import com.liferay.portal.kernel.util.UnicodeFormatter_IW;
 import com.liferay.portal.kernel.util.Validator_IW;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -102,6 +103,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -684,6 +686,10 @@ public class TemplateContextHelper {
 
 		variables.put("unicodeFormatter", UnicodeFormatter_IW.getInstance());
 
+		// URL codec
+
+		variables.put("urlCodec", URLCodec_IW.getInstance());
+
 		// Validator
 
 		variables.put("validator", Validator_IW.getInstance());
@@ -850,10 +856,7 @@ public class TemplateContextHelper {
 		}
 
 		try {
-			com.liferay.portal.kernel.util.Randomizer_IW randomizer =
-				com.liferay.portal.kernel.util.Randomizer_IW.getInstance();
-
-			variables.put("randomizer", randomizer.getWrappedInstance());
+			variables.put("random", new Random());
 		}
 		catch (SecurityException se) {
 			_log.error(se, se);
@@ -967,26 +970,6 @@ public class TemplateContextHelper {
 		@Override
 		public String encodePath(String path) {
 			return _http.encodePath(path);
-		}
-
-		/**
-		 * @deprecated As of Judson (7.1.x), replaced by {@link
-		 *             URLCodec#encodeURL(String)}
-		 */
-		@Deprecated
-		@Override
-		public String encodeURL(String url) {
-			return _http.encodeURL(url);
-		}
-
-		/**
-		 * @deprecated As of Judson (7.1.x), replaced by {@link
-		 *             URLCodec#encodeURL(String, boolean)}
-		 */
-		@Deprecated
-		@Override
-		public String encodeURL(String url, boolean escapeSpaces) {
-			return _http.encodeURL(url, escapeSpaces);
 		}
 
 		@Override
@@ -1213,16 +1196,6 @@ public class TemplateContextHelper {
 		@Override
 		public String shortenURL(String url) {
 			return _http.shortenURL(url);
-		}
-
-		/**
-		 * @deprecated As of Judson (7.1.x), replaced by {@link
-		 *             #shortenURL(String)}
-		 */
-		@Deprecated
-		@Override
-		public String shortenURL(String url, int count) {
-			return _http.shortenURL(url, count);
 		}
 
 		@Override

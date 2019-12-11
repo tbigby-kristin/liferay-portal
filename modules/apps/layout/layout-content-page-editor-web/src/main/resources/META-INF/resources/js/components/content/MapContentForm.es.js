@@ -12,17 +12,18 @@
  * details.
  */
 
-import {Config} from 'metal-state';
 import {PortletBase} from 'frontend-js-web';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
 
 import getConnectedComponent from '../../store/ConnectedComponent.es';
-import templates from './MapContentForm.soy';
+import {getItemPath} from '../../utils/FragmentsEditorGetUtils.es';
+import {computeEditableValue} from '../../utils/computeValues.es';
 import {
 	EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
 	FRAGMENTS_EDITOR_ITEM_TYPES
 } from '../../utils/constants';
-import {getItemPath} from '../../utils/FragmentsEditorGetUtils.es';
+import templates from './MapContentForm.soy';
 
 /**
  * @param {string} html Removes HTML from the given text
@@ -93,12 +94,6 @@ class MapContentForm extends PortletBase {
 							EDITABLE_FRAGMENT_ENTRY_PROCESSOR
 						] || {};
 
-					const languageId =
-						this.languageId || this.defaultLanguageId;
-					const segmentsExperienceId = `segments-experience-id-${this
-						.segmentsExperienceId ||
-						this.defaultSegmentsExperienceId}`;
-
 					const editableId = selectedItem.itemId
 						.split('-')
 						.slice(1)
@@ -106,13 +101,14 @@ class MapContentForm extends PortletBase {
 
 					selectedItem.editableId = editableId;
 					selectedItem.fragmentEntryLinkId = fragmentEntryLinkId;
-					selectedItem.itemValue = editableValues[editableId][
-						segmentsExperienceId
-					]
-						? editableValues[editableId][segmentsExperienceId][
-								languageId
-						  ]
-						: editableValues[editableId].defaultValue.trim();
+					selectedItem.itemValue = computeEditableValue(
+						editableValues[editableId],
+						{
+							defaultLanguageId: this.defaultLanguageId,
+							selectedExperienceId: this.segmentsExperienceId,
+							selectedLanguageId: this.languageId
+						}
+					);
 
 					if (selectedItem.itemValue.url) {
 						selectedItem.itemValue = selectedItem.itemValue.url;
@@ -142,7 +138,7 @@ class MapContentForm extends PortletBase {
 			targetElement.dataset.itemFragmentEntryLinkId;
 
 		const newFields = this.fields.map(field => {
-			let newField = Object.assign({}, field);
+			let newField = {...field};
 
 			if (
 				(fieldKey === '-' || field.key !== fieldKey) &&

@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -46,6 +47,7 @@ import com.liferay.segments.exception.SegmentsEntryKeyException;
 import com.liferay.segments.exception.SegmentsEntryNameException;
 import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.SegmentsEntryRelLocalService;
+import com.liferay.segments.service.SegmentsEntryRoleLocalService;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.segments.service.base.SegmentsEntryLocalServiceBaseImpl;
 
@@ -53,7 +55,6 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -198,6 +199,11 @@ public class SegmentsEntryLocalServiceImpl
 		_segmentsEntryRelLocalService.deleteSegmentsEntryRels(
 			segmentsEntry.getSegmentsEntryId());
 
+		// Segments roles
+
+		_segmentsEntryRoleLocalService.deleteSegmentsEntryRoles(
+			segmentsEntry.getSegmentsEntryId());
+
 		return segmentsEntry;
 	}
 
@@ -284,6 +290,12 @@ public class SegmentsEntryLocalServiceImpl
 				_portal.getAncestorSiteGroupIds(groupId), groupId));
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #searchSegmentsEntries(long, long, String, boolean,
+	 *             LinkedHashMap, int, int, Sort)}
+	 */
+	@Deprecated
 	@Override
 	public BaseModelSearchResult<SegmentsEntry> searchSegmentsEntries(
 			long companyId, long groupId, String keywords,
@@ -291,9 +303,21 @@ public class SegmentsEntryLocalServiceImpl
 			Sort sort)
 		throws PortalException {
 
+		return searchSegmentsEntries(
+			companyId, groupId, keywords, includeAncestorSegmentsEntries,
+			new LinkedHashMap<>(), start, end, sort);
+	}
+
+	@Override
+	public BaseModelSearchResult<SegmentsEntry> searchSegmentsEntries(
+			long companyId, long groupId, String keywords,
+			boolean includeAncestorSegmentsEntries,
+			LinkedHashMap<String, Object> params, int start, int end, Sort sort)
+		throws PortalException {
+
 		SearchContext searchContext = buildSearchContext(
-			companyId, groupId, keywords, includeAncestorSegmentsEntries, start,
-			end, sort);
+			companyId, groupId, keywords, includeAncestorSegmentsEntries,
+			params, start, end, sort);
 
 		return segmentsEntryLocalService.searchSegmentsEntries(searchContext);
 	}
@@ -351,7 +375,8 @@ public class SegmentsEntryLocalServiceImpl
 
 	protected SearchContext buildSearchContext(
 		long companyId, long groupId, String keywords,
-		boolean includeAncestorSegmentsEntries, int start, int end, Sort sort) {
+		boolean includeAncestorSegmentsEntries,
+		LinkedHashMap<String, Object> params, int start, int end, Sort sort) {
 
 		SearchContext searchContext = new SearchContext();
 
@@ -360,11 +385,10 @@ public class SegmentsEntryLocalServiceImpl
 		queryConfig.setHighlightEnabled(false);
 		queryConfig.setScoreEnabled(false);
 
-		Map<String, Serializable> attributes = new HashMap<>();
-
-		attributes.put(Field.NAME, keywords);
-
-		LinkedHashMap<String, Object> params = new LinkedHashMap<>();
+		Map<String, Serializable> attributes =
+			HashMapBuilder.<String, Serializable>put(
+				Field.NAME, keywords
+			).build();
 
 		params.put("keywords", keywords);
 
@@ -459,6 +483,9 @@ public class SegmentsEntryLocalServiceImpl
 
 	@Reference
 	private SegmentsEntryRelLocalService _segmentsEntryRelLocalService;
+
+	@Reference
+	private SegmentsEntryRoleLocalService _segmentsEntryRoleLocalService;
 
 	@Reference
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;

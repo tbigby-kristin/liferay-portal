@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -39,7 +40,6 @@ import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.model.SAPEntryConstants;
 import com.liferay.portal.security.service.access.policy.service.base.SAPEntryLocalServiceBaseImpl;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -72,6 +72,7 @@ public class SAPEntryLocalServiceImpl extends SAPEntryLocalServiceBaseImpl {
 		User user = userLocalService.getUser(userId);
 		allowedServiceSignatures = normalizeServiceSignatures(
 			allowedServiceSignatures);
+
 		name = StringUtil.trim(name);
 
 		validate(name, titleMap);
@@ -123,11 +124,10 @@ public class SAPEntryLocalServiceImpl extends SAPEntryLocalServiceBaseImpl {
 			companyId, RoleConstants.GUEST);
 
 		if (systemDefaultSAPEntry == null) {
-			Map<Locale, String> titleMap = new HashMap<>();
-
-			titleMap.put(
+			Map<Locale, String> titleMap = HashMapBuilder.put(
 				LocaleUtil.getDefault(),
-				_sapConfiguration.systemDefaultSAPEntryDescription());
+				_sapConfiguration.systemDefaultSAPEntryDescription()
+			).build();
 
 			systemDefaultSAPEntry = addSAPEntry(
 				defaultUserId,
@@ -143,11 +143,10 @@ public class SAPEntryLocalServiceImpl extends SAPEntryLocalServiceBaseImpl {
 		}
 
 		if (systemUserPasswordSAPEntry == null) {
-			Map<Locale, String> titleMap = new HashMap<>();
-
-			titleMap.put(
+			Map<Locale, String> titleMap = HashMapBuilder.put(
 				LocaleUtil.getDefault(),
-				_sapConfiguration.systemUserPasswordSAPEntryDescription());
+				_sapConfiguration.systemUserPasswordSAPEntryDescription()
+			).build();
 
 			systemUserPasswordSAPEntry = addSAPEntry(
 				defaultUserId,
@@ -186,9 +185,7 @@ public class SAPEntryLocalServiceImpl extends SAPEntryLocalServiceBaseImpl {
 	}
 
 	@Override
-	public SAPEntry fetchSAPEntry(long companyId, String name)
-		throws PortalException {
-
+	public SAPEntry fetchSAPEntry(long companyId, String name) {
 		return sapEntryPersistence.fetchByC_N(companyId, name);
 	}
 

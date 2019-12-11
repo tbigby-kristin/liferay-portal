@@ -1,26 +1,28 @@
 {
-
 	"fieldSets": [
 		{
 			"fields": [
 				{
 					"dataType": "string",
 					"defaultValue": "3",
-					"label": "vertical-space",
-					"name": "verticalSpace",
+					"label": "bottom-spacing",
+					"name": "bottomSpacing",
 					"type": "select",
 					"typeOptions": {
 						"validValues": [
 							{
-								"label": "small",
+								"value": "1"
+							},
+							{
+								"value": "2"
+							},
+							{
 								"value": "3"
 							},
 							{
-								"label": "medium",
 								"value": "4"
 							},
 							{
-								"label": "large",
 								"value": "5"
 							}
 						]

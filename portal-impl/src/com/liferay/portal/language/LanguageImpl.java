@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.FastDateFormatConstants;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -1557,7 +1558,10 @@ public class LanguageImpl implements Language, Serializable {
 			group = group.getLiveGroup();
 		}
 
-		if (!group.isSite() || group.isCompany()) {
+		if ((!group.isSite() &&
+			 (group.getType() != GroupConstants.TYPE_DEPOT)) ||
+			group.isCompany()) {
+
 			return true;
 		}
 
@@ -1577,18 +1581,6 @@ public class LanguageImpl implements Language, Serializable {
 		String language2 = locale2.getLanguage();
 
 		return language1.equals(language2);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #process(Supplier,
-	 *             Locale, String)}
-	 */
-	@Deprecated
-	@Override
-	public String process(
-		ResourceBundle resourceBundle, Locale locale, String content) {
-
-		return process(() -> resourceBundle, locale, content);
 	}
 
 	@Override
@@ -1717,12 +1709,13 @@ public class LanguageImpl implements Language, Serializable {
 		catch (Exception e) {
 		}
 
-		HashMap<String, Locale> groupLanguageCodeLocalesMap = new HashMap<>();
 		HashMap<String, Locale> groupLanguageIdLocalesMap =
 			new LinkedHashMap<>();
 
-		groupLanguageCodeLocalesMap.put(
-			defaultLocale.getLanguage(), defaultLocale);
+		HashMap<String, Locale> groupLanguageCodeLocalesMap =
+			HashMapBuilder.put(
+				defaultLocale.getLanguage(), defaultLocale
+			).build();
 
 		for (String languageId : languageIds) {
 			Locale locale = LocaleUtil.fromLanguageId(languageId, false);

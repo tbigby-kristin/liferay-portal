@@ -126,3 +126,85 @@ This change was made to avoid serving unnecessary files saving bandwidth and
 increasing performance of your sites by default.
 
 ---------------------------------------
+
+### Removed com.liferay.asset.taglib.servlet.taglib.soy.AssetTagsSelectorTag
+- **Date:** 2019-Oct-15
+- **JIRA Ticket:** [LPS-100144](https://issues.liferay.com/browse/LPS-100144)
+
+#### What changed?
+
+The Java class
+`com.liferay.asset.taglib.servlet.taglib.soy.AssetTagsSelectorTag` has been
+removed.
+
+#### Who is affected?
+
+This affects any code that directly instantiates or extends this class.
+
+#### How should I update my code?
+
+There's no direct replacement for the removed class. If you have code that
+depends on it, you would need to copy over the old implementation to your own
+project and change the dependency to rely on your local version.
+
+#### Why was this change made?
+
+The `asset:asset-tags-selector` and its components have been migrated to React,
+making the old tag and its soy infrastructure unnecessary.
+
+---------------------------------------
+### Removed liferay.frontend.Slider
+- **Date:** 2019-Oct-10
+- **JIRA Ticket:** [LPS-100124](https://issues.liferay.com/browse/LPS-100124)
+
+#### What changed?
+
+The legacy metal+soy `liferay.frontend.Slider` component has been removed.
+
+#### Who is affected?
+
+This affects any code that relies on such component, which is usually done via
+`soy` as `{call liferay.frontend.Slider /}`
+
+#### How should I update my code?
+
+There's no direct replacement for `liferay.frontend.Slider` component which was
+simply being used as a temporary bridge for legacy behaviour.
+
+If you have a component that relies on it, you can choose to co-locate a copy of
+the old implementation and use it locally within your module.
+
+#### Why was this change made?
+
+The compatibility `liferay.frontend.Slider` component is no longer used and was
+already deprecated in `7.2`.
+
+---------------------------------------
+
+### Removed liferay.frontend.ProgressBar
+- **Date:** 2019-Aug-28
+- **JIRA Ticket:** [LPS-100122](https://issues.liferay.com/browse/LPS-100122)
+
+#### What changed?
+
+The legacy metal+soy `liferay.frontend.ProgressBar` component has been removed.
+
+#### Who is affected?
+
+This affects any code that relies on such component, which is usually done via
+`soy` as `{call liferay.frontend.ProgressBar /}`
+
+#### How should I update my code?
+
+There's no direct replacement for `liferay.frontend.ProgressBar` component
+which was simply being used as a temporary bridge for legacy behaviour.
+
+If you have a component that relies on it, you can choose to co-locate a copy of
+the old implementation and use it locally within your module.
+
+#### Why was this change made?
+
+The compatibility `liferay.frontend.ProgessBar` component is no longer used and
+was already deprecated in `7.2`.
+
+---------------------------------------

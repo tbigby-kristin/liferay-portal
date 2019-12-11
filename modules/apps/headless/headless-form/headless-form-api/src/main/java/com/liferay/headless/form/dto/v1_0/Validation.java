@@ -196,6 +196,12 @@ public class Validation {
 		return sb.toString();
 	}
 
+	@Schema(
+		defaultValue = "com.liferay.headless.form.dto.v1_0.Validation",
+		name = "x-class-name"
+	)
+	public String xClassName;
+
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 

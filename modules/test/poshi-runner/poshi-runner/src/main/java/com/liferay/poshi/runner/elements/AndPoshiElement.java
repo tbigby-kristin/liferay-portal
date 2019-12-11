@@ -54,7 +54,13 @@ public class AndPoshiElement extends PoshiElement {
 		throws PoshiScriptParserException {
 
 		for (String nestedCondition : getNestedConditions(poshiScript, "&&")) {
-			nestedCondition = getParentheticalContent(nestedCondition);
+			nestedCondition = nestedCondition.trim();
+
+			if (nestedCondition.endsWith(")") &&
+				nestedCondition.startsWith("(")) {
+
+				nestedCondition = getParentheticalContent(nestedCondition);
+			}
 
 			add(PoshiNodeFactory.newPoshiNode(this, nestedCondition));
 		}

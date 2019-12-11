@@ -16,13 +16,13 @@ package com.liferay.site.admin.web.internal.servlet.taglib.clay;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.soy.VerticalCard;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.site.admin.web.internal.constants.SiteAdminConstants;
 import com.liferay.site.admin.web.internal.util.SiteInitializerItem;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -53,8 +53,6 @@ public class SelectSiteInitializerVerticalCard implements VerticalCard {
 		long parentGroupId = ParamUtil.getLong(
 			_httpServletRequest, "parentGroupId");
 
-		Map<String, String> data = new HashMap<>();
-
 		PortletURL addSiteURL = _renderResponse.createActionURL();
 
 		addSiteURL.setParameter(ActionRequest.ACTION_NAME, "addGroup");
@@ -66,8 +64,6 @@ public class SelectSiteInitializerVerticalCard implements VerticalCard {
 		addSiteURL.setParameter(
 			"siteInitializerKey", _siteInitializerItem.getSiteInitializerKey());
 
-		data.put("add-site-url", addSiteURL.toString());
-
 		String checkboxFieldName = StringPool.BLANK;
 
 		if (Objects.equals(
@@ -77,13 +73,14 @@ public class SelectSiteInitializerVerticalCard implements VerticalCard {
 			checkboxFieldName = "layoutSetVisibilityPrivate";
 		}
 
-		data.put("checkbox-field-name", checkboxFieldName);
-
-		data.put(
+		return HashMapBuilder.put(
+			"add-site-url", addSiteURL.toString()
+		).put(
+			"checkbox-field-name", checkboxFieldName
+		).put(
 			"layout-set-prototype-id",
-			String.valueOf(_siteInitializerItem.getLayoutSetPrototypeId()));
-
-		return data;
+			String.valueOf(_siteInitializerItem.getLayoutSetPrototypeId())
+		).build();
 	}
 
 	@Override

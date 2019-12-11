@@ -94,12 +94,12 @@ else {
 }
 %>
 
-<portlet:actionURL name="/document_library/upload_multiple_file_entries" var="uploadMultipleFileEntriesURL">
-	<portlet:param name="redirect" value="<%= redirect %>" />
-</portlet:actionURL>
+<portlet:actionURL name="/document_library/upload_multiple_file_entries" var="uploadMultipleFileEntriesURL" />
 
 <aui:form action="<%= uploadMultipleFileEntriesURL %>" method="post" name="fm2" onSubmit='<%= "event.preventDefault(); " + liferayPortletResponse.getNamespace() + "updateMultipleFiles();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= Constants.ADD_MULTIPLE %>" />
+	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="portletResource" type="hidden" value='<%= ParamUtil.getString(request, "portletResource") %>' />
 	<aui:input name="repositoryId" type="hidden" value="<%= String.valueOf(repositoryId) %>" />
 	<aui:input name="folderId" type="hidden" value="<%= String.valueOf(folderId) %>" />
 
@@ -211,69 +211,76 @@ else {
 					%>
 
 					<aui:script position="inline" require="metal-dom/src/all/dom as dom">
-						var documentTypeMenuList = document.querySelector('#<portlet:namespace/>documentTypeSelector .lfr-menu-list');
+						var documentTypeMenuList = document.querySelector(
+							'#<portlet:namespace/>documentTypeSelector .lfr-menu-list'
+						);
 
 						if (documentTypeMenuList) {
-							dom.delegate(
-								documentTypeMenuList,
-								'click',
-								'li a',
-								function(event) {
-									event.preventDefault();
+							dom.delegate(documentTypeMenuList, 'click', 'li a', function(event) {
+								event.preventDefault();
 
-									Liferay.Util.fetch(event.delegateTarget.getAttribute('href'))
-										.then(
-											function(response) {
-												return response.text();
-											}
-										)
-										.then(
-											function(response) {
-												var commonFileMetadataContainer = document.getElementById('<portlet:namespace />commonFileMetadataContainer');
+								Liferay.Util.fetch(event.delegateTarget.getAttribute('href'))
+									.then(function(response) {
+										return response.text();
+									})
+									.then(function(response) {
+										var commonFileMetadataContainer = document.getElementById(
+											'<portlet:namespace />commonFileMetadataContainer'
+										);
 
-												if (commonFileMetadataContainer) {
-													commonFileMetadataContainer.innerHTML = response;
+										if (commonFileMetadataContainer) {
+											commonFileMetadataContainer.innerHTML = response;
 
-													dom.globalEval.runScriptsInElement(commonFileMetadataContainer);
-												}
+											dom.globalEval.runScriptsInElement(
+												commonFileMetadataContainer
+											);
+										}
 
-												var fileNodes = document.querySelectorAll('input[name=<portlet:namespace />selectUploadedFile]');
+										var fileNodes = document.querySelectorAll(
+											'input[name=<portlet:namespace />selectUploadedFile]'
+										);
 
-												var selectedFileNodes = Array.prototype.filter.call(
-													fileNodes,
-													function(fileNode) {
-														return fileNode.checked;
-													}
-												);
-
-												var selectedFilesCount = selectedFileNodes.length;
-
-												var selectedFilesText = '';
-
-												if (selectedFilesCount > 0) {
-													selectedFilesText = selectedFileNodes[0].dataset.title;
-												}
-
-												if (selectedFilesCount > 1) {
-													if (selectedFilesCount === fileNodes.length) {
-														selectedFilesText = '<%= UnicodeLanguageUtil.get(request, "all-files-selected") %>';
-													}
-													else {
-														selectedFilesText = Liferay.Util.sub('<%= UnicodeLanguageUtil.get(request, "x-files-selected") %>', selectedFilesCount);
-													}
-												}
-
-												var selectedFilesCountElement = document.querySelector('.selected-files-count');
-
-												if (selectedFilesCountElement) {
-													selectedFilesCountElement.innerHTML = selectedFilesText;
-
-													selectedFilesCountElement.setAttribute('title', selectedFilesText);
-												}
+										var selectedFileNodes = Array.prototype.filter.call(
+											fileNodes,
+											function(fileNode) {
+												return fileNode.checked;
 											}
 										);
-								}
-							);
+
+										var selectedFilesCount = selectedFileNodes.length;
+
+										var selectedFilesText = '';
+
+										if (selectedFilesCount > 0) {
+											selectedFilesText = selectedFileNodes[0].dataset.title;
+										}
+
+										if (selectedFilesCount > 1) {
+											if (selectedFilesCount === fileNodes.length) {
+												selectedFilesText =
+													'<%= UnicodeLanguageUtil.get(request, "all-files-selected") %>';
+											} else {
+												selectedFilesText = Liferay.Util.sub(
+													'<%= UnicodeLanguageUtil.get(request, "x-files-selected") %>',
+													selectedFilesCount
+												);
+											}
+										}
+
+										var selectedFilesCountElement = document.querySelector(
+											'.selected-files-count'
+										);
+
+										if (selectedFilesCountElement) {
+											selectedFilesCountElement.innerHTML = selectedFilesText;
+
+											selectedFilesCountElement.setAttribute(
+												'title',
+												selectedFilesText
+											);
+										}
+									});
+							});
 						}
 					</aui:script>
 				</liferay-ui:panel>
@@ -302,7 +309,7 @@ else {
 		>
 			<aui:fieldset>
 				<liferay-asset:select-asset-display-page
-					classNameId="<%= PortalUtil.getClassNameId(DLFileEntry.class) %>"
+					classNameId="<%= PortalUtil.getClassNameId(FileEntry.class) %>"
 					classPK="<%= 0 %>"
 					groupId="<%= scopeGroupId %>"
 					showPortletLayouts="<%= true %>"

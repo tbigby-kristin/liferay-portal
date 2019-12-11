@@ -78,6 +78,9 @@ definition {
 				locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME",
 				value1 = "${rowEntry}");
 		}
+		else if ("${rowEntry}" == "Content Page") {
+			LexiconCard.clickCard(card = "Blank");
+		}
 		else {
 			LexiconCard.clickCard(card = "${rowEntry}");
 		}
@@ -94,7 +97,7 @@ definition {
 
 		SelectFrame.selectFrameTop();
 
-		if (!("${sitePageType}" == "Content Page")) {
+		if ("${sitePageType}" != "Content Page") {
 			Button.click(button = "Save");
 		}
 	}

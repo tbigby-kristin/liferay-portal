@@ -35,6 +35,8 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.util.WebKeys;
@@ -43,6 +45,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletURL;
@@ -62,7 +65,7 @@ public class ItemSelectorRepositoryEntryBrowserUtil {
 			PortletURL portletURL)
 		throws Exception {
 
-		addGroupSelectorBreadcrumbEntry(
+		_addGroupSelectorBreadcrumbEntry(
 			httpServletRequest, liferayPortletResponse, portletURL);
 
 		portletURL.setParameter("displayStyle", displayStyle);
@@ -73,7 +76,7 @@ public class ItemSelectorRepositoryEntryBrowserUtil {
 
 		Group scopeGroup = themeDisplay.getScopeGroup();
 
-		addPortletBreadcrumbEntry(
+		_addPortletBreadcrumbEntry(
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, httpServletRequest,
 			scopeGroup.getDescriptiveName(httpServletRequest.getLocale()),
 			portletURL);
@@ -86,12 +89,12 @@ public class ItemSelectorRepositoryEntryBrowserUtil {
 			Collections.reverse(ancestorFolders);
 
 			for (Folder ancestorFolder : ancestorFolders) {
-				addPortletBreadcrumbEntry(
+				_addPortletBreadcrumbEntry(
 					ancestorFolder.getFolderId(), httpServletRequest,
 					ancestorFolder.getName(), portletURL);
 			}
 
-			addPortletBreadcrumbEntry(
+			_addPortletBreadcrumbEntry(
 				folder.getFolderId(), httpServletRequest, folder.getName(),
 				portletURL);
 		}
@@ -154,11 +157,10 @@ public class ItemSelectorRepositoryEntryBrowserUtil {
 	}
 
 	public static String getItemSelectorReturnTypeClassName(
-			ItemSelectorReturnTypeResolver
-				<? extends ItemSelectorReturnType, FileEntry>
-					itemSelectorReturnTypeResolver,
-			ItemSelectorReturnType itemSelectorReturnType)
-		throws Exception {
+		ItemSelectorReturnTypeResolver
+			<? extends ItemSelectorReturnType, FileEntry>
+				itemSelectorReturnTypeResolver,
+		ItemSelectorReturnType itemSelectorReturnType) {
 
 		if (itemSelectorReturnTypeResolver != null) {
 			Class<? extends ItemSelectorReturnType>
@@ -189,23 +191,33 @@ public class ItemSelectorRepositoryEntryBrowserUtil {
 			itemSelectorReturnType, fileEntry, themeDisplay);
 	}
 
-	protected static void addGroupSelectorBreadcrumbEntry(
+	private static void _addGroupSelectorBreadcrumbEntry(
 			HttpServletRequest httpServletRequest,
 			LiferayPortletResponse liferayPortletResponse,
 			PortletURL portletURL)
-		throws PortalException, PortletException {
+		throws PortletException {
 
 		PortletURL viewGroupSelectorURL = PortletURLUtil.clone(
 			portletURL, liferayPortletResponse);
 
+		viewGroupSelectorURL.setParameter("groupType", "site");
 		viewGroupSelectorURL.setParameter(
 			"showGroupSelector", Boolean.TRUE.toString());
 
+		ResourceBundleLoader resourceBundleLoader =
+			ResourceBundleLoaderUtil.
+				getResourceBundleLoaderByBundleSymbolicName(
+					"com.liferay.item.selector.taglib");
+
+		ResourceBundle resourceBundle = resourceBundleLoader.loadResourceBundle(
+			PortalUtil.getLocale(httpServletRequest));
+
 		PortalUtil.addPortletBreadcrumbEntry(
-			httpServletRequest, "sites", viewGroupSelectorURL.toString());
+			httpServletRequest, LanguageUtil.get(resourceBundle, "workspaces"),
+			viewGroupSelectorURL.toString());
 	}
 
-	protected static void addPortletBreadcrumbEntry(
+	private static void _addPortletBreadcrumbEntry(
 		long folderId, HttpServletRequest httpServletRequest, String title,
 		PortletURL portletURL) {
 

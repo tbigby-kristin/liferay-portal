@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -47,6 +49,7 @@ public class ContactInformation {
 	@Schema(
 		description = "A list of the user's email addresses, with one optionally marked as primary."
 	)
+	@Valid
 	public EmailAddress[] getEmailAddresses() {
 		return emailAddresses;
 	}
@@ -71,7 +74,9 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of the user's email addresses, with one optionally marked as primary."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected EmailAddress[] emailAddresses;
 
@@ -99,7 +104,7 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The user's Facebook account.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String facebook;
 
@@ -125,7 +130,7 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The ID of the `contactInformation`.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -153,13 +158,14 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The user's Jabber handle.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String jabber;
 
 	@Schema(
 		description = "A list of user's postal addresses, with one optionally marked as primary."
 	)
+	@Valid
 	public PostalAddress[] getPostalAddresses() {
 		return postalAddresses;
 	}
@@ -184,7 +190,9 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of user's postal addresses, with one optionally marked as primary."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected PostalAddress[] postalAddresses;
 
@@ -212,7 +220,7 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The user's Skype handle.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String skype;
 
@@ -238,13 +246,14 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The user's SMS number.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String sms;
 
 	@Schema(
 		description = "A list of the user's phone numbers, with one optionally marked as primary."
 	)
+	@Valid
 	public Phone[] getTelephones() {
 		return telephones;
 	}
@@ -268,7 +277,9 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of the user's phone numbers, with one optionally marked as primary."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Phone[] telephones;
 
@@ -296,13 +307,14 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The user's Twitter handle.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String twitter;
 
 	@Schema(
 		description = "A list of the user's web URLs, with one optionally marked as primary."
 	)
+	@Valid
 	public WebUrl[] getWebUrls() {
 		return webUrls;
 	}
@@ -326,7 +338,9 @@ public class ContactInformation {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of the user's web URLs, with one optionally marked as primary."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected WebUrl[] webUrls;
 
@@ -521,6 +535,12 @@ public class ContactInformation {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.user.dto.v1_0.ContactInformation",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

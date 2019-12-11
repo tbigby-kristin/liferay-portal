@@ -79,11 +79,14 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
  * @author Marcellus Tavares
  * @author Hugo Huijser
  * @author Edward Han
+ * @deprecated As of Mueller (7.2.x), replaced by {@link
+ *            SafePortalLDAPImpl}
  */
 @Component(
 	configurationPid = "com.liferay.portal.security.ldap.configuration.LDAPConfiguration",
 	immediate = true, service = PortalLDAP.class
 )
+@Deprecated
 public class DefaultPortalLDAP implements PortalLDAP {
 
 	@Override
@@ -493,40 +496,6 @@ public class DefaultPortalLDAP implements PortalLDAP {
 		}
 
 		return attribute;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x)
-	 */
-	@Deprecated
-	@Override
-	public String getNameInNamespace(
-			long ldapServerId, long companyId, Binding binding)
-		throws Exception {
-
-		LDAPServerConfiguration ldapServerConfiguration =
-			_ldapServerConfigurationProvider.getConfiguration(
-				companyId, ldapServerId);
-
-		String baseDN = ldapServerConfiguration.baseDN();
-
-		String name = binding.getName();
-
-		if (name.startsWith(StringPool.QUOTE) &&
-			name.endsWith(StringPool.QUOTE)) {
-
-			name = name.substring(1, name.length() - 1);
-		}
-
-		if (Validator.isNull(baseDN)) {
-			return name;
-		}
-
-		return name.concat(
-			StringPool.COMMA
-		).concat(
-			baseDN
-		);
 	}
 
 	@Override
@@ -1139,10 +1108,13 @@ public class DefaultPortalLDAP implements PortalLDAP {
 			int z = attributeId.indexOf(CharPool.DASH, y);
 
 			originalAttributeId = attributeId.substring(0, x);
+
 			start = GetterUtil.getInteger(attributeId.substring(y + 1, z));
-			end = GetterUtil.getInteger(attributeId.substring(z + 1));
 
 			start += systemLDAPConfiguration.rangeSize();
+
+			end = GetterUtil.getInteger(attributeId.substring(z + 1));
+
 			end += systemLDAPConfiguration.rangeSize();
 		}
 

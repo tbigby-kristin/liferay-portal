@@ -18,6 +18,7 @@ import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServices
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
 import com.liferay.dynamic.data.mapping.form.values.factory.DDMFormValuesFactory;
+import com.liferay.dynamic.data.mapping.form.web.internal.configuration.DDMFormWebConfiguration;
 import com.liferay.dynamic.data.mapping.model.DDMForm;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstance;
 import com.liferay.dynamic.data.mapping.model.DDMFormInstanceSettings;
@@ -31,8 +32,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -82,6 +85,120 @@ public class DDMFormDisplayContextTest extends PowerMockito {
 		setUpLanguageUtil();
 		setUpLocaleUtil();
 		setUpPortalUtil();
+	}
+
+	@Test
+	public void testAutosaveWithDefaultUser() throws Exception {
+		MockRenderRequest renderRequest = mockRenderRequest();
+
+		ThemeDisplay themeDisplay = mock(ThemeDisplay.class);
+
+		renderRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+
+		PortletDisplay portletDisplay = mock(PortletDisplay.class);
+
+		when(
+			portletDisplay.getPortletResource()
+		).thenReturn(
+			null
+		);
+
+		when(
+			themeDisplay.getPortletDisplay()
+		).thenReturn(
+			portletDisplay
+		);
+
+		User user = mock(User.class);
+
+		when(
+			user.isDefaultUser()
+		).thenReturn(
+			Boolean.TRUE
+		);
+
+		when(
+			themeDisplay.getUser()
+		).thenReturn(
+			user
+		);
+
+		DDMFormDisplayContext ddmFormDisplayContext =
+			createDDMFormDisplayContext(renderRequest);
+
+		Assert.assertEquals(false, ddmFormDisplayContext.isAutosaveEnabled());
+	}
+
+	@Test
+	public void testAutosaveWithNondefaultUser1() throws Exception {
+		RenderRequest renderRequest =
+			mockRenderRequestAutosaveWithNondefaultUser();
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			mockDDMFormInstanceSettingsAutosaveWithNondefaultUser();
+
+		when(
+			ddmFormInstanceSettings.autosaveEnabled()
+		).thenReturn(
+			Boolean.FALSE
+		);
+
+		DDMFormDisplayContext ddmFormDisplayContext =
+			createDDMFormDisplayContext(renderRequest);
+
+		Assert.assertEquals(false, ddmFormDisplayContext.isAutosaveEnabled());
+	}
+
+	@Test
+	public void testAutosaveWithNondefaultUser2() throws Exception {
+		RenderRequest renderRequest =
+			mockRenderRequestAutosaveWithNondefaultUser();
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			mockDDMFormInstanceSettingsAutosaveWithNondefaultUser();
+
+		when(
+			ddmFormInstanceSettings.autosaveEnabled()
+		).thenReturn(
+			Boolean.TRUE
+		);
+
+		when(
+			_ddmFormWebConfiguration.autosaveInterval()
+		).thenReturn(
+			1
+		);
+
+		DDMFormDisplayContext ddmFormDisplayContext =
+			createDDMFormDisplayContext(renderRequest);
+
+		Assert.assertEquals(true, ddmFormDisplayContext.isAutosaveEnabled());
+	}
+
+	@Test
+	public void testAutosaveWithNondefaultUser3() throws Exception {
+		RenderRequest renderRequest =
+			mockRenderRequestAutosaveWithNondefaultUser();
+
+		DDMFormInstanceSettings ddmFormInstanceSettings =
+			mockDDMFormInstanceSettingsAutosaveWithNondefaultUser();
+
+		when(
+			ddmFormInstanceSettings.autosaveEnabled()
+		).thenReturn(
+			Boolean.TRUE
+		);
+
+		when(
+			_ddmFormWebConfiguration.autosaveInterval()
+		).thenReturn(
+			0
+		);
+
+		DDMFormDisplayContext ddmFormDisplayContext =
+			createDDMFormDisplayContext(renderRequest);
+
+		Assert.assertEquals(false, ddmFormDisplayContext.isAutosaveEnabled());
 	}
 
 	@Test
@@ -213,8 +330,8 @@ public class DDMFormDisplayContextTest extends PowerMockito {
 			_ddmFormInstanceService,
 			mock(DDMFormInstanceVersionLocalService.class),
 			mock(DDMFormRenderer.class), mock(DDMFormValuesFactory.class),
-			mock(DDMFormValuesMerger.class), mock(GroupLocalService.class),
-			new JSONFactoryImpl(),
+			mock(DDMFormValuesMerger.class), _ddmFormWebConfiguration,
+			mock(GroupLocalService.class), new JSONFactoryImpl(),
 			mock(WorkflowDefinitionLinkLocalService.class), mock(Portal.class));
 	}
 
@@ -233,6 +350,30 @@ public class DDMFormDisplayContextTest extends PowerMockito {
 		return formInstance;
 	}
 
+	protected DDMFormInstanceSettings
+			mockDDMFormInstanceSettingsAutosaveWithNondefaultUser()
+		throws Exception {
+
+		DDMFormInstance ddmFormInstance = mock(DDMFormInstance.class);
+
+		DDMFormInstanceSettings ddmFormInstanceSettings = mock(
+			DDMFormInstanceSettings.class);
+
+		when(
+			ddmFormInstance.getSettingsModel()
+		).thenReturn(
+			ddmFormInstanceSettings
+		);
+
+		when(
+			_ddmFormInstanceService.fetchFormInstance(Matchers.anyLong())
+		).thenReturn(
+			ddmFormInstance
+		);
+
+		return ddmFormInstanceSettings;
+	}
+
 	protected MockRenderRequest mockRenderRequest() {
 		MockRenderRequest mockRenderRequest = new MockRenderRequest();
 
@@ -244,6 +385,46 @@ public class DDMFormDisplayContextTest extends PowerMockito {
 		mockRenderRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
 
 		return mockRenderRequest;
+	}
+
+	protected RenderRequest mockRenderRequestAutosaveWithNondefaultUser()
+		throws Exception {
+
+		MockRenderRequest renderRequest = mockRenderRequest();
+
+		ThemeDisplay themeDisplay = mock(ThemeDisplay.class);
+
+		renderRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+
+		User user = mock(User.class);
+
+		when(
+			user.isDefaultUser()
+		).thenReturn(
+			Boolean.FALSE
+		);
+
+		when(
+			themeDisplay.getUser()
+		).thenReturn(
+			user
+		);
+
+		PortletDisplay portletDisplay = mock(PortletDisplay.class);
+
+		when(
+			portletDisplay.getPortletResource()
+		).thenReturn(
+			null
+		);
+
+		when(
+			themeDisplay.getPortletDisplay()
+		).thenReturn(
+			portletDisplay
+		);
+
+		return renderRequest;
 	}
 
 	protected void setUpLanguageUtil() {
@@ -291,6 +472,9 @@ public class DDMFormDisplayContextTest extends PowerMockito {
 
 	@Mock
 	private DDMFormInstanceService _ddmFormInstanceService;
+
+	@Mock
+	private DDMFormWebConfiguration _ddmFormWebConfiguration;
 
 	@Mock
 	private Language _language;

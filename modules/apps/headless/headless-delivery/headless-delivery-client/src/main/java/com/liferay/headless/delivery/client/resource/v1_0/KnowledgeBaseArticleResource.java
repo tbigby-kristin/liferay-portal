@@ -113,16 +113,34 @@ public interface KnowledgeBaseArticleResource {
 			com.liferay.headless.delivery.client.dto.v1_0.Rating rating)
 		throws Exception;
 
+	public void putKnowledgeBaseArticleSubscribe(Long knowledgeBaseArticleId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			putKnowledgeBaseArticleSubscribeHttpResponse(
+				Long knowledgeBaseArticleId)
+		throws Exception;
+
+	public void putKnowledgeBaseArticleUnsubscribe(Long knowledgeBaseArticleId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			putKnowledgeBaseArticleUnsubscribeHttpResponse(
+				Long knowledgeBaseArticleId)
+		throws Exception;
+
 	public Page<KnowledgeBaseArticle>
 			getKnowledgeBaseArticleKnowledgeBaseArticlesPage(
-				Long parentKnowledgeBaseArticleId, String search,
-				String filterString, Pagination pagination, String sortString)
+				Long parentKnowledgeBaseArticleId, Boolean flatten,
+				String search, String filterString, Pagination pagination,
+				String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
 			getKnowledgeBaseArticleKnowledgeBaseArticlesPageHttpResponse(
-				Long parentKnowledgeBaseArticleId, String search,
-				String filterString, Pagination pagination, String sortString)
+				Long parentKnowledgeBaseArticleId, Boolean flatten,
+				String search, String filterString, Pagination pagination,
+				String sortString)
 		throws Exception;
 
 	public KnowledgeBaseArticle postKnowledgeBaseArticleKnowledgeBaseArticle(
@@ -176,6 +194,20 @@ public interface KnowledgeBaseArticleResource {
 
 	public HttpInvoker.HttpResponse postSiteKnowledgeBaseArticleHttpResponse(
 			Long siteId, KnowledgeBaseArticle knowledgeBaseArticle)
+		throws Exception;
+
+	public void putSiteKnowledgeBaseArticleSubscribe(Long siteId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			putSiteKnowledgeBaseArticleSubscribeHttpResponse(Long siteId)
+		throws Exception;
+
+	public void putSiteKnowledgeBaseArticleUnsubscribe(Long siteId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse
+			putSiteKnowledgeBaseArticleUnsubscribeHttpResponse(Long siteId)
 		throws Exception;
 
 	public static class Builder {
@@ -756,16 +788,132 @@ public interface KnowledgeBaseArticleResource {
 			return httpInvoker.invoke();
 		}
 
+		public void putKnowledgeBaseArticleSubscribe(
+				Long knowledgeBaseArticleId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putKnowledgeBaseArticleSubscribeHttpResponse(
+					knowledgeBaseArticleId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				putKnowledgeBaseArticleSubscribeHttpResponse(
+					Long knowledgeBaseArticleId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				knowledgeBaseArticleId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/subscribe",
+				knowledgeBaseArticleId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putKnowledgeBaseArticleUnsubscribe(
+				Long knowledgeBaseArticleId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putKnowledgeBaseArticleUnsubscribeHttpResponse(
+					knowledgeBaseArticleId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				putKnowledgeBaseArticleUnsubscribeHttpResponse(
+					Long knowledgeBaseArticleId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				knowledgeBaseArticleId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/unsubscribe",
+				knowledgeBaseArticleId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
 		public Page<KnowledgeBaseArticle>
 				getKnowledgeBaseArticleKnowledgeBaseArticlesPage(
-					Long parentKnowledgeBaseArticleId, String search,
-					String filterString, Pagination pagination,
+					Long parentKnowledgeBaseArticleId, Boolean flatten,
+					String search, String filterString, Pagination pagination,
 					String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getKnowledgeBaseArticleKnowledgeBaseArticlesPageHttpResponse(
-					parentKnowledgeBaseArticleId, search, filterString,
+					parentKnowledgeBaseArticleId, flatten, search, filterString,
 					pagination, sortString);
 
 			String content = httpResponse.getContent();
@@ -781,8 +929,8 @@ public interface KnowledgeBaseArticleResource {
 
 		public HttpInvoker.HttpResponse
 				getKnowledgeBaseArticleKnowledgeBaseArticlesPageHttpResponse(
-					Long parentKnowledgeBaseArticleId, String search,
-					String filterString, Pagination pagination,
+					Long parentKnowledgeBaseArticleId, Boolean flatten,
+					String search, String filterString, Pagination pagination,
 					String sortString)
 			throws Exception {
 
@@ -806,6 +954,10 @@ public interface KnowledgeBaseArticleResource {
 			}
 
 			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (flatten != null) {
+				httpInvoker.parameter("flatten", String.valueOf(flatten));
+			}
 
 			if (search != null) {
 				httpInvoker.parameter("search", String.valueOf(search));
@@ -1212,6 +1364,114 @@ public interface KnowledgeBaseArticleResource {
 				_builder._scheme + "://" + _builder._host + ":" +
 					_builder._port +
 						"/o/headless-delivery/v1.0/sites/{siteId}/knowledge-base-articles",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putSiteKnowledgeBaseArticleSubscribe(Long siteId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putSiteKnowledgeBaseArticleSubscribeHttpResponse(siteId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				putSiteKnowledgeBaseArticleSubscribeHttpResponse(Long siteId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(siteId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/knowledge-base-articles/subscribe",
+				siteId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putSiteKnowledgeBaseArticleUnsubscribe(Long siteId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putSiteKnowledgeBaseArticleUnsubscribeHttpResponse(siteId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				putSiteKnowledgeBaseArticleUnsubscribeHttpResponse(Long siteId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(siteId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/sites/{siteId}/knowledge-base-articles/unsubscribe",
 				siteId);
 
 			httpInvoker.userNameAndPassword(

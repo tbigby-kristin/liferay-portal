@@ -172,16 +172,18 @@ definition {
 				locator1 = "APConfiguration#SOURCE_SCOPE_ASSET_SUBTYPE_SELECT",
 				value1 = "Select More Than One...");
 
-			for (var contentName : list "${selectContent}") {
-				var key_contentName = "${contentName}";
+			if (isSet(selectContent)) {
+				for (var contentName : list "${selectContent}") {
+					var key_contentName = "${contentName}";
 
-				Click(locator1 = "APConfiguration#SELECT_MORE_THAN_ONE_ASSET_TYPE_CONTENT");
+					Click(locator1 = "APConfiguration#SELECT_MORE_THAN_ONE_ASSET_TYPE_CONTENT");
 
-				if ("${moveSelected}" == "true") {
-					Click(locator1 = "APConfiguration#SELECT_MORE_THAN_ONE_ASSET_SUBTYPE_MOVE_SELECTED");
-				}
-				else {
-					Click(locator1 = "APConfiguration#SELECT_MORE_THAN_ONE_ASSET_SUBTYPE_MOVE_AVAILABLE");
+					if ("${moveSelected}" == "true") {
+						Click(locator1 = "APConfiguration#SELECT_MORE_THAN_ONE_ASSET_SUBTYPE_MOVE_SELECTED");
+					}
+					else {
+						Click(locator1 = "APConfiguration#SELECT_MORE_THAN_ONE_ASSET_SUBTYPE_MOVE_AVAILABLE");
+					}
 				}
 			}
 		}
@@ -513,7 +515,7 @@ definition {
 
 			LexiconEntry.changeDisplayStyle(displayStyle = "table");
 
-			if (!("${siteScopeType}" == "Parent Site")) {
+			if ("${siteScopeType}" != "Parent Site") {
 				Type(
 					locator1 = "TextInput#SITE_SEARCH_KEYWORDS",
 					value1 = "${siteName}");
@@ -922,12 +924,12 @@ definition {
 		else {
 			var ratingPosition = "1";
 
-			while (!("${ratingPosition}" == "${rating}")) {
+			while ("${ratingPosition}" != "${rating}") {
 				AssertElementPresent(
 					key_ratingStarPosition = "${ratingPosition}",
 					locator1 = "Ratings#YOUR_RATING_STAR");
 
-				var ratingPosition = MathUtil.sum("${ratingPosition}", "1");
+				var ratingPosition = ${ratingPosition} + 1;
 			}
 
 			AssertElementNotPresent(
@@ -941,15 +943,15 @@ definition {
 				locator1 = "Ratings#YOUR_RATING_STAR_EMPTY");
 		}
 		else {
-			var emptyRating = MathUtil.difference("5", "${rating}");
+			var emptyRating = 5 - ${rating};
 			var emptyStarPosition = "1";
 
-			while (!("${emptyStarPosition}" == "${emptyRating}")) {
+			while ("${emptyStarPosition}" != "${emptyRating}") {
 				AssertElementPresent(
 					key_emptyStarPosition = "${emptyStarPosition}",
 					locator1 = "Ratings#YOUR_RATING_STAR_EMPTY");
 
-				var emptyStarPosition = MathUtil.sum("${emptyStarPosition}", "1");
+				var emptyStarPosition = ${emptyStarPosition} + 1;
 			}
 
 			AssertElementNotPresent(
@@ -1000,12 +1002,12 @@ definition {
 		else {
 			var ratingPosition = "1";
 
-			while (!("${ratingPosition}" == "${averageRating}")) {
+			while ("${ratingPosition}" != "${averageRating}") {
 				AssertElementPresent(
 					key_averageRatingStar = "${ratingPosition}",
 					locator1 = "Ratings#AVERAGE_STAR");
 
-				var ratingPosition = MathUtil.sum("${ratingPosition}", "1");
+				var ratingPosition = ${ratingPosition} + 1;
 			}
 
 			AssertElementNotPresent(
@@ -1019,15 +1021,15 @@ definition {
 				locator1 = "Ratings#AVERAGE_STAR_EMPTY");
 		}
 		else {
-			var emptyRating = MathUtil.difference("5", "${averageRating}");
+			var emptyRating = 5 - ${averageRating};
 			var emptyStarPosition = "1";
 
-			while (!("${emptyStarPosition}" == "${emptyRating}")) {
+			while ("${emptyStarPosition}" != "${emptyRating}") {
 				AssertElementPresent(
 					key_averageEmptyStar = "${emptyStarPosition}",
 					locator1 = "Ratings#AVERAGE_STAR_EMPTY");
 
-				var emptyStarPosition = MathUtil.sum("${emptyStarPosition}", "1");
+				var emptyStarPosition = ${emptyStarPosition} + 1;
 			}
 
 			AssertElementNotPresent(
@@ -1520,6 +1522,14 @@ definition {
 		AssertClick(
 			locator1 = "APAsset#ASSET_TITLE",
 			value1 = "${assetTitle}");
+
+		if (isSet(assetPriority)) {
+			var key_assetPriority = "${assetPriority}";
+
+			AssertTextEquals.assertPartialText(
+				locator1 = "AP#METADATA_PRIORITY",
+				value1 = "${assetPriority}");
+		}
 
 		if (isSet(relatedAssetTitles)) {
 			AssetPublisherPortlet.viewAssetRelatedAssets(relatedAssetTitles = "${relatedAssetTitles}");

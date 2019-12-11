@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
@@ -199,9 +200,9 @@ public class DefaultPortalKaleoManager
 				continue;
 			}
 
-			Map<Locale, String> descriptionMap = new HashMap<>();
-
-			descriptionMap.put(LocaleUtil.getDefault(), entry.getValue());
+			Map<Locale, String> descriptionMap = HashMapBuilder.put(
+				LocaleUtil.getDefault(), entry.getValue()
+			).build();
 
 			roleLocalService.addRole(
 				defaultUser.getUserId(), null, 0, name, null, descriptionMap,
@@ -294,14 +295,9 @@ public class DefaultPortalKaleoManager
 
 	private final Map<String, String> _defaultRoles = new HashMap<>();
 	private final Map<String, String> _definitionAssets = new HashMap<>();
-	private final Map<String, String> _definitionFiles =
-		new HashMap<String, String>() {
-			{
-				put(
-					_DEFINITION_NAME,
-					"META-INF/definitions/single-approver-definition.xml");
-			}
-		};
+	private final Map<String, String> _definitionFiles = HashMapBuilder.put(
+		_DEFINITION_NAME, "META-INF/definitions/single-approver-definition.xml"
+	).build();
 
 	@Reference(target = "(proxy.bean=false)")
 	private WorkflowDefinitionManager _workflowDefinitionManager;

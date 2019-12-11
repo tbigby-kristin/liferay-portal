@@ -31,6 +31,18 @@ definition {
 			value1 = "${assetType}");
 	}
 
+	macro removeAsset {
+		Panel.expandPanel(panel = "Related Assets");
+
+		for (var removeAssetTitle : list "${removeAssetTitle}") {
+			var key_assetTitle = "${removeAssetTitle}";
+
+			Click(locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_REMOVE_LINK");
+
+			AssertElementNotPresent(locator1 = "AssetRelatedAssets#RELATED_ASSETS_TABLE_REMOVE_LINK");
+		}
+	}
+
 	macro selectAsset {
 		Panel.expandPanel(panel = "Related Assets");
 
@@ -46,11 +58,16 @@ definition {
 			MenuItem.click(menuItem = "${scopeSite}");
 		}
 
-		var key_assetTitle = "${assetTitle}";
+		if (isSet(assetAll)) {
+			PortletEntry.selectAll();
+		}
+		else {
+			var key_assetTitle = "${assetTitle}";
 
-		Click(
-			key_assetTitle = "${assetTitle}",
-			locator1 = "AssetRelatedAssets#ASSET_TABLE_CHECKBOX");
+			Click(
+				key_assetTitle = "${assetTitle}",
+				locator1 = "AssetRelatedAssets#ASSET_TABLE_CHECKBOX");
+		}
 
 		SelectFrame(value1 = "relative=top");
 

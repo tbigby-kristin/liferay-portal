@@ -24,6 +24,8 @@ public class OASConstants {
 
 	public static final String FORMAT = "format";
 
+	public static final String INFO = "info";
+
 	public static final String OPERATION_DELETE = "delete";
 
 	public static final String OPERATION_GET = "get";
@@ -32,8 +34,10 @@ public class OASConstants {
 
 	public static final String OPERATION_POST = "post";
 
+	public static final String PATH_COMPONENTS_SCHEMAS = "components>schemas";
+
 	public static final String PATH_COMPONENTS_SCHEMAS_PATTERN =
-		"components>schemas>SCHEMA_TPL";
+		PATH_COMPONENTS_SCHEMAS + ">SCHEMA_TPL";
 
 	public static final String PATH_ENDPOINT_OPERATION_PARAMETERS_PATTERN =
 		"paths>ENDPOINT_TPL>OPERATION_TPL>parameters";
@@ -70,6 +74,8 @@ public class OASConstants {
 	public static final String REQUIRED = "required";
 
 	public static final String TYPE = "type";
+
+	public static final String VERSION = "version";
 
 	private OASConstants() {
 	}

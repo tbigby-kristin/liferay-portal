@@ -136,6 +136,36 @@ public abstract class BaseMessageBoardThreadResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/ranked'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@GET
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.QUERY, name = "dateCreated"),
+			@Parameter(in = ParameterIn.QUERY, name = "dateModified"),
+			@Parameter(in = ParameterIn.QUERY, name = "page"),
+			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+			@Parameter(in = ParameterIn.QUERY, name = "sort")
+		}
+	)
+	@Path("/message-board-threads/ranked")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "MessageBoardThread")})
+	public Page<MessageBoardThread> getMessageBoardThreadsRankedPage(
+			@Parameter(hidden = true) @QueryParam("dateCreated") java.util.Date
+				dateCreated,
+			@Parameter(hidden = true) @QueryParam("dateModified") java.util.Date
+				dateModified,
+			@Context Pagination pagination, @Context Sort[] sorts)
+		throws Exception {
+
+		return Page.of(Collections.emptyList());
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'DELETE' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/{messageBoardThreadId}'  -u 'test@liferay.com:test'
 	 */
 	@Override
@@ -257,6 +287,11 @@ public abstract class BaseMessageBoardThreadResourceImpl
 		if (messageBoardThread.getSiteId() != null) {
 			existingMessageBoardThread.setSiteId(
 				messageBoardThread.getSiteId());
+		}
+
+		if (messageBoardThread.getSubscribed() != null) {
+			existingMessageBoardThread.setSubscribed(
+				messageBoardThread.getSubscribed());
 		}
 
 		if (messageBoardThread.getThreadType() != null) {
@@ -413,12 +448,54 @@ public abstract class BaseMessageBoardThreadResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/{messageBoardThreadId}/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "messageBoardThreadId")
+		}
+	)
+	@Path("/message-board-threads/{messageBoardThreadId}/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "MessageBoardThread")})
+	public void putMessageBoardThreadSubscribe(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("messageBoardThreadId") Long messageBoardThreadId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-threads/{messageBoardThreadId}/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "messageBoardThreadId")
+		}
+	)
+	@Path("/message-board-threads/{messageBoardThreadId}/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "MessageBoardThread")})
+	public void putMessageBoardThreadUnsubscribe(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("messageBoardThreadId") Long messageBoardThreadId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-threads'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's message board threads. Results can be paginated, filtered, searched, flattened, and sorted."
+		description = "Retrieves the site's message board threads. Results can be paginated, filtered, searched, flattened, and sorted."
 	)
 	@Parameters(
 		value = {

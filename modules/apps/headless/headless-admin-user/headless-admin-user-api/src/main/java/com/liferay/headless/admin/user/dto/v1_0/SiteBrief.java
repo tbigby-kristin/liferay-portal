@@ -66,7 +66,7 @@ public class SiteBrief {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The site's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -92,7 +92,7 @@ public class SiteBrief {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The site's name.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String name;
 
@@ -151,6 +151,12 @@ public class SiteBrief {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.user.dto.v1_0.SiteBrief",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

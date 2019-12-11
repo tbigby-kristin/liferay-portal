@@ -97,10 +97,8 @@
 				List<KeyValuePair> rightList = new ArrayList<KeyValuePair>();
 
 				for (String folderColumn : hiddenNodes) {
-					if (currentVisibleNodes.contains(folderColumn)) {
-						if (Arrays.binarySearch(visibleNodeNames, folderColumn) < 0) {
-							rightList.add(new KeyValuePair(folderColumn, HtmlUtil.escape(LanguageUtil.get(request, folderColumn))));
-						}
+					if (currentVisibleNodes.contains(folderColumn) && (Arrays.binarySearch(visibleNodeNames, folderColumn) < 0)) {
+						rightList.add(new KeyValuePair(folderColumn, HtmlUtil.escape(LanguageUtil.get(request, folderColumn))));
 					}
 				}
 
@@ -131,19 +129,22 @@
 	function <portlet:namespace />saveConfiguration() {
 		var form = document.<portlet:namespace />fm;
 
-		var availableVisibleNodes = Liferay.Util.getFormElement(form, 'availableVisibleNodes');
-		var currentVisibleNodes = Liferay.Util.getFormElement(form, 'currentVisibleNodes');
+		var availableVisibleNodes = Liferay.Util.getFormElement(
+			form,
+			'availableVisibleNodes'
+		);
+		var currentVisibleNodes = Liferay.Util.getFormElement(
+			form,
+			'currentVisibleNodes'
+		);
 
 		if (availableVisibleNodes && currentVisibleNodes) {
-			Liferay.Util.postForm(
-				form,
-				{
-					data: {
-						hiddenNodes: Liferay.Util.listSelect(availableVisibleNodes),
-						visibleNodes: Liferay.Util.listSelect(currentVisibleNodes)
-					}
+			Liferay.Util.postForm(form, {
+				data: {
+					hiddenNodes: Liferay.Util.listSelect(availableVisibleNodes),
+					visibleNodes: Liferay.Util.listSelect(currentVisibleNodes)
 				}
-			);
+			});
 		}
 	}
 </script>

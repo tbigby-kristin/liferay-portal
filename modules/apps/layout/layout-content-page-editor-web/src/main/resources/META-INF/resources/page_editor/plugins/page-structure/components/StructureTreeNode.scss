@@ -1,0 +1,29 @@
+@import './variables';
+
+.page-editor__page-structure__tree-node {
+	font-size: 14px;
+	height: 28px;
+	line-height: 28px;
+
+	&__name-button,
+	&__remove-button {
+		color: $pageStructureGrayColor;
+	}
+
+	&__name-button {
+		display: inline-block;
+		max-width: 80%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		width: 80%;
+
+		&--active {
+			color: $pageStructureBlackColor;
+			font-weight: 600;
+		}
+	}
+
+	&__remove-button {
+		float: right;
+	}
+}

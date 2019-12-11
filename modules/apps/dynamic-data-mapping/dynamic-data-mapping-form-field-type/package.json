@@ -1,11 +1,12 @@
 {
 	"dependencies": {
-		"clay-button": "2.18.1",
-		"clay-checkbox": "2.18.1",
-		"clay-dropdown": "2.18.1",
-		"clay-icon": "2.18.1",
-		"clay-label": "2.18.1",
-		"clay-radio": "2.18.1",
+		"clay-button": "2.19.0",
+		"clay-checkbox": "2.19.0",
+		"clay-dropdown": "2.19.0",
+		"clay-icon": "2.19.0",
+		"clay-label": "2.19.0",
+		"clay-radio": "2.19.0",
+		"frontend-js-web": "*",
 		"metal-component": "2.16.8",
 		"metal-dom": "2.16.8",
 		"metal-drag-drop": "3.3.1",
@@ -33,7 +34,6 @@
 			"DatePicker",
 			"FieldBase",
 			"Grid",
-			"Options",
 			"Select",
 			"Tooltip",
 			"Validation"

@@ -195,6 +195,7 @@ import org.gradle.api.plugins.quality.FindBugsReports;
 import org.gradle.api.plugins.quality.Pmd;
 import org.gradle.api.plugins.quality.PmdExtension;
 import org.gradle.api.plugins.quality.PmdPlugin;
+import org.gradle.api.reporting.CustomizableHtmlReport;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
@@ -454,7 +455,7 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		_configureBasePlugin(project, portalRootDir);
 		_configureBundleDefaultInstructions(project, portalRootDir, publishing);
-		_configureConfigurations(project, liferayExtension);
+		_configureConfigurations(project, liferayExtension, publishing);
 		_configureDependencyChecker(project);
 		_configureDeployDir(
 			project, liferayExtension, deployToAppServerLibs, deployToTools);
@@ -1423,9 +1424,9 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		String regex = _getModuleSnapshotDependencyRegex(project);
 
-		Map<String, Object> args = new HashMap<>();
-
 		File rootDir = project.getRootDir();
+
+		Map<String, Object> args = new HashMap<>();
 
 		args.put("dir", rootDir.getParentFile());
 
@@ -1523,6 +1524,8 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 					if (!projectPath.startsWith(":apps:") &&
 						!projectPath.startsWith(":core:") &&
+						!projectPath.startsWith(":dxp:apps:") &&
+						!projectPath.startsWith(":dxp:core:") &&
 						!projectPath.startsWith(":private:apps:") &&
 						!projectPath.startsWith(":private:core:")) {
 
@@ -2064,6 +2067,7 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 		String projectPath = project.getPath();
 
 		if (projectPath.startsWith(":apps:") ||
+			projectPath.startsWith(":dxp:apps:") ||
 			projectPath.startsWith(":private:apps:")) {
 
 			String exportPackage = GradleUtil.toString(
@@ -2372,7 +2376,8 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 	}
 
 	private void _configureConfigurations(
-		Project project, LiferayExtension liferayExtension) {
+		Project project, LiferayExtension liferayExtension,
+		boolean publishing) {
 
 		_configureConfigurationDefault(project);
 		_configureConfigurationJspC(project, liferayExtension);
@@ -2381,6 +2386,8 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		if (projectPath.startsWith(":apps:") ||
 			projectPath.startsWith(":core:") ||
+			projectPath.startsWith(":dxp:apps:") ||
+			projectPath.startsWith(":dxp:core:") ||
 			projectPath.startsWith(":private:apps:") ||
 			projectPath.startsWith(":private:core:")) {
 
@@ -2389,6 +2396,13 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 			_configureConfigurationTransitive(
 				project, JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME,
 				false);
+
+			if (publishing) {
+				_configureDependenciesGroupPortal(
+					project, JavaPlugin.COMPILE_CONFIGURATION_NAME);
+				_configureDependenciesGroupPortal(
+					project, JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME);
+			}
 		}
 
 		_configureDependenciesTransitive(
@@ -2472,6 +2486,96 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 			project, name);
 
 		configuration.setTransitive(transitive);
+	}
+
+	private void _configureDependenciesGroupPortal(
+		final Project project, String configurationName) {
+
+		final Logger logger = project.getLogger();
+
+		final Configuration configuration = GradleUtil.getConfiguration(
+			project, configurationName);
+
+		DependencySet dependencySet = configuration.getAllDependencies();
+
+		dependencySet.withType(
+			ExternalModuleDependency.class,
+			new Action<ExternalModuleDependency>() {
+
+				@Override
+				public void execute(
+					ExternalModuleDependency externalModuleDependency) {
+
+					String group = externalModuleDependency.getGroup();
+
+					if (!group.equals(_GROUP_PORTAL)) {
+						return;
+					}
+
+					String version = externalModuleDependency.getVersion();
+
+					if (!version.equals("default")) {
+						return;
+					}
+
+					String name = externalModuleDependency.getName();
+
+					String newVersion = GradleUtil.getProperty(
+						project, name + ".version", (String)null);
+
+					if (Validator.isNull(newVersion)) {
+						return;
+					}
+
+					StringBuilder sb = new StringBuilder();
+
+					sb.append(group);
+					sb.append(':');
+					sb.append(name);
+					sb.append(':');
+					sb.append(version);
+
+					String oldNotation = sb.toString();
+
+					sb.setLength(0);
+
+					sb.append(group);
+					sb.append(':');
+					sb.append(name);
+					sb.append(':');
+
+					int x = newVersion.lastIndexOf("-SNAPSHOT");
+
+					if (x != -1) {
+						sb.append("(," + newVersion.substring(0, x) + ")");
+					}
+					else {
+						sb.append("(," + newVersion + ")");
+					}
+
+					String newNotation = sb.toString();
+
+					if (logger.isLifecycleEnabled()) {
+						logger.lifecycle(
+							"Compiling files of {} with '{}' in place of '{}'",
+							project, newNotation, oldNotation);
+					}
+
+					ResolutionStrategy resolutionStrategy =
+						configuration.getResolutionStrategy();
+
+					DependencySubstitutions dependencySubstitutions =
+						resolutionStrategy.getDependencySubstitution();
+
+					DependencySubstitutions.Substitution substitution =
+						dependencySubstitutions.substitute(
+							dependencySubstitutions.module(oldNotation));
+
+					substitution.with(
+						dependencySubstitutions.module(newNotation));
+				}
+
+			});
 	}
 
 	private void _configureDependenciesTransitive(
@@ -3215,9 +3319,10 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		FindBugsReports findBugsReports = findBugs.getReports();
 
-		SingleFileReport htmlReport = findBugsReports.getHtml();
+		CustomizableHtmlReport customizableHtmlReport =
+			findBugsReports.getHtml();
 
-		htmlReport.setEnabled(true);
+		customizableHtmlReport.setEnabled(true);
 
 		SingleFileReport xmlReport = findBugsReports.getXml();
 
@@ -3781,13 +3886,13 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		String regex = _getModuleDependencyRegex(project);
 
-		Map<String, Object> args = new HashMap<>();
-
 		File dir = project.getRootDir();
 
 		if (portalRootDir != null) {
 			dir = new File(portalRootDir, "modules");
 		}
+
+		Map<String, Object> args = new HashMap<>();
 
 		args.put("dir", dir);
 		args.put(
@@ -3849,9 +3954,14 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		uploadArchivesTask.dependsOn(publishNodeModuleTasks);
 
+		if ((GradleUtil.getRootDir(project, ".lfrbuild-master-only") != null) &&
+			!GradlePluginsDefaultsUtil.isSnapshot(project)) {
+
+			uploadArchivesTask.finalizedBy(updateFileVersionsTask);
+		}
+
 		if (!GradlePluginsDefaultsUtil.isSnapshot(project)) {
-			uploadArchivesTask.finalizedBy(
-				updateFileVersionsTask, updateVersionTask);
+			uploadArchivesTask.finalizedBy(updateVersionTask);
 		}
 	}
 
@@ -3974,14 +4084,17 @@ public class LiferayOSGiDefaultsPlugin implements Plugin<Project> {
 
 		File modulesDir = new File(portalRootDir, "modules");
 
-		File modulesPrivateDir = new File(modulesDir, "private");
+		File startDir = new File(modulesDir, "private");
 
-		if (!FileUtil.isChild(project.getProjectDir(), modulesPrivateDir)) {
-			return null;
+		if (!FileUtil.isChild(project.getProjectDir(), startDir)) {
+			startDir = new File(modulesDir, "dxp");
+
+			if (!FileUtil.isChild(project.getProjectDir(), startDir)) {
+				return null;
+			}
 		}
 
-		String path = FileUtil.relativize(
-			project.getProjectDir(), modulesPrivateDir);
+		String path = FileUtil.relativize(project.getProjectDir(), startDir);
 
 		if (File.separatorChar != '/') {
 			path = path.replace(File.separatorChar, '/');

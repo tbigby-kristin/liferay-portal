@@ -2,7 +2,7 @@
 
 @import 'variables';
 
-.fragment-entry-link-wrapper {
+.fragment-entry-link-list {
 	cursor: pointer;
 
 	.portlet {
@@ -21,8 +21,8 @@
 		}
 
 		@include media-breakpoint-up(sm) {
-			&:hover,
-			&.focus {
+			.fragments-editor--with-update-permissions &:hover,
+			.fragments-editor--with-update-permissions &.focus {
 				> .portlet-topper {
 					opacity: 1;
 					pointer-events: all;
@@ -40,11 +40,10 @@
 				}
 			}
 		}
+	}
 
-		.portlet-title-default,
-		.portlet-title-text {
-			display: none;
-		}
+	.master-fragment-entry-link .portlet-topper-toolbar .lfr-icon-item {
+		display: none;
 	}
 
 	.fragment-entry-link-content {

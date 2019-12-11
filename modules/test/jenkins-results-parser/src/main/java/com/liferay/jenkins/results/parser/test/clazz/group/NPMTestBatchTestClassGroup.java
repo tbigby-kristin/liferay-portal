@@ -40,7 +40,7 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 
 	@Override
 	public int getAxisCount() {
-		if (testRelevantIntegrationUnitOnly) {
+		if (!isStableTestSuiteBatch() && testRelevantIntegrationUnitOnly) {
 			return 0;
 		}
 
@@ -249,7 +249,9 @@ public class NPMTestBatchTestClassGroup extends BatchTestClassGroup {
 		List<File> moduleDirs;
 
 		try {
-			if (testRelevantChanges) {
+			if (testRelevantChanges &&
+				!(includeStableTestSuite && isStableTestSuiteBatch())) {
+
 				moduleDirs =
 					portalGitWorkingDirectory.
 						getModifiedNPMTestModuleDirsList();

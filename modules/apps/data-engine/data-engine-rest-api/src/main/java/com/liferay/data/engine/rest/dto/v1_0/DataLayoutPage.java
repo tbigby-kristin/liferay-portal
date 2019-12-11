@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -45,6 +47,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class DataLayoutPage {
 
 	@Schema
+	@Valid
 	public DataLayoutRow[] getDataLayoutRows() {
 		return dataLayoutRows;
 	}
@@ -74,6 +77,7 @@ public class DataLayoutPage {
 	protected DataLayoutRow[] dataLayoutRows;
 
 	@Schema
+	@Valid
 	public Map<String, Object> getDescription() {
 		return description;
 	}
@@ -103,6 +107,7 @@ public class DataLayoutPage {
 	protected Map<String, Object> description;
 
 	@Schema
+	@Valid
 	public Map<String, Object> getTitle() {
 		return title;
 	}
@@ -201,6 +206,12 @@ public class DataLayoutPage {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.data.engine.rest.dto.v1_0.DataLayoutPage",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

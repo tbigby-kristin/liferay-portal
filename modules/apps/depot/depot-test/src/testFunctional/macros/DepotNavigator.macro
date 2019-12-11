@@ -1,0 +1,101 @@
+definition {
+
+	macro gotoDepot {
+		if (isSet(listView)) {
+			var key_listEntry = "${depotName}";
+
+			Click(
+				locator1 = "LexiconList#LIST_ENTRY_TITLE_LINK",
+				value1 = "${depotName}");
+		}
+
+		else if (isSet(tableView)) {
+			var key_tableEntry = "${depotName}";
+
+			Click(
+				locator1 = "LexiconTable#TABLE_ENTRY_TITLE_LINK",
+				value1 = "${depotName}");
+		}
+
+		else {
+			var key_card = "${depotName}";
+
+			Click(
+				locator1 = "LexiconCard#CARD_TITLE",
+				value1 = "${depotName}");
+		}
+
+		AssertTextNotEquals(
+			locator1 = "ControlMenu#HEADING",
+			value1 = "Repositories");
+
+		if (IsElementPresent(locator1 = "ProductMenu#PRODUCT_MENU_CLOSED")) {
+			Click.clickNoSPARefresh(locator1 = "ProductMenu#TOGGLE");
+		}
+
+		ProductMenuHelper.gotoPortlet(portlet = "${portlet}");
+
+		AssertTextEquals(
+			locator1 = "ControlMenu#HEADING",
+			value1 = "${portlet}");
+	}
+
+	macro gotoDepotViaSpaceIcon {
+		ProductMenuHelper.expandPanel(panel = "Site Administration");
+
+		ProductMenuHelper.openWorkspace();
+
+		SelectFrame(locator1 = "IFrame#DIALOG");
+
+		Pause(locator1 = "3000");
+
+		Navigator.gotoNavItem(navItem = "Repositories");
+
+		SiteSelector.selectSite(site = "${depotName}");
+	}
+
+	macro gotoEdit {
+		var key_card = "${depotName}";
+
+		LexiconEntry.gotoEntryMenuItem(
+			menuItem = "Edit",
+			rowEntry = "${depotName}");
+	}
+
+	macro gotoGeneral {
+		Click(
+			key_tab = "General",
+			locator1 = "NavTab#TAB_LINK");
+
+		AssertTextEquals(
+			key_title = "General",
+			locator1 = "Header#H2_TITLE",
+			value1 = "General");
+	}
+
+	macro gotoLanguages {
+		Click(
+			key_tab = "Languages",
+			locator1 = "NavTab#TAB_LINK");
+
+		AssertTextEquals(
+			key_title = "Languages",
+			locator1 = "Header#H2_TITLE",
+			value1 = "Languages");
+	}
+
+	macro gotoSites {
+		Click(
+			key_tab = "Sites",
+			locator1 = "NavTab#TAB_LINK");
+
+		AssertElementPresent(
+			key_title = "Connected Sites",
+			locator1 = "Header#H3_TITLE");
+	}
+
+	macro openDepotAdmin {
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/control_panel/manage?p_p_id=com_liferay_depot_web_portlet_DepotAdminPortlet");
+	}
+
+}

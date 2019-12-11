@@ -12,12 +12,13 @@
  * details.
  */
 
-import ClipboardJS from 'clipboard';
-import Component, {Config} from 'metal-jsx';
 import getCN from 'classnames';
-import Popover from '../Popover/Popover.es';
-import {Align} from 'metal-position';
+import ClipboardJS from 'clipboard';
 import {selectText} from 'dynamic-data-mapping-form-builder/js/util/dom.es';
+import Component, {Config} from 'metal-jsx';
+import {Align} from 'metal-position';
+
+import Popover from '../Popover/Popover.es';
 
 class ShareFormPopover extends Component {
 	attached() {
@@ -37,7 +38,7 @@ class ShareFormPopover extends Component {
 		const {success} = this.state;
 
 		const buttonClasses = getCN('btn ddm-copy-clipboard', {
-			'btn-default': true,
+			'btn-secondary': !success,
 			'btn-success': success
 		});
 

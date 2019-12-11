@@ -1,7 +1,9 @@
 definition {
 
 	macro _addWidgetToTypeSettings {
+
 		//get column # we want to set to (can only be 1-3), default is 1
+
 		if (!(isSet(column))) {
 			var column = "1";
 		}
@@ -41,6 +43,9 @@ definition {
 		else if ("${widgetName}" == "Categories Navigation") {
 			var portletId = "com_liferay_asset_categories_navigation_web_portlet_AssetCategoriesNavigationPortlet";
 		}
+		else if ("${widgetName}" == "Contacts Center") {
+			var portletId = "com_liferay_contacts_web_portlet_ContactsCenterPortlet";
+		}
 		else if ("${widgetName}" == "Documents and Media") {
 			var portletId = "com_liferay_document_library_web_portlet_DLPortlet";
 		}
@@ -70,6 +75,9 @@ definition {
 		}
 		else if ("${widgetName}" == "RSS Publisher") {
 			var portletId = "com_liferay_rss_web_portlet_RSSPortlet";
+		}
+		else if ("${widgetName}" == "Search Bar") {
+			var portletId = "com_liferay_portal_search_web_search_bar_portlet_SearchBarPortlet";
 		}
 		else if ("${widgetName}" == "Search Results") {
 			var portletId = "com_liferay_portal_search_web_search_results_portlet_SearchResultsPortlet";
@@ -178,29 +186,6 @@ definition {
 		var typeSettings = StringUtil.regexReplaceFirst("${typeSettings}","(layout-template-id=).*","$1${layoutTemplateId}");
 
 		return "${typeSettings}";
-	}
-
-	@summary = "Directly calls the JavaScript API to update typeSettings"
-	macro _updateTypeSettings {
-		Variables.assertDefined(parameterList = "${groupId},${privateLayout},${layoutId},${typeSettings}");
-
-		var javaScript =
-		'''Liferay.Service(
-			'/layout/update-layout',
-			{
-				groupId: ${groupId},
-				privateLayout: ${privateLayout},
-				layoutId: ${layoutId},
-				typeSettings: '${typeSettings}'
-			},
-			function(obj) {
-				console.log(obj);
-			}
-		);''';
-
-		var JSON = selenium.getEval("${javaScript}");
-
-		return "${JSON}";
 	}
 
 }

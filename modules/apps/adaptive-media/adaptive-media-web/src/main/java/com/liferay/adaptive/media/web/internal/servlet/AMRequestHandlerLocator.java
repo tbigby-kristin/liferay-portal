@@ -29,8 +29,12 @@ import org.osgi.service.component.annotations.Deactivate;
 @Component(immediate = true, service = AMRequestHandlerLocator.class)
 public class AMRequestHandlerLocator {
 
+	public AMRequestHandler locateForPattern(String pattern) {
+		return _serviceTrackerMap.getService(pattern);
+	}
+
 	@Activate
-	public void activate(BundleContext bundleContext) {
+	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
 			bundleContext, AMRequestHandler.class,
 			"(adaptive.media.handler.pattern=*)",
@@ -40,12 +44,8 @@ public class AMRequestHandlerLocator {
 	}
 
 	@Deactivate
-	public void deactivate() {
+	protected void deactivate() {
 		_serviceTrackerMap.close();
-	}
-
-	public AMRequestHandler locateForPattern(String pattern) {
-		return _serviceTrackerMap.getService(pattern);
 	}
 
 	private ServiceTrackerMap<String, AMRequestHandler> _serviceTrackerMap;

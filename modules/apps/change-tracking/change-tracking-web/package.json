@@ -1,0 +1,17 @@
+{
+	"dependencies": {
+		"clay-label": "2.19.0",
+		"clay-progress-bar": "2.19.0",
+		"clay-sticker": "2.19.0",
+		"frontend-js-web": "*",
+		"metal-soy": "2.16.8",
+		"metal-state": "2.16.8"
+	},
+	"name": "change-tracking-web",
+	"scripts": {
+		"build": "liferay-npm-scripts build",
+		"checkFormat": "liferay-npm-scripts check",
+		"format": "liferay-npm-scripts fix"
+	},
+	"version": "1.0.0"
+}

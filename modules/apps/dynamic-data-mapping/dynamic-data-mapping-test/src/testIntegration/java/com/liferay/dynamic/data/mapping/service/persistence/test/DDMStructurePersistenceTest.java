@@ -127,6 +127,8 @@ public class DDMStructurePersistenceTest {
 
 		newDDMStructure.setMvccVersion(RandomTestUtil.nextLong());
 
+		newDDMStructure.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newDDMStructure.setUuid(RandomTestUtil.randomString());
 
 		newDDMStructure.setGroupId(RandomTestUtil.nextLong());
@@ -173,6 +175,9 @@ public class DDMStructurePersistenceTest {
 		Assert.assertEquals(
 			existingDDMStructure.getMvccVersion(),
 			newDDMStructure.getMvccVersion());
+		Assert.assertEquals(
+			existingDDMStructure.getCtCollectionId(),
+			newDDMStructure.getCtCollectionId());
 		Assert.assertEquals(
 			existingDDMStructure.getUuid(), newDDMStructure.getUuid());
 		Assert.assertEquals(
@@ -389,12 +394,13 @@ public class DDMStructurePersistenceTest {
 
 	protected OrderByComparator<DDMStructure> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"DDMStructure", "mvccVersion", true, "uuid", true, "structureId",
-			true, "groupId", true, "companyId", true, "userId", true,
-			"userName", true, "versionUserId", true, "versionUserName", true,
-			"createDate", true, "modifiedDate", true, "parentStructureId", true,
-			"classNameId", true, "structureKey", true, "version", true, "name",
-			true, "storageType", true, "type", true, "lastPublishDate", true);
+			"DDMStructure", "mvccVersion", true, "ctCollectionId", true, "uuid",
+			true, "structureId", true, "groupId", true, "companyId", true,
+			"userId", true, "userName", true, "versionUserId", true,
+			"versionUserName", true, "createDate", true, "modifiedDate", true,
+			"parentStructureId", true, "classNameId", true, "structureKey",
+			true, "version", true, "name", true, "storageType", true, "type",
+			true, "lastPublishDate", true);
 	}
 
 	@Test
@@ -652,6 +658,8 @@ public class DDMStructurePersistenceTest {
 		DDMStructure ddmStructure = _persistence.create(pk);
 
 		ddmStructure.setMvccVersion(RandomTestUtil.nextLong());
+
+		ddmStructure.setCtCollectionId(RandomTestUtil.nextLong());
 
 		ddmStructure.setUuid(RandomTestUtil.randomString());
 

@@ -60,17 +60,6 @@ public class CTEntryLocalServiceUtil {
 			ctCollectionId, modelClassNameId, ctModel, userId, changeType);
 	}
 
-	public static com.liferay.change.tracking.model.CTEntry addCTEntry(
-			long userId, long modelClassNameId, long modelClassPK,
-			long modelResourcePrimKey, int changeType, long ctCollectionId,
-			com.liferay.portal.kernel.service.ServiceContext serviceContext)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().addCTEntry(
-			userId, modelClassNameId, modelClassPK, modelResourcePrimKey,
-			changeType, ctCollectionId, serviceContext);
-	}
-
 	/**
 	 * Creates a new ct entry with the primary key. Does not add the ct entry to the database.
 	 *
@@ -88,9 +77,11 @@ public class CTEntryLocalServiceUtil {
 	 *
 	 * @param ctEntry the ct entry
 	 * @return the ct entry that was removed
+	 * @throws PortalException
 	 */
 	public static com.liferay.change.tracking.model.CTEntry deleteCTEntry(
-		com.liferay.change.tracking.model.CTEntry ctEntry) {
+			com.liferay.change.tracking.model.CTEntry ctEntry)
+		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().deleteCTEntry(ctEntry);
 	}
@@ -142,7 +133,7 @@ public class CTEntryLocalServiceUtil {
 	 * Performs a dynamic query on the database and returns a range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTEntryModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -161,7 +152,7 @@ public class CTEntryLocalServiceUtil {
 	 * Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTEntryModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -205,35 +196,6 @@ public class CTEntryLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
-	public static java.util.List<com.liferay.change.tracking.model.CTEntry>
-		fetchCTEntries(
-			long ctCollectionId, long modelResourcePrimKey,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition
-				<com.liferay.change.tracking.model.CTEntry> queryDefinition) {
-
-		return getService().fetchCTEntries(
-			ctCollectionId, modelResourcePrimKey, queryDefinition);
-	}
-
-	public static java.util.List<com.liferay.change.tracking.model.CTEntry>
-		fetchCTEntries(
-			long ctCollectionId,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition
-				<com.liferay.change.tracking.model.CTEntry> queryDefinition) {
-
-		return getService().fetchCTEntries(ctCollectionId, queryDefinition);
-	}
-
-	public static java.util.List<com.liferay.change.tracking.model.CTEntry>
-		fetchCTEntriesByModelClassNameId(
-			long ctCollectionId, long modelClassNameId,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition
-				<com.liferay.change.tracking.model.CTEntry> queryDefinition) {
-
-		return getService().fetchCTEntriesByModelClassNameId(
-			ctCollectionId, modelClassNameId, queryDefinition);
-	}
-
 	public static com.liferay.change.tracking.model.CTEntry fetchCTEntry(
 		long ctEntryId) {
 
@@ -260,20 +222,13 @@ public class CTEntryLocalServiceUtil {
 	}
 
 	public static java.util.List<com.liferay.change.tracking.model.CTEntry>
-		getCTCollectionCTEntries(long ctCollectionId, int start, int end) {
-
-		return getService().getCTCollectionCTEntries(
-			ctCollectionId, start, end);
-	}
-
-	public static java.util.List<com.liferay.change.tracking.model.CTEntry>
 		getCTCollectionCTEntries(
-			long ctCollectionId, int status, int start, int end,
+			long ctCollectionId, int start, int end,
 			com.liferay.portal.kernel.util.OrderByComparator
 				<com.liferay.change.tracking.model.CTEntry> orderByComparator) {
 
 		return getService().getCTCollectionCTEntries(
-			ctCollectionId, status, start, end, orderByComparator);
+			ctCollectionId, start, end, orderByComparator);
 	}
 
 	public static int getCTCollectionCTEntriesCount(long ctCollectionId) {
@@ -284,7 +239,7 @@ public class CTEntryLocalServiceUtil {
 	 * Returns a range of all the ct entries.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTEntryModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTEntryModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of ct entries
@@ -312,14 +267,6 @@ public class CTEntryLocalServiceUtil {
 		return getService().getCTEntriesCount();
 	}
 
-	public static int getCTEntriesCount(
-		long ctCollectionId,
-		com.liferay.portal.kernel.dao.orm.QueryDefinition
-			<com.liferay.change.tracking.model.CTEntry> queryDefinition) {
-
-		return getService().getCTEntriesCount(ctCollectionId, queryDefinition);
-	}
-
 	/**
 	 * Returns the ct entry with the primary key.
 	 *
@@ -332,6 +279,13 @@ public class CTEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return getService().getCTEntry(ctEntryId);
+	}
+
+	public static java.util.List<Long> getExclusiveModelClassPKs(
+		long ctCollectionId, long modelClassNameId) {
+
+		return getService().getExclusiveModelClassPKs(
+			ctCollectionId, modelClassNameId);
 	}
 
 	public static
@@ -363,12 +317,6 @@ public class CTEntryLocalServiceUtil {
 		return getService().hasCTEntries(ctCollectionId, modelClassNameId);
 	}
 
-	public static com.liferay.change.tracking.model.CTEntry updateCollision(
-		long ctEntryId, boolean collision) {
-
-		return getService().updateCollision(ctEntryId, collision);
-	}
-
 	/**
 	 * Updates the ct entry in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -379,12 +327,6 @@ public class CTEntryLocalServiceUtil {
 		com.liferay.change.tracking.model.CTEntry ctEntry) {
 
 		return getService().updateCTEntry(ctEntry);
-	}
-
-	public static com.liferay.change.tracking.model.CTEntry updateStatus(
-		long ctEntryId, int status) {
-
-		return getService().updateStatus(ctEntryId, status);
 	}
 
 	public static CTEntryLocalService getService() {

@@ -42,9 +42,9 @@ if (step == 1) {
 	}
 }
 
-SelectRoleManagementToolbarDisplayContext SelectRoleManagementToolbarDisplayContext = new SelectRoleManagementToolbarDisplayContext(request, renderRequest, renderResponse, eventName);
+SelectRoleManagementToolbarDisplayContext selectRoleManagementToolbarDisplayContext = new SelectRoleManagementToolbarDisplayContext(request, renderRequest, renderResponse, eventName);
 
-PortletURL portletURL = SelectRoleManagementToolbarDisplayContext.getPortletURL();
+PortletURL portletURL = selectRoleManagementToolbarDisplayContext.getPortletURL();
 
 long organizationId = 0;
 Organization selectedOrganization = null;
@@ -58,21 +58,21 @@ if (step == 2) {
 SearchContainer roleSearchContainer = null;
 
 if (selectedOrganization == null) {
-	roleSearchContainer = SelectRoleManagementToolbarDisplayContext.getRoleSearchContainer(filterManageableRoles);
+	roleSearchContainer = selectRoleManagementToolbarDisplayContext.getRoleSearchContainer(filterManageableRoles);
 }
 else {
-	roleSearchContainer = SelectRoleManagementToolbarDisplayContext.getRoleSearchContainer(filterManageableRoles, selectedOrganization.getGroupId());
+	roleSearchContainer = selectRoleManagementToolbarDisplayContext.getRoleSearchContainer(filterManageableRoles, selectedOrganization.getGroupId());
 }
 %>
 
 <clay:management-toolbar
-	clearResultsURL="<%= SelectRoleManagementToolbarDisplayContext.getClearResultsURL() %>"
+	clearResultsURL="<%= selectRoleManagementToolbarDisplayContext.getClearResultsURL() %>"
 	itemsTotal="<%= (step == 1) ? organizations.size() : roleSearchContainer.getTotal() %>"
-	searchActionURL="<%= SelectRoleManagementToolbarDisplayContext.getSearchActionURL() %>"
+	searchActionURL="<%= selectRoleManagementToolbarDisplayContext.getSearchActionURL() %>"
 	searchFormName="searchFm"
 	selectable="<%= false %>"
 	showSearch="<%= true %>"
-	viewTypeItems="<%= SelectRoleManagementToolbarDisplayContext.getViewTypeItems() %>"
+	viewTypeItems="<%= selectRoleManagementToolbarDisplayContext.getViewTypeItems() %>"
 />
 
 <aui:form action="<%= portletURL.toString() %>" cssClass="container-fluid container-fluid-max-xl container-form-lg" method="post" name="selectOrganizationRoleFm">
@@ -158,28 +158,20 @@ else {
 			<aui:script require="metal-dom/src/dom as dom">
 				var form = document.<portlet:namespace />selectOrganizationRoleFm;
 
-				dom.delegate(
-					form,
-					'click',
-					'.organization-selector-button',
-					function(event) {
-						Liferay.Util.postForm(
-							form,
-							{
-								data: {
-									organizationId: event.delegateTarget.dataset.organizationid
-								},
+				dom.delegate(form, 'click', '.organization-selector-button', function(event) {
+					Liferay.Util.postForm(form, {
+						data: {
+							organizationId: event.delegateTarget.dataset.organizationid
+						},
 
-								<%
-								portletURL.setParameter("resetCur", Boolean.TRUE.toString());
-								portletURL.setParameter("step", "2");
-								%>
+						<%
+						portletURL.setParameter("resetCur", Boolean.TRUE.toString());
+						portletURL.setParameter("step", "2");
+						%>
 
-								url: '<%= portletURL.toString() %>'
-							}
-						);
-					}
-				);
+						url: '<%= portletURL.toString() %>'
+					});
+				});
 			</aui:script>
 		</c:when>
 		<c:when test="<%= step == 2 %>">
@@ -266,12 +258,12 @@ else {
 
 	var openingLiferay = Util.getOpener().Liferay;
 
-	openingLiferay.fire(
-		'<%= HtmlUtil.escape(syncEntitiesEventName) %>',
-		{
-			selectors: A.all('.selector-button')
-		}
-	);
+	openingLiferay.fire('<%= HtmlUtil.escape(syncEntitiesEventName) %>', {
+		selectors: A.all('.selector-button')
+	});
 
-	Util.selectEntityHandler('#<portlet:namespace />selectOrganizationRoleFm', '<%= HtmlUtil.escapeJS(eventName) %>');
+	Util.selectEntityHandler(
+		'#<portlet:namespace />selectOrganizationRoleFm',
+		'<%= HtmlUtil.escapeJS(eventName) %>'
+	);
 </aui:script>

@@ -35,6 +35,7 @@ import com.liferay.exportimport.test.util.TestReaderWriter;
 import com.liferay.exportimport.test.util.TestUserIdStrategy;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.test.util.JournalTestUtil;
+import com.liferay.layout.test.util.LayoutFriendlyURLRandomizerBumper;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -74,7 +75,6 @@ import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.test.randomizerbumpers.FriendlyURLRandomizerBumper;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PropsValues;
@@ -146,6 +146,7 @@ public class DefaultExportImportContentProcessorTest {
 		_nondefaultLocale = getNondefaultLocale();
 
 		_externalGroup = GroupTestUtil.addGroup();
+
 		_liveGroup = GroupTestUtil.addGroup();
 
 		GroupTestUtil.enableLocalStaging(_liveGroup);
@@ -190,6 +191,7 @@ public class DefaultExportImportContentProcessorTest {
 		_portletDataContextExport.setExportDataRootElement(rootElement);
 
 		_stagingPrivateLayout = addMultiLocaleLayout(_stagingGroup, true);
+
 		_stagingPublicLayout = addMultiLocaleLayout(_stagingGroup, false);
 
 		_portletDataContextExport.setPlid(_stagingPublicLayout.getPlid());
@@ -838,7 +840,7 @@ public class DefaultExportImportContentProcessorTest {
 
 		for (Locale locale : new Locale[] {_defaultLocale, _nondefaultLocale}) {
 			String name = RandomTestUtil.randomString(
-				FriendlyURLRandomizerBumper.INSTANCE,
+				LayoutFriendlyURLRandomizerBumper.INSTANCE,
 				NumericStringRandomizerBumper.INSTANCE,
 				UniqueStringRandomizerBumper.INSTANCE);
 
@@ -961,7 +963,7 @@ public class DefaultExportImportContentProcessorTest {
 			return content;
 		}
 
-		List<String> urls = ListUtil.toList(StringUtil.splitLines(content));
+		List<String> urls = ListUtil.fromArray(StringUtil.splitLines(content));
 
 		List<String> outURLs = new ArrayList<>();
 
@@ -1161,7 +1163,7 @@ public class DefaultExportImportContentProcessorTest {
 	}
 
 	protected String replaceTimestampParameters(String content) {
-		List<String> urls = ListUtil.toList(StringUtil.splitLines(content));
+		List<String> urls = ListUtil.fromArray(StringUtil.splitLines(content));
 
 		String timestampParameter = "t=123456789";
 

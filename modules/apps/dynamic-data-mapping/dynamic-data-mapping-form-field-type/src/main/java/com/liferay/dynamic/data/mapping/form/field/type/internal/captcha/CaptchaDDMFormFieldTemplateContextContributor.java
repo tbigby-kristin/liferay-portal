@@ -23,11 +23,11 @@ import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.template.soy.util.SoyHTMLSanitizer;
 import com.liferay.taglib.servlet.PageContextFactoryUtil;
 import com.liferay.taglib.servlet.PipingServletResponse;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -55,8 +55,6 @@ public class CaptchaDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
 		String html = StringPool.BLANK;
 
 		try {
@@ -66,9 +64,9 @@ public class CaptchaDDMFormFieldTemplateContextContributor
 			_log.error(e, e);
 		}
 
-		parameters.put("html", _soyHTMLSanitizer.sanitize(html));
-
-		return parameters;
+		return HashMapBuilder.<String, Object>put(
+			"html", _soyHTMLSanitizer.sanitize(html)
+		).build();
 	}
 
 	protected String renderCaptchaTag(

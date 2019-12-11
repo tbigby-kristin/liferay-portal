@@ -795,7 +795,7 @@ public abstract class TopLevelBuild extends BaseBuild {
 	}
 
 	protected Element getFailedJobSummaryElement() {
-		Element jobSummaryListElement = getJobSummaryListElement(false);
+		Element jobSummaryListElement = getJobSummaryListElement(false, null);
 
 		int failCount =
 			getDownstreamBuildCount(null) -
@@ -1132,6 +1132,38 @@ public abstract class TopLevelBuild extends BaseBuild {
 		return topLevelTableElement;
 	}
 
+	protected Element getJobSummaryElement() {
+		int successCount = getDownstreamBuildCountByResult("SUCCESS");
+
+		String result = getResult();
+
+		if ((result != null) && result.equals("SUCCESS")) {
+			successCount++;
+		}
+
+		Element detailsElement = Dom4JUtil.getNewElement(
+			"details", null,
+			Dom4JUtil.getNewElement(
+				"summary", null,
+				Dom4JUtil.getNewElement(
+					"strong", null, "ci:test:", getTestSuiteName(), " - ",
+					String.valueOf(successCount), " out of ",
+					String.valueOf(getDownstreamBuildCount(null) + 1),
+					" jobs PASSED")));
+
+		if ((result != null) && !result.equals("SUCCESS")) {
+			Dom4JUtil.addToElement(
+				detailsElement, getFailedJobSummaryElement());
+		}
+
+		if (getDownstreamBuildCountByResult("SUCCESS") > 0) {
+			Dom4JUtil.addToElement(
+				detailsElement, getSuccessfulJobSummaryElement());
+		}
+
+		return detailsElement;
+	}
+
 	protected Element getJobSummaryListElement() {
 		Element jobSummaryListElement = Dom4JUtil.getNewElement("ul");
 
@@ -1152,14 +1184,22 @@ public abstract class TopLevelBuild extends BaseBuild {
 		return jobSummaryListElement;
 	}
 
-	protected Element getJobSummaryListElement(boolean success) {
+	protected Element getJobSummaryListElement(
+		boolean success, List<String> jobVariants) {
+
 		Element jobSummaryListElement = Dom4JUtil.getNewElement("ul");
 
 		List<Build> builds = new ArrayList<>();
 
-		builds.add(this);
+		if (jobVariants != null) {
+			builds.addAll(
+				getJobVariantsDownstreamBuilds(jobVariants, null, null));
+		}
+		else {
+			builds.add(this);
 
-		builds.addAll(getDownstreamBuilds(null));
+			builds.addAll(getDownstreamBuilds(null));
+		}
 
 		for (Build build : builds) {
 			String result = build.getResult();
@@ -1216,8 +1256,8 @@ public abstract class TopLevelBuild extends BaseBuild {
 			sb.append(":x: ");
 		}
 
+		sb.append("ci:test:");
 		sb.append(getTestSuiteName());
-
 		sb.append(" - ");
 		sb.append(String.valueOf(successCount));
 		sb.append(" out of ");
@@ -1257,7 +1297,7 @@ public abstract class TopLevelBuild extends BaseBuild {
 	}
 
 	protected Element getSuccessfulJobSummaryElement() {
-		Element jobSummaryListElement = getJobSummaryListElement(true);
+		Element jobSummaryListElement = getJobSummaryListElement(true, null);
 
 		int successCount = getDownstreamBuildCountByResult("SUCCESS");
 
@@ -1313,15 +1353,10 @@ public abstract class TopLevelBuild extends BaseBuild {
 	}
 
 	protected String getTestSuiteName() {
-		String testSuiteName = "ci:test";
+		String testSuiteName = getParameterValue("CI_TEST_SUITE");
 
-		String ciTestSuite = getParameterValue("CI_TEST_SUITE");
-
-		if ((ciTestSuite != null) && !ciTestSuite.isEmpty() &&
-			!ciTestSuite.equals("default")) {
-
-			testSuiteName = JenkinsResultsParserUtil.combine(
-				testSuiteName, ":", ciTestSuite);
+		if (testSuiteName == null) {
+			testSuiteName = "default";
 		}
 
 		return testSuiteName;
@@ -1330,8 +1365,9 @@ public abstract class TopLevelBuild extends BaseBuild {
 	protected Element getTopGitHubMessageElement() {
 		update();
 
-		Element rootElement = Dom4JUtil.getNewElement(
-			"html", null, getResultElement());
+		Element rootElement = Dom4JUtil.getNewElement("html");
+
+		rootElement.add(getResultElement());
 
 		Element detailsElement = Dom4JUtil.getNewElement(
 			"details", rootElement,
@@ -1361,30 +1397,10 @@ public abstract class TopLevelBuild extends BaseBuild {
 			}
 		}
 
-		int successCount = getDownstreamBuildCountByResult("SUCCESS");
+		Dom4JUtil.addToElement(
+			detailsElement, getJobSummaryElement(), getMoreDetailsElement());
 
 		String result = getResult();
-
-		if ((result != null) && result.equals("SUCCESS")) {
-			successCount++;
-		}
-
-		Dom4JUtil.addToElement(
-			detailsElement, String.valueOf(successCount), " out of ",
-			String.valueOf(getDownstreamBuildCountByResult(null) + 1),
-			" jobs PASSED");
-
-		if ((result != null) && !result.equals("SUCCESS")) {
-			Dom4JUtil.addToElement(
-				detailsElement, getFailedJobSummaryElement());
-		}
-
-		if (getDownstreamBuildCountByResult("SUCCESS") > 0) {
-			Dom4JUtil.addToElement(
-				detailsElement, getSuccessfulJobSummaryElement());
-		}
-
-		Dom4JUtil.addToElement(detailsElement, getMoreDetailsElement());
 
 		if ((result != null) && !result.equals("SUCCESS")) {
 			Dom4JUtil.addToElement(

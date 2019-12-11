@@ -74,6 +74,7 @@ public class AssetTagModelImpl
 	public static final String TABLE_NAME = "AssetTag";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"uuid_", Types.VARCHAR}, {"tagId", Types.BIGINT},
 		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
 		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
@@ -86,6 +87,8 @@ public class AssetTagModelImpl
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("uuid_", Types.VARCHAR);
 		TABLE_COLUMNS_MAP.put("tagId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
@@ -100,7 +103,7 @@ public class AssetTagModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetTag (uuid_ VARCHAR(75) null,tagId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,assetCount INTEGER,lastPublishDate DATE null)";
+		"create table AssetTag (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,uuid_ VARCHAR(75) null,tagId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,name VARCHAR(75) null,assetCount INTEGER,lastPublishDate DATE null,primary key (tagId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table AssetTag";
 
@@ -150,6 +153,8 @@ public class AssetTagModelImpl
 
 		AssetTag model = new AssetTagImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
+		model.setCtCollectionId(soapModel.getCtCollectionId());
 		model.setUuid(soapModel.getUuid());
 		model.setTagId(soapModel.getTagId());
 		model.setGroupId(soapModel.getGroupId());
@@ -331,6 +336,15 @@ public class AssetTagModelImpl
 		Map<String, BiConsumer<AssetTag, ?>> attributeSetterBiConsumers =
 			new LinkedHashMap<String, BiConsumer<AssetTag, ?>>();
 
+		attributeGetterFunctions.put("mvccVersion", AssetTag::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<AssetTag, Long>)AssetTag::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", AssetTag::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<AssetTag, Long>)AssetTag::setCtCollectionId);
 		attributeGetterFunctions.put("uuid", AssetTag::getUuid);
 		attributeSetterBiConsumers.put(
 			"uuid", (BiConsumer<AssetTag, String>)AssetTag::setUuid);
@@ -373,6 +387,28 @@ public class AssetTagModelImpl
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -619,6 +655,8 @@ public class AssetTagModelImpl
 	public Object clone() {
 		AssetTagImpl assetTagImpl = new AssetTagImpl();
 
+		assetTagImpl.setMvccVersion(getMvccVersion());
+		assetTagImpl.setCtCollectionId(getCtCollectionId());
 		assetTagImpl.setUuid(getUuid());
 		assetTagImpl.setTagId(getTagId());
 		assetTagImpl.setGroupId(getGroupId());
@@ -710,6 +748,10 @@ public class AssetTagModelImpl
 	@Override
 	public CacheModel<AssetTag> toCacheModel() {
 		AssetTagCacheModel assetTagCacheModel = new AssetTagCacheModel();
+
+		assetTagCacheModel.mvccVersion = getMvccVersion();
+
+		assetTagCacheModel.ctCollectionId = getCtCollectionId();
 
 		assetTagCacheModel.uuid = getUuid();
 
@@ -845,6 +887,8 @@ public class AssetTagModelImpl
 
 	}
 
+	private long _mvccVersion;
+	private long _ctCollectionId;
 	private String _uuid;
 	private String _originalUuid;
 	private long _tagId;

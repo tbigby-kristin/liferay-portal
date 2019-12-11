@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -88,6 +89,7 @@ public class MessageBoardSection {
 	}
 
 	@Schema(description = "The section's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -111,11 +113,12 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The section's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
 	@Schema
+	@Valid
 	public CustomField[] getCustomFields() {
 		return customFields;
 	}
@@ -167,7 +170,7 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The date the section was created.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -195,7 +198,7 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The last time the section was changed.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -223,7 +226,7 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The section's description.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String description;
 
@@ -249,7 +252,7 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The section's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -281,7 +284,7 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of this section's child sections.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfMessageBoardSections;
 
@@ -315,7 +318,9 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The number of message board threads in this section."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfMessageBoardThreads;
 
@@ -343,9 +348,39 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which this section is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
+
+	@Schema
+	public Boolean getSubscribed() {
+		return subscribed;
+	}
+
+	public void setSubscribed(Boolean subscribed) {
+		this.subscribed = subscribed;
+	}
+
+	@JsonIgnore
+	public void setSubscribed(
+		UnsafeSupplier<Boolean, Exception> subscribedUnsafeSupplier) {
+
+		try {
+			subscribed = subscribedUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Boolean subscribed;
 
 	@Schema(description = "The section's main title.")
 	public String getTitle() {
@@ -371,7 +406,7 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The section's main title.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	@NotEmpty
 	protected String title;
@@ -379,6 +414,7 @@ public class MessageBoardSection {
 	@Schema(
 		description = "A write-only property that specifies the default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -411,7 +447,9 @@ public class MessageBoardSection {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -557,6 +595,16 @@ public class MessageBoardSection {
 			sb.append(siteId);
 		}
 
+		if (subscribed != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(subscribed);
+		}
+
 		if (title != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -589,6 +637,12 @@ public class MessageBoardSection {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.MessageBoardSection",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

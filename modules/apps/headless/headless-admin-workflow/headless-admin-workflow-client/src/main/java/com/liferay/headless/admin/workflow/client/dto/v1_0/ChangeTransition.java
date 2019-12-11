@@ -28,26 +28,47 @@ import javax.annotation.Generated;
 @Generated("")
 public class ChangeTransition {
 
-	public String getTransition() {
-		return transition;
+	public String getComment() {
+		return comment;
 	}
 
-	public void setTransition(String transition) {
-		this.transition = transition;
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
-	public void setTransition(
-		UnsafeSupplier<String, Exception> transitionUnsafeSupplier) {
+	public void setComment(
+		UnsafeSupplier<String, Exception> commentUnsafeSupplier) {
 
 		try {
-			transition = transitionUnsafeSupplier.get();
+			comment = commentUnsafeSupplier.get();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected String transition;
+	protected String comment;
+
+	public String getTransitionName() {
+		return transitionName;
+	}
+
+	public void setTransitionName(String transitionName) {
+		this.transitionName = transitionName;
+	}
+
+	public void setTransitionName(
+		UnsafeSupplier<String, Exception> transitionNameUnsafeSupplier) {
+
+		try {
+			transitionName = transitionNameUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String transitionName;
 
 	@Override
 	public boolean equals(Object object) {

@@ -28,12 +28,17 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.type.controller.content.internal.constants.ContentLayoutTypeControllerWebKeys;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.model.impl.BaseLayoutTypeControllerImpl;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.servlet.TransferHeadersHelperUtil;
@@ -91,18 +96,24 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 				WebKeys.THEME_DISPLAY);
 
 		if (layout.getClassNameId() == _portal.getClassNameId(Layout.class)) {
-			LayoutPermissionUtil.check(
-				themeDisplay.getPermissionChecker(), layout.getClassPK(),
-				ActionKeys.UPDATE);
+			Layout curLayout = _layoutLocalService.fetchLayout(
+				layout.getClassPK());
+
+			if (!_hasUpdatePermissions(
+					themeDisplay.getPermissionChecker(), curLayout)) {
+
+				throw new PrincipalException.MustHavePermission(
+					themeDisplay.getPermissionChecker(), Layout.class.getName(),
+					layout.getLayoutId(), ActionKeys.UPDATE);
+			}
 		}
 
 		String layoutMode = ParamUtil.getString(
 			httpServletRequest, "p_l_mode", Constants.VIEW);
 
 		if (layoutMode.equals(Constants.EDIT) &&
-			!LayoutPermissionUtil.contains(
-				themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
-				ActionKeys.UPDATE)) {
+			!_hasUpdatePermissions(
+				themeDisplay.getPermissionChecker(), layout)) {
 
 			layoutMode = Constants.VIEW;
 		}
@@ -118,12 +129,6 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 			httpServletRequest.setAttribute(
 				FragmentActionKeys.FRAGMENT_RENDERER_TRACKER,
 				_fragmentRendererTracker);
-			httpServletRequest.setAttribute(
-				InfoDisplayWebKeys.INFO_ITEM_RENDERER_TRACKER,
-				_infoItemRendererTracker);
-			httpServletRequest.setAttribute(
-				InfoDisplayWebKeys.INFO_ITEM_SELECTOR_TRACKER,
-				_infoItemSelectorTracker);
 		}
 
 		httpServletRequest.setAttribute(
@@ -154,8 +159,11 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 			RequestDispatcher.INCLUDE_SERVLET_PATH);
 
 		try {
-			LayoutPageTemplateEntry layoutPageTemplateEntry =
-				_fetchLayoutPageTemplateEntry(layout);
+			LayoutPageTemplateEntry layoutPageTemplateEntry = null;
+
+			if (layoutMode.equals(Constants.EDIT)) {
+				layoutPageTemplateEntry = _fetchLayoutPageTemplateEntry(layout);
+			}
 
 			if (layoutPageTemplateEntry != null) {
 				httpServletRequest.setAttribute(
@@ -280,6 +288,28 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 		return null;
 	}
 
+	private boolean _hasUpdatePermissions(
+		PermissionChecker permissionChecker, Layout layout) {
+
+		try {
+			if (LayoutPermissionUtil.contains(
+					permissionChecker, layout, ActionKeys.UPDATE) ||
+				LayoutPermissionUtil.contains(
+					permissionChecker, layout,
+					ActionKeys.UPDATE_LAYOUT_CONTENT)) {
+
+				return true;
+			}
+		}
+		catch (PortalException pe) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+		}
+
+		return false;
+	}
+
 	private static final String _EDIT_LAYOUT_PAGE =
 		"/layout/edit_layout/content.jsp";
 
@@ -288,6 +318,9 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 			"&p_v_l_s_g_id=${liferay:pvlsgid}";
 
 	private static final String _VIEW_PAGE = "/layout/view/content.jsp";
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ContentLayoutTypeController.class);
 
 	@Reference
 	private FragmentCollectionContributorTracker

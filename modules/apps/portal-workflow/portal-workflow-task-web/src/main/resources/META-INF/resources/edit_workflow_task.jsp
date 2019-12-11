@@ -67,6 +67,8 @@ renderResponse.setTitle(headerTitle);
 
 <div class="container-fluid-1280">
 	<aui:col cssClass="lfr-asset-column lfr-asset-column-details">
+		<liferay-ui:success key='<%= workflowTaskDisplayContext.getPortletResource() + "requestProcessed" %>' message="your-request-completed-successfully" />
+
 		<liferay-ui:error exception="<%= WorkflowTaskDueDateException.class %>" message="please-enter-a-valid-due-date" />
 
 		<aui:fieldset-group markupView="lexicon">
@@ -198,13 +200,17 @@ renderResponse.setTitle(headerTitle);
 										/>
 									</c:if>
 
-									<%
-									String viewUsagesURL = assetRenderer.getURLViewUsages(request);
-									%>
+									<c:if test="<%= assetEntry != null %>">
+										<portlet:renderURL var="viewLayoutClassedModelUsagesURL">
+											<portlet:param name="mvcPath" value="/view_layout_classed_model_usages.jsp" />
+											<portlet:param name="redirect" value="<%= currentURL %>" />
+											<portlet:param name="className" value="<%= assetEntry.getClassName() %>" />
+											<portlet:param name="classPK" value="<%= String.valueOf(assetEntry.getClassPK()) %>" />
+											<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
+										</portlet:renderURL>
 
-									<c:if test="<%= Validator.isNotNull(viewUsagesURL) %>">
 										<liferay-frontend:management-bar-button
-											href="<%= viewUsagesURL %>"
+											href="<%= viewLayoutClassedModelUsagesURL %>"
 											icon="list"
 											label="view-usages"
 										/>
@@ -285,5 +291,8 @@ renderResponse.setTitle(headerTitle);
 <aui:script use="liferay-workflow-tasks">
 	var onTaskClickFn = A.rbind('onTaskClick', Liferay.WorkflowTasks, '');
 
-	Liferay.delegateClick('<portlet:namespace /><%= randomId %>taskAssignLink', onTaskClickFn);
+	Liferay.delegateClick(
+		'<portlet:namespace /><%= randomId %>taskAssignLink',
+		onTaskClickFn
+	);
 </aui:script>

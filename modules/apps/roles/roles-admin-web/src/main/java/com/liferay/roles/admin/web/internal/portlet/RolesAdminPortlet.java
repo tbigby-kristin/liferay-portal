@@ -23,14 +23,15 @@ import com.liferay.application.list.display.context.logic.PersonalMenuEntryHelpe
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.osgi.service.tracker.collections.map.PropertyServiceReferenceComparator;
+import com.liferay.petra.lang.SafeClosable;
 import com.liferay.portal.kernel.exception.DuplicateRoleException;
+import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
 import com.liferay.portal.kernel.exception.RequiredRoleException;
 import com.liferay.portal.kernel.exception.RoleAssignmentException;
 import com.liferay.portal.kernel.exception.RoleNameException;
 import com.liferay.portal.kernel.exception.RolePermissionsException;
 import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
-import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocalCloseable;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -67,6 +68,7 @@ import com.liferay.roles.admin.constants.RolesAdminPortletKeys;
 import com.liferay.roles.admin.web.internal.constants.RolesAdminWebKeys;
 import com.liferay.roles.admin.web.internal.role.type.contributor.RoleTypeContributor;
 import com.liferay.roles.admin.web.internal.role.type.contributor.provider.RoleTypeContributorProvider;
+import com.liferay.segments.service.SegmentsEntryRoleLocalService;
 
 import java.io.IOException;
 
@@ -175,7 +177,12 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 		long roleId = ParamUtil.getLong(actionRequest, "roleId");
 
-		_roleService.deleteRole(roleId);
+		try {
+			_roleService.deleteRole(roleId);
+		}
+		catch (ModelListenerException mle) {
+			throw (Exception)mle.getCause();
+		}
 	}
 
 	public void deleteRoles(
@@ -185,8 +192,13 @@ public class RolesAdminPortlet extends MVCPortlet {
 		long[] deleteRoleIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "deleteRoleIds"), 0L);
 
-		for (long roleId : deleteRoleIds) {
-			_roleService.deleteRole(roleId);
+		try {
+			for (long roleId : deleteRoleIds) {
+				_roleService.deleteRole(roleId);
+			}
+		}
+		catch (ModelListenerException mle) {
+			throw (Exception)mle.getCause();
 		}
 	}
 
@@ -276,13 +288,16 @@ public class RolesAdminPortlet extends MVCPortlet {
 		if (!ArrayUtil.isEmpty(addUserIds) ||
 			!ArrayUtil.isEmpty(removeUserIds)) {
 
-			try (ProxyModeThreadLocalCloseable proxyModeThreadLocalCloseable =
-					new ProxyModeThreadLocalCloseable()) {
-
-				ProxyModeThreadLocal.setForceSync(true);
+			try (SafeClosable safeClosable =
+					ProxyModeThreadLocal.setWithSafeClosable(true)) {
 
 				_userService.addRoleUsers(roleId, addUserIds);
 				_userService.unsetRoleUsers(roleId, removeUserIds);
+			}
+			catch (RequiredRoleException.MustNotRemoveLastAdministator |
+				   RequiredRoleException.MustNotRemoveUserRole e) {
+
+				SessionErrors.add(actionRequest, e.getClass());
 			}
 		}
 
@@ -296,6 +311,36 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 			_groupService.addRoleGroups(roleId, addGroupIds);
 			_groupService.unsetRoleGroups(roleId, removeGroupIds);
+		}
+
+		long[] addSegmentsEntryIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "addSegmentsEntryIds"), 0L);
+
+		if (ArrayUtil.isNotEmpty(addSegmentsEntryIds)) {
+			try (SafeClosable safeClosable =
+					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+
+				for (long segmentsEntryId : addSegmentsEntryIds) {
+					_segmentsEntryRoleLocalService.addSegmentsEntryRole(
+						segmentsEntryId, roleId,
+						ServiceContextFactory.getInstance(
+							Role.class.getName(), actionRequest));
+				}
+			}
+		}
+
+		long[] removeSegmentsEntryIds = StringUtil.split(
+			ParamUtil.getString(actionRequest, "removeSegmentsEntryIds"), 0L);
+
+		if (ArrayUtil.isNotEmpty(removeSegmentsEntryIds)) {
+			try (SafeClosable safeClosable =
+					ProxyModeThreadLocal.setWithSafeClosable(true)) {
+
+				for (long segmentsEntryId : removeSegmentsEntryIds) {
+					_segmentsEntryRoleLocalService.deleteSegmentsEntryRole(
+						segmentsEntryId, roleId);
+				}
+			}
 		}
 	}
 
@@ -486,9 +531,14 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 		long roleId = ParamUtil.getLong(renderRequest, "roleId");
 
+		String mvcPath = ParamUtil.getString(renderRequest, "mvcPath");
+
 		if (SessionErrors.contains(
 				renderRequest, RequiredRoleException.class.getName()) &&
-			(roleId < 1)) {
+			((roleId < 1) ||
+			 (Validator.isNotNull(mvcPath) && mvcPath.equals("/view.jsp")))) {
+
+			hideDefaultErrorMessage(renderRequest);
 
 			include("/view.jsp", renderRequest, renderResponse);
 		}
@@ -505,6 +555,14 @@ public class RolesAdminPortlet extends MVCPortlet {
 					renderRequest, NoSuchRoleException.class.getName()) ||
 				 SessionErrors.contains(
 					 renderRequest, PrincipalException.getNestedClasses()) ||
+				 SessionErrors.contains(
+					 renderRequest,
+					 RequiredRoleException.MustNotRemoveLastAdministator.class.
+						 getName()) ||
+				 SessionErrors.contains(
+					 renderRequest,
+					 RequiredRoleException.MustNotRemoveUserRole.class.
+						 getName()) ||
 				 SessionErrors.contains(
 					 renderRequest, RoleAssignmentException.class.getName()) ||
 				 SessionErrors.contains(
@@ -735,6 +793,9 @@ public class RolesAdminPortlet extends MVCPortlet {
 
 	@Reference
 	private RoleTypeContributorProvider _roleTypeContributorProvider;
+
+	@Reference
+	private SegmentsEntryRoleLocalService _segmentsEntryRoleLocalService;
 
 	private ServiceTrackerList<PersonalMenuEntry, PersonalMenuEntry>
 		_serviceTrackerList;

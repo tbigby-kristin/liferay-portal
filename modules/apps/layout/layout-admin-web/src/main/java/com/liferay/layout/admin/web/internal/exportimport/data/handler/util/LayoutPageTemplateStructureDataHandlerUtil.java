@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
@@ -49,6 +50,11 @@ public class LayoutPageTemplateStructureDataHandlerUtil {
 			PortletDataContext portletDataContext, long classNameId,
 			long classPK, Element layoutPageTemplateStructureElement)
 		throws Exception {
+
+		layoutPageTemplateStructureElement.addAttribute(
+			"className", String.valueOf(_portal.getClassName(classNameId)));
+		layoutPageTemplateStructureElement.addAttribute(
+			"classPK", String.valueOf(classPK));
 
 		StagedModelDataHandlerUtil.importStagedModel(
 			portletDataContext, layoutPageTemplateStructureElement);
@@ -75,13 +81,6 @@ public class LayoutPageTemplateStructureDataHandlerUtil {
 		if (existingLayoutPageTemplateStructure == null) {
 			return;
 		}
-
-		existingLayoutPageTemplateStructure.setClassNameId(classNameId);
-		existingLayoutPageTemplateStructure.setClassPK(classPK);
-
-		_layoutPageTemplateStructureLocalService.
-			updateLayoutPageTemplateStructure(
-				existingLayoutPageTemplateStructure);
 
 		List<LayoutPageTemplateStructureRel>
 			existingLayoutPageTemplateStructureRels =
@@ -200,6 +199,9 @@ public class LayoutPageTemplateStructureDataHandlerUtil {
 	@Reference
 	private LayoutPageTemplateStructureRelLocalService
 		_layoutPageTemplateStructureRelLocalService;
+
+	@Reference
+	private Portal _portal;
 
 	@Reference
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;

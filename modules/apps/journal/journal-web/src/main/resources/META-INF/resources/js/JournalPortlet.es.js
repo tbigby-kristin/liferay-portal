@@ -13,9 +13,9 @@
  */
 
 import {AOP} from 'frontend-js-web';
+import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
 import {delegate, on} from 'metal-dom';
 import {EventHandler} from 'metal-events';
-import PortletBase from 'frontend-js-web/liferay/PortletBase.es';
 
 const ACTION_INPUT_NAME = 'javax-portlet-action';
 
@@ -116,8 +116,7 @@ class JournalPortlet extends PortletBase {
 	 */
 	_onLocaleChange(event) {
 		const defaultLanguageId = themeDisplay.getDefaultLanguageId();
-		const selectedLanguageId =
-			event.source && event.source.getSelectedLanguageId();
+		const selectedLanguageId = event.item.getAttribute('data-value');
 
 		if (selectedLanguageId) {
 			this._updateLocalizableInput(
@@ -131,6 +130,8 @@ class JournalPortlet extends PortletBase {
 				defaultLanguageId,
 				selectedLanguageId
 			);
+
+			this._updateLanguageIdInput(selectedLanguageId);
 		}
 	}
 
@@ -247,6 +248,15 @@ class JournalPortlet extends PortletBase {
 		if (actionName) {
 			this._setActionName(actionName);
 		}
+	}
+
+	/**
+	 * @private
+	 */
+	_updateLanguageIdInput(selectedLanguageId) {
+		const languageIdInput = document.getElementById(this.ns('languageId'));
+
+		languageIdInput.value = selectedLanguageId;
 	}
 
 	/**

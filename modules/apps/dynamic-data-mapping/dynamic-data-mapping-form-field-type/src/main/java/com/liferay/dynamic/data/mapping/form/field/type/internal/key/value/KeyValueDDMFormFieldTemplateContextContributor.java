@@ -23,9 +23,9 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -51,36 +51,29 @@ public class KeyValueDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put(
-			"autoFocus",
-			GetterUtil.getBoolean(ddmFormField.getProperty("autoFocus")));
-
-		LocalizedValue placeholder = (LocalizedValue)ddmFormField.getProperty(
-			"placeholder");
-
 		Locale locale = ddmFormFieldRenderingContext.getLocale();
 
-		parameters.put("placeholder", getValueString(placeholder, locale));
-
-		Map<String, String> stringsMap = new HashMap<>();
-
-		stringsMap.put(
-			"keyLabel",
-			LanguageUtil.get(
-				getDisplayLocale(
-					ddmFormFieldRenderingContext.getHttpServletRequest()),
-				"field-name"));
-
-		parameters.put("strings", stringsMap);
-
-		LocalizedValue tooltip = (LocalizedValue)ddmFormField.getProperty(
-			"tooltip");
-
-		parameters.put("tooltip", getValueString(tooltip, locale));
-
-		return parameters;
+		return HashMapBuilder.<String, Object>put(
+			"autoFocus",
+			GetterUtil.getBoolean(ddmFormField.getProperty("autoFocus"))
+		).put(
+			"placeholder",
+			getValueString(
+				(LocalizedValue)ddmFormField.getProperty("placeholder"), locale)
+		).put(
+			"strings",
+			HashMapBuilder.put(
+				"keyLabel",
+				LanguageUtil.get(
+					getDisplayLocale(
+						ddmFormFieldRenderingContext.getHttpServletRequest()),
+					"field-name")
+			).build()
+		).put(
+			"tooltip",
+			getValueString(
+				(LocalizedValue)ddmFormField.getProperty("tooltip"), locale)
+		).build();
 	}
 
 	protected Locale getDisplayLocale(HttpServletRequest httpServletRequest) {

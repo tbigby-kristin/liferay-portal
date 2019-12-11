@@ -12,9 +12,14 @@
  * details.
  */
 
+/**
+ * @deprecated As of Athanasius(7.3.x), replaced by ItemSelectorPreview.es.js
+ * @module liferay-item-viewer
+ */
+
 AUI.add(
 	'liferay-item-viewer',
-	function(A) {
+	A => {
 		var Do = A.Do;
 
 		var Lang = A.Lang;
@@ -98,7 +103,7 @@ AUI.add(
 			CSS_ICON_MONOSPACED +
 			'">' +
 			Liferay.Util.getLexiconIconTpl('angle-left') +
-			'</span><span class="lfr-item-viewer-close-text truncate-text">{0}</span></button>';
+			'</span><span class="lfr-item-viewer-close-text text-truncate">{0}</span></button>';
 
 		var TPL_EDIT_DIALOG_TITLE = '{edit} {title} ({copy})';
 
@@ -418,7 +423,7 @@ AUI.add(
 
 					metadata = JSON.parse(metadata);
 
-					metadata.groups.forEach(function(group, index) {
+					metadata.groups.forEach((group, index) => {
 						var groupId = A.guid();
 
 						var tabTitleNode = A.Node.create(
@@ -431,21 +436,20 @@ AUI.add(
 
 						sidenavTabList.append(tabTitleNode);
 
-						var dataStr = group.data.reduce(function(
-							previousValue,
-							currentValue
-						) {
-							return (
-								previousValue +
-								Lang.sub(TPL_INFO_TAB_BODY_CONTENT, {
-									dd: currentValue.value,
-									ddClassName: '',
-									dt: currentValue.key,
-									dtClassName: 'h5'
-								})
-							);
-						},
-						STR_BLANK);
+						var dataStr = group.data.reduce(
+							(previousValue, currentValue) => {
+								return (
+									previousValue +
+									Lang.sub(TPL_INFO_TAB_BODY_CONTENT, {
+										dd: currentValue.value,
+										ddClassName: '',
+										dt: currentValue.key,
+										dtClassName: 'h5'
+									})
+								);
+							},
+							STR_BLANK
+						);
 
 						var tabContentNode = A.Node.create(
 							Lang.sub(TPL_INFO_TAB_BODY, {
@@ -562,7 +566,7 @@ AUI.add(
 
 					var sources = [];
 
-					links.each(function(item) {
+					links.each(item => {
 						sources.push(
 							item.attr('href') || item.attr('data-href')
 						);
@@ -652,7 +656,7 @@ AUI.add(
 					'<div class="sidebar-header">' +
 					'<a class="' +
 					CSS_ICON_MONOSPACED +
-					' image-viewer-sidenav-close sidenav-close visible-xs" href="">' +
+					' d-block d-sm-none image-viewer-sidenav-close sidenav-close " href="">' +
 					Liferay.Util.getLexiconIconTpl('times') +
 					'</a>' +
 					'<h4 class="image-viewer-sidenav-header">' +
@@ -681,7 +685,7 @@ AUI.add(
 					newLink.setAttribute('data-value', imageData.file.url);
 					newLink.setAttribute('data-url', imageData.file.url);
 
-					newLink.all('[style]').each(function(node) {
+					newLink.all('[style]').each(node => {
 						var styleAttr = node.getAttribute('style');
 
 						if (styleAttr) {
@@ -815,6 +819,8 @@ AUI.add(
 
 						link.setData('value', JSON.stringify(imageValue));
 					}
+
+					return link;
 				}
 			}
 		});

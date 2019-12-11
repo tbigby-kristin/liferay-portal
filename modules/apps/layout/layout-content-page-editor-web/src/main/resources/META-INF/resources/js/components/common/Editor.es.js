@@ -15,11 +15,14 @@
 import {EventHandler} from 'metal-events';
 import PropTypes from 'prop-types';
 import React, {useEffect, useRef, useState} from 'react';
+
 import useSelector from '../../store/hooks/useSelector.es';
 
 const Editor = props => {
 	const editorConfig = useSelector(
-		state => state.defaultEditorConfigurations.text.editorConfig
+		state =>
+			state.defaultEditorConfigurations[props.configurationName]
+				.editorConfig
 	);
 	const portletNamespace = useSelector(state => state.portletNamespace);
 
@@ -67,7 +70,8 @@ const Editor = props => {
 		const newEditor = AlloyEditor.editable(wrapperRef.current, {
 			...editorConfig,
 			enterMode: 1,
-			startupFocus: autoFocus
+			startupFocus: autoFocus,
+			title: false
 		});
 
 		let ready = false;
@@ -122,6 +126,8 @@ Editor.defaultProps = {
 
 Editor.propTypes = {
 	autoFocus: PropTypes.bool,
+	configurationName: PropTypes.oneOf(['rich-text', 'text', 'comment'])
+		.isRequired,
 	editorConfig: PropTypes.object,
 	id: PropTypes.string.isRequired,
 	initialValue: PropTypes.string.isRequired,

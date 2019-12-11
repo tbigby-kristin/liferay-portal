@@ -33,7 +33,7 @@ else {
 <h1 class="h4 text-default"><liferay-ui:message key="current-theme" /></h1>
 
 <div class="card-horizontal main-content-card">
-	<div class="card-row card-row-padded">
+	<div class="card-body">
 		<div id="<portlet:namespace />themeContainer">
 			<liferay-util:include page="/look_and_feel_theme_details.jsp" servletContext="<%= application %>" />
 		</div>
@@ -42,7 +42,7 @@ else {
 	</div>
 </div>
 
-<aui:button cssClass="btn btn-default" id="changeTheme" value="change-current-theme" />
+<aui:button cssClass="btn btn-secondary" id="changeTheme" value="change-current-theme" />
 
 <aui:script use="aui-parse-content">
 	var Util = Liferay.Util;
@@ -56,58 +56,52 @@ else {
 		<portlet:param name="redirect" value="<%= currentURL %>" />
 	</portlet:renderURL>
 
-	A.one('#<portlet:namespace />changeTheme').on(
-		'click',
-		function(event) {
-			event.preventDefault();
+	A.one('#<portlet:namespace />changeTheme').on('click', function(event) {
+		event.preventDefault();
 
-			Util.selectEntity(
-				{
-					dialog: {
-						constrain: true,
-						destroyOnHide: true,
-						modal: true
-					},
-					eventName: '<portlet:namespace />selectTheme',
-					title: '<liferay-ui:message key="available-themes" />',
-					uri: Util.addParams('<portlet:namespace />themeId=' + selThemeId, '<%= selectThemeURL %>')
+		Util.selectEntity(
+			{
+				dialog: {
+					constrain: true,
+					destroyOnHide: true,
+					modal: true
 				},
-				function(event) {
-					var selectedItem = event.themeid;
+				eventName: '<portlet:namespace />selectTheme',
+				title: '<liferay-ui:message key="available-themes" />',
+				uri: Util.addParams(
+					'<portlet:namespace />themeId=' + selThemeId,
+					'<%= selectThemeURL %>'
+				)
+			},
+			function(event) {
+				var selectedItem = event.themeid;
 
-					if (selectedItem && (selThemeId != selectedItem)) {
-						themeContainer.html('<div class="loading-animation"></div>');
+				if (selectedItem && selThemeId != selectedItem) {
+					themeContainer.html('<div class="loading-animation"></div>');
 
-						var data = Util.ns(
-							'<portlet:namespace />',
-							{
-								themeId: selectedItem
-							}
-						);
+					var data = Util.ns('<portlet:namespace />', {
+						themeId: selectedItem
+					});
 
-						Liferay.Util.fetch(
-							'<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="mvcPath" value="/look_and_feel_theme_details.jsp" /></portlet:renderURL>',
-							{
-								body: Liferay.Util.objectToFormData(data),
-								method: 'POST'
-							}
-						).then(
-							function(response) {
-								return response.text();
-							}
-						).then(
-							function(responseData) {
-								debugger;
-								themeContainer.plug(A.Plugin.ParseContent);
+					Liferay.Util.fetch(
+						'<portlet:renderURL windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>"><portlet:param name="mvcPath" value="/look_and_feel_theme_details.jsp" /></portlet:renderURL>',
+						{
+							body: Liferay.Util.objectToFormData(data),
+							method: 'POST'
+						}
+					)
+						.then(function(response) {
+							return response.text();
+						})
+						.then(function(responseData) {
+							themeContainer.plug(A.Plugin.ParseContent);
 
-								themeContainer.setContent(responseData);
+							themeContainer.setContent(responseData);
 
-								selThemeId = selectedItem;
-							}
-						);
-					}
+							selThemeId = selectedItem;
+						});
 				}
-			);
-		}
-	);
+			}
+		);
+	});
 </aui:script>

@@ -204,7 +204,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 	}
 
 	@Test
-	public void testGetDataDefinitionDataDefinitionFieldFieldType()
+	public void testGetDataDefinitionDataDefinitionFieldFieldTypes()
 		throws Exception {
 
 		Assert.assertTrue(false);
@@ -361,22 +361,71 @@ public abstract class BaseDataDefinitionResourceTestCase {
 	}
 
 	@Test
-	public void testPostDataDefinitionDataDefinitionPermission()
+	public void testGetDataDefinitionDataDefinitionFieldLinks()
 		throws Exception {
 
 		Assert.assertTrue(false);
 	}
 
 	@Test
+	public void testPostDataDefinitionDataDefinitionPermission()
+		throws Exception {
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DataDefinition dataDefinition =
+			testPostDataDefinitionDataDefinitionPermission_addDataDefinition();
+
+		assertHttpResponseStatusCode(
+			204,
+			dataDefinitionResource.
+				postDataDefinitionDataDefinitionPermissionHttpResponse(
+					dataDefinition.getId(), null, null));
+
+		assertHttpResponseStatusCode(
+			404,
+			dataDefinitionResource.
+				postDataDefinitionDataDefinitionPermissionHttpResponse(
+					0L, null, null));
+	}
+
+	protected DataDefinition
+			testPostDataDefinitionDataDefinitionPermission_addDataDefinition()
+		throws Exception {
+
+		return dataDefinitionResource.postSiteDataDefinition(
+			testGroup.getGroupId(), randomDataDefinition());
+	}
+
+	@Test
 	public void testPostSiteDataDefinitionPermission() throws Exception {
-		Assert.assertTrue(false);
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DataDefinition dataDefinition =
+			testPostSiteDataDefinitionPermission_addDataDefinition();
+
+		assertHttpResponseStatusCode(
+			204,
+			dataDefinitionResource.postSiteDataDefinitionPermissionHttpResponse(
+				null, null, null));
+
+		assertHttpResponseStatusCode(
+			404,
+			dataDefinitionResource.postSiteDataDefinitionPermissionHttpResponse(
+				null, null, null));
+	}
+
+	protected DataDefinition
+			testPostSiteDataDefinitionPermission_addDataDefinition()
+		throws Exception {
+
+		return dataDefinitionResource.postSiteDataDefinition(
+			testGroup.getGroupId(), randomDataDefinition());
 	}
 
 	@Test
 	public void testGetSiteDataDefinitionsPage() throws Exception {
 		Page<DataDefinition> page =
 			dataDefinitionResource.getSiteDataDefinitionsPage(
-				testGetSiteDataDefinitionsPage_getSiteId(),
+				testGetSiteDataDefinitionsPage_getSiteId(), null,
 				RandomTestUtil.randomString(), Pagination.of(1, 2), null);
 
 		Assert.assertEquals(0, page.getTotalCount());
@@ -391,7 +440,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 					irrelevantSiteId, randomIrrelevantDataDefinition());
 
 			page = dataDefinitionResource.getSiteDataDefinitionsPage(
-				irrelevantSiteId, null, Pagination.of(1, 2), null);
+				irrelevantSiteId, null, null, Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
 
@@ -410,7 +459,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 				siteId, randomDataDefinition());
 
 		page = dataDefinitionResource.getSiteDataDefinitionsPage(
-			siteId, null, Pagination.of(1, 2), null);
+			siteId, null, null, Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -444,7 +493,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 
 		Page<DataDefinition> page1 =
 			dataDefinitionResource.getSiteDataDefinitionsPage(
-				siteId, null, Pagination.of(1, 2), null);
+				siteId, null, null, Pagination.of(1, 2), null);
 
 		List<DataDefinition> dataDefinitions1 =
 			(List<DataDefinition>)page1.getItems();
@@ -454,7 +503,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 
 		Page<DataDefinition> page2 =
 			dataDefinitionResource.getSiteDataDefinitionsPage(
-				siteId, null, Pagination.of(2, 2), null);
+				siteId, null, null, Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -466,7 +515,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 
 		Page<DataDefinition> page3 =
 			dataDefinitionResource.getSiteDataDefinitionsPage(
-				siteId, null, Pagination.of(1, 3), null);
+				siteId, null, null, Pagination.of(1, 3), null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(dataDefinition1, dataDefinition2, dataDefinition3),
@@ -564,7 +613,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<DataDefinition> ascPage =
 				dataDefinitionResource.getSiteDataDefinitionsPage(
-					siteId, null, Pagination.of(1, 2),
+					siteId, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":asc");
 
 			assertEquals(
@@ -573,7 +622,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 
 			Page<DataDefinition> descPage =
 				dataDefinitionResource.getSiteDataDefinitionsPage(
-					siteId, null, Pagination.of(1, 2),
+					siteId, null, null, Pagination.of(1, 2),
 					entityField.getName() + ":desc");
 
 			assertEquals(
@@ -621,7 +670,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 					{
 						put("page", 1);
 						put("pageSize", 2);
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 					}
 				},
 				graphQLFields.toArray(new GraphQLField[0])));
@@ -697,7 +746,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 		DataDefinition getDataDefinition =
 			dataDefinitionResource.getSiteDataDefinition(
 				postDataDefinition.getSiteId(),
-				postDataDefinition.getDataDefinitionKey());
+				postDataDefinition.getDataDefinitionKey(), null);
 
 		assertEquals(postDataDefinition, getDataDefinition);
 		assertValid(getDataDefinition);
@@ -757,6 +806,24 @@ public abstract class BaseDataDefinitionResourceTestCase {
 
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
+
+			if (Objects.equals("classNameId", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = dataDefinition.getClassNameId();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
 
 			if (Objects.equals(
 					"dataDefinitionKey", additionalAssertFieldName)) {
@@ -883,7 +950,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 				"createSiteDataDefinition",
 				new HashMap<String, Object>() {
 					{
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 						put("dataDefinition", sb.toString());
 					}
 				},
@@ -1004,6 +1071,14 @@ public abstract class BaseDataDefinitionResourceTestCase {
 					"availableLanguageIds", additionalAssertFieldName)) {
 
 				if (dataDefinition.getAvailableLanguageIds() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("classNameId", additionalAssertFieldName)) {
+				if (dataDefinition.getClassNameId() == null) {
 					valid = false;
 				}
 
@@ -1156,6 +1231,17 @@ public abstract class BaseDataDefinitionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("classNameId", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						dataDefinition1.getClassNameId(),
+						dataDefinition2.getClassNameId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
 					"dataDefinitionFields", additionalAssertFieldName)) {
 
@@ -1295,6 +1381,17 @@ public abstract class BaseDataDefinitionResourceTestCase {
 		DataDefinition dataDefinition, JSONObject jsonObject) {
 
 		for (String fieldName : getAdditionalAssertFieldNames()) {
+			if (Objects.equals("classNameId", fieldName)) {
+				if (!Objects.deepEquals(
+						dataDefinition.getClassNameId(),
+						jsonObject.getLong("classNameId"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("dataDefinitionKey", fieldName)) {
 				if (!Objects.deepEquals(
 						dataDefinition.getDataDefinitionKey(),
@@ -1408,6 +1505,11 @@ public abstract class BaseDataDefinitionResourceTestCase {
 		sb.append(" ");
 
 		if (entityFieldName.equals("availableLanguageIds")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("classNameId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -1561,6 +1663,7 @@ public abstract class BaseDataDefinitionResourceTestCase {
 	protected DataDefinition randomDataDefinition() throws Exception {
 		return new DataDefinition() {
 			{
+				classNameId = RandomTestUtil.randomLong();
 				dataDefinitionKey = RandomTestUtil.randomString();
 				dateCreated = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();

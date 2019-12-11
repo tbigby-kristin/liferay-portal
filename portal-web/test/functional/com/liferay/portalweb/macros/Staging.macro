@@ -122,7 +122,14 @@ definition {
 			locator1 = "Message#ERROR",
 			value1 = "Your request failed to complete.");
 
-		AssertElementPresent(locator1 = "Button#PLUS");
+		var browserType = PropsUtil.get("browser.type");
+
+		if ("${browserType}" == "internetexplorer") {
+			AssertElementPresent(locator1 = "Button#PLUS_IE");
+		}
+		else {
+			AssertElementPresent(locator1 = "Button#PLUS");
+		}
 
 		AssertConsoleTextNotPresent(value1 = "Please configure tunneling.servlet.shared.secret");
 
@@ -307,7 +314,10 @@ definition {
 		}
 
 		if (isSet(contentDateRange)) {
-			ContentConfiguration.contentDateRange(contentDateRange = "${contentDateRange}");
+			ContentConfiguration.contentDateRange(
+				contentDateRange = "${contentDateRange}",
+				dateRangeEndDate = "${dateRangeEndDate}",
+				dateRangeStartDate = "${dateRangeStartDate}");
 		}
 
 		if ("${contentDeletion}" == "true") {
@@ -695,6 +705,12 @@ definition {
 
 		LexiconEntry.gotoAdd();
 
+		if ("${rangeAll}" == "true") {
+			Click(locator1 = "Radio#CHOOSE_CONTENT_ALL_CHANGE");
+
+			Click(locator1 = "Link#REFRESH_COUNTS");
+		}
+
 		if ("${remoteStaging}" == "true") {
 			AssertClickNoError(
 				locator1 = "Staging#STAGING_PUBLISH_TO_REMOTE_LIVE_BUTTON",
@@ -816,7 +832,7 @@ definition {
 			locator1 = "Staging#STAGING_PUBLISH_TO_LIVE_BUTTON",
 			value1 = "Publish to Live");
 
-		Pause(locator1 = "5000");
+		Pause(locator1 = "8000");
 
 		if (IsElementPresent(locator1 = "Staging#PROCESS_SUCCESSFUL")) {
 			AssertTextEquals(
@@ -1001,7 +1017,7 @@ definition {
 		var displayDateAMPM = StringUtil.replace("${displayDateAMPM}", "0", "AM");
 		var displayDateAMPM = StringUtil.replace("${displayDateAMPM}", "1", "PM");
 		var displayDateMinute = selenium.getAttribute("//input[contains(@id,'schedulerStartDateMinute')]@value");
-		var displayDateMinuteFuture = MathUtil.sum("${displayDateMinute}", "3");
+		var displayDateMinuteFuture = ${displayDateMinute} + 3;
 		var displayDateMinuteFutureLength = StringUtil.length("${displayDateMinuteFuture}");
 
 		if ("${displayDateMinuteFutureLength}" == "1") {
@@ -1030,7 +1046,7 @@ definition {
 			}
 
 			var endByDateYear = selenium.getAttribute("//input[contains(@id,'schedulerEndDateYear')]@value");
-			var endByDateYearFuture = MathUtil.sum("${endByDateYear}", "5");
+			var endByDateYearFuture = ${endByDateYear} + 5;
 			var endByDay = "${endByDateMonth}/${endByDateDay}/${endByDateYearFuture}";
 
 			Type(
@@ -1140,6 +1156,16 @@ definition {
 
 	macro viewAddButtonExists {
 		AssertVisible(locator1 = "Button#PLUS");
+	}
+
+	macro viewDateRange {
+		AssertElementPresent(
+			key_dateRangeStartDate = "${dateRangeStartDate}",
+			locator1 = "Select#DATE_RANGE_START_DATE_VALUE");
+
+		AssertElementPresent(
+			key_dateRangeEndDate = "${dateRangeEndDate}",
+			locator1 = "Select#DATE_RANGE_END_DATE_VALUE");
 	}
 
 	macro viewEditedSitePagesVariationPG {

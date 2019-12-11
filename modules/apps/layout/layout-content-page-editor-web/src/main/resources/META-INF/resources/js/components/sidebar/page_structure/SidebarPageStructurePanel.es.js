@@ -13,25 +13,26 @@
  */
 
 import Component from 'metal-component';
-import {Config} from 'metal-state';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
 
-import '../fragments/FragmentsEditorSidebarCard.es';
-import {removeItem, setIn} from '../../../utils/FragmentsEditorUpdateUtils.es';
-import {
-	EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
-	FRAGMENTS_EDITOR_ITEM_TYPES,
-	FRAGMENTS_EDITOR_ROW_TYPES,
-	BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR
-} from '../../../utils/constants';
+import {removeFragmentEntryLinkAction} from '../../../actions/removeFragmentEntryLinks.es';
+import {removeRowAction} from '../../../actions/removeRow.es';
 import {getConnectedComponent} from '../../../store/ConnectedComponent.es';
 import {
 	getItemPath,
 	getRowFragmentEntryLinkIds
 } from '../../../utils/FragmentsEditorGetUtils.es';
+import {removeItem, setIn} from '../../../utils/FragmentsEditorUpdateUtils.es';
+import {
+	EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
+	FRAGMENTS_EDITOR_ITEM_TYPES,
+	FRAGMENTS_EDITOR_ROW_TYPES,
+	BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR,
+	PAGE_TYPES
+} from '../../../utils/constants';
+import {isDropZoneFragment} from '../../../utils/isDropZoneFragment.es';
 import templates from './SidebarPageStructurePanel.soy';
-import {removeRowAction} from '../../../actions/removeRow.es';
-import {removeFragmentEntryLinkAction} from '../../../actions/removeFragmentEntryLinks.es';
 
 /**
  * SidebarPageStructurePanel
@@ -164,7 +165,11 @@ class SidebarPageStructurePanel extends Component {
 				elementType: FRAGMENTS_EDITOR_ITEM_TYPES.row,
 				key: `${FRAGMENTS_EDITOR_ITEM_TYPES.row}-${row.rowId}`,
 				label: Liferay.Language.get('section'),
-				removable: true
+				removable:
+					state.pageType !== PAGE_TYPES.master ||
+					!row.columns.some(column =>
+						column.fragmentEntryLinkIds.some(isDropZoneFragment)
+					)
 			});
 		}
 
@@ -335,6 +340,7 @@ const ConnectedSidebarPageStructurePanel = getConnectedComponent(
 		'hoveredItemId',
 		'hoveredItemType',
 		'layoutData',
+		'pageType',
 		'selectedItems',
 		'spritemap'
 	]

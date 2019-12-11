@@ -29,7 +29,7 @@ public class KBObjectsViewCountComparator<T> extends OrderByComparator<T> {
 	public static final String ORDER_BY_DESC =
 		"modelFolder DESC, viewCount DESC, title ASC";
 
-	public static final String[] ORDER_BY_FIELDS = {"viewCount, title"};
+	public static final String[] ORDER_BY_FIELDS = {"viewCount", "title"};
 
 	public KBObjectsViewCountComparator() {
 		this(false);
@@ -108,7 +108,7 @@ public class KBObjectsViewCountComparator<T> extends OrderByComparator<T> {
 		return kbFolder.getName();
 	}
 
-	protected int getViewCount(Object obj) {
+	protected long getViewCount(Object obj) {
 		if (obj instanceof KBArticle) {
 			KBArticle kbArticle = (KBArticle)obj;
 

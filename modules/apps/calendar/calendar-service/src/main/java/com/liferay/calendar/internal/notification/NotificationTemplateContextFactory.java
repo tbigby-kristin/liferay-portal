@@ -23,6 +23,7 @@ import com.liferay.calendar.notification.NotificationTemplateContext;
 import com.liferay.calendar.notification.NotificationTemplateType;
 import com.liferay.calendar.notification.NotificationType;
 import com.liferay.calendar.service.CalendarNotificationTemplateLocalServiceUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -36,6 +37,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -45,9 +47,7 @@ import java.io.Serializable;
 
 import java.text.Format;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.TimeZone;
 
 import javax.portlet.WindowState;
@@ -96,50 +96,46 @@ public class NotificationTemplateContextFactory {
 
 		// Attributes
 
-		Map<String, Serializable> attributes = new HashMap<>();
-
 		Format userDateTimeFormat = _getUserDateTimeFormat(
 			calendarBooking, user);
 
 		String userTimezoneDisplayName = _getUserTimezoneDisplayName(user);
 
-		String endTime =
-			userDateTimeFormat.format(calendarBooking.getEndTime()) +
-				StringPool.SPACE + userTimezoneDisplayName;
+		Map<String, Serializable> attributes =
+			HashMapBuilder.<String, Serializable>put(
+				"endTime",
+				StringBundler.concat(
+					userDateTimeFormat.format(calendarBooking.getEndTime()),
+					StringPool.SPACE, userTimezoneDisplayName)
+			).put(
+				"location", calendarBooking.getLocation()
+			).put(
+				"portalURL",
+				() -> {
+					Group group = _groupLocalService.getGroup(
+						user.getCompanyId(), GroupConstants.GUEST);
 
-		attributes.put("endTime", endTime);
-
-		attributes.put("location", calendarBooking.getLocation());
-
-		Group group = _groupLocalService.getGroup(
-			user.getCompanyId(), GroupConstants.GUEST);
-
-		String portalURL = _getPortalURL(
-			group.getCompanyId(), group.getGroupId());
-
-		attributes.put("portalURL", portalURL);
-
-		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
-			user.getLocale(), "com.liferay.calendar.web");
-
-		attributes.put(
-			"portletName",
-			LanguageUtil.get(
-				resourceBundle,
-				"javax.portlet.title.".concat(CalendarPortletKeys.CALENDAR)));
-
-		String startTime =
-			userDateTimeFormat.format(calendarBooking.getStartTime()) +
-				StringPool.SPACE + userTimezoneDisplayName;
-
-		attributes.put("startTime", startTime);
-
-		attributes.put("title", calendarBooking.getTitle(user.getLocale()));
-
-		String calendarBookingURL = _getCalendarBookingURL(
-			user, calendarBooking.getCalendarBookingId());
-
-		attributes.put("url", calendarBookingURL);
+					return _getPortalURL(
+						group.getCompanyId(), group.getGroupId());
+				}
+			).put(
+				"portletName",
+				LanguageUtil.get(
+					ResourceBundleUtil.getBundle(
+						user.getLocale(), "com.liferay.calendar.web"),
+					"javax.portlet.title.".concat(CalendarPortletKeys.CALENDAR))
+			).put(
+				"startTime",
+				StringBundler.concat(
+					userDateTimeFormat.format(calendarBooking.getStartTime()),
+					StringPool.SPACE, userTimezoneDisplayName)
+			).put(
+				"title", calendarBooking.getTitle(user.getLocale())
+			).put(
+				"url",
+				_getCalendarBookingURL(
+					user, calendarBooking.getCalendarBookingId())
+			).build();
 
 		notificationTemplateContext.setAttributes(attributes);
 

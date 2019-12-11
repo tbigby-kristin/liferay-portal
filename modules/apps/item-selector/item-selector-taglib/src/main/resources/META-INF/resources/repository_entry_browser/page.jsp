@@ -75,6 +75,8 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 		<liferay-util:include page="/repository_entry_browser/search_info.jsp" servletContext="<%= application %>" />
 	</c:if>
 
+	<div class="message-container"></div>
+
 	<%
 	long folderId = ParamUtil.getLong(request, "folderId");
 
@@ -99,7 +101,7 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 		>
 			<input accept="<%= ListUtil.isEmpty(extensions) ? "*" : StringUtil.merge(extensions) %>" class="input-file" id="<%= randomNamespace %>InputFile" type="file" />
 
-			<label class="btn btn-default" for="<%= randomNamespace %>InputFile"><liferay-ui:message key="select-file" /></label>
+			<label class="btn btn-secondary" for="<%= randomNamespace %>InputFile"><liferay-ui:message key="select-file" /></label>
 		</liferay-util:buffer>
 
 		<div class="drop-enabled drop-zone">
@@ -196,6 +198,15 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 								<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(locale, System.currentTimeMillis() - fileEntry.getModifiedDate().getTime(), true), HtmlUtil.escape(fileEntry.getUserName())} %>" key="x-ago-by-x" translateArguments="<%= false %>" />
 							</liferay-ui:search-container-column-text>
 
+							<liferay-ui:search-container-column-text>
+								<clay:button
+									elementClasses="btn-outline-borderless btn-outline-secondary component-action icon-view"
+									icon="view"
+									monospaced="<%= true %>"
+									style="outline-secondary"
+								/>
+							</liferay-ui:search-container-column-text>
+
 						<%
 						}
 
@@ -232,6 +243,10 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 							>
 								<liferay-ui:message arguments="<%= new String[] {LanguageUtil.getTimeDescription(locale, System.currentTimeMillis() - folder.getModifiedDate().getTime(), true), HtmlUtil.escape(folder.getUserName())} %>" key="x-ago-by-x" translateArguments="<%= false %>" />
 							</liferay-ui:search-container-column-text>
+
+							<liferay-ui:search-container-column-text
+								value="--"
+							/>
 
 						<%
 						}
@@ -318,6 +333,8 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 										<c:choose>
 											<c:when test="<%= Validator.isNull(thumbnailSrc) %>">
 												<liferay-frontend:icon-vertical-card
+													actionJsp="/repository_entry_browser/action_button_preview.jsp"
+													actionJspServletContext="<%= application %>"
 													cardCssClass="card-interactive"
 													cssClass="file-card form-check form-check-card item-preview"
 													data="<%= data %>"
@@ -334,6 +351,8 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 											</c:when>
 											<c:otherwise>
 												<liferay-frontend:vertical-card
+													actionJsp="/repository_entry_browser/action_button_preview.jsp"
+													actionJspServletContext="<%= application %>"
 													cardCssClass="card-interactive"
 													cssClass="form-check form-check-card image-card item-preview"
 													data="<%= data %>"
@@ -342,7 +361,7 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 												>
 													<liferay-frontend:vertical-card-sticker-bottom>
 														<liferay-document-library:mime-type-sticker
-															cssClass="sticker-bottom sticker-secondary"
+															cssClass="sticker-bottom-left sticker-secondary"
 															fileVersion="<%= latestFileVersion %>"
 														/>
 													</liferay-frontend:vertical-card-sticker-bottom>
@@ -444,6 +463,15 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 										</div>
 									</liferay-ui:search-container-column-text>
 
+									<liferay-ui:search-container-column-text>
+										<clay:button
+											elementClasses="btn-outline-borderless btn-outline-secondary component-action icon-view"
+											icon="view"
+											monospaced="<%= true %>"
+											style="outline-secondary"
+										/>
+									</liferay-ui:search-container-column-text>
+
 								<%
 								}
 								%>
@@ -468,48 +496,53 @@ ItemSelectorRepositoryEntryManagementToolbarDisplayContext itemSelectorRepositor
 			/>
 		</c:if>
 	</c:if>
+
+	<div class="item-selector-preview-container"></div>
 </div>
 
-<aui:script use="liferay-item-selector-repository-entry-browser">
-	new Liferay.ItemSelectorRepositoryEntryBrowser(
-		{
-			closeCaption: '<%= UnicodeLanguageUtil.get(request, tabName) %>',
+<aui:script require='<%= npmResolvedPackageName + "/repository_entry_browser/js/ItemSelectorRepositoryEntryBrowser.es as ItemSelectorRepositoryEntryBrowser" %>'>
+	var itemSelector = new ItemSelectorRepositoryEntryBrowser.default({
+		closeCaption: '<%= UnicodeLanguageUtil.get(request, tabName) %>',
 
-			<c:if test="<%= uploadURL != null %>">
+		<c:if test="<%= uploadURL != null %>">
 
-				<%
-				String imageEditorPortletId = PortletProviderUtil.getPortletId(Image.class.getName(), PortletProvider.Action.EDIT);
-				%>
+			<%
+			String imageEditorPortletId = PortletProviderUtil.getPortletId(Image.class.getName(), PortletProvider.Action.EDIT);
+			%>
 
-				<c:if test="<%= Validator.isNotNull(imageEditorPortletId) %>">
-					<liferay-portlet:renderURL portletName="<%= imageEditorPortletId %>" var="viewImageEditorURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-						<liferay-portlet:param name="mvcRenderCommandName" value="/image_editor/view" />
-					</liferay-portlet:renderURL>
+			<c:if test="<%= Validator.isNotNull(imageEditorPortletId) %>">
+				<liferay-portlet:renderURL portletName="<%= imageEditorPortletId %>" var="viewImageEditorURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+					<liferay-portlet:param name="mvcRenderCommandName" value="/image_editor/view" />
+				</liferay-portlet:renderURL>
 
-					editItemURL: '<%= viewImageEditorURL.toString() %>',
-				</c:if>
+				editItemURL: '<%= viewImageEditorURL.toString() %>',
 			</c:if>
+		</c:if>
 
-			maxFileSize: '<%= maxFileSize %>',
-			on: {
-				selectedItem: function(event) {
-					Liferay.Util.getOpener().Liferay.fire('<%= itemSelectedEventName %>', event);
-				}
-			},
-			rootNode: '#<%= randomNamespace %>ItemSelectorContainer',
-			validExtensions: '<%= ListUtil.isEmpty(extensions) ? "*" : StringUtil.merge(extensions) %>'
+		maxFileSize: '<%= maxFileSize %>',
 
-			<c:if test="<%= uploadURL != null %>">
+		rootNode: '#<%= randomNamespace %>ItemSelectorContainer',
 
-				<%
-				String returnType = ItemSelectorRepositoryEntryBrowserUtil.getItemSelectorReturnTypeClassName(itemSelectorReturnTypeResolver, existingFileEntryReturnType);
+		validExtensions:
+			'<%= ListUtil.isEmpty(extensions) ? "*" : StringUtil.merge(extensions) %>',
 
-				uploadURL.setParameter("returnType", returnType);
-				%>
+		<c:if test="<%= uploadURL != null %>">
 
-				, uploadItemReturnType: '<%= HtmlUtil.escapeAttribute(returnType) %>',
-				uploadItemURL: '<%= uploadURL.toString() %>'
-			</c:if>
-		}
-	);
+			<%
+			String returnType = ItemSelectorRepositoryEntryBrowserUtil.getItemSelectorReturnTypeClassName(itemSelectorReturnTypeResolver, existingFileEntryReturnType);
+
+			uploadURL.setParameter("returnType", returnType);
+			%>
+
+			uploadItemReturnType: '<%= HtmlUtil.escapeAttribute(returnType) %>',
+			uploadItemURL: '<%= uploadURL.toString() %>'
+		</c:if>
+	});
+
+	itemSelector.on('selectedItem', function(event) {
+		Liferay.Util.getOpener().Liferay.fire(
+			'<%= itemSelectedEventName %>',
+			event
+		);
+	});
 </aui:script>

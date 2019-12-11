@@ -136,11 +136,16 @@ public class BackgroundTaskMessageListener extends BaseMessageListener {
 		catch (DuplicateLockException dle) {
 			status = BackgroundTaskConstants.STATUS_QUEUED;
 
-			if (_log.isInfoEnabled()) {
-				_log.info(
+			if (_log.isDebugEnabled()) {
+				_log.debug(
 					"Unable to acquire lock, queuing background task " +
 						backgroundTaskId,
 					dle);
+			}
+			else if (_log.isInfoEnabled()) {
+				_log.info(
+					"Unable to acquire lock, queuing background task " +
+						backgroundTaskId);
 			}
 		}
 		catch (Exception e) {

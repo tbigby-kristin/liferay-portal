@@ -14,7 +14,6 @@
 
 package com.liferay.sync.internal.servlet;
 
-import com.liferay.document.library.kernel.exception.DuplicateFileException;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.exception.NoSuchFileVersionException;
 import com.liferay.document.library.kernel.model.DLFileVersion;
@@ -28,8 +27,6 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Image;
 import com.liferay.portal.kernel.model.ImageConstants;
@@ -255,16 +252,25 @@ public class SyncDownloadServlet extends HttpServlet {
 		DLFileVersion sourceDLFileVersion =
 			_dlFileVersionLocalService.getDLFileVersion(sourceVersionId);
 
-		File sourceFile = _dlFileEntryLocalService.getFile(
-			fileEntryId, sourceDLFileVersion.getVersion(), false);
+		File sourceFile = FileUtil.createTempFile(
+			_dlFileEntryLocalService.getFileAsStream(
+				fileEntryId, sourceDLFileVersion.getVersion(), false));
 
 		DLFileVersion targetDLFileVersion =
 			_dlFileVersionLocalService.getDLFileVersion(targetVersionId);
 
-		File targetFile = _dlFileEntryLocalService.getFile(
-			fileEntryId, targetDLFileVersion.getVersion(), false);
+		File targetFile = FileUtil.createTempFile(
+			_dlFileEntryLocalService.getFileAsStream(
+				fileEntryId, targetDLFileVersion.getVersion(), false));
 
-		return _syncHelper.getFileDelta(sourceFile, targetFile);
+		try {
+			return _syncHelper.getFileDelta(sourceFile, targetFile);
+		}
+		finally {
+			sourceFile.delete();
+
+			targetFile.delete();
+		}
 	}
 
 	protected DownloadServletInputStream getFileDownloadServletInputStream(
@@ -357,19 +363,9 @@ public class SyncDownloadServlet extends HttpServlet {
 				userId, fileEntry.getFileEntryId(), sourceVersionId,
 				targetVersionId);
 
-			try {
-				SyncDLFileVersionDiffLocalServiceUtil.addSyncDLFileVersionDiff(
-					fileEntry.getFileEntryId(), sourceVersionId,
-					targetVersionId, deltaFile);
-			}
-			catch (DuplicateFileException dfe) {
-
-				// LPS-52675
-
-				if (_log.isDebugEnabled()) {
-					_log.debug(dfe, dfe);
-				}
-			}
+			SyncDLFileVersionDiffLocalServiceUtil.addSyncDLFileVersionDiff(
+				fileEntry.getFileEntryId(), sourceVersionId, targetVersionId,
+				deltaFile);
 
 			return new DownloadServletInputStream(
 				new FileInputStream(deltaFile), deltaFile.length());
@@ -585,9 +581,6 @@ public class SyncDownloadServlet extends HttpServlet {
 	}
 
 	private static final String _ERROR_HEADER = "Sync-Error";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SyncDownloadServlet.class);
 
 	private DLAppService _dlAppService;
 	private DLFileEntryLocalService _dlFileEntryLocalService;

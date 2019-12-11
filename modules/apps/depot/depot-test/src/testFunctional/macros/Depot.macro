@@ -1,0 +1,267 @@
+definition {
+
+	macro addDepot {
+		LexiconEntry.gotoAdd();
+
+		Type(
+			locator1 = "TextInput#NAME",
+			value1 = "${depotName}");
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessageText(successMessage = "Repository was added.");
+
+		AssertTextEquals(
+			locator1 = "ControlMenu#HEADING",
+			value1 = "${depotName}");
+
+		if (isSet(depotDescription)) {
+			Type(
+				locator1 = "TextArea#DESCRIPTION",
+				value1 = "${depotDescription}");
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro connectSite {
+		for (var siteName : list "${siteList}") {
+			Button.clickAdd();
+
+			SelectFrame(locator1 = "IFrame#SELECT_SITES");
+
+			Navigator.gotoNavItem(navItem = "My Sites");
+
+			SiteSelector.selectSite(site = "${siteName}");
+
+			SelectFrame(value1 = "relative=top");
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro deleteCP {
+		if (isSet(deletions)) {
+			ClickNoError(locator1 = "Icon#DELETE");
+		}
+
+		else {
+			LexiconEntry.gotoEntryMenuItemNoError(
+				menuItem = "Delete",
+				rowEntry = "${depotName}");
+		}
+
+		AssertConfirm(value1 = "Removing a repository can affect sites that use the contents stored in it. Are you sure you want to continue removing this repository?");
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro disconnectSite {
+		for (var siteName : list "${siteList}") {
+			ClickNoError(
+				key_entryName = "${siteName}",
+				locator1 = "LexiconTable#TABLE_ENTRY_DELETE");
+
+			AssertConfirm(value1 = "Removing this site connection will not allow the site to consume data from this repository directly.");
+
+			Alert.viewSuccessMessage();
+		}
+	}
+
+	macro editDepot {
+		if (isSet(listView)) {
+			LexiconEntry.changeDisplayStyle(displayStyle = "list");
+
+			Click(
+				key_listEntry = "${depotName}",
+				locator1 = "LexiconList#LIST_ENTRY_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Edit");
+		}
+
+		else if (isSet(tableView)) {
+			LexiconEntry.changeDisplayStyle(displayStyle = "table");
+
+			Click(
+				key_tableEntry = "${depotName}",
+				locator1 = "LexiconTable#TABLE_ENTRY_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Edit");
+		}
+
+		else {
+			DepotNavigator.gotoEdit(depotName = "${depotName}");
+		}
+
+		if (isSet(depotNameEdit)) {
+			Type(
+				locator1 = "TextInput#NAME",
+				value1 = "${depotNameEdit}");
+		}
+
+		if (isSet(depotDescriptionEdit)) {
+			Type(
+				locator1 = "TextArea#DESCRIPTION",
+				value1 = "${depotDescriptionEdit}");
+		}
+
+		Button.clickSave();
+
+		Alert.viewSuccessMessage();
+	}
+
+	macro viewConnectedSite {
+		for (var siteName : list "${siteList}") {
+			AssertElementPresent(
+				key_tableEntry = "${siteName}",
+				locator1 = "LexiconTable#TABLE_ENTRY");
+		}
+	}
+
+	macro viewCurrentLanguages {
+		AssertTextEquals(
+			key_title = "Available Languages",
+			locator1 = "Header#H4_SPECIFIC_TITLE",
+			value1 = "Available Languages");
+
+		for (var currentLanguage : list "${currentLanguages}") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "LanguageConfiguration#LANGUAGES_CURRENT",
+				value1 = "${currentLanguage}");
+		}
+	}
+
+	macro viewDefaultCP {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO",
+			value1 = "No repositories were found.");
+	}
+
+	macro viewDefaultLanguage {
+		AssertTextEquals(
+			key_title = "Default Language",
+			locator1 = "Header#H4_SPECIFIC_TITLE",
+			value1 = "Default Language");
+
+		PortalSettings.viewDefaultLanguageCP(defaultPortalLanguage = "${defaultDepotLanguage}");
+	}
+
+	macro viewDefaultLanguagesConfiguration {
+		AssertChecked.assertCheckedNotVisible(
+			key_languagesOption = "Use the default language options.",
+			locator1 = "Radio#DEPOT_LANGUAGES_OPTION");
+
+		AssertNotChecked.assertNotCheckedNotVisible(
+			key_languagesOption = "Define a custom default language and additional available languages for this repository.",
+			locator1 = "Radio#DEPOT_LANGUAGES_OPTION");
+
+		AssertTextEquals(
+			key_titleName = "Default Language",
+			locator1 = "LanguageConfiguration#DEPOT_MUTED_TITLE",
+			value1 = "Default Language");
+
+		AssertTextEquals(
+			key_language = "English (United States)",
+			locator1 = "LanguageConfiguration#DEPOT_MUTED_DEFAULT_LANGUAGE",
+			value1 = "English (United States)");
+
+		AssertTextEquals(
+			key_titleName = "Available Languages",
+			locator1 = "LanguageConfiguration#DEPOT_MUTED_TITLE",
+			value1 = "Available Languages");
+
+		AssertTextEquals(
+			key_languages = "English (United States), Arabic (Saudi Arabia), Catalan (Spain), Chinese (China), Dutch (Netherlands), Finnish (Finland), French (France), German (Germany), Hungarian (Hungary), Japanese (Japan), Portuguese (Brazil), Spanish (Spain), Swedish (Sweden)",
+			locator1 = "LanguageConfiguration#DEPOT_MUTED_AVAILABLE_LANGUAGES",
+			value1 = "English (United States), Arabic (Saudi Arabia), Catalan (Spain), Chinese (China), Dutch (Netherlands), Finnish (Finland), French (France), German (Germany), Hungarian (Hungary), Japanese (Japan), Portuguese (Brazil), Spanish (Spain), Swedish (Sweden)");
+
+		AssertElementPresent(locator1 = "Button#SAVE");
+	}
+
+	macro viewGeneralLanguageOptions {
+		Page.viewFriendlyURLLanguageOptionsPG(
+			currentLanguageList = "${currentLanguageList}",
+			fieldName = "Name");
+
+		Page.viewFriendlyURLLanguageOptionsPG(
+			currentLanguageList = "${currentLanguageList}",
+			fieldName = "Description");
+	}
+
+	macro viewLanguageOptionsInWebContent {
+		Click(locator1 = "Button#LOCALIZATION_GENERIC");
+
+		for (var locale : list "${currentLanguageList}") {
+			AssertElementPresent(
+				key_locale = "${locale}",
+				locator1 = "Translation#LOCALIZATION_NAME");
+		}
+
+		Click(
+			key_portletName = "JournalPortlet_Menu",
+			locator1 = "Button#LANGUAGE_DROPDOWN");
+
+		for (var locale : list "${currentLanguageList}") {
+			AssertElementPresent(
+				key_locale = "${locale}",
+				locator1 = "Translation#LOCALIZATION_NAME");
+		}
+
+		Panel.expandPanel(panel = "Basic Information");
+
+		Page.viewFriendlyURLLanguageOptionsPG(
+			currentLanguageList = "${currentLanguageList}",
+			fieldName = "Summary");
+
+		Panel.expandPanel(panel = "Friendly URL");
+
+		Click(
+			key_portletName = "JournalPortlet_friendlyURLMenu",
+			locator1 = "Button#LANGUAGE_DROPDOWN");
+
+		for (var locale : list "${currentLanguageList}") {
+			AssertElementPresent(
+				key_locale = "${locale}",
+				locator1 = "Translation#LOCALIZATION_NAME");
+		}
+	}
+
+	macro viewNoConnectedSiteCP {
+		AssertTextEquals(
+			locator1 = "Message#EMPTY_INFO_DEPOT",
+			value1 = "No sites are connected yet.");
+	}
+
+	macro viewSearchResult {
+		if ("${resultCount}" != "1") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "ManagementBar#SEARCH_RESULT_SUMMARY",
+				value1 = "${resultCount} Results for ${searchTerm}");
+		}
+
+		else {
+			AssertTextEquals.assertPartialText(
+				locator1 = "ManagementBar#SEARCH_RESULT_SUMMARY",
+				value1 = "1 Result for ${searchTerm}");
+		}
+
+		for (var depotName : list "${includedResults}") {
+			var key_card = "${depotName}";
+
+			AssertTextEquals(
+				locator1 = "LexiconCard#CARD_TITLE",
+				value1 = "${depotName}");
+		}
+
+		if (isSet(excludedResults)) {
+			for (var depotName : list "${excludedResults}") {
+				var key_card = "${depotName}";
+
+				AssertElementNotPresent(locator1 = "LexiconCard#CARD_TITLE");
+			}
+		}
+	}
+
+}

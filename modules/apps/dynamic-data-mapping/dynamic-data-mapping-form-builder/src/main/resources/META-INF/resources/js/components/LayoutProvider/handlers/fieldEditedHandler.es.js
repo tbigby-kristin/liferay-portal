@@ -13,6 +13,7 @@
  */
 
 import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
+
 import {updateFocusedField} from '../util/focusedField.es';
 import {updateRulesReferences} from '../util/rules.es';
 
@@ -22,18 +23,11 @@ export const updatePages = (pages, oldFieldProperties, newFieldProperties) => {
 	return FormSupport.updateField(pages, fieldName, newFieldProperties);
 };
 
-export const updateField = (
-	state,
-	defaultLanguageId,
-	editingLanguageId,
-	fieldName,
-	fieldValue
-) => {
+export const updateField = (props, state, fieldName, fieldValue) => {
 	const {focusedField, pages, rules} = state;
 	const updatedFocusedField = updateFocusedField(
+		props,
 		state,
-		defaultLanguageId,
-		editingLanguageId,
 		fieldName,
 		fieldValue
 	);
@@ -49,23 +43,12 @@ export const updateField = (
 	};
 };
 
-export const handleFieldEdited = (
-	state,
-	defaultLanguageId,
-	editingLanguageId,
-	event
-) => {
+export const handleFieldEdited = (props, state, event) => {
 	const {propertyName, propertyValue} = event;
 	let newState = {};
 
 	if (propertyName !== 'name' || propertyValue !== '') {
-		newState = updateField(
-			state,
-			defaultLanguageId,
-			editingLanguageId,
-			propertyName,
-			propertyValue
-		);
+		newState = updateField(props, state, propertyName, propertyValue);
 	}
 
 	return newState;

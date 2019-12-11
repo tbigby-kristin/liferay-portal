@@ -22,6 +22,8 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.TreeMap;
+
 /**
  * @author David Truong
  * @author Jesse Rao
@@ -35,14 +37,14 @@ public class RobotsUtil {
 	}
 
 	public static String getDefaultRobots(
-		String virtualHost, boolean secure, int port) {
+		String virtualHostname, boolean secure, int port) {
 
-		if (Validator.isNotNull(virtualHost)) {
+		if (Validator.isNotNull(virtualHostname)) {
 			String content = ContentUtil.get(
 				RobotsUtil.class.getClassLoader(),
 				PropsValues.ROBOTS_TXT_WITH_SITEMAP);
 
-			content = StringUtil.replace(content, "[$HOST$]", virtualHost);
+			content = StringUtil.replace(content, "[$HOST$]", virtualHostname);
 			content = StringUtil.replace(
 				content, "[$PORT$]", String.valueOf(port));
 
@@ -70,12 +72,14 @@ public class RobotsUtil {
 			return getDefaultRobots(null, secure, portalServerPort);
 		}
 
+		TreeMap<String, String> virtualHostnames =
+			PortalUtil.getVirtualHostnames(layoutSet);
+
 		return GetterUtil.get(
 			layoutSet.getSettingsProperty(
 				layoutSet.isPrivateLayout() + "-robots.txt"),
 			getDefaultRobots(
-				PortalUtil.getVirtualHostname(layoutSet), secure,
-				portalServerPort));
+				virtualHostnames.firstKey(), secure, portalServerPort));
 	}
 
 }

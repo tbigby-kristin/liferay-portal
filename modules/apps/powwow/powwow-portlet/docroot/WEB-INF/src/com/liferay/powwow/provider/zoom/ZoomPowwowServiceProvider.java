@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -86,17 +87,14 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 
 	@Override
 	public Map<String, String> getIndexFields(PowwowMeeting powwowMeeting) {
-		Map<String, String> indexFields = new HashMap<>();
-
 		Map<String, Serializable> providerTypeMetadata =
 			powwowMeeting.getProviderTypeMetadataMap();
 
-		indexFields.put(
-			"zoomHostId", String.valueOf(providerTypeMetadata.get("host_id")));
-		indexFields.put(
-			"zoomMeetingId", String.valueOf(providerTypeMetadata.get("id")));
-
-		return indexFields;
+		return HashMapBuilder.put(
+			"zoomHostId", String.valueOf(providerTypeMetadata.get("host_id"))
+		).put(
+			"zoomMeetingId", String.valueOf(providerTypeMetadata.get("id"))
+		).build();
 	}
 
 	@Override
@@ -178,18 +176,17 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 		User user, PowwowServer powwowServer, long powwowMeetingId, String name,
 		Map<String, String> options) {
 
-		Map<String, String> parameterMap = new HashMap<>();
-
 		String hostId = getHostId(user, powwowServer);
 
-		parameterMap.put("host_id", hostId);
-
-		parameterMap.put(
+		Map<String, String> parameterMap = HashMapBuilder.put(
+			"host_id", hostId
+		).put(
 			"option_host_video",
-			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO));
-		parameterMap.put(
+			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO)
+		).put(
 			"option_participants_video",
-			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO));
+			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO)
+		).build();
 
 		String password = options.get(PowwowMeetingConstants.OPTION_PASSWORD);
 
@@ -200,19 +197,24 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 		parameterMap.put("topic", name);
 		parameterMap.put("type", _MEETING_TYPE_RECURRING);
 
-		JSONObject responseJSONObject = execute(
-			powwowServer, "meeting", "create", parameterMap);
+		Map<String, Serializable> providerTypeMetadataMap =
+			HashMapBuilder.<String, Serializable>put(
+				"host_id", hostId
+			).put(
+				"id",
+				() -> {
+					JSONObject responseJSONObject = execute(
+						powwowServer, "meeting", "create", parameterMap);
 
-		Map<String, Serializable> providerTypeMetadataMap = new HashMap<>();
-
-		providerTypeMetadataMap.put("host_id", hostId);
-		providerTypeMetadataMap.put("id", responseJSONObject.getString("id"));
-		providerTypeMetadataMap.put(
-			"option_host_video",
-			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO));
-		providerTypeMetadataMap.put(
-			"option_participants_video",
-			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO));
+					return responseJSONObject.getString("id");
+				}
+			).put(
+				"option_host_video",
+				options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO)
+			).put(
+				"option_participants_video",
+				options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO)
+			).build();
 
 		if (Validator.isNotNull(password)) {
 			providerTypeMetadataMap.put(
@@ -243,13 +245,17 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 	}
 
 	protected String createZoomHost(User user, PowwowServer powwowServer) {
-		Map<String, String> parameterMap = new HashMap<>();
-
-		parameterMap.put("dept", _DEPT_API);
-		parameterMap.put("email", user.getEmailAddress());
-		parameterMap.put("first_name", user.getFirstName());
-		parameterMap.put("last_name", user.getLastName());
-		parameterMap.put("type", String.valueOf(_USER_TYPE_PRO));
+		Map<String, String> parameterMap = HashMapBuilder.put(
+			"dept", _DEPT_API
+		).put(
+			"email", user.getEmailAddress()
+		).put(
+			"first_name", user.getFirstName()
+		).put(
+			"last_name", user.getLastName()
+		).put(
+			"type", String.valueOf(_USER_TYPE_PRO)
+		).build();
 
 		JSONObject responseJSONObject = execute(
 			powwowServer, "user", "custcreate", parameterMap);
@@ -276,9 +282,9 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 	}
 
 	protected void deleteZoomHost(PowwowServer powwowServer, String hostId) {
-		Map<String, String> params = new HashMap<>();
-
-		params.put("id", hostId);
+		Map<String, String> params = HashMapBuilder.put(
+			"id", hostId
+		).build();
 
 		JSONObject responseJSONObject = execute(
 			powwowServer, "user", "get", params);
@@ -504,17 +510,14 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 	}
 
 	protected Map<String, String> getParameterMap(PowwowMeeting powwowMeeting) {
-		Map<String, String> parameterMap = new HashMap<>();
-
 		Map<String, Serializable> providerTypeMetadataMap =
 			powwowMeeting.getProviderTypeMetadataMap();
 
-		parameterMap.put(
-			"host_id", String.valueOf(providerTypeMetadataMap.get("host_id")));
-		parameterMap.put(
-			"id", String.valueOf(providerTypeMetadataMap.get("id")));
-
-		return parameterMap;
+		return HashMapBuilder.put(
+			"host_id", String.valueOf(providerTypeMetadataMap.get("host_id"))
+		).put(
+			"id", String.valueOf(providerTypeMetadataMap.get("id"))
+		).build();
 	}
 
 	protected JSONArray getUsersJSONArray(PowwowServer powwowServer) {
@@ -602,24 +605,20 @@ public class ZoomPowwowServiceProvider extends BasePowwowServiceProvider {
 		PowwowServer powwowServer, PowwowMeeting powwowMeeting, String name,
 		User user, Map<String, String> options) {
 
-		Map<String, String> parameterMap = new HashMap<>();
-
 		Map<String, Serializable> providerTypeMetadataMap =
 			powwowMeeting.getProviderTypeMetadataMap();
 
-		parameterMap.put(
-			"id", String.valueOf(providerTypeMetadataMap.get("id")));
-
-		String hostId = getHostId(user, powwowServer);
-
-		parameterMap.put("host_id", hostId);
-
-		parameterMap.put(
+		Map<String, String> parameterMap = HashMapBuilder.put(
+			"host_id", getHostId(user, powwowServer)
+		).put(
+			"id", String.valueOf(providerTypeMetadataMap.get("id"))
+		).put(
 			"option_host_video",
-			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO));
-		parameterMap.put(
+			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO)
+		).put(
 			"option_participants_video",
-			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO));
+			options.get(PowwowMeetingConstants.OPTION_AUTO_START_VIDEO)
+		).build();
 
 		String password = options.get(PowwowMeetingConstants.OPTION_PASSWORD);
 

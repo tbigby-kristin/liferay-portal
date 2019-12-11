@@ -45,7 +45,7 @@ import java.io.InputStream;
  * try {
  * DLStoreUtil.addDirectory(companyId, repositoryId, dirName);
  * }
- * catch (DuplicateDirectoryException dde) {
+ * catch (PortalException pe) {
  * }
  *
  * DLStoreUtil.addFile(
@@ -59,21 +59,6 @@ import java.io.InputStream;
  * @see    DLStoreImpl
  */
 public class DLStoreUtil {
-
-	/**
-	 * Adds a directory.
-	 *
-	 * @param companyId the primary key of the company
-	 * @param repositoryId the primary key of the data repository (optionally
-	 *        {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
-	 * @param dirName the directory's name
-	 */
-	public static void addDirectory(
-			long companyId, long repositoryId, String dirName)
-		throws PortalException {
-
-		getStore().addDirectory(companyId, repositoryId, dirName);
-	}
 
 	/**
 	 * Adds a file based on a byte array.
@@ -184,17 +169,6 @@ public class DLStoreUtil {
 	}
 
 	/**
-	 * Ensures company's root directory exists.
-	 *
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 * @param companyId the primary key of the company
-	 */
-	@Deprecated
-	public static void checkRoot(long companyId) {
-		getStore().checkRoot(companyId);
-	}
-
-	/**
 	 * Creates a new copy of the file version.
 	 *
 	 * @param companyId the primary key of the company
@@ -259,69 +233,6 @@ public class DLStoreUtil {
 		throws PortalException {
 
 		getStore().deleteFile(companyId, repositoryId, fileName, versionLabel);
-	}
-
-	/**
-	 * Returns the file as a {@link File} object.
-	 *
-	 * <p>
-	 * This method is useful when optimizing low-level file operations like
-	 * copy. The client must not delete or change the returned {@link File}
-	 * object in any way. This method is only supported in certain stores. If
-	 * not supported, this method will throw an {@link
-	 * UnsupportedOperationException}.
-	 * </p>
-	 *
-	 * <p>
-	 * If using an S3 store, it is preferable for performance reasons to use
-	 * {@link #getFileAsStream(long, long, String)} instead of this method
-	 * wherever possible.
-	 * </p>
-	 *
-	 * @param  companyId the primary key of the company
-	 * @param  repositoryId the primary key of the data repository (optionally
-	 *         {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
-	 * @param  fileName the file's name
-	 * @return Returns the {@link File} object with the file's name
-	 */
-	public static File getFile(
-			long companyId, long repositoryId, String fileName)
-		throws PortalException {
-
-		return getStore().getFile(companyId, repositoryId, fileName);
-	}
-
-	/**
-	 * Returns the file as a {@link File} object.
-	 *
-	 * <p>
-	 * This method is useful when optimizing low-level file operations like
-	 * copy. The client must not delete or change the returned {@link File}
-	 * object in any way. This method is only supported in certain stores. If
-	 * not supported, this method will throw an {@link
-	 * UnsupportedOperationException}.
-	 * </p>
-	 *
-	 * <p>
-	 * If using an S3 store, it is preferable for performance reasons to use
-	 * {@link #getFileAsStream(long, long, String, String)} instead of this
-	 * method wherever possible.
-	 * </p>
-	 *
-	 * @param  companyId the primary key of the company
-	 * @param  repositoryId the primary key of the data repository (optionally
-	 *         {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
-	 * @param  fileName the file's name
-	 * @param  versionLabel the file's version label
-	 * @return Returns the {@link File} object with the file's name
-	 */
-	public static File getFile(
-			long companyId, long repositoryId, String fileName,
-			String versionLabel)
-		throws PortalException {
-
-		return getStore().getFile(
-			companyId, repositoryId, fileName, versionLabel);
 	}
 
 	/**
@@ -449,23 +360,6 @@ public class DLStoreUtil {
 	}
 
 	/**
-	 * Returns <code>true</code> if the directory exists.
-	 *
-	 * @param  companyId the primary key of the company
-	 * @param  repositoryId the primary key of the data repository (optionally
-	 *         {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
-	 * @param  dirName the directory's name
-	 * @return <code>true</code> if the directory exists; <code>false</code>
-	 *         otherwise
-	 */
-	public static boolean hasDirectory(
-			long companyId, long repositoryId, String dirName)
-		throws PortalException {
-
-		return getStore().hasDirectory(companyId, repositoryId, dirName);
-	}
-
-	/**
 	 * Returns <code>true</code> if the file exists.
 	 *
 	 * @param  companyId the primary key of the company
@@ -504,52 +398,6 @@ public class DLStoreUtil {
 
 	public static boolean isValidName(String name) {
 		return getStore().isValidName(name);
-	}
-
-	/**
-	 * Moves an existing directory.
-	 *
-	 * @deprecated As of Mueller (7.2.x), with no direct replacement
-	 * @param srcDir the original directory's name
-	 * @param destDir the new directory's name
-	 */
-	@Deprecated
-	public static void move(String srcDir, String destDir) {
-		getStore().move(srcDir, destDir);
-	}
-
-	/**
-	 * Moves a file to a new data repository.
-	 *
-	 * @param companyId the primary key of the company
-	 * @param repositoryId the primary key of the data repository
-	 * @param newRepositoryId the primary key of the new data repository
-	 * @param fileName the file's name
-	 */
-	public static void updateFile(
-			long companyId, long repositoryId, long newRepositoryId,
-			String fileName)
-		throws PortalException {
-
-		getStore().updateFile(
-			companyId, repositoryId, newRepositoryId, fileName);
-	}
-
-	/**
-	 * Update's the file's name
-	 *
-	 * @param companyId the primary key of the company
-	 * @param repositoryId the primary key of the data repository (optionally
-	 *        {@link com.liferay.portal.kernel.model.CompanyConstants#SYSTEM})
-	 * @param fileName the file's name
-	 * @param newFileName the file's new name
-	 */
-	public static void updateFile(
-			long companyId, long repositoryId, String fileName,
-			String newFileName)
-		throws PortalException {
-
-		getStore().updateFile(companyId, repositoryId, fileName, newFileName);
 	}
 
 	/**

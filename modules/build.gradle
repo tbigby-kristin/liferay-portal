@@ -13,6 +13,7 @@ import org.gradle.plugins.ide.eclipse.model.Classpath
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
 import org.gradle.plugins.ide.eclipse.model.EclipseModel
+import org.gradle.util.GUtil
 
 buildscript {
 	apply from: rootProject.file("build-buildscript.gradle"), to: buildscript
@@ -22,15 +23,15 @@ apply plugin: "com.liferay.yarn.defaults.plugin"
 
 ext {
 	projectTemplateTokens = [
-		"biz.aQute.bnd.version": "3.5.0",
-		"com.liferay.ant.bnd.version": "3.1.0",
-		"com.liferay.css.builder.version": "3.0.0",
-		"com.liferay.gradle.plugins.css.builder.version": "3.0.0",
+		"biz.aQute.bnd.version": "4.3.0",
+		"com.liferay.ant.bnd.version": "3.2.3",
+		"com.liferay.css.builder.version": "3.0.2",
+		"com.liferay.gradle.plugins.css.builder.version": "3.0.3",
 		"com.liferay.gradle.plugins.theme.builder.version": "2.0.7",
-		"com.liferay.gradle.plugins.version": "4.4.5",
-		"com.liferay.gradle.plugins.workspace.version": "2.1.5",
-		"com.liferay.portal.tools.bundle.support.version": "3.4.3",
-		"com.liferay.portal.tools.service.builder.version": "1.0.298",
+		"com.liferay.gradle.plugins.version": "4.4.83",
+		"com.liferay.gradle.plugins.workspace.version": "2.1.13",
+		"com.liferay.portal.tools.bundle.support.version": "3.5.1",
+		"com.liferay.portal.tools.service.builder.version": "1.0.316",
 		"com.liferay.portal.tools.soy.builder.version": "3.0.4",
 		"com.liferay.portal.tools.theme.builder.version": "1.1.7"
 	]
@@ -58,7 +59,7 @@ if (Boolean.getBoolean("build.bnd.print.enabled")) {
 
 buildDir = new File(rootDir.parentFile, "build")
 
-for (String gradleVersion in ["2.5", "2.14", "4.10.2"]) {
+for (String gradleVersion in ["2.5", "2.14", "4.10.2", "5.6.4"]) {
 	String gradleDistributionURL = "https://services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 	String suffix = gradleVersion.replace(".", "")
 
@@ -142,6 +143,56 @@ gradle.beforeProject {
 			}
 		}
 
+		if (project.path.startsWith(":sdk:project-templates:project-templates")) {
+			File mavenWrapperPropertiesFile = project.project(":sdk:project-templates:project-templates").file("src/main/resources/maven-wrapper/.mvn/wrapper/maven-wrapper.properties")
+
+			Properties mavenWrapperProperties = GUtil.loadProperties(mavenWrapperPropertiesFile)
+
+			String mavenDistributionVersion = mavenWrapperProperties["distributionUrl"]
+
+			mavenDistributionVersion = mavenDistributionVersion.find(/\d+\.\d+\.\d+/)
+
+			configurations {
+				mavenDistribution
+			}
+
+			dependencies {
+				mavenDistribution classifier: "bin", ext: "zip", group: "org.apache.maven", name: "apache-maven", version: mavenDistributionVersion
+			}
+
+			test {
+				doFirst {
+					Properties gradleWrapperProperties = new Properties()
+
+					File gradleWrapperPropertiesFile = project.project(":sdk:project-templates:project-templates").file("src/main/resources/gradle-wrapper/gradle/wrapper/gradle-wrapper.properties")
+
+					gradleWrapperPropertiesFile.withInputStream {
+						gradleWrapperProperties.load it
+					}
+
+					String gradleDistributionUrl = gradleWrapperProperties["distributionUrl"]
+
+					File gradleDistributionFile = FileUtil.get(project, gradleDistributionUrl)
+
+					systemProperty "gradle.distribution", uri(gradleDistributionFile)
+					systemProperty "maven.distribution.file.name", configurations.mavenDistribution.singleFile
+				}
+
+				jvmArgs "-XX:MaxMetaspaceSize=256m"
+				maxHeapSize = "1024m"
+
+				systemProperty "http.proxyHost", System.properties["http.proxyHost"]
+				systemProperty "http.proxyPort", System.properties["http.proxyPort"]
+				systemProperty "maven.debug", System.properties["maven.debug"]
+				systemProperty "maven.repo.local", System.properties["maven.repo.local"]
+				systemProperty "nodejs.npm.ci.registry", project.findProperty("nodejs.npm.ci.registry")
+				systemProperty "nodejs.npm.ci.sass.binary.site", project.findProperty("nodejs.npm.ci.sass.binary.site")
+				systemProperty "project.templates.test.builds", project.findProperty("project.templates.test.builds")
+				systemProperty "repository.url", System.properties["repository.url"]
+				systemProperty "test.debug.bundle.diffs", System.properties["test.debug.bundle.diffs"]
+			}
+		}
+
 		if (project.path.startsWith(":sdk:project-templates:project-templates-")) {
 			task generateSampleProject(type:JavaExec)
 
@@ -216,6 +267,12 @@ gradle.beforeProject {
 				baseline {
 					enabled = false
 				}
+			}
+		}
+
+		pluginManager.withPlugin("com.liferay.css.builder") {
+			buildCSS {
+				rtlExcludedPathRegexps = [".+"]
 			}
 		}
 

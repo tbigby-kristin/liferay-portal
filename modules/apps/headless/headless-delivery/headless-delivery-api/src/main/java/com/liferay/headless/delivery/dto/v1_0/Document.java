@@ -38,6 +38,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -87,6 +89,7 @@ public class Document {
 	@Schema(
 		description = "An array of images in several resolutions and sizes, created by the Adaptive Media framework."
 	)
+	@Valid
 	public AdaptedImage[] getAdaptedImages() {
 		return adaptedImages;
 	}
@@ -110,11 +113,14 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "An array of images in several resolutions and sizes, created by the Adaptive Media framework."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected AdaptedImage[] adaptedImages;
 
 	@Schema(description = "The document's average rating.")
+	@Valid
 	public AggregateRating getAggregateRating() {
 		return aggregateRating;
 	}
@@ -139,7 +145,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's average rating.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected AggregateRating aggregateRating;
 
@@ -167,11 +173,12 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's relative URL.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String contentUrl;
 
 	@Schema(description = "The document's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -195,11 +202,12 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
 	@Schema
+	@Valid
 	public CustomField[] getCustomFields() {
 		return customFields;
 	}
@@ -251,7 +259,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -279,7 +287,9 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The last time a field of the document changed."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -307,7 +317,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's description.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String description;
 
@@ -337,7 +347,9 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the `DocumentFolder` where this document is stored."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long documentFolderId;
 
@@ -367,7 +379,9 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The document's content type (e.g., `application/pdf`, etc.)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String encodingFormat;
 
@@ -395,7 +409,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's file extension.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String fileExtension;
 
@@ -421,7 +435,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -449,7 +463,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A list of keywords describing the document.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String[] keywords;
 
@@ -477,11 +491,12 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of comments on the document.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfComments;
 
 	@Schema
+	@Valid
 	public RelatedContent[] getRelatedContents() {
 		return relatedContents;
 	}
@@ -534,11 +549,12 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's size in bytes.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long sizeInBytes;
 
 	@Schema(description = "The categories associated with this document.")
+	@Valid
 	public TaxonomyCategory[] getTaxonomyCategories() {
 		return taxonomyCategories;
 	}
@@ -563,7 +579,7 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The categories associated with this document.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected TaxonomyCategory[] taxonomyCategories;
 
@@ -593,7 +609,9 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only field that adds `TaxonomyCategory` instances to the document."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected Long[] taxonomyCategoryIds;
 
@@ -621,13 +639,14 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The document's main title/name.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String title;
 
 	@Schema(
 		description = "A write-only property that specifies the document's default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -660,7 +679,9 @@ public class Document {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the document's default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -994,6 +1015,12 @@ public class Document {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.Document",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

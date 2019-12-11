@@ -81,55 +81,50 @@ if (selLayout != null) {
 }
 %>
 
-<aui:script use="aui-base,liferay-item-selector-dialog,node-event-simulate">
+<aui:script use="aui-base,node-event-simulate">
 	var groupId = A.one('#<portlet:namespace />groupId');
 	var layoutItemRemove = A.one('#<portlet:namespace />layoutItemRemove');
 	var layoutNameInput = A.one('#<portlet:namespace />layoutNameInput');
 	var layoutUuid = A.one('#<portlet:namespace />layoutUuid');
 	var privateLayout = A.one('#<portlet:namespace />privateLayout');
 
-	A.one('#<portlet:namespace />chooseLayout').on(
-		'click',
-		function(event) {
-			var itemSelectorDialog = new A.LiferayItemSelectorDialog(
-				{
+	A.one('#<portlet:namespace />chooseLayout').on('click', function(event) {
+		Liferay.Loader.require(
+			'frontend-js-web/liferay/ItemSelectorDialog.es',
+			function(ItemSelectorDialog) {
+				var itemSelectorDialog = new ItemSelectorDialog.default({
 					eventName: '<%= eventName %>',
-					on: {
-						selectedItemChange: function(event) {
-							var selectedItem = event.newVal;
-
-							if (selectedItem) {
-								groupId.val(selectedItem.groupId);
-
-								layoutUuid.val(selectedItem.id);
-
-								privateLayout.val(selectedItem.privateLayout);
-
-								layoutNameInput.html(selectedItem.name);
-								layoutNameInput.simulate('change');
-
-								layoutItemRemove.removeClass('hide');
-							}
-						}
-					},
-					'strings.add': '<liferay-ui:message key="done" />',
 					title: '<liferay-ui:message key="select-layout" />',
 					url: '<%= itemSelectorURL.toString() %>'
-				}
-			);
+				});
 
-			itemSelectorDialog.open();
-		}
-	);
+				itemSelectorDialog.on('selectedItemChange', function(event) {
+					var selectedItem = event.selectedItem;
 
-	layoutItemRemove.on(
-		'click',
-		function(event) {
-			layoutNameInput.html('<liferay-ui:message key="none" />');
+					if (selectedItem) {
+						groupId.val(selectedItem.groupId);
 
-			layoutUuid.val('');
+						layoutUuid.val(selectedItem.id);
 
-			layoutItemRemove.addClass('hide');
-		}
-	);
+						privateLayout.val(selectedItem.privateLayout);
+
+						layoutNameInput.html(selectedItem.name);
+						layoutNameInput.simulate('change');
+
+						layoutItemRemove.removeClass('hide');
+					}
+				});
+
+				itemSelectorDialog.open();
+			}
+		);
+	});
+
+	layoutItemRemove.on('click', function(event) {
+		layoutNameInput.html('<liferay-ui:message key="none" />');
+
+		layoutUuid.val('');
+
+		layoutItemRemove.addClass('hide');
+	});
 </aui:script>

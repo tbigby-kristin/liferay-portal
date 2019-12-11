@@ -23,7 +23,7 @@ definition {
 
 			MessageboardsThread.tearDownCP();
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 
 			WebContent.tearDownCP();
 
@@ -73,7 +73,7 @@ definition {
 
 		IFrame.closeFrame();
 
-		AssertVisible(
+		AssertElementPresent(
 			checkboxName = "fruit",
 			locator1 = "Checkbox#ANY_CHECKBOX");
 
@@ -85,9 +85,7 @@ definition {
 
 		Refresh();
 
-		AssertChecked(
-			checkboxName = "Blogs Entry",
-			locator1 = "Checkbox#ANY_CHECKBOX");
+		FormFields.viewCheckboxChecked(fieldName = "Blogs Entry");
 
 		AssertElementNotPresent(
 			checkboxName = "fruit",
@@ -95,7 +93,7 @@ definition {
 
 		SearchFacetPortlet.uncheckFacet(facetValueName = "Blogs Entry");
 
-		AssertVisible(
+		AssertElementPresent(
 			checkboxName = "fruit",
 			locator1 = "Checkbox#ANY_CHECKBOX");
 
@@ -103,13 +101,13 @@ definition {
 
 		SearchPortlets.searchEmbedded(searchTerm = "apple");
 
-		AssertVisible(
+		AssertElementPresent(
 			checkboxName = "fruit",
 			locator1 = "Checkbox#ANY_CHECKBOX");
 
 		SearchFacetPortlet.checkFacet(facetValueName = "Blogs Entry");
 
-		AssertVisible(
+		AssertElementPresent(
 			checkboxName = "fruit",
 			locator1 = "Checkbox#ANY_CHECKBOX");
 
@@ -119,13 +117,9 @@ definition {
 
 		Refresh();
 
-		AssertChecked(
-			checkboxName = "Blogs Entry",
-			locator1 = "Checkbox#ANY_CHECKBOX");
+		FormFields.viewCheckboxChecked(fieldName = "Blogs Entry");
 
-		AssertChecked(
-			checkboxName = "fruit",
-			locator1 = "Checkbox#ANY_CHECKBOX");
+		FormFields.viewCheckboxChecked(fieldName = "fruit");
 
 		SearchResultPortlet.viewNoSearchResults(searchTerm = "apple");
 	}
@@ -161,6 +155,8 @@ definition {
 	}
 
 	test AssertNonAdminsCannotAddCertainWidgets {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONRole.addRegularRole(
 			roleKey = "Can Add Widgets",
 			roleTitle = "Can Add Widgets");
@@ -198,70 +194,6 @@ definition {
 		Refresh();
 
 		Portlet.viewCannotAddPG(portletName = "Search Insights");
-	}
-
-	@priority = "4"
-	test AssertSearchInsightsExplain {
-		JSONWebcontent.addWebContent(
-			content = "WC Content",
-			groupName = "Guest",
-			title = "apple");
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		Navigator.openSpecificURL(url = "${portalURL}/web/guest/search");
-
-		Portlet.addPG(portletName = "Search Insights");
-
-		Portlet.gotoPortletOptions(
-			portletName = "Search Insights",
-			portletOption = "Configuration");
-
-		SelectFrame(locator1 = "IFrame#CONFIGURATION");
-
-		AssertChecked(
-			checkboxName = "Enable Score Explanation",
-			locator1 = "Checkbox#ANY_CHECKBOX");
-
-		IFrame.closeFrame();
-
-		SearchPortlets.searchEmbedded(searchTerm = "apple");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "SearchResults#SEARCH_INSIGHTS_PORTLET_STRING_QUERY",
-			value1 = "&quot;explain&quot;:true");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "SearchResults#SEARCH_INSIGHTS_PORTLET_RESPONSE_QUERY",
-			value1 = "buckets");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "SearchResults#SEARCH_INSIGHTS_PORTLET_RESPONSE_QUERY",
-			value1 = "_explanation");
-
-		Portlet.gotoPortletOptions(
-			portletName = "Search Insights",
-			portletOption = "Configuration");
-
-		SelectFrame(locator1 = "IFrame#CONFIGURATION");
-
-		Uncheck(
-			checkboxName = "Enable Score Explanation",
-			locator1 = "Checkbox#ANY_CHECKBOX");
-
-		PortletEntry.save();
-
-		IFrame.closeFrame();
-
-		SearchPortlets.searchEmbedded(searchTerm = "apple");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "SearchResults#SEARCH_INSIGHTS_PORTLET_STRING_QUERY",
-			value1 = "&quot;explain&quot;:false");
-
-		AssertTextNotEquals.assertNotPartialText(
-			locator1 = "SearchResults#SEARCH_INSIGHTS_PORTLET_RESPONSE_QUERY",
-			value1 = "_explanation");
 	}
 
 	@description = "This is a use case for LPS-89561."
@@ -354,6 +286,65 @@ definition {
 		}*/
 	}
 
+	@description = "This is a use case for LPS-95670."
+	@priority = "4"
+	test AssertSuggestionsCannotOfferInvalidWordsAsSuggestion {
+		property custom.properties = "locales.enabled=de_DE,en_US${line.separator}locales=de_DE,en_US${line.separator}index.search.spell.checker.dictionary[de_DE]=spellchecker/dictionary_de_DE.txt${line.separator}index.search.spell.checker.supported.locales=en_US,es_ES,de_DE";
+		property index.search.spell.checker.enabled = "true";
+		property test.name.skip.portal.instance = "Search#AssertSuggestionsCannotOfferInvalidWordsAsSuggestion";
+
+		JSONWebcontent.addBasicWebContentLocalized(
+			contentMap = "en_US:WC Content,de_DE:ächten angreifen anmarschieren",
+			groupName = "Guest",
+			titleMap = "en_US:WC Title,de_DE:WC Titel");
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/guest/search");
+
+		Portlet.addPG(portletName = "Suggestions");
+
+		Portlet.gotoPortletOptions(
+			portletName = "Suggestions",
+			portletOption = "Configuration");
+
+		SelectFrame(locator1 = "IFrame#CONFIGURATION");
+
+		FormFields.enableCheckbox(fieldName = "spellCheckSuggestionEnabled");
+
+		PortletEntry.save();
+
+		IFrame.closeFrame();
+
+		ProductMenu.gotoPortlet(
+			category = "Configuration",
+			panel = "Control Panel",
+			portlet = "Search");
+
+		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all spell check indexes.");
+
+		AssertConsoleTextPresent(value1 = "Finished indexing dictionary for spellchecker/dictionary_de_DE.txt");
+
+		Navigator.openURL();
+
+		Portlet.addPG(portletName = "Language Selector");
+
+		LanguagePortlet.selectLanguagePG(
+			locale = "de-DE",
+			textIcon = "deutsch-Deutschland");
+
+		for (var searchTerm : list "ächten,angreifen,anmarschieren") {
+			SearchPortlets.searchEmbedded(searchTerm = "${searchTerm}");
+
+			SearchResultPortlet.viewSearchResults(
+				searchAssetTitle = "WC Titel",
+				searchAssetType = "Webcontent, Artikel",
+				searchTerm = "${searchTerm}");
+
+			AssertElementNotPresent(locator1 = "Search#SEARCH_SUGGESTED_SPELLING");
+		}
+	}
+
 	@description = "This is a use case for LPS-90078."
 	@priority = "4"
 	test ModifyPaginationPortalProperties {
@@ -385,6 +376,10 @@ definition {
 		}
 
 		SearchPortlets.searchEmbedded(searchTerm = "WC Title");
+
+		while (IsElementNotPresent(locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE", key_searchAssetTitle = "WC Title 1")) {
+			Pause(locator1 = "5000");
+		}
 
 		Portlet.gotoPortletOptions(
 			portletName = "Search Results",
@@ -458,9 +453,7 @@ definition {
 			searchAssetTitle = "Potato Blog",
 			searchAssetType = "Blogs Entry");
 
-		AssertChecked(
-			checkboxName = "Blogs Entry",
-			locator1 = "Checkbox#ANY_CHECKBOX");
+		FormFields.viewCheckboxChecked(fieldName = "Blogs Entry");
 	}
 
 	test SearchAfterViewingResultDetails {
@@ -1071,6 +1064,7 @@ definition {
 	@description = "This test will assert that configurations set within the Embedded search bar will be used when searching via the Widget search bar"
 	@priority = "4"
 	test SearchDifferentScopesViaSearchWidget {
+		property custom.properties = "company.default.time.zone=America/Los_Angeles";
 		property portal.acceptance = "true";
 
 		ProductMenu.gotoPortlet(
@@ -1432,10 +1426,10 @@ definition {
 			key_facetClass = "Custom Facet",
 			locator1 = "SearchResults#FACET_PORTLET_CHECKBOX_LABEL_SPECIFIC");
 
-		Check(
+		Click(
 			key_checkboxName = "1.0",
 			key_facetClass = "Custom Facet",
-			locator1 = "SearchResults#FACET_PORTLET_CHECKBOX_SPECIFIC");
+			locator1 = "SearchResults#FACET_PORTLET_CHECKBOX_LABEL_SPECIFIC");
 
 		SearchResultPortlet.viewSearchResults(
 			searchAssetTitle = "WebContent Title 1",
@@ -1471,10 +1465,10 @@ definition {
 			key_facetClass = "Custom Facet",
 			locator1 = "SearchResults#FACET_PORTLET_CHECKBOX_LABEL_SPECIFIC");
 
-		Check(
+		Click(
 			key_checkboxName = "1.1",
 			key_facetClass = "Custom Facet",
-			locator1 = "SearchResults#FACET_PORTLET_CHECKBOX_SPECIFIC");
+			locator1 = "SearchResults#FACET_PORTLET_CHECKBOX_LABEL_SPECIFIC");
 
 		SearchResultPortlet.viewSearchResults(
 			searchAssetTitle = "WebContent Title 1.1",
@@ -1710,13 +1704,13 @@ definition {
 			key_day = "1",
 			locator1 = "YUICalendarWidget#DATEPICKER_SPECIFIC_DAY");
 
-		Click(locator1 = "Button#SEARCH");
+		AssertElementPresent(locator1 = "Message#ERROR_SELECT_VALID_DATE_RANGE");
 
-		SearchResultPortlet.viewNoSearchResults(searchTerm = "WC Title");
+		AssertVisible(locator1 = "Button#SEARCH_DISABLED");
 
 		// Workaround for LPS-82584
 
-		Click(locator1 = "Link#CLEAR");
+		SearchFacetPortlet.clearFacet();
 
 		Click(
 			locator1 = "Search#MODIFIED_FACET_SELECTION",
@@ -1738,67 +1732,6 @@ definition {
 			searchAssetTitle = "WC Title",
 			searchAssetType = "Web Content Article",
 			searchTerm = "WC Title");
-	}
-
-	test SearchWithNonLiferayIndex {
-		property test.name.skip.portal.instance = "Search#SearchWithNonLiferayIndex";
-
-		Navigator.openSpecificURL(url = "http://localhost:9200");
-
-		if (IsTextEqual.isPartialText(locator1 = "//body", value1 = "&quot;number&quot; : &quot;7")) {
-			AntCommand(
-				locator1 = "build-test-elasticsearch7.xml",
-				value1 = "add-boston-dataset-index");
-		}
-		else {
-			AntCommand(
-				locator1 = "build-test-elasticsearch6.xml",
-				value1 = "add-boston-dataset-index");
-		}
-
-		Navigator.openURL();
-
-		ProductMenu.gotoPortlet(
-			category = "Configuration",
-			panel = "Control Panel",
-			portlet = "Search");
-
-		SearchAdministration.executeSearchActions(actionsDescription = "Reindex all search indexes.");
-
-		JSONLayout.addPublicLayout(
-			groupName = "Guest",
-			layoutName = "Search Page");
-
-		var portalURL = PropsUtil.get("portal.url");
-
-		Navigator.openSpecificURL(url = "${portalURL}/web/guest/search-page");
-
-		SearchPortlets.addWidgets(searchPortletList = "Custom Filter,Low Level Search Options,Search Results,Search Bar");
-
-		SearchPortlets.configureCustomFilter(
-			customParameterName = "q",
-			federatedSearchKey = "s1",
-			filterField = "case_title,closure_reason",
-			filterQueryType = "Multi Match");
-
-		SearchPortlets.configureLowLevelSearchOptions(
-			federatedSearchKey = "s1",
-			indexes = "boston311");
-
-		SearchResultPortlet.configureSearchResults(
-			federatedSearchKey = "s1",
-			fieldsToDisplay = "case_title,closure_reason,case_enquiry_id");
-
-		SearchPortlets.searchWidget(searchTerm = "bicycle");
-
-		AssertTextEquals.assertPartialText(
-			key_searchAssetTitle = "Abandoned Bicycle",
-			locator1 = "SearchResults#ASSET_ENTRY_TABLE_TITLE",
-			value1 = "Abandoned Bicycle");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "SearchResults#RESULTS_PORTLET_SEARCH_QUERY",
-			value1 = "1 results for bicycle");
 	}
 
 	@priority = "4"
@@ -1839,6 +1772,8 @@ definition {
 	@description = "This is a use case for LPS-84035."
 	@priority = "5"
 	test ViewCreatedSearchPagePermissions {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
@@ -1924,6 +1859,8 @@ definition {
 	@description = "This is a use case for LPS-84035."
 	@priority = "5"
 	test ViewDefaultSearchPagePermissions {
+		property custom.properties = "jsonws.web.service.paths.excludes=";
+
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
@@ -2047,9 +1984,7 @@ definition {
 			searchAssetTitle = "Test Test",
 			searchAssetType = "User");
 
-		AssertChecked(
-			checkboxName = "${siteName}",
-			locator1 = "Checkbox#ANY_CHECKBOX");
+		FormFields.viewCheckboxChecked(fieldName = "${siteName}");
 	}
 
 	@priority = "5"
@@ -2478,10 +2413,14 @@ definition {
 			groupName = "Guest",
 			title = "Apple");
 
+		Pause(locator1 = "1000");
+
 		JSONWebcontent.addWebContent(
 			content = "Content",
 			groupName = "Guest",
 			title = "Banana");
+
+		Pause(locator1 = "1000");
 
 		JSONWebcontent.addWebContent(
 			content = "Content",

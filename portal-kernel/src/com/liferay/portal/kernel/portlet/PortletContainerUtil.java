@@ -120,8 +120,8 @@ public class PortletContainerUtil {
 
 		String location = actionResult.getLocation();
 
-		if (Validator.isNull(location) ||
-			(Validator.isNotNull(location) && portlet.isActionURLRedirect())) {
+		if (_PORTLET_EVENT_DISTRIBUTION_LAYOUT_SET ||
+			portlet.isActionURLRedirect() || Validator.isNull(location)) {
 
 			List<Event> events = actionResult.getEvents();
 

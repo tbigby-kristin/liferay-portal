@@ -154,7 +154,7 @@ else {
 	/>
 
 	<li class="control-menu-nav-item">
-		<div class="dropdown hidden-xs">
+		<div class="d-none d-sm-block dropdown">
 			<a class="dropdown-toggle taglib-icon" data-toggle="dropdown" href="javascript:;">
 				<aui:icon cssClass="icon-monospaced" image="ellipsis-v" markupView="lexicon" />
 
@@ -165,19 +165,19 @@ else {
 
 			<ul class="dropdown-menu dropdown-menu-right" role="menu">
 				<li>
-					<a href="javascript:;" id="manageLayoutSetRevisions" onclick="<%= renderResponse.getNamespace() + "openSitePagesVariationsDialog();" %>">
+					<a class="dropdown-item" href="javascript:;" id="manageLayoutSetRevisions" onclick="<%= renderResponse.getNamespace() + "openSitePagesVariationsDialog();" %>">
 						<liferay-ui:message key="site-pages-variation" />
 					</a>
 				</li>
 
 				<c:if test="<%= !layoutRevision.isIncomplete() %>">
 					<li>
-						<a href="javascript:;" id="manageLayoutRevisions" onclick="<%= renderResponse.getNamespace() + "openPageVariationsDialog();" %>">
+						<a class="dropdown-item" href="javascript:;" id="manageLayoutRevisions" onclick="<%= renderResponse.getNamespace() + "openPageVariationsDialog();" %>">
 							<liferay-ui:message key="page-variations" />
 						</a>
 					</li>
 					<li>
-						<a href="javascript:Liferay.fire('<%= liferayPortletResponse.getNamespace() %>viewHistory', {layoutRevisionId: '<%= layoutRevision.getLayoutRevisionId() %>', layoutSetBranchId: '<%= layoutRevision.getLayoutSetBranchId() %>'}); void(0);" id="viewHistoryLink">
+						<a class="dropdown-item" href="javascript:Liferay.fire('<%= liferayPortletResponse.getNamespace() %>viewHistory', {layoutRevisionId: '<%= layoutRevision.getLayoutRevisionId() %>', layoutSetBranchId: '<%= layoutRevision.getLayoutSetBranchId() %>'}); void(0);" id="viewHistoryLink">
 							<liferay-ui:message key="history" />
 						</a>
 					</li>
@@ -186,7 +186,7 @@ else {
 				<c:if test="<%= !hasWorkflowTask %>">
 					<c:if test="<%= !layoutRevision.isMajor() && (layoutRevision.getParentLayoutRevisionId() != LayoutRevisionConstants.DEFAULT_PARENT_LAYOUT_REVISION_ID) %>">
 						<li>
-							<a href="javascript:Liferay.fire('<%= liferayPortletResponse.getNamespace() %>undo', {layoutRevisionId: '<%= layoutRevision.getLayoutRevisionId() %>', layoutSetBranchId: '<%= layoutRevision.getLayoutSetBranchId() %>'}); void(0);" id="undoLink">
+							<a class="dropdown-item" href="javascript:Liferay.fire('<%= liferayPortletResponse.getNamespace() %>undo', {layoutRevisionId: '<%= layoutRevision.getLayoutRevisionId() %>', layoutSetBranchId: '<%= layoutRevision.getLayoutSetBranchId() %>'}); void(0);" id="undoLink">
 								<liferay-ui:message key="undo" />
 							</a>
 						</li>
@@ -203,7 +203,7 @@ else {
 						%>
 
 						<li>
-							<a href="javascript:Liferay.fire('<%= liferayPortletResponse.getNamespace() %>redo', {layoutRevisionId: '<%= firstChildLayoutRevision.getLayoutRevisionId() %>', layoutSetBranchId: '<%= firstChildLayoutRevision.getLayoutSetBranchId() %>'}); void(0);" id="redoLink">
+							<a class="dropdown-item" href="javascript:Liferay.fire('<%= liferayPortletResponse.getNamespace() %>redo', {layoutRevisionId: '<%= firstChildLayoutRevision.getLayoutRevisionId() %>', layoutSetBranchId: '<%= firstChildLayoutRevision.getLayoutSetBranchId() %>'}); void(0);" id="redoLink">
 								<liferay-ui:message key="redo" />
 							</a>
 						</li>
@@ -235,15 +235,13 @@ else {
 <aui:script position="inline" use="liferay-staging-version">
 	var stagingBar = Liferay.StagingBar;
 
-	stagingBar.init(
-		{
-			layoutRevisionStatusURL: '<%= layoutRevisionStatusURL %>',
-			markAsReadyForPublicationURL: '<%= markAsReadyForPublicationURL %>',
-			namespace: '<portlet:namespace />',
-			portletId: '<%= portletDisplay.getId() %>',
-			viewHistoryURL: '<%= viewHistoryURL %>'
-		}
-	);
+	stagingBar.init({
+		layoutRevisionStatusURL: '<%= layoutRevisionStatusURL %>',
+		markAsReadyForPublicationURL: '<%= markAsReadyForPublicationURL %>',
+		namespace: '<portlet:namespace />',
+		portletId: '<%= portletDisplay.getId() %>',
+		viewHistoryURL: '<%= viewHistoryURL %>'
+	});
 </aui:script>
 
 <liferay-util:buffer
@@ -260,61 +258,56 @@ else {
 
 <aui:script>
 	function <portlet:namespace />openPageVariationsDialog() {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					after: {
-						destroy: function(event) {
-							window.location.reload();
-						}
-					},
-					destroyOnHide: true
+		Liferay.Util.openWindow({
+			dialog: {
+				after: {
+					destroy: function(event) {
+						window.location.reload();
+					}
 				},
-				id: 'pagesVariationsDialog',
-				title: '<liferay-ui:message arguments="<%= pageVariationsHelpIcon %>" key="page-variations-x" />',
+				destroyOnHide: true
+			},
+			id: 'pagesVariationsDialog',
+			title:
+				'<liferay-ui:message arguments="<%= pageVariationsHelpIcon %>" key="page-variations-x" />',
 
-				<liferay-portlet:renderURL var="layoutBranchesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-					<portlet:param name="mvcRenderCommandName" value="viewLayoutBranches" />
-					<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(layoutSetBranch.getLayoutSetBranchId()) %>" />
-				</liferay-portlet:renderURL>
+			<liferay-portlet:renderURL var="layoutBranchesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+				<portlet:param name="mvcRenderCommandName" value="viewLayoutBranches" />
+				<portlet:param name="layoutSetBranchId" value="<%= String.valueOf(layoutSetBranch.getLayoutSetBranchId()) %>" />
+			</liferay-portlet:renderURL>
 
-				uri: '<%= HtmlUtil.escapeJS(layoutBranchesURL) %>'
-			}
-		);
+			uri: '<%= HtmlUtil.escapeJS(layoutBranchesURL) %>'
+		});
 	}
 
 	function <portlet:namespace />openSitePagesVariationsDialog() {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					after: {
-						destroy: function(event) {
-							window.location.reload();
-						}
-					},
-					destroyOnHide: true
+		Liferay.Util.openWindow({
+			dialog: {
+				after: {
+					destroy: function(event) {
+						window.location.reload();
+					}
 				},
-				id: 'sitePagesVariationDialog',
-				title: '<liferay-ui:message arguments="<%= sitePagesVariationsHelpIcon %>" key="site-pages-variation-x" />',
+				destroyOnHide: true
+			},
+			id: 'sitePagesVariationDialog',
+			title:
+				'<liferay-ui:message arguments="<%= sitePagesVariationsHelpIcon %>" key="site-pages-variation-x" />',
 
-				<liferay-portlet:renderURL var="layoutSetBranchesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-					<portlet:param name="mvcRenderCommandName" value="viewLayoutSetBranches" />
-				</liferay-portlet:renderURL>
+			<liferay-portlet:renderURL var="layoutSetBranchesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+				<portlet:param name="mvcRenderCommandName" value="viewLayoutSetBranches" />
+			</liferay-portlet:renderURL>
 
-				uri: '<%= HtmlUtil.escapeJS(layoutSetBranchesURL) %>'
-			}
-		);
+			uri: '<%= HtmlUtil.escapeJS(layoutSetBranchesURL) %>'
+		});
 	}
 
 	function <portlet:namespace />submitLayoutRevision(publishURL) {
-		Liferay.fire(
-			'<portlet:namespace />submit',
-			{
-				currentURL: '<%= currentURL %>',
-				incomplete: <%= layoutRevision.isIncomplete() %>,
-				publishURL: publishURL
-			}
-		);
+		Liferay.fire('<portlet:namespace />submit', {
+			currentURL: '<%= currentURL %>',
+			incomplete: <%= layoutRevision.isIncomplete() %>,
+			publishURL: publishURL
+		});
 
 		Liferay.Util.toggleDisabled('#<portlet:namespace />readyToggle', true);
 	}

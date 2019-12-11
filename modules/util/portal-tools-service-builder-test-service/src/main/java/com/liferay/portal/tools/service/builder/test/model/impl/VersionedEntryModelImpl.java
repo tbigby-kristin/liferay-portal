@@ -16,6 +16,7 @@ package com.liferay.portal.tools.service.builder.test.model.impl;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
@@ -23,7 +24,6 @@ import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.tools.service.builder.test.model.VersionedEntry;
 import com.liferay.portal.tools.service.builder.test.model.VersionedEntryModel;
 import com.liferay.portal.tools.service.builder.test.model.VersionedEntryVersion;
@@ -254,93 +254,24 @@ public class VersionedEntryModelImpl
 			new LinkedHashMap<String, BiConsumer<VersionedEntry, ?>>();
 
 		attributeGetterFunctions.put(
-			"mvccVersion",
-			new Function<VersionedEntry, Object>() {
-
-				@Override
-				public Object apply(VersionedEntry versionedEntry) {
-					return versionedEntry.getMvccVersion();
-				}
-
-			});
+			"mvccVersion", VersionedEntry::getMvccVersion);
 		attributeSetterBiConsumers.put(
 			"mvccVersion",
-			new BiConsumer<VersionedEntry, Object>() {
-
-				@Override
-				public void accept(
-					VersionedEntry versionedEntry, Object mvccVersion) {
-
-					versionedEntry.setMvccVersion((Long)mvccVersion);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"headId",
-			new Function<VersionedEntry, Object>() {
-
-				@Override
-				public Object apply(VersionedEntry versionedEntry) {
-					return versionedEntry.getHeadId();
-				}
-
-			});
+			(BiConsumer<VersionedEntry, Long>)VersionedEntry::setMvccVersion);
+		attributeGetterFunctions.put("headId", VersionedEntry::getHeadId);
 		attributeSetterBiConsumers.put(
 			"headId",
-			new BiConsumer<VersionedEntry, Object>() {
-
-				@Override
-				public void accept(
-					VersionedEntry versionedEntry, Object headId) {
-
-					versionedEntry.setHeadId((Long)headId);
-				}
-
-			});
+			(BiConsumer<VersionedEntry, Long>)VersionedEntry::setHeadId);
 		attributeGetterFunctions.put(
-			"versionedEntryId",
-			new Function<VersionedEntry, Object>() {
-
-				@Override
-				public Object apply(VersionedEntry versionedEntry) {
-					return versionedEntry.getVersionedEntryId();
-				}
-
-			});
+			"versionedEntryId", VersionedEntry::getVersionedEntryId);
 		attributeSetterBiConsumers.put(
 			"versionedEntryId",
-			new BiConsumer<VersionedEntry, Object>() {
-
-				@Override
-				public void accept(
-					VersionedEntry versionedEntry, Object versionedEntryId) {
-
-					versionedEntry.setVersionedEntryId((Long)versionedEntryId);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"groupId",
-			new Function<VersionedEntry, Object>() {
-
-				@Override
-				public Object apply(VersionedEntry versionedEntry) {
-					return versionedEntry.getGroupId();
-				}
-
-			});
+			(BiConsumer<VersionedEntry, Long>)
+				VersionedEntry::setVersionedEntryId);
+		attributeGetterFunctions.put("groupId", VersionedEntry::getGroupId);
 		attributeSetterBiConsumers.put(
 			"groupId",
-			new BiConsumer<VersionedEntry, Object>() {
-
-				@Override
-				public void accept(
-					VersionedEntry versionedEntry, Object groupId) {
-
-					versionedEntry.setGroupId((Long)groupId);
-				}
-
-			});
+			(BiConsumer<VersionedEntry, Long>)VersionedEntry::setGroupId);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);

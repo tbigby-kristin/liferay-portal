@@ -72,7 +72,9 @@ public class WorkflowTaskAssignToUser {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the user to assign the workflow task."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected Long assigneeId;
 
@@ -102,7 +104,9 @@ public class WorkflowTaskAssignToUser {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "An optional comment to add when assigning the workflow task."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected String comment;
 
@@ -132,7 +136,9 @@ public class WorkflowTaskAssignToUser {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The date on which the workflow task should be executed."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected Date dueDate;
 
@@ -209,6 +215,12 @@ public class WorkflowTaskAssignToUser {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.workflow.dto.v1_0.WorkflowTaskAssignToUser",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

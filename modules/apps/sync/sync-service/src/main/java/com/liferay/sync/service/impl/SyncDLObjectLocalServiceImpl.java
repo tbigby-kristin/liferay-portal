@@ -58,33 +58,6 @@ import org.osgi.service.component.annotations.Reference;
 public class SyncDLObjectLocalServiceImpl
 	extends SyncDLObjectLocalServiceBaseImpl {
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #addSyncDLObject(long, long, String, long, long, long,
-	 *             String, String, String, String, String, String, String,
-	 *             String, long, long, String, String, String, Date, long,
-	 *             String, String, long, String)}
-	 */
-	@Deprecated
-	@Override
-	public SyncDLObject addSyncDLObject(
-			long companyId, long userId, String userName, long modifiedTime,
-			long repositoryId, long parentFolderId, String treePath,
-			String name, String extension, String mimeType, String description,
-			String changeLog, String extraSettings, String version,
-			long versionId, long size, String checksum, String event,
-			Date lockExpirationDate, long lockUserId, String lockUserName,
-			String type, long typePK, String typeUuid)
-		throws PortalException {
-
-		return addSyncDLObject(
-			companyId, userId, userName, modifiedTime, repositoryId,
-			parentFolderId, treePath, name, extension, mimeType, description,
-			changeLog, extraSettings, version, versionId, size, checksum, event,
-			StringPool.BLANK, lockExpirationDate, lockUserId, lockUserName,
-			type, typePK, typeUuid);
-	}
-
 	@Override
 	public SyncDLObject addSyncDLObject(
 			long companyId, long userId, String userName, long modifiedTime,
@@ -271,8 +244,8 @@ public class SyncDLObjectLocalServiceImpl
 		List<Long> modifiedTimes = syncDLObjectPersistence.findWithDynamicQuery(
 			dynamicQuery);
 
-		if (modifiedTimes.isEmpty() || (modifiedTimes.get(0) == 0)) {
-			return System.currentTimeMillis();
+		if (modifiedTimes.isEmpty()) {
+			return 0;
 		}
 
 		return modifiedTimes.get(0);

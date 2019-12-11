@@ -17,34 +17,45 @@ import Soy from 'metal-soy';
 import {Config} from 'metal-state';
 
 import '../floating_toolbar/background_color/FloatingToolbarBackgroundColorPanel.es';
+
 import '../floating_toolbar/layout_background_image/FloatingToolbarLayoutBackgroundImagePanel.es';
+
 import '../floating_toolbar/spacing/FloatingToolbarSpacingPanel.es';
+
 import './ColumnOverlayGrid.es';
+
+import './DropZoneFragmentEntryLink.es';
+
 import './FragmentEntryLink.es';
-import FloatingToolbar from '../floating_toolbar/FloatingToolbar.es';
-import {
-	FLOATING_TOOLBAR_BUTTONS,
-	FRAGMENTS_EDITOR_ITEM_TYPES,
-	FRAGMENTS_EDITOR_ROW_TYPES
-} from '../../utils/constants';
-import {getAssetFieldValue} from '../../utils/FragmentsEditorFetchUtils.es';
+import {removeRowAction} from '../../actions/removeRow.es';
+import {updateRowColumnsAction} from '../../actions/updateRowColumns.es';
 import getConnectedComponent from '../../store/ConnectedComponent.es';
+import {
+	shouldUpdatePureComponent,
+	onPropertiesChanged
+} from '../../utils/FragmentsEditorComponentUtils.es';
+import {getAssetFieldValue} from '../../utils/FragmentsEditorFetchUtils.es';
 import {
 	getItemMoveDirection,
 	getItemPath,
 	getRowIndex,
 	itemIsInPath,
-	editableIsMappedToAssetEntry
+	editableIsMappedToInfoItem
 } from '../../utils/FragmentsEditorGetUtils.es';
 import {
 	moveRow,
 	removeItem,
 	setIn
 } from '../../utils/FragmentsEditorUpdateUtils.es';
-import {shouldUpdatePureComponent} from '../../utils/FragmentsEditorComponentUtils.es';
+import {
+	FLOATING_TOOLBAR_BUTTONS,
+	FRAGMENTS_EDITOR_ITEM_TYPES,
+	FRAGMENTS_EDITOR_ROW_TYPES,
+	PAGE_TYPES
+} from '../../utils/constants';
+import {isDropZoneFragment} from '../../utils/isDropZoneFragment.es';
+import FloatingToolbar from '../floating_toolbar/FloatingToolbar.es';
 import templates from './FragmentEntryLinkListRow.soy';
-import {updateRowColumnsAction} from '../../actions/updateRowColumns.es';
-import {removeRowAction} from '../../actions/removeRow.es';
 
 /**
  * Creates a Fragment Entry Link List Row component.
@@ -64,6 +75,7 @@ class FragmentEntryLinkListRow extends Component {
 		};
 
 		if (
+			config &&
 			config.backgroundImage &&
 			(config.backgroundImage.mappedField ||
 				config.backgroundImage.fieldId)
@@ -138,6 +150,35 @@ class FragmentEntryLinkListRow extends Component {
 			this._handleBodyMouseLeave
 		);
 		document.body.addEventListener('mouseup', this._handleBodyMouseUp);
+
+		onPropertiesChanged(
+			this,
+			[
+				'hasUpdatePermissions',
+				'rowId',
+				'activeItemId',
+				'activeItemType',
+				'_resizing',
+				'row'
+			],
+			() => {
+				if (
+					this.hasUpdatePermissions &&
+					this.rowId === this.activeItemId &&
+					this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row &&
+					!this._resizing &&
+					this.row.type !== FRAGMENTS_EDITOR_ROW_TYPES.sectionRow
+				) {
+					this._createFloatingToolbar();
+				} else {
+					this._disposeFloatingToolbar();
+				}
+
+				if (this._resizing) {
+					this.element.focus();
+				}
+			}
+		);
 	}
 
 	/**
@@ -212,26 +253,6 @@ class FragmentEntryLinkListRow extends Component {
 
 	/**
 	 * @inheritdoc
-	 */
-	rendered() {
-		if (
-			this.rowId === this.activeItemId &&
-			this.activeItemType === FRAGMENTS_EDITOR_ITEM_TYPES.row &&
-			!this._resizing &&
-			this.row.type !== FRAGMENTS_EDITOR_ROW_TYPES.sectionRow
-		) {
-			this._createFloatingToolbar();
-		} else {
-			this._disposeFloatingToolbar();
-		}
-
-		if (this._resizing) {
-			this.element.focus();
-		}
-	}
-
-	/**
-	 * @inheritdoc
 	 * @return {boolean}
 	 * @review
 	 */
@@ -255,6 +276,19 @@ class FragmentEntryLinkListRow extends Component {
 	 */
 	syncLayoutData() {
 		this._updateMappedBackgroundFieldValue();
+		this._updateShowDelete();
+	}
+
+	_updateShowDelete() {
+		const row = this.layoutData.structure.find(
+			row => row.rowId === this.rowId
+		);
+
+		if (row && this.pageType === PAGE_TYPES.master) {
+			this._showDelete = !row.columns.some(column =>
+				column.fragmentEntryLinkIds.some(isDropZoneFragment)
+			);
+		}
 	}
 
 	/**
@@ -490,8 +524,9 @@ class FragmentEntryLinkListRow extends Component {
 	_updateMappedBackgroundFieldValue() {
 		if (
 			this.getAssetFieldValueURL &&
+			this.row.config &&
 			this.row.config.backgroundImage &&
-			editableIsMappedToAssetEntry(this.row.config.backgroundImage)
+			editableIsMappedToInfoItem(this.row.config.backgroundImage)
 		) {
 			getAssetFieldValue(
 				this.row.config.backgroundImage.classNameId,
@@ -607,6 +642,18 @@ FragmentEntryLinkListRow.STATE = {
 		.value(false),
 
 	/**
+	 * If <code>true</code>, the user is resizing a column.
+	 * @default false
+	 * @instance
+	 * @memberOf FragmentEntryLinkListRow
+
+	 * @type {boolean}
+	 */
+	_showDelete: Config.internal()
+		.bool()
+		.value(true),
+
+	/**
 	 * Row.
 	 * @default undefined
 	 * @instance
@@ -634,10 +681,12 @@ const ConnectedFragmentEntryLinkListRow = getConnectedComponent(
 		'dropTargetItemId',
 		'dropTargetItemType',
 		'getAssetFieldValueURL',
+		'hasUpdatePermissions',
 		'hoveredItemId',
 		'hoveredItemType',
 		'layoutData',
 		'mappingFieldsURL',
+		'pageType',
 		'selectedMappingTypes',
 		'spritemap'
 	]

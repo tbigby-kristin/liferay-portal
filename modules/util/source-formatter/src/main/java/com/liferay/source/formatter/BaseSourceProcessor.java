@@ -325,7 +325,14 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 		_checkUTF8(file, fileName);
 
-		String newContent = parse(file, fileName, content, modifiedMessages);
+		String newContent = StringUtil.replace(
+			content, StringPool.RETURN_NEW_LINE, StringPool.NEW_LINE);
+
+		if (!content.equals(newContent)) {
+			modifiedMessages.add(file.toString() + " (ReturnCharacter)");
+		}
+
+		newContent = parse(file, fileName, newContent, modifiedMessages);
 
 		SourceChecksResult sourceChecksResult = _processSourceChecks(
 			file, fileName, absolutePath, newContent, sourceChecks,
@@ -482,23 +489,29 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 			return Collections.emptySet();
 		}
 
-		Checker checker = new Checker();
-
-		Class<?> clazz = getClass();
-
-		checker.setModuleClassLoader(clazz.getClassLoader());
-
-		SourceFormatterSuppressions sourceFormatterSuppressions =
-			getSourceFormatterSuppressions();
-
-		checker.addFilter(sourceFormatterSuppressions.getCheckstyleFilterSet());
-
-		checker.configure(configuration);
-
-		checker.addListener(checkstyleLogger);
-		checker.setCheckstyleLogger(checkstyleLogger);
+		Checker checker = new Checker(
+			configuration, checkstyleLogger, checkstyleLogger,
+			getSourceFormatterSuppressions());
 
 		checker.process(Arrays.asList(files));
+
+		return checker.getSourceFormatterMessages();
+	}
+
+	protected synchronized Set<SourceFormatterMessage> processCheckstyle(
+			Configuration configuration, CheckstyleLogger checkstyleLogger,
+			List<String[]> fileContents)
+		throws CheckstyleException, IOException {
+
+		if (fileContents.isEmpty()) {
+			return Collections.emptySet();
+		}
+
+		Checker checker = new Checker(
+			configuration, checkstyleLogger, checkstyleLogger,
+			getSourceFormatterSuppressions());
+
+		checker.processFileContents(fileContents);
 
 		return checker.getSourceFormatterMessages();
 	}
@@ -638,7 +651,7 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 
 		File file = new File(absolutePath);
 
-		String content = FileUtil.read(file);
+		String content = FileUtil.read(file, false);
 
 		if (!_sourceFormatterArgs.isIncludeGeneratedFiles() &&
 			hasGeneratedTag(content)) {
@@ -730,10 +743,11 @@ public abstract class BaseSourceProcessor implements SourceProcessor {
 	}
 
 	private String _normalizePattern(String originalPattern) {
-		String pattern = originalPattern.replace(
-			CharPool.SLASH, File.separatorChar);
+		String pattern = StringUtil.replace(
+			originalPattern, CharPool.SLASH, File.separatorChar);
 
-		pattern = pattern.replace(CharPool.BACK_SLASH, File.separatorChar);
+		pattern = StringUtil.replace(
+			pattern, CharPool.BACK_SLASH, File.separatorChar);
 
 		if (pattern.endsWith(File.separator)) {
 			pattern += SelectorUtils.DEEP_TREE_MATCH;

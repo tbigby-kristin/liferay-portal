@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -55,7 +56,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -262,14 +262,13 @@ public class OrganizationODataRetrieverCustomFieldsTest {
 			ExpandoColumnConstants.STRING_LOCALIZED,
 			ExpandoColumnConstants.INDEX_TYPE_KEYWORD);
 
-		Map<Locale, String> columnValueMap = new HashMap<>();
-
 		Locale esLocale = LocaleUtil.fromLanguageId("es_ES");
 
-		columnValueMap.put(esLocale, RandomTestUtil.randomString());
-
-		columnValueMap.put(
-			LocaleUtil.getDefault(), RandomTestUtil.randomString());
+		Map<Locale, String> columnValueMap = HashMapBuilder.put(
+			esLocale, RandomTestUtil.randomString()
+		).put(
+			LocaleUtil.getDefault(), RandomTestUtil.randomString()
+		).build();
 
 		Serializable columnValue = (Serializable)columnValueMap;
 
@@ -306,13 +305,13 @@ public class OrganizationODataRetrieverCustomFieldsTest {
 			ExpandoColumnConstants.STRING_LOCALIZED,
 			ExpandoColumnConstants.INDEX_TYPE_TEXT);
 
-		Map<Locale, String> columnValueMap = new HashMap<>();
-
 		Locale esLocale = LocaleUtil.fromLanguageId("es_ES");
 
-		columnValueMap.put(esLocale, "Hola Mundo!");
-
-		columnValueMap.put(LocaleUtil.getDefault(), "Hello World!");
+		Map<Locale, String> columnValueMap = HashMapBuilder.put(
+			esLocale, "Hola Mundo!"
+		).put(
+			LocaleUtil.getDefault(), "Hello World!"
+		).build();
 
 		Serializable columnValue = (Serializable)columnValueMap;
 
@@ -429,9 +428,10 @@ public class OrganizationODataRetrieverCustomFieldsTest {
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext();
 
-		Map<String, Serializable> expandoBridgeAttributes = new HashMap<>();
-
-		expandoBridgeAttributes.put(columnName, columnValue);
+		Map<String, Serializable> expandoBridgeAttributes =
+			HashMapBuilder.<String, Serializable>put(
+				columnName, columnValue
+			).build();
 
 		serviceContext.setExpandoBridgeAttributes(expandoBridgeAttributes);
 

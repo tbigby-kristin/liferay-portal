@@ -71,9 +71,9 @@ public abstract class BaseJob implements Job {
 		return _jobProperties.getProperty(key);
 	}
 
-	@Override
-	public boolean isUsePreBuiltBundles() {
-		return false;
+	public String getJobURL(JenkinsMaster jenkinsMaster) {
+		return JenkinsResultsParserUtil.combine(
+			jenkinsMaster.getURL(), "/job/", _jobName);
 	}
 
 	@Override
@@ -114,11 +114,6 @@ public abstract class BaseJob implements Job {
 		catch (IOException ioe) {
 			throw new RuntimeException("Unable to get job JSON", ioe);
 		}
-	}
-
-	protected String getJobURL(JenkinsMaster jenkinsMaster) {
-		return JenkinsResultsParserUtil.combine(
-			jenkinsMaster.getURL(), "/job/", _jobName);
 	}
 
 	protected Set<String> getSetFromString(String string) {

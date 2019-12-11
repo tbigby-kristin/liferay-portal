@@ -325,7 +325,9 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 
 			String major = userAgent.substring(majorStart, majorEnd);
 
-			if (userAgent.charAt(majorEnd) != '.') {
+			if ((majorEnd >= userAgent.length()) ||
+				(userAgent.charAt(majorEnd) != '.')) {
+
 				return major;
 			}
 
@@ -425,17 +427,6 @@ public class BrowserSnifferImpl implements BrowserSniffer {
 		httpServletRequest.setAttribute(HttpHeaders.USER_AGENT, userAgent);
 
 		return userAgent;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             BrowserMetadata#isIe()}
-	 */
-	@Deprecated
-	protected boolean isIe(String userAgent) {
-		BrowserMetadata browserMetadata = new BrowserMetadata(userAgent);
-
-		return browserMetadata.isIe();
 	}
 
 	protected static String[] revisionLeadings = {

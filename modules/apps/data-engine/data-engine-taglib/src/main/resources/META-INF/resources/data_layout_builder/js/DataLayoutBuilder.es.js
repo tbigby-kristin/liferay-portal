@@ -12,12 +12,12 @@
  * details.
  */
 
-import Component, {Config} from 'metal-jsx';
-import core from 'metal';
 import FormBuilder from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/FormBuilder.es';
 import LayoutProvider from 'dynamic-data-mapping-form-builder/js/components/LayoutProvider/LayoutProvider.es';
 import {pageStructure} from 'dynamic-data-mapping-form-builder/js/util/config.es';
 import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+import core from 'metal';
+import Component, {Config} from 'metal-jsx';
 
 /**
  * Data Layout Builder.
@@ -25,36 +25,41 @@ import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.
  */
 class DataLayoutBuilder extends Component {
 	attached() {
-		const {layoutProvider} = this.refs;
 		const {localizable} = this.props;
 
 		if (localizable) {
-			const dependencies = [this._getTranslationManager()];
-
-			Promise.all(dependencies).then(results => {
-				const translationManager = results[0];
-
-				if (translationManager) {
-					translationManager.on('availableLocalesChange', event => {
-						this.props.availableLanguageIds = event.newVal.map(
-							({id}) => id
-						);
-					});
-
-					translationManager.on('editingLocaleChange', event => {
-						this.props.editingLanguageId = event.newVal;
-					});
-
-					translationManager.on('deleteAvailableLocale', event => {
-						layoutProvider.emit('languageIdDeleted', event);
-					});
+			Liferay.componentReady('translationManager').then(
+				translationManager => {
+					this._translationManagerHandles = [
+						translationManager.on(
+							'availableLocales',
+							({newValue}) => {
+								this.props.availableLanguageIds = [
+									...newValue.keys()
+								];
+							}
+						),
+						translationManager.on('editingLocale', ({newValue}) => {
+							this.props.editingLanguageId = newValue;
+						}),
+						translationManager.on(
+							'availableLocales',
+							this.onAvailableLocalesRemoved.bind(this)
+						)
+					];
 				}
-			});
+			);
 		}
 	}
 
 	dispatch(event, payload) {
 		this.refs.layoutProvider.dispatch(event, payload);
+	}
+
+	disposed() {
+		if (this._translationManagerHandles) {
+			this._translationManagerHandles.forEach(handle => handle.detach());
+		}
 	}
 
 	getDefinitionField({settingsContext}) {
@@ -159,14 +164,21 @@ class DataLayoutBuilder extends Component {
 				if (
 					localizable &&
 					propertyValue &&
-					propertyValue[themeDisplay.getLanguageId()]
+					Object.prototype.hasOwnProperty.call(
+						propertyValue,
+						themeDisplay.getLanguageId()
+					)
 				) {
 					propertyValue = propertyValue[themeDisplay.getLanguageId()];
 				}
 
 				return {
 					...field,
-					value: propertyValue || field.value
+					localizedValue: {
+						...field.localizedValue,
+						[themeDisplay.getLanguageId()]: propertyValue
+					},
+					value: propertyValue
 				};
 			})
 		};
@@ -186,6 +198,25 @@ class DataLayoutBuilder extends Component {
 		return {
 			...this.refs.layoutProvider.state
 		};
+	}
+
+	onAvailableLocalesRemoved({newValue, previousValue}) {
+		const {layoutProvider} = this.refs;
+
+		const removedItems = new Map();
+
+		previousValue.forEach((value, key) => {
+			if (!newValue.has(key)) {
+				removedItems.set(key, value);
+			}
+		});
+
+		if (removedItems.size > 0) {
+			layoutProvider.emit(
+				'languageIdDeleted',
+				removedItems.values().next().value
+			);
+		}
 	}
 
 	render() {
@@ -219,8 +250,8 @@ class DataLayoutBuilder extends Component {
 						defaultLanguageId={defaultLanguageId}
 						editingLanguageId={editingLanguageId}
 						fieldTypes={fieldTypes}
-						portletNamespace={portletNamespace}
 						paginationMode={'wizard'}
+						portletNamespace={portletNamespace}
 						ref="builder"
 						spritemap={spritemap}
 					/>
@@ -236,20 +267,6 @@ class DataLayoutBuilder extends Component {
 			definition: JSON.stringify(definition),
 			layout: JSON.stringify(layout)
 		};
-	}
-
-	_getTranslationManager() {
-		let promise;
-
-		const translationManager = Liferay.component('translationManager');
-
-		if (translationManager) {
-			promise = Promise.resolve(translationManager);
-		} else {
-			promise = Liferay.componentReady('translationManager');
-		}
-
-		return promise;
 	}
 
 	_handlePagesChanged({newVal}) {
@@ -275,11 +292,14 @@ class DataLayoutBuilder extends Component {
 			'defaultValue',
 			'fieldType',
 			'indexable',
+			'indexType',
 			'label',
 			'localizable',
 			'name',
+			'readOnly',
 			'repeatable',
 			'required',
+			'showLabel',
 			'tip'
 		];
 

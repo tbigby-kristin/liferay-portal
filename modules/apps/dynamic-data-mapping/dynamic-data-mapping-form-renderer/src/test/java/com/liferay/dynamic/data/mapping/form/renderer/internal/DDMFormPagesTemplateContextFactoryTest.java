@@ -42,7 +42,11 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
+import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -53,13 +57,14 @@ import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.language.LanguageResources;
+import com.liferay.portal.util.CalendarFactoryImpl;
+import com.liferay.portal.util.FastDateFormatFactoryImpl;
 import com.liferay.portal.util.HtmlImpl;
 import com.liferay.registry.BasicRegistryImpl;
 import com.liferay.registry.RegistryUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,7 +91,12 @@ import org.powermock.modules.junit4.PowerMockRunner;
 /**
  * @author Marcellus Tavares
  */
-@PrepareForTest({ResourceBundleLoaderUtil.class, ResourceBundleUtil.class})
+@PrepareForTest(
+	{
+		LocaleThreadLocal.class, ResourceBundleLoaderUtil.class,
+		ResourceBundleUtil.class
+	}
+)
 @RunWith(PowerMockRunner.class)
 @SuppressStaticInitializationFor(
 	"com.liferay.portal.kernel.util.ResourceBundleLoaderUtil"
@@ -97,11 +107,14 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 	public void setUp() {
 		RegistryUtil.setRegistry(new BasicRegistryImpl());
 
+		setUpCalendarFactoryUtil();
 		setUpDDMFormFieldTypeServicesTracker();
+		setUpFastDateFormatFactoryUtil();
 		setUpHtmlUtil();
 		setUpHttpServletRequest();
 		setUpLanguageResources();
 		setUpLanguageUtil();
+		setUpLocaleThreadLocal();
 		setUpPortalUtil();
 		setUpResourceBundle();
 		setUpResourceBundleLoaderUtil();
@@ -917,7 +930,7 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 	}
 
 	protected DDMFormEvaluator getDDMFormEvaluator() throws Exception {
-		DDMExpressionFactoryImpl ddmExpressionFactory =
+		DDMExpressionFactoryImpl ddmExpressionFactoryImpl =
 			new DDMExpressionFactoryImpl();
 
 		DDMFormEvaluator ddmFormEvaluator = new DDMFormEvaluatorImpl();
@@ -925,7 +938,7 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 		field(
 			DDMFormEvaluatorImpl.class, "ddmExpressionFactory"
 		).set(
-			ddmFormEvaluator, ddmExpressionFactory
+			ddmFormEvaluator, ddmExpressionFactoryImpl
 		);
 
 		field(
@@ -935,10 +948,10 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 		);
 
 		Map<String, DDMExpressionFunctionFactory>
-			ddmExpressionFunctionFactoryMap = new HashMap<>();
-
-		ddmExpressionFunctionFactoryMap.put(
-			"jumpPage", () -> new JumpPageFunction());
+			ddmExpressionFunctionFactoryMap =
+				HashMapBuilder.<String, DDMExpressionFunctionFactory>put(
+					"jumpPage", () -> new JumpPageFunction()
+				).build();
 
 		DDMExpressionFunctionTracker ddmExpressionFunctionTracker = mock(
 			DDMExpressionFunctionTracker.class);
@@ -953,7 +966,7 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 		field(
 			DDMExpressionFactoryImpl.class, "ddmExpressionFunctionTracker"
 		).set(
-			ddmExpressionFactory, ddmExpressionFunctionTracker
+			ddmExpressionFactoryImpl, ddmExpressionFunctionTracker
 		);
 
 		return ddmFormEvaluator;
@@ -990,6 +1003,12 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 		);
 	}
 
+	protected void setUpCalendarFactoryUtil() {
+		CalendarFactoryUtil calendarFactoryUtil = new CalendarFactoryUtil();
+
+		calendarFactoryUtil.setCalendarFactory(new CalendarFactoryImpl());
+	}
+
 	protected void setUpDDMFormFieldTypeServicesTracker() {
 		DDMFormFieldValueAccessor<?> ddmFormFieldValueAccessor =
 			new DefaultDDMFormFieldValueAccessor();
@@ -1000,6 +1019,14 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 		).thenReturn(
 			(DDMFormFieldValueAccessor<Object>)ddmFormFieldValueAccessor
 		);
+	}
+
+	protected void setUpFastDateFormatFactoryUtil() {
+		FastDateFormatFactoryUtil fastDateFormatFactoryUtil =
+			new FastDateFormatFactoryUtil();
+
+		fastDateFormatFactoryUtil.setFastDateFormatFactory(
+			new FastDateFormatFactoryImpl());
 	}
 
 	protected void setUpHtmlUtil() {
@@ -1039,6 +1066,16 @@ public class DDMFormPagesTemplateContextFactoryTest extends PowerMockito {
 		LanguageUtil languageUtil = new LanguageUtil();
 
 		languageUtil.setLanguage(language);
+	}
+
+	protected void setUpLocaleThreadLocal() {
+		mockStatic(LocaleThreadLocal.class);
+
+		when(
+			LocaleThreadLocal.getThemeDisplayLocale()
+		).thenReturn(
+			LocaleUtil.US
+		);
 	}
 
 	protected void setUpPortalUtil() {

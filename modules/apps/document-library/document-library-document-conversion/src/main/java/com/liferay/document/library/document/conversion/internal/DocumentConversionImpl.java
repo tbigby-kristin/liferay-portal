@@ -61,7 +61,7 @@ import org.osgi.service.component.annotations.Modified;
  */
 @Component(
 	configurationPid = "com.liferay.document.library.document.conversion.internal.configuration.OpenOfficeConfiguration",
-	immediate = true, service = DocumentConversion.class
+	service = DocumentConversion.class
 )
 public class DocumentConversionImpl implements DocumentConversion {
 
@@ -76,6 +76,7 @@ public class DocumentConversionImpl implements DocumentConversion {
 		}
 
 		sourceExtension = _fixExtension(sourceExtension);
+
 		targetExtension = _fixExtension(targetExtension);
 
 		_validate(targetExtension, id);

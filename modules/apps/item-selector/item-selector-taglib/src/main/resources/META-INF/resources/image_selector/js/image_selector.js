@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-image-selector',
-	function(A) {
+	A => {
 		var Lang = A.Lang;
 
 		var CHANGE_IMAGE_CONTROLS_DELAY = 5000;
@@ -230,25 +230,37 @@ AUI.add(
 				_onBrowseClick() {
 					var instance = this;
 
-					var itemSelectorDialog = new A.LiferayItemSelectorDialog({
-						after: {
-							selectedItemChange(event) {
-								var selectedItem = event.newVal;
-
-								if (selectedItem) {
-									instance._updateImageData(
-										JSON.parse(selectedItem.value)
-									);
-
-									Liferay.fire(STR_IMAGE_SELECTED);
+					Liferay.Loader.require(
+						'frontend-js-web/liferay/ItemSelectorDialog.es',
+						ItemSelectorDialog => {
+							var itemSelectorDialog = new ItemSelectorDialog.default(
+								{
+									eventName: instance.get(
+										'itemSelectorEventName'
+									),
+									singleSelect: true,
+									url: instance.get('itemSelectorURL')
 								}
-							}
-						},
-						eventName: instance.get('itemSelectorEventName'),
-						url: instance.get('itemSelectorURL')
-					});
+							);
 
-					itemSelectorDialog.open();
+							itemSelectorDialog.open();
+
+							itemSelectorDialog.on(
+								'selectedItemChange',
+								event => {
+									var selectedItem = event.selectedItem;
+
+									if (selectedItem) {
+										instance._updateImageData(
+											JSON.parse(selectedItem.value)
+										);
+
+										Liferay.fire(STR_IMAGE_SELECTED);
+									}
+								}
+							);
+						}
+					);
 
 					instance._cancelTimer();
 				},
@@ -325,7 +337,7 @@ AUI.add(
 						instance._timer = A.later(
 							CHANGE_IMAGE_CONTROLS_DELAY,
 							instance,
-							function() {
+							() => {
 								rootNode.removeClass(CSS_CHECK_ACTIVE);
 
 								changeImageControls.toggle(true);
@@ -556,7 +568,7 @@ AUI.add(
 						'.browse-image-controls'
 					);
 
-					errorNodeAlert.on('visibleChange', function(event) {
+					errorNodeAlert.on('visibleChange', event => {
 						if (!event.newVal) {
 							browseImageControls.show();
 						}
@@ -571,7 +583,7 @@ AUI.add(
 					if (A.config.win.FileReader) {
 						var reader = new FileReader();
 
-						reader.addEventListener('loadend', function() {
+						reader.addEventListener('loadend', () => {
 							if (!instance._uploadCompleted) {
 								instance._updateImageData({
 									fileEntryId: '-1',
@@ -650,7 +662,6 @@ AUI.add(
 		requires: [
 			'aui-base',
 			'aui-progressbar',
-			'liferay-item-selector-dialog',
 			'liferay-portlet-base',
 			'uploader'
 		]

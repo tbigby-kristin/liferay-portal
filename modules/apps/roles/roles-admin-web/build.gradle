@@ -1,3 +1,5 @@
+apply plugin: "com.liferay.lang.merger"
+
 buildCSS {
 	imports = [
 		new File(npmInstall.nodeModulesDir, "clay-css/src/scss")
@@ -18,12 +20,25 @@ dependencies {
 	compileOnly project(":apps:frontend-taglib:frontend-taglib")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib-clay")
 	compileOnly project(":apps:frontend-taglib:frontend-taglib-soy")
+	compileOnly project(":apps:portal-vulcan:portal-vulcan-api")
 	compileOnly project(":apps:portal:portal-upgrade-api")
 	compileOnly project(":apps:portlet-display-template:portlet-display-template-api")
 	compileOnly project(":apps:product-navigation:product-navigation-personal-menu-api")
 	compileOnly project(":apps:roles:roles-admin-api")
+	compileOnly project(":apps:segments:segments-api")
 	compileOnly project(":core:osgi-service-tracker-collections")
 	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-lang")
 	compileOnly project(":core:petra:petra-string")
+}
+
+mergeLang {
+	setting("../../segments/segments-lang/src/main/resources/content") {
+		transformKey "no-users-have-been-assigned-to-this-segment", "no-users-have-been-assigned-to-this-segment"
+	}
+
+	sourceDirs = [
+		"../../segments/segments-lang/src/main/resources/content",
+		"src/main/resources/content"
+	]
 }

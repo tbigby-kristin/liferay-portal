@@ -16,6 +16,7 @@ package com.liferay.portal.tools.service.builder.test.model.impl;
 
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.model.CacheModel;
 import com.liferay.portal.kernel.model.ModelWrapper;
@@ -24,7 +25,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.tools.service.builder.test.model.LVEntry;
 import com.liferay.portal.tools.service.builder.test.model.LVEntryLocalization;
 import com.liferay.portal.tools.service.builder.test.model.LVEntryModel;
@@ -287,166 +287,34 @@ public class LVEntryModelImpl
 		Map<String, BiConsumer<LVEntry, ?>> attributeSetterBiConsumers =
 			new LinkedHashMap<String, BiConsumer<LVEntry, ?>>();
 
-		attributeGetterFunctions.put(
-			"mvccVersion",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getMvccVersion();
-				}
-
-			});
+		attributeGetterFunctions.put("mvccVersion", LVEntry::getMvccVersion);
 		attributeSetterBiConsumers.put(
-			"mvccVersion",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object mvccVersion) {
-					lvEntry.setMvccVersion((Long)mvccVersion);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"uuid",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getUuid();
-				}
-
-			});
+			"mvccVersion", (BiConsumer<LVEntry, Long>)LVEntry::setMvccVersion);
+		attributeGetterFunctions.put("uuid", LVEntry::getUuid);
 		attributeSetterBiConsumers.put(
-			"uuid",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object uuid) {
-					lvEntry.setUuid((String)uuid);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"headId",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getHeadId();
-				}
-
-			});
+			"uuid", (BiConsumer<LVEntry, String>)LVEntry::setUuid);
+		attributeGetterFunctions.put("headId", LVEntry::getHeadId);
 		attributeSetterBiConsumers.put(
-			"headId",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object headId) {
-					lvEntry.setHeadId((Long)headId);
-				}
-
-			});
+			"headId", (BiConsumer<LVEntry, Long>)LVEntry::setHeadId);
 		attributeGetterFunctions.put(
-			"defaultLanguageId",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getDefaultLanguageId();
-				}
-
-			});
+			"defaultLanguageId", LVEntry::getDefaultLanguageId);
 		attributeSetterBiConsumers.put(
 			"defaultLanguageId",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object defaultLanguageId) {
-					lvEntry.setDefaultLanguageId((String)defaultLanguageId);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"lvEntryId",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getLvEntryId();
-				}
-
-			});
+			(BiConsumer<LVEntry, String>)LVEntry::setDefaultLanguageId);
+		attributeGetterFunctions.put("lvEntryId", LVEntry::getLvEntryId);
 		attributeSetterBiConsumers.put(
-			"lvEntryId",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object lvEntryId) {
-					lvEntry.setLvEntryId((Long)lvEntryId);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"companyId",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getCompanyId();
-				}
-
-			});
+			"lvEntryId", (BiConsumer<LVEntry, Long>)LVEntry::setLvEntryId);
+		attributeGetterFunctions.put("companyId", LVEntry::getCompanyId);
 		attributeSetterBiConsumers.put(
-			"companyId",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object companyId) {
-					lvEntry.setCompanyId((Long)companyId);
-				}
-
-			});
-		attributeGetterFunctions.put(
-			"groupId",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getGroupId();
-				}
-
-			});
+			"companyId", (BiConsumer<LVEntry, Long>)LVEntry::setCompanyId);
+		attributeGetterFunctions.put("groupId", LVEntry::getGroupId);
 		attributeSetterBiConsumers.put(
-			"groupId",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object groupId) {
-					lvEntry.setGroupId((Long)groupId);
-				}
-
-			});
+			"groupId", (BiConsumer<LVEntry, Long>)LVEntry::setGroupId);
 		attributeGetterFunctions.put(
-			"uniqueGroupKey",
-			new Function<LVEntry, Object>() {
-
-				@Override
-				public Object apply(LVEntry lvEntry) {
-					return lvEntry.getUniqueGroupKey();
-				}
-
-			});
+			"uniqueGroupKey", LVEntry::getUniqueGroupKey);
 		attributeSetterBiConsumers.put(
 			"uniqueGroupKey",
-			new BiConsumer<LVEntry, Object>() {
-
-				@Override
-				public void accept(LVEntry lvEntry, Object uniqueGroupKey) {
-					lvEntry.setUniqueGroupKey((String)uniqueGroupKey);
-				}
-
-			});
+			(BiConsumer<LVEntry, String>)LVEntry::setUniqueGroupKey);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);

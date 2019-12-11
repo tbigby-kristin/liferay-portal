@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -66,11 +68,12 @@ public class Value {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The field's content for simple types.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String data;
 
 	@Schema(description = "A content document element.")
+	@Valid
 	public ContentDocument getDocument() {
 		return document;
 	}
@@ -94,11 +97,12 @@ public class Value {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A content document element.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected ContentDocument document;
 
 	@Schema(description = "A point determined by latitude and longitude.")
+	@Valid
 	public Geo getGeo() {
 		return geo;
 	}
@@ -120,13 +124,14 @@ public class Value {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A point determined by latitude and longitude.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Geo geo;
 
 	@Schema(
 		description = "A content document element that stores an image file."
 	)
+	@Valid
 	public ContentDocument getImage() {
 		return image;
 	}
@@ -150,7 +155,9 @@ public class Value {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A content document element that stores an image file."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected ContentDocument image;
 
@@ -176,11 +183,12 @@ public class Value {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A link to a page on the server.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String link;
 
 	@Schema(description = "A link to structured content on the server.")
+	@Valid
 	public StructuredContentLink getStructuredContentLink() {
 		return structuredContentLink;
 	}
@@ -207,7 +215,7 @@ public class Value {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A link to structured content on the server.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected StructuredContentLink structuredContentLink;
 
@@ -310,6 +318,12 @@ public class Value {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.Value",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

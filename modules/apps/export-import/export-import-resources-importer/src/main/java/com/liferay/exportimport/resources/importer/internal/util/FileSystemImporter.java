@@ -89,6 +89,7 @@ import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.MimeTypes;
@@ -1036,8 +1037,6 @@ public class FileSystemImporter extends BaseImporter {
 
 		String colorSchemeId = layoutJSONObject.getString("colorSchemeId");
 
-		Map<Locale, String> friendlyURLMap = new HashMap<>();
-
 		String friendlyURL = layoutJSONObject.getString("friendlyURL");
 
 		if (Validator.isNotNull(friendlyURL) &&
@@ -1046,7 +1045,9 @@ public class FileSystemImporter extends BaseImporter {
 			friendlyURL = StringPool.SLASH + friendlyURL;
 		}
 
-		friendlyURLMap.put(LocaleUtil.getDefault(), friendlyURL);
+		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
+			LocaleUtil.getDefault(), friendlyURL
+		).build();
 
 		ServiceContext serviceContext = new ServiceContext();
 

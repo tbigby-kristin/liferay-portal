@@ -87,16 +87,6 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 
-	@Activate
-	public void activate(BundleContext bundleContext) {
-		_wikiImporterServiceTrackerMap =
-			ServiceTrackerMapFactory.openSingleValueMap(
-				bundleContext, WikiImporter.class, "importer");
-
-		_portalCache = _multiVMPool.getPortalCache(
-			WikiPageDisplay.class.getName());
-	}
-
 	@Override
 	public WikiNode addDefaultNode(long userId, ServiceContext serviceContext)
 		throws PortalException {
@@ -180,21 +170,6 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		addNodeResources(node, addGroupPermissions, addGuestPermissions);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #addNodeResources(WikiNode, ModelPermissions)}
-	 */
-	@Deprecated
-	@Override
-	public void addNodeResources(
-			long nodeId, String[] groupPermissions, String[] guestPermissions)
-		throws PortalException {
-
-		WikiNode node = wikiNodePersistence.findByPrimaryKey(nodeId);
-
-		addNodeResources(node, groupPermissions, guestPermissions);
-	}
-
 	@Override
 	public void addNodeResources(
 			WikiNode node, boolean addGroupPermissions,
@@ -215,22 +190,6 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		resourceLocalService.addModelResources(
 			node.getCompanyId(), node.getGroupId(), node.getUserId(),
 			WikiNode.class.getName(), node.getNodeId(), modelPermissions);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #addNodeResources(WikiNode, ModelPermissions)}
-	 */
-	@Deprecated
-	@Override
-	public void addNodeResources(
-			WikiNode node, String[] groupPermissions, String[] guestPermissions)
-		throws PortalException {
-
-		resourceLocalService.addModelResources(
-			node.getCompanyId(), node.getGroupId(), node.getUserId(),
-			WikiNode.class.getName(), node.getNodeId(), groupPermissions,
-			guestPermissions);
 	}
 
 	@Override
@@ -579,6 +538,16 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		return node;
 	}
 
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_wikiImporterServiceTrackerMap =
+			ServiceTrackerMapFactory.openSingleValueMap(
+				bundleContext, WikiImporter.class, "importer");
+
+		_portalCache = _multiVMPool.getPortalCache(
+			WikiPageDisplay.class.getName());
+	}
+
 	protected List<WikiNode> addDefaultNode(long groupId)
 		throws PortalException {
 
@@ -596,7 +565,7 @@ public class WikiNodeLocalServiceImpl extends WikiNodeLocalServiceBaseImpl {
 		WikiNode node = wikiNodeLocalService.addDefaultNode(
 			defaultUserId, serviceContext);
 
-		return ListUtil.toList(node);
+		return ListUtil.fromArray(node);
 	}
 
 	protected void moveDependentsToTrash(long nodeId, long trashEntryId)

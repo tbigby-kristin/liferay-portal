@@ -18,10 +18,12 @@ import com.liferay.asset.kernel.exception.AssetCategoryException;
 import com.liferay.asset.kernel.exception.AssetTagException;
 import com.liferay.exportimport.kernel.exception.RemoteExportException;
 import com.liferay.exportimport.kernel.staging.Staging;
+import com.liferay.layout.seo.service.LayoutSEOSiteLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskConstants;
 import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManager;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.AvailableLocaleException;
 import com.liferay.portal.kernel.exception.DuplicateGroupException;
 import com.liferay.portal.kernel.exception.GroupFriendlyURLException;
 import com.liferay.portal.kernel.exception.GroupInheritContentException;
@@ -112,6 +114,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
 import javax.portlet.ActionRequest;
@@ -615,6 +618,39 @@ public class SiteAdminPortlet extends MVCPortlet {
 		this.userService = userService;
 	}
 
+	protected TreeMap<String, String> toTreeMap(
+			ActionRequest actionRequest, String parameterPrefix,
+			Set<Locale> availableLocales)
+		throws AvailableLocaleException {
+
+		TreeMap<String, String> treeMap = new TreeMap<>();
+
+		String[] virtualHostnames = ParamUtil.getStringValues(
+			actionRequest, parameterPrefix + "name[]");
+		String[] virtualHostLanguageIds = ParamUtil.getStringValues(
+			actionRequest, parameterPrefix + "LanguageId[]");
+
+		for (int i = 0; i < virtualHostnames.length; i++) {
+			String virtualHostname = virtualHostnames[i];
+
+			String virtualHostLanguageId = (String)ArrayUtil.getValue(
+				virtualHostLanguageIds, i);
+
+			if (Validator.isNotNull(virtualHostLanguageId)) {
+				Locale locale = LocaleUtil.fromLanguageId(
+					virtualHostLanguageId);
+
+				if (!availableLocales.contains(locale)) {
+					throw new AvailableLocaleException(virtualHostLanguageId);
+				}
+			}
+
+			treeMap.put(virtualHostname, virtualHostLanguageId);
+		}
+
+		return treeMap;
+	}
+
 	protected void updateActive(ActionRequest actionRequest, boolean active)
 		throws Exception {
 
@@ -779,6 +815,15 @@ public class SiteAdminPortlet extends MVCPortlet {
 			}
 		}
 
+		boolean openGraphEnabled = ParamUtil.getBoolean(
+			actionRequest, "openGraphEnabled");
+		long openGraphImageFileEntryId = ParamUtil.getLong(
+			actionRequest, "openGraphImageFileEntryId");
+
+		layoutSEOSiteLocalService.updateLayoutSEOSite(
+			portal.getUserId(actionRequest), liveGroup.getGroupId(),
+			openGraphEnabled, openGraphImageFileEntryId, serviceContext);
+
 		// Settings
 
 		UnicodeProperties typeSettingsProperties =
@@ -918,21 +963,18 @@ public class SiteAdminPortlet extends MVCPortlet {
 
 		LayoutSet publicLayoutSet = liveGroup.getPublicLayoutSet();
 
-		String publicVirtualHost = ParamUtil.getString(
-			actionRequest, "publicVirtualHost",
-			publicLayoutSet.getVirtualHostname());
+		Set<Locale> availableLocales = LanguageUtil.getAvailableLocales(
+			liveGroup.getGroupId());
 
-		layoutSetService.updateVirtualHost(
-			liveGroup.getGroupId(), false, publicVirtualHost);
+		layoutSetService.updateVirtualHosts(
+			liveGroup.getGroupId(), false,
+			toTreeMap(actionRequest, "publicVirtualHost", availableLocales));
 
 		LayoutSet privateLayoutSet = liveGroup.getPrivateLayoutSet();
 
-		String privateVirtualHost = ParamUtil.getString(
-			actionRequest, "privateVirtualHost",
-			privateLayoutSet.getVirtualHostname());
-
-		layoutSetService.updateVirtualHost(
-			liveGroup.getGroupId(), true, privateVirtualHost);
+		layoutSetService.updateVirtualHosts(
+			liveGroup.getGroupId(), true,
+			toTreeMap(actionRequest, "privateVirtualHost", availableLocales));
 
 		// Staging
 
@@ -946,25 +988,17 @@ public class SiteAdminPortlet extends MVCPortlet {
 			groupService.updateFriendlyURL(
 				stagingGroup.getGroupId(), friendlyURL);
 
-			LayoutSet stagingPublicLayoutSet =
-				stagingGroup.getPublicLayoutSet();
+			layoutSetService.updateVirtualHosts(
+				stagingGroup.getGroupId(), false,
+				toTreeMap(
+					actionRequest, "stagingPublicVirtualHost",
+					availableLocales));
 
-			publicVirtualHost = ParamUtil.getString(
-				actionRequest, "stagingPublicVirtualHost",
-				stagingPublicLayoutSet.getVirtualHostname());
-
-			layoutSetService.updateVirtualHost(
-				stagingGroup.getGroupId(), false, publicVirtualHost);
-
-			LayoutSet stagingPrivateLayoutSet =
-				stagingGroup.getPrivateLayoutSet();
-
-			privateVirtualHost = ParamUtil.getString(
-				actionRequest, "stagingPrivateVirtualHost",
-				stagingPrivateLayoutSet.getVirtualHostname());
-
-			layoutSetService.updateVirtualHost(
-				stagingGroup.getGroupId(), true, privateVirtualHost);
+			layoutSetService.updateVirtualHosts(
+				stagingGroup.getGroupId(), true,
+				toTreeMap(
+					actionRequest, "stagingPrivateVirtualHost",
+					availableLocales));
 
 			UnicodeProperties stagedGroupTypeSettingsProperties =
 				stagingGroup.getTypeSettingsProperties();
@@ -1092,6 +1126,10 @@ public class SiteAdminPortlet extends MVCPortlet {
 	protected Http http;
 
 	protected LayoutLocalService layoutLocalService;
+
+	@Reference
+	protected LayoutSEOSiteLocalService layoutSEOSiteLocalService;
+
 	protected LayoutSetLocalService layoutSetLocalService;
 	protected LayoutSetPrototypeService layoutSetPrototypeService;
 	protected LayoutSetService layoutSetService;

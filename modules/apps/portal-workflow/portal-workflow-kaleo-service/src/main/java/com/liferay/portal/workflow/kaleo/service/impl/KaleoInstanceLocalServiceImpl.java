@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -54,10 +55,8 @@ import com.liferay.portal.workflow.kaleo.service.base.KaleoInstanceLocalServiceB
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -559,10 +558,13 @@ public class KaleoInstanceLocalServiceImpl
 	protected Sort[] getSortsFromComparator(
 		OrderByComparator<KaleoInstance> orderByComparator) {
 
-		Stream<String> stream = Arrays.stream(
-			orderByComparator.getOrderByFields());
+		if (orderByComparator == null) {
+			return null;
+		}
 
-		return stream.map(
+		return Stream.of(
+			orderByComparator.getOrderByFields()
+		).map(
 			orderByFieldName -> {
 				String fieldName = _fieldNameOrderByCols.getOrDefault(
 					orderByFieldName, orderByFieldName);
@@ -594,41 +596,34 @@ public class KaleoInstanceLocalServiceImpl
 		KaleoInstanceLocalServiceImpl.class);
 
 	private static final Map<String, String> _fieldNameOrderByCols =
-		new HashMap<String, String>() {
-			{
-				put(
-					"completed",
-					_getSortableFieldName(
-						KaleoInstanceTokenField.COMPLETED, "String"));
-				put(
-					"completionDate",
-					_getSortableFieldName(
-						KaleoInstanceTokenField.COMPLETION_DATE, "Number"));
-				put(
-					"createDate",
-					_getSortableFieldName(Field.CREATE_DATE, "Number"));
-				put(
-					"kaleoInstanceId",
-					_getSortableFieldName(
-						KaleoInstanceTokenField.KALEO_INSTANCE_ID, "Number"));
-				put(
-					"modifiedDate",
-					_getSortableFieldName(Field.MODIFIED_DATE, "Number"));
-				put(
-					"state",
-					_getSortableFieldName(
-						KaleoInstanceTokenField.CURRENT_KALEO_NODE_NAME,
-						"String"));
-			}
-		};
+		HashMapBuilder.put(
+			"completed",
+			_getSortableFieldName(KaleoInstanceTokenField.COMPLETED, "String")
+		).put(
+			"completionDate",
+			_getSortableFieldName(
+				KaleoInstanceTokenField.COMPLETION_DATE, "Number")
+		).put(
+			"createDate", _getSortableFieldName(Field.CREATE_DATE, "Number")
+		).put(
+			"kaleoInstanceId",
+			_getSortableFieldName(
+				KaleoInstanceTokenField.KALEO_INSTANCE_ID, "Number")
+		).put(
+			"modifiedDate", _getSortableFieldName(Field.MODIFIED_DATE, "Number")
+		).put(
+			"state",
+			_getSortableFieldName(
+				KaleoInstanceTokenField.CURRENT_KALEO_NODE_NAME, "String")
+		).build();
 	private static final Map<String, Integer> _fieldNameSortTypes =
-		new HashMap<String, Integer>() {
-			{
-				put(Field.CREATE_DATE, Sort.LONG_TYPE);
-				put(Field.MODIFIED_DATE, Sort.LONG_TYPE);
-				put(KaleoInstanceTokenField.COMPLETION_DATE, Sort.LONG_TYPE);
-			}
-		};
+		HashMapBuilder.put(
+			Field.CREATE_DATE, Sort.LONG_TYPE
+		).put(
+			Field.MODIFIED_DATE, Sort.LONG_TYPE
+		).put(
+			KaleoInstanceTokenField.COMPLETION_DATE, Sort.LONG_TYPE
+		).build();
 
 	@Reference
 	private KaleoInstanceTokenLocalService _kaleoInstanceTokenLocalService;

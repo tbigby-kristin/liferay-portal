@@ -11,22 +11,25 @@ definition {
 			value1 = "URL");
 
 		AssertElementPresent(locator1 = "ItemSelector#URL_LABEL");
+		AssertElementNotPresent(locator1 = "ItemSelector#URL_IMAGE_PREVIEW");
+
+		AssertVisible(
+			key_text = "Add",
+			locator1 = "Button#ANY_DISABLED");
 
 		Type(
 			locator1 = "TextInput#URL",
 			value1 = "${imageSourceURL}");
 
-		AssertClick(
-			locator1 = "Button#ENTER",
-			value1 = "Enter");
+		AssertElementPresent.pauseAssertVisible(
+			imageSourceURL = "${imageSourceURL}",
+			locator1 = "ItemSelector#URL_IMAGE_SOURCE");
 
-		AssertElementPresent(locator1 = "ItemSelector#URL_IMAGE_SOURCE");
+		AssertClick(
+			locator1 = "Button#ADD",
+			value1 = "Add");
 
 		SelectFrameTop(value1 = "relative=top");
-
-		AssertClick(
-			locator1 = "ItemSelector#ADD_BUTTON",
-			value1 = "Add");
 	}
 
 	macro gotoItemSelectorViaAlloyEditor {
@@ -39,6 +42,21 @@ definition {
 
 	macro gotoItemSelectorViaSelectButton {
 		Click(locator1 = "FormFields#SELECT_UPLOAD_FIELD");
+	}
+
+	macro gotoPreviewViaSelectFile {
+		BlogsNavigator.gotoAddEntry();
+
+		BlogsNavigator.gotoSelectFile();
+
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
+
+		AssertClick(
+			key_navTab = "${navTab}",
+			locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
+			value1 = "${navTab}");
+
+		Click(locator1 = "Icon#EYE_PREVIEW");
 	}
 
 	macro searchBlogImages {
@@ -167,14 +185,31 @@ definition {
 		var key_imageFileName = StringUtil.replace("${imageFileName}", " ", "+");
 
 		LexiconCard.clickCard(card = "${imageFileName}");
+	}
 
-		AssertTextEquals.assertPartialText(
-			locator1 = "ItemSelector#CAPTION",
-			value1 = "${imageFileName}");
+	macro selectRepositoryImage {
+		var key_navTab = "Documents and Media";
+		var key_imageFileName = "${imageFileName}";
 
-		SelectFrameTop(value1 = "relative=top");
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
-		Click(locator1 = "Button#ADD");
+		AssertClick(
+			locator1 = "ItemSelector#NAVIGATION_SPECIFIC_TAB",
+			value1 = "Documents and Media");
+
+		AssertClick(
+			key_breadcrumbName = "Workspaces",
+			locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+			value1 = "Workspaces");
+
+		AssertClick(
+			key_groupTab = "Repository",
+			locator1 = "ItemSelector#NAVIGATION_GROUP_TAB",
+			value1 = "Repository");
+
+		LexiconCard.clickCard(card = "${depotName}");
+
+		Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
 	}
 
 	macro uploadFile {
@@ -193,17 +228,9 @@ definition {
 			locator1 = "TextInput#FILE",
 			value1 = "${uploadFileName}");
 
-		AssertTextEquals(
-			locator1 = "ItemSelector#FILE_UPLOAD_CAPTION",
-			value1 = "${uploadFileName}");
-
-		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_MODAL_FOOTER");
-
 		AssertClick(
 			locator1 = "ItemSelector#ADD_BUTTON",
 			value1 = "Add");
-
-		SelectFrameTop(value1 = "relative=top");
 	}
 
 	macro viewBlogImageDetails {
@@ -212,25 +239,19 @@ definition {
 
 		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
-		Click(
-			locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW",
-			value1 = "${imageFileName}");
+		AssertElementPresent(locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
 
-		AssertElementPresent(locator1 = "ItemSelector#SELECT_IMAGE_PREVIEW");
+		Click(locator1 = "Icon#EYE_PREVIEW");
 
-		AssertTextEquals(
-			locator1 = "ItemSelector#CAPTION",
-			value1 = "${uploadFileName}");
-
-		Click(locator1 = "ItemSelector#FILE_INFO_ICON");
+		Click(locator1 = "ItemSelector#VIEWER_INFO");
 
 		AssertElementPresent(
 			key_tab = "File Info",
-			locator1 = "NavTab#NAV_TABS");
+			locator1 = "NavTab#TAB_LINK");
 
 		AssertElementPresent(
 			key_tab = "Version",
-			locator1 = "NavTab#NAV_TABS");
+			locator1 = "NavTab#TAB_LINK");
 
 		AssertTextEquals(
 			locator1 = "ItemSelector#SIDEBAR_FILE_INFO_FORMAT",
@@ -251,7 +272,7 @@ definition {
 		var key_tab = "Version";
 
 		AssertClick(
-			locator1 = "NavTab#NAV_TABS",
+			locator1 = "NavTab#TAB_LINK",
 			value1 = "Version");
 
 		AssertTextEquals(
@@ -263,6 +284,16 @@ definition {
 			value1 = "${imageStatus}");
 
 		SelectFrameTop(value1 = "relative=top");
+	}
+
+	macro viewPreview {
+		AssertElementPresent(
+			key_footer = "${footer}",
+			locator1 = "ItemSelector#VIEWER_FOOTER");
+
+		AssertElementPresent(
+			key_imageFileName = "${imageFileName}",
+			locator1 = "ItemSelector#VIEWER_FOOTER_IMAGE");
 	}
 
 	macro viewWikiAttachment {

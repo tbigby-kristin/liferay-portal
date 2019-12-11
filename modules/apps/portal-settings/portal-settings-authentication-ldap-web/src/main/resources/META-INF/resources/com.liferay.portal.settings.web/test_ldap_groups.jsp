@@ -31,9 +31,11 @@ if (credentials.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
 	credentials = ldapServerConfiguration.securityCredential();
 }
 
-LdapContext ldapContext = PortalLDAPUtil.getContext(themeDisplay.getCompanyId(), baseProviderURL, principal, credentials);
+SafePortalLDAP safePortalLDAP = SafePortalLDAPUtil.getSafePortalLDAP();
 
-if (ldapContext == null) {
+SafeLdapContext safeLdapContext = safePortalLDAP.getSafeLdapContext(themeDisplay.getCompanyId(), baseProviderURL, principal, credentials);
+
+if (safeLdapContext == null) {
 %>
 
 	<liferay-ui:message key="liferay-has-failed-to-connect-to-the-ldap-server" />
@@ -51,9 +53,11 @@ if (Validator.isNull(ParamUtil.getString(request, "groupMappingGroupName")) || V
 	return;
 }
 
+LDAPFilterValidator ldapFilterValidator = LDAPFilterValidatorUtil.getLDAPFilterValidator();
+
 String groupFilter = ParamUtil.getString(request, "importGroupSearchFilter");
 
-if (!LDAPFilterValidatorUtil.isValidFilter(groupFilter)) {
+if (!ldapFilterValidator.isValid(groupFilter)) {
 %>
 
 	<liferay-ui:message key="please-enter-a-valid-ldap-search-filter" />
@@ -61,6 +65,8 @@ if (!LDAPFilterValidatorUtil.isValidFilter(groupFilter)) {
 <%
 	return;
 }
+
+SafeLdapFilter groupSafeLdapFilter = SafeLdapFilterFactory.fromUnsafeFilter(groupFilter, ldapFilterValidator);
 
 String groupMappingsParam = "groupName=" + ParamUtil.getString(request, "groupMappingGroupName") + "\ndescription=" + ParamUtil.getString(request, "groupMappingDescription") + "\nuser=" + ParamUtil.getString(request, "groupMappingUser");
 
@@ -70,7 +76,17 @@ String[] attributeIds = StringUtil.split(StringUtil.merge(groupMappings.values()
 
 List<SearchResult> searchResults = new ArrayList<SearchResult>();
 
-PortalLDAPUtil.getGroups(themeDisplay.getCompanyId(), ldapContext, new byte[0], 20, baseDN, groupFilter, attributeIds, searchResults);
+try {
+	safePortalLDAP.getGroups(themeDisplay.getCompanyId(), safeLdapContext, new byte[0], 20, SafeLdapNameFactory.fromUnsafe(baseDN), groupSafeLdapFilter, attributeIds, searchResults);
+}
+catch (NameNotFoundException | InvalidNameException nnfe) {
+%>
+
+	<liferay-ui:message key="please-enter-a-valid-ldap-base-dn" />
+
+<%
+	return;
+}
 %>
 
 <liferay-ui:message key="test-ldap-groups" />
@@ -100,19 +116,9 @@ PortalLDAPUtil.getGroups(themeDisplay.getCompanyId(), ldapContext, new byte[0], 
 		}
 
 		if (attribute != null) {
-			StringBundler sb = new StringBundler(7);
+			SafeLdapFilter safeLdapFilter = groupSafeLdapFilter.and(SafeLdapFilterConstraints.eq(groupMappings.getProperty("groupName"), name));
 
-			sb.append("(&");
-			sb.append(groupFilter);
-			sb.append(StringPool.OPEN_PARENTHESIS);
-			sb.append(groupMappings.getProperty("groupName"));
-			sb.append("=");
-			sb.append(name);
-			sb.append("))");
-
-			String filter = sb.toString();
-
-			attribute = PortalLDAPUtil.getMultivaluedAttribute(themeDisplay.getCompanyId(), ldapContext, baseDN, filter, attribute);
+			attribute = safePortalLDAP.getMultivaluedAttribute(themeDisplay.getCompanyId(), safeLdapContext, SafeLdapNameFactory.fromUnsafe(baseDN), safeLdapFilter, attribute);
 		}
 
 		if (counter == 0) {
@@ -188,7 +194,7 @@ if (showMissingAttributeMessage) {
 <%
 }
 
-if (ldapContext != null) {
-	ldapContext.close();
+if (safeLdapContext != null) {
+	safeLdapContext.close();
 }
 %>

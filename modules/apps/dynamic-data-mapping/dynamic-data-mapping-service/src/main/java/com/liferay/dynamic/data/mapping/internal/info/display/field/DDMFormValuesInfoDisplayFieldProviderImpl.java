@@ -41,6 +41,8 @@ import com.liferay.portal.kernel.util.Validator;
 import java.text.DateFormat;
 import java.text.NumberFormat;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -143,7 +145,30 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 			);
 		}
 
-		classTypeValues.put(key, fieldValue);
+		if (classTypeValues.containsKey(key)) {
+			Collection fieldValues = new ArrayList<>();
+
+			Object classTypeValue = classTypeValues.get(key);
+
+			if (classTypeValue instanceof Collection) {
+				fieldValues.addAll((Collection)classTypeValue);
+			}
+			else {
+				fieldValues.add(classTypeValue);
+			}
+
+			if (fieldValue instanceof Collection) {
+				fieldValues.addAll((Collection)fieldValue);
+			}
+			else {
+				fieldValues.add(fieldValue);
+			}
+
+			classTypeValues.put(key, fieldValues);
+		}
+		else {
+			classTypeValues.put(key, fieldValue);
+		}
 	}
 
 	private void _addNestedFields(
@@ -169,6 +194,10 @@ public class DDMFormValuesInfoDisplayFieldProviderImpl<T extends GroupedModel>
 		throws PortalException {
 
 		Value value = ddmFormFieldValue.getValue();
+
+		if (value == null) {
+			return StringPool.BLANK;
+		}
 
 		String valueString = value.getString(locale);
 

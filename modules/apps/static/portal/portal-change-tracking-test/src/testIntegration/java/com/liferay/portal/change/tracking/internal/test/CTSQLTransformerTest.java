@@ -32,13 +32,16 @@ import com.liferay.portal.change.tracking.sql.CTSQLTransformer;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.log.CaptureAppender;
 import com.liferay.portal.test.log.Log4JLoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
@@ -49,7 +52,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -80,8 +82,8 @@ public class CTSQLTransformerTest {
 		_db = DBManagerUtil.getDB();
 
 		CTModelRegistry.registerCTModel(
-			"MainTable",
-			new CTModelRegistration(MainTable.class, "mainTableId"));
+			new CTModelRegistration(
+				MainTable.class, "MainTable", "mainTableId"));
 
 		_createCTEntries(1, MainTable.class, 6L, null, null);
 		_createCTEntries(2, MainTable.class, null, 1L, null);
@@ -120,8 +122,8 @@ public class CTSQLTransformerTest {
 				" , 2, 3, 'mt7 add');");
 
 		CTModelRegistry.registerCTModel(
-			"ReferenceTable",
-			new CTModelRegistration(ReferenceTable.class, "referenceTableId"));
+			new CTModelRegistration(
+				ReferenceTable.class, "ReferenceTable", "referenceTableId"));
 
 		_createCTEntries(1, ReferenceTable.class, 6L, null, null);
 		_createCTEntries(2, ReferenceTable.class, null, 1L, null);
@@ -178,8 +180,15 @@ public class CTSQLTransformerTest {
 
 		CTModelRegistry.unregisterCTModel("ReferenceTable");
 
-		for (CTCollection ctCollection : _ctCollections) {
-			_ctCollectionLocalService.deleteCTCollection(ctCollection);
+		try (CaptureAppender captureAppender =
+				Log4JLoggerTestUtil.configureLog4JLogger(
+					"com.liferay.change.tracking.service.impl." +
+						"CTCollectionLocalServiceImpl",
+					Level.WARN)) {
+
+			for (CTCollection ctCollection : _ctCollections) {
+				_ctCollectionLocalService.deleteCTCollection(ctCollection);
+			}
 		}
 	}
 
@@ -1030,6 +1039,7 @@ public class CTSQLTransformerTest {
 				ctCollectionId);
 
 			ctCollection.setName(String.valueOf(ctCollectionId));
+			ctCollection.setStatus(WorkflowConstants.STATUS_DRAFT);
 
 			ctCollection = _ctCollectionLocalService.updateCTCollection(
 				ctCollection);
@@ -1037,30 +1047,28 @@ public class CTSQLTransformerTest {
 			_ctCollections.add(ctCollection);
 		}
 
-		ServiceContext serviceContext = new ServiceContext();
-
 		if (addedPK != null) {
 			_ctEntryLocalService.addCTEntry(
-				TestPropsValues.getUserId(),
-				_classNameLocalService.getClassNameId(modelClass), addedPK, 0,
-				CTConstants.CT_CHANGE_TYPE_ADDITION,
-				ctCollection.getCtCollectionId(), serviceContext);
+				ctCollection.getCtCollectionId(),
+				_classNameLocalService.getClassNameId(modelClass),
+				_getCTModelProxy(addedPK), TestPropsValues.getUserId(),
+				CTConstants.CT_CHANGE_TYPE_ADDITION);
 		}
 
 		if (modifiedPK != null) {
 			_ctEntryLocalService.addCTEntry(
-				TestPropsValues.getUserId(),
-				_classNameLocalService.getClassNameId(modelClass), modifiedPK,
-				0, CTConstants.CT_CHANGE_TYPE_MODIFICATION,
-				ctCollection.getCtCollectionId(), serviceContext);
+				ctCollection.getCtCollectionId(),
+				_classNameLocalService.getClassNameId(modelClass),
+				_getCTModelProxy(modifiedPK), TestPropsValues.getUserId(),
+				CTConstants.CT_CHANGE_TYPE_MODIFICATION);
 		}
 
 		if (removedPK != null) {
 			_ctEntryLocalService.addCTEntry(
-				TestPropsValues.getUserId(),
-				_classNameLocalService.getClassNameId(modelClass), removedPK, 0,
-				CTConstants.CT_CHANGE_TYPE_DELETION,
-				ctCollection.getCtCollectionId(), serviceContext);
+				ctCollection.getCtCollectionId(),
+				_classNameLocalService.getClassNameId(modelClass),
+				_getCTModelProxy(removedPK), TestPropsValues.getUserId(),
+				CTConstants.CT_CHANGE_TYPE_DELETION);
 		}
 
 		return ctCollection.getCtCollectionId();
@@ -1074,6 +1082,25 @@ public class CTSQLTransformerTest {
 		CTCollection ctCollection = _ctCollections.get(ctCollectionIndex - 1);
 
 		return ctCollection.getCtCollectionId();
+	}
+
+	private static CTModel<?> _getCTModelProxy(long primaryKey) {
+		return (CTModel<?>)ProxyUtil.newProxyInstance(
+			CTSQLTransformer.class.getClassLoader(),
+			new Class<?>[] {CTModel.class},
+			(proxy, method, args) -> {
+				String methodName = method.getName();
+
+				if (methodName.equals("getMvccVersion")) {
+					return 0L;
+				}
+
+				if (methodName.equals("getPrimaryKey")) {
+					return primaryKey;
+				}
+
+				throw new UnsupportedOperationException(method.toString());
+			});
 	}
 
 	@SafeVarargs
@@ -1218,19 +1245,17 @@ public class CTSQLTransformerTest {
 				CTSQLTransformerTest.class.getResourceAsStream(
 					"dependencies/" + expectedOutputSQLFile)));
 
-		Map<String, String> replaceMap = new HashMap<>();
-
-		replaceMap.put("CT_COLLECTION_ID", String.valueOf(ctCollectionId));
-
-		replaceMap.put(
+		Map<String, String> replaceMap = HashMapBuilder.put(
+			"CT_COLLECTION_ID", String.valueOf(ctCollectionId)
+		).put(
 			"MAIN_TABLE_CT_ENTRY_MODEL_CLASS_PKS",
 			_getModifiedAndRemovedModelClassPKSQL(
-				ctCollectionId, MainTable.class));
-
-		replaceMap.put(
+				ctCollectionId, MainTable.class)
+		).put(
 			"REFERENCE_TABLE_CT_ENTRY_MODEL_CLASS_PKS",
 			_getModifiedAndRemovedModelClassPKSQL(
-				ctCollectionId, ReferenceTable.class));
+				ctCollectionId, ReferenceTable.class)
+		).build();
 
 		expectedOutputSQL = StringUtil.replace(
 			expectedOutputSQL, "[$", "$]", replaceMap);

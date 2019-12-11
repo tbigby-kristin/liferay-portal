@@ -15,20 +15,27 @@
 package com.liferay.portal.kernel.upgrade;
 
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
+import com.liferay.portal.kernel.util.LoggingTimer;
 
 import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-
-import java.util.Collection;
 
 /**
  * @author Preston Crary
  */
 public class UpgradeCTModel extends UpgradeProcess {
 
-	public UpgradeCTModel(Class<?> tableClass) {
-		_tableClass = tableClass;
+	public UpgradeCTModel(String... tableNames) {
+		if (tableNames.length == 0) {
+			throw new IllegalArgumentException("Table names is empty");
+		}
+
+		_tableNames = tableNames;
 	}
 
 	@Override
@@ -37,11 +44,26 @@ public class UpgradeCTModel extends UpgradeProcess {
 
 		DBInspector dbInspector = new DBInspector(connection);
 
-		String tableName = dbInspector.normalizeName(
-			getTableName(_tableClass), databaseMetaData);
+		for (String tableName : _tableNames) {
+			try (LoggingTimer loggingTimer = new LoggingTimer(
+					UpgradeCTModel.class, tableName)) {
+
+				_upgradeCTModel(databaseMetaData, dbInspector, tableName);
+			}
+		}
+	}
+
+	private void _upgradeCTModel(
+			DatabaseMetaData databaseMetaData, DBInspector dbInspector,
+			String tableName)
+		throws Exception {
+
+		String normalizedTableName = dbInspector.normalizeName(
+			tableName, databaseMetaData);
 
 		try (ResultSet rs = databaseMetaData.getColumns(
-				dbInspector.getCatalog(), dbInspector.getSchema(), tableName,
+				dbInspector.getCatalog(), dbInspector.getSchema(),
+				normalizedTableName,
 				dbInspector.normalizeName(
 					"ctCollectionId", databaseMetaData))) {
 
@@ -53,7 +75,8 @@ public class UpgradeCTModel extends UpgradeProcess {
 		String primaryKeyColumnName = null;
 
 		try (ResultSet rs = databaseMetaData.getPrimaryKeys(
-				dbInspector.getCatalog(), dbInspector.getSchema(), tableName)) {
+				dbInspector.getCatalog(), dbInspector.getSchema(),
+				normalizedTableName)) {
 
 			if (rs.next()) {
 				primaryKeyColumnName = rs.getString("COLUMN_NAME");
@@ -62,89 +85,80 @@ public class UpgradeCTModel extends UpgradeProcess {
 			if (rs.next()) {
 				throw new UpgradeException(
 					"Single column primary key is required to upgrade " +
-						tableName);
+						normalizedTableName);
 			}
 		}
 
 		if (primaryKeyColumnName == null) {
 			throw new UpgradeException(
-				"No primary key column found for " + tableName);
+				"No primary key column found for " + normalizedTableName);
 		}
 
-		alter(
-			_tableClass, new AlterTableAddCTCollectionIdColumn(),
-			new DropPrimaryKeyAlterable(),
-			new AddPrimaryKeyAlterable(primaryKeyColumnName));
+		runSQL(
+			StringBundler.concat(
+				"alter table ", normalizedTableName,
+				" add ctCollectionId LONG default 0 not null"));
+
+		DB db = DBManagerUtil.getDB();
+
+		DBType dbType = db.getDBType();
+
+		if ((dbType == DBType.SQLSERVER) || (dbType == DBType.SYBASE)) {
+			String primaryKeyConstraintName = null;
+
+			if (dbType == DBType.SQLSERVER) {
+				try (PreparedStatement ps = connection.prepareStatement(
+						StringBundler.concat(
+							"select name from sys.key_constraints where type ",
+							"= 'PK' and OBJECT_NAME(parent_object_id) = '",
+							normalizedTableName, "'"));
+					ResultSet rs = ps.executeQuery()) {
+
+					if (rs.next()) {
+						primaryKeyConstraintName = rs.getString("name");
+					}
+				}
+			}
+			else {
+				try (PreparedStatement ps = connection.prepareStatement(
+						"sp_helpconstraint " + normalizedTableName);
+					ResultSet rs = ps.executeQuery()) {
+
+					while (rs.next()) {
+						String definition = rs.getString("definition");
+
+						if (definition.startsWith("PRIMARY KEY INDEX")) {
+							primaryKeyConstraintName = rs.getString("name");
+
+							break;
+						}
+					}
+				}
+			}
+
+			if (primaryKeyConstraintName == null) {
+				throw new UpgradeException(
+					"No primary key constraint found for " +
+						normalizedTableName);
+			}
+
+			runSQL(
+				StringBundler.concat(
+					"alter table ", normalizedTableName, " drop constraint ",
+					primaryKeyConstraintName));
+		}
+		else {
+			runSQL(
+				StringBundler.concat(
+					"alter table ", normalizedTableName, " drop primary key"));
+		}
+
+		runSQL(
+			StringBundler.concat(
+				"alter table ", normalizedTableName, " add primary key (",
+				primaryKeyColumnName, ", ctCollectionId)"));
 	}
 
-	private final Class<?> _tableClass;
-
-	private static class AddPrimaryKeyAlterable
-		extends BasePrimaryKeyAlterable {
-
-		@Override
-		public String getSQL(String tableName) {
-			return StringBundler.concat(
-				"alter table ", tableName, " add primary key (",
-				_primaryKeyColumnName, ", ctCollectionId)");
-		}
-
-		private AddPrimaryKeyAlterable(String primaryKeyColumnName) {
-			_primaryKeyColumnName = primaryKeyColumnName;
-		}
-
-		private final String _primaryKeyColumnName;
-
-	}
-
-	private abstract static class BasePrimaryKeyAlterable implements Alterable {
-
-		/**
-		 * @deprecated As of Judson (7.1.x), with no direct replacement
-		 */
-		@Deprecated
-		@Override
-		public String getIndexedColumnName() {
-			return null;
-		}
-
-		@Override
-		public boolean shouldAddIndex(Collection<String> columnNames) {
-			return false;
-		}
-
-		@Override
-		public boolean shouldDropIndex(Collection<String> columnNames) {
-			return false;
-		}
-
-	}
-
-	private static class DropPrimaryKeyAlterable
-		extends BasePrimaryKeyAlterable {
-
-		@Override
-		public String getSQL(String tableName) {
-			return StringBundler.concat(
-				"alter table ", tableName, " drop primary key");
-		}
-
-	}
-
-	private class AlterTableAddCTCollectionIdColumn
-		extends AlterTableAddColumn {
-
-		@Override
-		public String getSQL(String tableName) {
-			return StringBundler.concat(
-				"alter table ", tableName,
-				" add ctCollectionId LONG default 0 not null");
-		}
-
-		private AlterTableAddCTCollectionIdColumn() {
-			super("ctCollectionId");
-		}
-
-	}
+	private final String[] _tableNames;
 
 }

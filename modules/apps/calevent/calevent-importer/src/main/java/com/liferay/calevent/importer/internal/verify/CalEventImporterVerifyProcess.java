@@ -75,6 +75,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.LoggingTimer;
@@ -91,6 +92,9 @@ import com.liferay.social.kernel.model.SocialActivity;
 import com.liferay.social.kernel.service.SocialActivityLocalService;
 import com.liferay.subscription.model.Subscription;
 import com.liferay.subscription.service.SubscriptionLocalService;
+import com.liferay.view.count.model.ViewCountEntry;
+import com.liferay.view.count.service.ViewCountEntryLocalService;
+import com.liferay.view.count.service.persistence.ViewCountEntryPK;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -192,7 +196,7 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		Date endDate, Date publishDate, Date expirationDate, String mimeType,
 		String title, String description, String summary, String url,
 		String layoutUuid, int height, int width, double priority,
-		int viewCount) {
+		long viewCount) {
 
 		AssetEntry assetEntry = _assetEntryLocalService.createAssetEntry(
 			entryId);
@@ -220,9 +224,19 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		assetEntry.setHeight(height);
 		assetEntry.setWidth(width);
 		assetEntry.setPriority(priority);
-		assetEntry.setViewCount(viewCount);
 
 		_assetEntryLocalService.updateAssetEntry(assetEntry);
+
+		ViewCountEntry viewCountEntry =
+			_viewCountEntryLocalService.createViewCountEntry(
+				new ViewCountEntryPK(
+					companyId,
+					_classNameLocalService.getClassNameId(AssetEntry.class),
+					entryId));
+
+		viewCountEntry.setViewCount(viewCount);
+
+		_viewCountEntryLocalService.addViewCountEntry(viewCountEntry);
 	}
 
 	private void _addAssetLink(
@@ -365,9 +379,9 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		String uuid, long threadId, long groupId, long companyId, long userId,
 		String userName, Date createDate, Date modifiedDate, long categoryId,
 		long rootMessageId, long rootMessageUserId, String title,
-		int messageCount, int viewCount, long lastPostByUserId,
-		Date lastPostDate, double priority, boolean question, int status,
-		long statusByUserId, String statusByUserName, Date statusDate) {
+		int messageCount, long lastPostByUserId, Date lastPostDate,
+		double priority, boolean question, int status, long statusByUserId,
+		String statusByUserName, Date statusDate, long viewCount) {
 
 		MBThread mbThread = _mbThreadLocalService.createMBThread(threadId);
 
@@ -383,7 +397,6 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		mbThread.setRootMessageUserId(rootMessageUserId);
 		mbThread.setTitle(title);
 		mbThread.setMessageCount(messageCount);
-		mbThread.setViewCount(viewCount);
 		mbThread.setLastPostByUserId(lastPostByUserId);
 		mbThread.setLastPostDate(lastPostDate);
 		mbThread.setPriority(priority);
@@ -394,6 +407,17 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		mbThread.setStatusDate(statusDate);
 
 		_mbThreadLocalService.updateMBThread(mbThread);
+
+		ViewCountEntry viewCountEntry =
+			_viewCountEntryLocalService.createViewCountEntry(
+				new ViewCountEntryPK(
+					companyId,
+					_classNameLocalService.getClassNameId(MBThread.class),
+					threadId));
+
+		viewCountEntry.setViewCount(viewCount);
+
+		_viewCountEntryLocalService.addViewCountEntry(viewCountEntry);
 	}
 
 	private RatingsEntry _addRatingsEntry(
@@ -693,9 +717,9 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 					serviceContext.getCompanyId(), userId);
 			}
 
-			Map<Locale, String> nameMap = new HashMap<>();
-
-			nameMap.put(LocaleUtil.getSiteDefault(), userName);
+			Map<Locale, String> nameMap = HashMapBuilder.put(
+				LocaleUtil.getSiteDefault(), userName
+			).build();
 
 			Map<Locale, String> descriptionMap = new HashMap<>();
 
@@ -731,9 +755,9 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 			userId = userIds[0];
 		}
 
-		Map<Locale, String> nameMap = new HashMap<>();
-
-		nameMap.put(LocaleUtil.getSiteDefault(), group.getDescriptiveName());
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getSiteDefault(), group.getDescriptiveName()
+		).build();
 
 		Map<Locale, String> descriptionMap = new HashMap<>();
 
@@ -767,6 +791,7 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 
 		if (assetLink.getEntryId1() == oldEntryId) {
 			entryId1 = newEntryId;
+
 			entryId2 = assetLink.getEntryId2();
 
 			linkedAssetEntry = _assetEntryLocalService.fetchAssetEntry(
@@ -774,6 +799,7 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		}
 		else {
 			entryId1 = assetLink.getEntryId1();
+
 			entryId2 = newEntryId;
 
 			linkedAssetEntry = _assetEntryLocalService.fetchAssetEntry(
@@ -841,7 +867,11 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 			assetEntry.getDescription(), assetEntry.getSummary(),
 			assetEntry.getUrl(), assetEntry.getLayoutUuid(),
 			assetEntry.getHeight(), assetEntry.getWidth(),
-			assetEntry.getPriority(), assetEntry.getViewCount());
+			assetEntry.getPriority(),
+			_viewCountEntryLocalService.getViewCount(
+				assetEntry.getCompanyId(),
+				_classNameLocalService.getClassNameId(AssetEntry.class),
+				assetEntry.getEntryId()));
 
 		// Asset categories
 
@@ -1178,11 +1208,15 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 			mbThread.getUserName(), mbThread.getCreateDate(),
 			mbThread.getModifiedDate(), mbThread.getCategoryId(), 0,
 			mbThread.getRootMessageUserId(), mbThread.getTitle(),
-			mbThread.getMessageCount(), mbThread.getViewCount(),
-			mbThread.getLastPostByUserId(), mbThread.getLastPostDate(),
-			mbThread.getPriority(), mbThread.isQuestion(), mbThread.getStatus(),
+			mbThread.getMessageCount(), mbThread.getLastPostByUserId(),
+			mbThread.getLastPostDate(), mbThread.getPriority(),
+			mbThread.isQuestion(), mbThread.getStatus(),
 			mbThread.getStatusByUserId(), mbThread.getStatusByUserName(),
-			mbThread.getStatusDate());
+			mbThread.getStatusDate(),
+			_viewCountEntryLocalService.getViewCount(
+				mbThread.getCompanyId(),
+				_classNameLocalService.getClassNameId(MBThread.class),
+				mbThread.getThreadId()));
 
 		Map<Long, Long> mbMessageIds = new HashMap<>();
 
@@ -1328,26 +1362,31 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 		CalEventImporterVerifyProcess.class);
 
 	private static final Map<Integer, Frequency> _frequencies =
-		new HashMap<Integer, Frequency>() {
-			{
-				put(TZSRecurrence.DAILY, Frequency.DAILY);
-				put(TZSRecurrence.WEEKLY, Frequency.WEEKLY);
-				put(TZSRecurrence.MONTHLY, Frequency.MONTHLY);
-				put(TZSRecurrence.YEARLY, Frequency.YEARLY);
-			}
-		};
+		HashMapBuilder.<Integer, Frequency>put(
+			TZSRecurrence.DAILY, Frequency.DAILY
+		).put(
+			TZSRecurrence.MONTHLY, Frequency.MONTHLY
+		).put(
+			TZSRecurrence.WEEKLY, Frequency.WEEKLY
+		).put(
+			TZSRecurrence.YEARLY, Frequency.YEARLY
+		).build();
 	private static final Map<Integer, Weekday> _weekdays =
-		new HashMap<Integer, Weekday>() {
-			{
-				put(Calendar.SUNDAY, Weekday.SUNDAY);
-				put(Calendar.MONDAY, Weekday.MONDAY);
-				put(Calendar.TUESDAY, Weekday.TUESDAY);
-				put(Calendar.WEDNESDAY, Weekday.WEDNESDAY);
-				put(Calendar.THURSDAY, Weekday.THURSDAY);
-				put(Calendar.FRIDAY, Weekday.FRIDAY);
-				put(Calendar.SATURDAY, Weekday.SATURDAY);
-			}
-		};
+		HashMapBuilder.<Integer, Weekday>put(
+			Calendar.FRIDAY, Weekday.FRIDAY
+		).put(
+			Calendar.MONDAY, Weekday.MONDAY
+		).put(
+			Calendar.SATURDAY, Weekday.SATURDAY
+		).put(
+			Calendar.SUNDAY, Weekday.SUNDAY
+		).put(
+			Calendar.THURSDAY, Weekday.THURSDAY
+		).put(
+			Calendar.TUESDAY, Weekday.TUESDAY
+		).put(
+			Calendar.WEDNESDAY, Weekday.WEDNESDAY
+		).build();
 
 	@Reference
 	private AssetCategoryLocalService _assetCategoryLocalService;
@@ -1419,5 +1458,8 @@ public class CalEventImporterVerifyProcess extends VerifyProcess {
 
 	@Reference
 	private UserLocalService _userLocalService;
+
+	@Reference
+	private ViewCountEntryLocalService _viewCountEntryLocalService;
 
 }

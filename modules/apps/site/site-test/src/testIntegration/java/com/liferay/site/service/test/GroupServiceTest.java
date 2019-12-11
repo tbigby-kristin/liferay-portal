@@ -59,7 +59,9 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -71,7 +73,6 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -993,10 +994,9 @@ public class GroupServiceTest {
 
 		Assert.assertFalse(layout.hasScopeGroup());
 
-		Map<Locale, String> nameMap = new HashMap<>();
-
-		nameMap.put(
-			LocaleUtil.getDefault(), layout.getName(LocaleUtil.getDefault()));
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getDefault(), layout.getName(LocaleUtil.getDefault())
+		).build();
 
 		Group scopeGroup = _groupLocalService.addGroup(
 			TestPropsValues.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
@@ -1218,9 +1218,9 @@ public class GroupServiceTest {
 	private Group _addScopeGroup(Group group) throws Exception {
 		Layout scopeLayout = LayoutTestUtil.addLayout(group);
 
-		Map<Locale, String> nameMap = new HashMap<>();
-
-		nameMap.put(LocaleUtil.getDefault(), RandomTestUtil.randomString());
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getDefault(), RandomTestUtil.randomString()
+		).build();
 
 		return _groupLocalService.addGroup(
 			TestPropsValues.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
@@ -1262,10 +1262,6 @@ public class GroupServiceTest {
 
 		Assert.assertTrue(_group.isRoot());
 
-		LinkedHashMap<String, Object> params = new LinkedHashMap<>();
-
-		params.put("site", Boolean.TRUE);
-
 		List<Long> excludedGroupIds = new ArrayList<>();
 
 		excludedGroupIds.add(_group.getGroupId());
@@ -1280,7 +1276,12 @@ public class GroupServiceTest {
 			excludedGroupIds.add(stagingGroup.getGroupId());
 		}
 
-		params.put("excludedGroupIds", excludedGroupIds);
+		LinkedHashMap<String, Object> params =
+			LinkedHashMapBuilder.<String, Object>put(
+				"site", Boolean.TRUE
+			).put(
+				"excludedGroupIds", excludedGroupIds
+			).build();
 
 		List<Group> selectableGroups = _groupService.search(
 			_group.getCompanyId(), null, StringPool.BLANK, params,

@@ -1,18 +1,25 @@
 definition {
 
 	macro _addPageTemplate {
-		if (isSet(pageTemplateType)) {
-			var menuItem = "${pageTemplateType}";
-		}
-		else {
-			var menuItem = "Content Page Template";
+		if (!(isSet(pageTemplateType))) {
+			var pageTemplateType = "Content Page Template";
 		}
 
 		if ("${siteTemplate}" == "true") {
 			LexiconEntry.gotoAdd();
+
+			LexiconCard.clickCard(card = "Blank");
 		}
 		else {
-			LexiconEntry.gotoAddMenuItem(menuItem = "${menuItem}");
+			LexiconEntry.gotoAddMenuItem(menuItem = "${pageTemplateType}");
+		}
+
+		if ("${pageTemplateType}" == "Content Page Template") {
+			PageTemplatesAdmin.gotoPageTemplate(pageTemplateName = "Blank");
+		}
+
+		if ("${menuItem}" == "Content Page Template") {
+			LexiconCard.clickCard(card = "Blank");
 		}
 
 		PortletEntry.inputName(name = "${pageTemplateName}");
@@ -49,6 +56,20 @@ definition {
 		AssertTextEquals(
 			locator1 = "Message#ERROR_MODAL_CONTENT",
 			value1 = "A page template entry with that name already exists.");
+	}
+
+	macro addMastersPageTemplate {
+		LexiconEntry.gotoAdd();
+
+		PortletEntry.inputName(name = "${pageTemplateName}");
+
+		Button.clickSave();
+
+		PageEditor.addFragment(
+			collectionName = "Drop Zone",
+			fragmentName = "Drop Zone Component");
+
+		PageEditor.clickPublish();
 	}
 
 	macro addPageTemplate {
@@ -88,7 +109,11 @@ definition {
 	}
 
 	macro openPageTemplatesAdmin {
-		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_layout_admin_web_portlet_GroupPagesPortlet&amp;_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_tabs1=page-templates");
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet&_com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet_tabs1=page-templates");
+	}
+
+	macro openPageTemplatesMenuAdmin {
+		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_layout_page_template_admin_web_portlet_LayoutPageTemplatesPortlet");
 	}
 
 	macro renamePageTemplate {

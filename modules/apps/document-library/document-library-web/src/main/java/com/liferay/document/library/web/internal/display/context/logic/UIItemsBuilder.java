@@ -59,6 +59,7 @@ import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -73,7 +74,6 @@ import com.liferay.staging.StagingGroupHelper;
 import com.liferay.staging.StagingGroupHelperUtil;
 import com.liferay.taglib.security.PermissionsURLTag;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -275,9 +275,9 @@ public class UIItemsBuilder {
 
 		selectFileVersionURL.setParameter("version", _fileVersion.getVersion());
 
-		Map<String, Object> data = new HashMap<>();
-
-		data.put("uri", selectFileVersionURL);
+		Map<String, Object> data = HashMapBuilder.<String, Object>put(
+			"uri", selectFileVersionURL
+		).build();
 
 		PortletURL compareVersionURL = _getRenderURL(
 			"/document_library/compare_versions", null);
@@ -484,9 +484,11 @@ public class UIItemsBuilder {
 		URLMenuItem urlMenuItem = _addURLUIItem(
 			new URLMenuItem(), menuItems, DLUIItemKeys.DOWNLOAD, label, url);
 
-		Map<String, Object> data = new HashMap<>();
-
-		data.put("senna-off", "true");
+		Map<String, Object> data = HashMapBuilder.<String, Object>put(
+			"analytics-file-entry-id", _fileEntry.getFileEntryId()
+		).put(
+			"senna-off", "true"
+		).build();
 
 		urlMenuItem.setData(data);
 
@@ -503,8 +505,15 @@ public class UIItemsBuilder {
 		String label = TextFormatter.formatStorageSize(
 			_fileVersion.getSize(), _themeDisplay.getLocale());
 
+		URLToolbarItem urlToolbarItem = new URLToolbarItem();
+
+		urlToolbarItem.setData(
+			HashMapBuilder.<String, Object>put(
+				"analytics-file-entry-id", _fileEntry.getFileEntryId()
+			).build());
+
 		_addURLUIItem(
-			new URLToolbarItem(), toolbarItems, DLUIItemKeys.DOWNLOAD,
+			urlToolbarItem, toolbarItems, DLUIItemKeys.DOWNLOAD,
 			StringBundler.concat(
 				LanguageUtil.get(_resourceBundle, "download"), " (", label,
 				")"),
@@ -526,10 +535,12 @@ public class UIItemsBuilder {
 		PortletURL portletURL = null;
 
 		if (_fileShortcut == null) {
-			portletURL = _getRenderURL("/document_library/edit_file_entry");
+			portletURL = _getControlPanelRenderURL(
+				"/document_library/edit_file_entry");
 		}
 		else {
-			portletURL = _getRenderURL("/document_library/edit_file_shortcut");
+			portletURL = _getControlPanelRenderURL(
+				"/document_library/edit_file_shortcut");
 		}
 
 		portletURL.setParameter("backURL", _getCurrentURL());
@@ -1125,6 +1136,46 @@ public class UIItemsBuilder {
 		}
 
 		portletURL.setParameter("redirect", redirect);
+
+		return portletURL;
+	}
+
+	private PortletURL _getControlPanelRenderURL(String mvcRenderCommandName) {
+		return _getControlPanelRenderURL(
+			mvcRenderCommandName, _getCurrentURL());
+	}
+
+	private PortletURL _getControlPanelRenderURL(
+		String mvcRenderCommandName, String redirect) {
+
+		PortletURL portletURL = PortalUtil.getControlPanelPortletURL(
+			_getLiferayPortletRequest(), _themeDisplay.getScopeGroup(),
+			DLPortletKeys.DOCUMENT_LIBRARY_ADMIN, 0, 0,
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter("mvcRenderCommandName", mvcRenderCommandName);
+
+		if (Validator.isNotNull(redirect)) {
+			portletURL.setParameter("redirect", redirect);
+		}
+
+		if (_fileShortcut != null) {
+			portletURL.setParameter(
+				"fileShortcutId",
+				String.valueOf(_fileShortcut.getFileShortcutId()));
+		}
+		else {
+			portletURL.setParameter(
+				"fileEntryId", String.valueOf(_fileEntry.getFileEntryId()));
+		}
+
+		PortletDisplay portletDisplay = _themeDisplay.getPortletDisplay();
+
+		String portletResource = portletDisplay.getId();
+
+		if (!portletResource.equals(DLPortletKeys.DOCUMENT_LIBRARY_ADMIN)) {
+			portletURL.setParameter("portletResource", portletResource);
+		}
 
 		return portletURL;
 	}

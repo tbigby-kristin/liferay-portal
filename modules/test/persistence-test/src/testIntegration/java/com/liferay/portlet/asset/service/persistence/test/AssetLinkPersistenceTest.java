@@ -122,6 +122,10 @@ public class AssetLinkPersistenceTest {
 
 		AssetLink newAssetLink = _persistence.create(pk);
 
+		newAssetLink.setMvccVersion(RandomTestUtil.nextLong());
+
+		newAssetLink.setCtCollectionId(RandomTestUtil.nextLong());
+
 		newAssetLink.setCompanyId(RandomTestUtil.nextLong());
 
 		newAssetLink.setUserId(RandomTestUtil.nextLong());
@@ -143,6 +147,11 @@ public class AssetLinkPersistenceTest {
 		AssetLink existingAssetLink = _persistence.findByPrimaryKey(
 			newAssetLink.getPrimaryKey());
 
+		Assert.assertEquals(
+			existingAssetLink.getMvccVersion(), newAssetLink.getMvccVersion());
+		Assert.assertEquals(
+			existingAssetLink.getCtCollectionId(),
+			newAssetLink.getCtCollectionId());
 		Assert.assertEquals(
 			existingAssetLink.getLinkId(), newAssetLink.getLinkId());
 		Assert.assertEquals(
@@ -236,9 +245,10 @@ public class AssetLinkPersistenceTest {
 
 	protected OrderByComparator<AssetLink> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
-			"AssetLink", "linkId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "entryId1", true, "entryId2",
-			true, "type", true, "weight", true);
+			"AssetLink", "mvccVersion", true, "ctCollectionId", true, "linkId",
+			true, "companyId", true, "userId", true, "userName", true,
+			"createDate", true, "entryId1", true, "entryId2", true, "type",
+			true, "weight", true);
 	}
 
 	@Test
@@ -472,6 +482,10 @@ public class AssetLinkPersistenceTest {
 		long pk = RandomTestUtil.nextLong();
 
 		AssetLink assetLink = _persistence.create(pk);
+
+		assetLink.setMvccVersion(RandomTestUtil.nextLong());
+
+		assetLink.setCtCollectionId(RandomTestUtil.nextLong());
 
 		assetLink.setCompanyId(RandomTestUtil.nextLong());
 

@@ -28,8 +28,8 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"ddm.form.field.type.data.domain=number",
 		"ddm.form.field.type.description=numeric-field-type-description",
-		"ddm.form.field.type.display.order:Integer=8",
-		"ddm.form.field.type.group=customized",
+		"ddm.form.field.type.display.order:Integer=7",
+		"ddm.form.field.type.group=basic",
 		"ddm.form.field.type.icon=caret-double",
 		"ddm.form.field.type.label=numeric-field-type-label",
 		"ddm.form.field.type.name=numeric"

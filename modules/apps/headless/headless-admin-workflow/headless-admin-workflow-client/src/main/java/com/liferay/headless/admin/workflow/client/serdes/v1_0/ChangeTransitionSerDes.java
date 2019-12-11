@@ -55,16 +55,30 @@ public class ChangeTransitionSerDes {
 
 		sb.append("{");
 
-		if (changeTransition.getTransition() != null) {
+		if (changeTransition.getComment() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"transition\": ");
+			sb.append("\"comment\": ");
 
 			sb.append("\"");
 
-			sb.append(_escape(changeTransition.getTransition()));
+			sb.append(_escape(changeTransition.getComment()));
+
+			sb.append("\"");
+		}
+
+		if (changeTransition.getTransitionName() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"transitionName\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(changeTransition.getTransitionName()));
 
 			sb.append("\"");
 		}
@@ -88,12 +102,20 @@ public class ChangeTransitionSerDes {
 
 		Map<String, String> map = new TreeMap<>();
 
-		if (changeTransition.getTransition() == null) {
-			map.put("transition", null);
+		if (changeTransition.getComment() == null) {
+			map.put("comment", null);
+		}
+		else {
+			map.put("comment", String.valueOf(changeTransition.getComment()));
+		}
+
+		if (changeTransition.getTransitionName() == null) {
+			map.put("transitionName", null);
 		}
 		else {
 			map.put(
-				"transition", String.valueOf(changeTransition.getTransition()));
+				"transitionName",
+				String.valueOf(changeTransition.getTransitionName()));
 		}
 
 		return map;
@@ -117,9 +139,14 @@ public class ChangeTransitionSerDes {
 			ChangeTransition changeTransition, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "transition")) {
+			if (Objects.equals(jsonParserFieldName, "comment")) {
 				if (jsonParserFieldValue != null) {
-					changeTransition.setTransition(
+					changeTransition.setComment((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "transitionName")) {
+				if (jsonParserFieldValue != null) {
+					changeTransition.setTransitionName(
 						(String)jsonParserFieldValue);
 				}
 			}
@@ -134,9 +161,11 @@ public class ChangeTransitionSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

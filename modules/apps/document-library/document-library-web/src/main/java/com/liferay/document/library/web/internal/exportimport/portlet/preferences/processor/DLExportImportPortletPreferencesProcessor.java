@@ -60,7 +60,6 @@ import org.osgi.service.component.annotations.Reference;
  * @author Máté Thurzó
  */
 @Component(
-	immediate = true,
 	property = "javax.portlet.name=" + DLPortletKeys.DOCUMENT_LIBRARY,
 	service = {
 		DLExportImportPortletPreferencesProcessor.class,
@@ -72,20 +71,14 @@ public class DLExportImportPortletPreferencesProcessor
 
 	@Override
 	public List<Capability> getExportCapabilities() {
-		return ListUtil.toList(
-			new Capability[] {
-				_dlCommentsAndRatingsExporterImporterCapability,
-				_exportCapability
-			});
+		return ListUtil.fromArray(
+			_dlCommentsAndRatingsExporterImporterCapability, _exportCapability);
 	}
 
 	@Override
 	public List<Capability> getImportCapabilities() {
-		return ListUtil.toList(
-			new Capability[] {
-				_dlCommentsAndRatingsExporterImporterCapability,
-				_importCapability
-			});
+		return ListUtil.fromArray(
+			_dlCommentsAndRatingsExporterImporterCapability, _importCapability);
 	}
 
 	@Override
@@ -408,14 +401,10 @@ public class DLExportImportPortletPreferencesProcessor
 		return portletPreferences;
 	}
 
-	@Reference(unbind = "-")
-	protected void setDLAppLocalService(DLAppLocalService dlAppLocalService) {
-		_dlAppLocalService = dlAppLocalService;
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLExportImportPortletPreferencesProcessor.class);
 
+	@Reference
 	private DLAppLocalService _dlAppLocalService;
 
 	@Reference

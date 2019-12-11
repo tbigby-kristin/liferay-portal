@@ -54,6 +54,7 @@ public class SoyComponentRendererHelper {
 		_soyRenderer = soyRenderer;
 
 		_moduleName = _getModuleName(_componentDescriptor.getModule());
+
 		_wrapperId = _generateWrapperId(
 			(String)_context.get("id"), _componentDescriptor.getComponentId());
 
@@ -103,7 +104,7 @@ public class SoyComponentRendererHelper {
 		String moduleName = StringUtil.extractLast(
 			module, CharPool.FORWARD_SLASH);
 
-		return StringUtil.strip(moduleName, _UNSAFE_MODULE_NAME_CHARS);
+		return StringUtil.removeChars(moduleName, _UNSAFE_MODULE_NAME_CHARS);
 	}
 
 	private void _prepareContext() {

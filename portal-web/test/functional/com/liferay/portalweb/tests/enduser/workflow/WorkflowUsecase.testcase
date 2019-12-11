@@ -20,7 +20,7 @@ definition {
 		else {
 			User.firstLoginPG();
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 
 			BlogsEntry.tearDownCP();
 
@@ -892,6 +892,8 @@ definition {
 			workflowTask = "Review");
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Approve");
+
+		Button.clickDone();
 
 		Alert.viewSuccessMessage();
 

@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -88,6 +89,7 @@ public class StructuredContent {
 	}
 
 	@Schema(description = "The structured content's average rating.")
+	@Valid
 	public AggregateRating getAggregateRating() {
 		return aggregateRating;
 	}
@@ -112,7 +114,7 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The structured content's average rating.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected AggregateRating aggregateRating;
 
@@ -142,13 +144,16 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The list of languages the structured content has a translation for."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String[] availableLanguages;
 
 	@Schema(
 		description = "The list of fields that store the structured content's information."
 	)
+	@Valid
 	public ContentField[] getContentFields() {
 		return contentFields;
 	}
@@ -172,7 +177,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The list of fields that store the structured content's information."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected ContentField[] contentFields;
 
@@ -200,11 +207,12 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The ID of the `ContentStructure`.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Long contentStructureId;
 
 	@Schema(description = "The structured content's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -228,11 +236,12 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The structured content's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
 	@Schema
+	@Valid
 	public CustomField[] getCustomFields() {
 		return customFields;
 	}
@@ -284,7 +293,7 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The structured content's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -314,7 +323,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The last time any field of the structured content was changed."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -344,7 +355,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The structured content's most recent publication date."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date datePublished;
 
@@ -372,7 +385,7 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The structured content's description.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String description;
 
@@ -402,7 +415,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A relative URL to the structured content's rendered content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String friendlyUrlPath;
 
@@ -428,7 +443,7 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The structured content's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -456,7 +471,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "An identifier, independent of the database, that can be used to reference the structured content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String key;
 
@@ -486,7 +503,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of keywords describing the structured content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String[] keywords;
 
@@ -516,11 +535,14 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The number of comments the structured content has received."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfComments;
 
 	@Schema
+	@Valid
 	public RelatedContent[] getRelatedContents() {
 		return relatedContents;
 	}
@@ -552,6 +574,7 @@ public class StructuredContent {
 	@Schema(
 		description = "A list of rendered structured content, which results from using a template to process the content and return HTML."
 	)
+	@Valid
 	public RenderedContent[] getRenderedContents() {
 		return renderedContents;
 	}
@@ -576,7 +599,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of rendered structured content, which results from using a template to process the content and return HTML."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected RenderedContent[] renderedContents;
 
@@ -606,13 +631,44 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which this structured content is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
+
+	@Schema
+	public Boolean getSubscribed() {
+		return subscribed;
+	}
+
+	public void setSubscribed(Boolean subscribed) {
+		this.subscribed = subscribed;
+	}
+
+	@JsonIgnore
+	public void setSubscribed(
+		UnsafeSupplier<Boolean, Exception> subscribedUnsafeSupplier) {
+
+		try {
+			subscribed = subscribedUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Boolean subscribed;
 
 	@Schema(
 		description = "The categories associated with this structured content."
 	)
+	@Valid
 	public TaxonomyCategory[] getTaxonomyCategories() {
 		return taxonomyCategories;
 	}
@@ -637,7 +693,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The categories associated with this structured content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected TaxonomyCategory[] taxonomyCategories;
 
@@ -667,7 +725,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only field to add a category to this structured content."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected Long[] taxonomyCategoryIds;
 
@@ -695,7 +755,7 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The structured content's main title.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	@NotEmpty
 	protected String title;
@@ -724,13 +784,16 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A valid external identifier to reference this structured content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String uuid;
 
 	@Schema(
 		description = "A write-only property that specifies the structured content's default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -763,7 +826,9 @@ public class StructuredContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the structured content's default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -1069,6 +1134,16 @@ public class StructuredContent {
 			sb.append(siteId);
 		}
 
+		if (subscribed != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(subscribed);
+		}
+
 		if (taxonomyCategories != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -1155,6 +1230,12 @@ public class StructuredContent {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.StructuredContent",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

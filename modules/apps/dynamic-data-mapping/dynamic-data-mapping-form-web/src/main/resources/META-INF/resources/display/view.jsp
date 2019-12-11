@@ -28,7 +28,7 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 			<liferay-ui:message key="select-an-existing-form-or-add-a-form-to-be-displayed-in-this-application" />
 		</div>
 	</c:when>
-	<c:when test="<%= !ddmFormDisplayContext.hasViewPermission() %>">
+	<c:when test="<%= !ddmFormDisplayContext.hasAddFormInstanceRecordPermission() && !ddmFormDisplayContext.hasViewPermission() %>">
 		<div class="ddm-form-basic-info">
 			<div class="container-fluid-1280">
 				<clay:alert
@@ -190,17 +190,15 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 					Liferay.on('destroyPortlet', <portlet:namespace />clearPortletHandlers);
 
 					<c:if test="<%= ddmFormDisplayContext.isFormShared() %>">
-						document.title = '<%= HtmlUtil.escapeJS(formInstance.getName(displayLocale)) %>';
+						document.title =
+							'<%= HtmlUtil.escapeJS(formInstance.getName(displayLocale)) %>';
 					</c:if>
 
 					function <portlet:namespace />fireFormView() {
-						Liferay.fire(
-							'ddmFormView',
-							{
-								formId: <%= formInstanceId %>,
-								title: '<%= HtmlUtil.escape(formInstance.getName(displayLocale)) %>'
-							}
-						);
+						Liferay.fire('ddmFormView', {
+							formId: '<%= formInstanceId %>',
+							title: '<%= HtmlUtil.escape(formInstance.getName(displayLocale)) %>'
+						});
 					}
 
 					<c:choose>
@@ -214,18 +212,17 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 							</liferay-portlet:resourceURL>
 
 							function <portlet:namespace />autoSave() {
-								const data = new URLSearchParams({
+								var data = new URLSearchParams({
 									<portlet:namespace />formInstanceId: <%= formInstanceId %>,
-									<portlet:namespace />serializedDDMFormValues: JSON.stringify(<portlet:namespace />form.toJSON())
+									<portlet:namespace />serializedDDMFormValues: JSON.stringify(
+										<portlet:namespace />form.toJSON()
+									)
 								});
 
-								Liferay.Util.fetch(
-									'<%= autoSaveFormInstanceRecordURL.toString() %>',
-									{
-										body: data,
-										method: 'POST'
-									}
-								);
+								Liferay.Util.fetch('<%= autoSaveFormInstanceRecordURL.toString() %>', {
+									body: data,
+									method: 'POST'
+								});
 							}
 
 							function <portlet:namespace />startAutoSave() {
@@ -233,7 +230,10 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 									clearInterval(<portlet:namespace />intervalId);
 								}
 
-								<portlet:namespace />intervalId = setInterval(<portlet:namespace />autoSave, 60000);
+								<portlet:namespace />intervalId = setInterval(
+									<portlet:namespace />autoSave,
+									<%= ddmFormDisplayContext.getAutosaveInterval() %>
+								);
 							}
 						</c:when>
 						<c:otherwise>
@@ -246,7 +246,10 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 
 								var time = Liferay.Session.get('sessionLength') || tenSeconds;
 
-								<portlet:namespace />intervalId = setInterval(<portlet:namespace />extendSession, (time / 2));
+								<portlet:namespace />intervalId = setInterval(
+									<portlet:namespace />extendSession,
+									time / 2
+								);
 							}
 
 							function <portlet:namespace />extendSession() {
@@ -256,7 +259,9 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 					</c:choose>
 
 					function <portlet:namespace />enableForm() {
-						const container = document.querySelector('#<%= ddmFormDisplayContext.getContainerId() %>container');
+						var container = document.querySelector(
+							'#<%= ddmFormDisplayContext.getContainerId() %>container'
+						);
 
 						container.classList.remove('ddm-form-builder-app-not-ready');
 					}
@@ -267,29 +272,30 @@ long formInstanceId = ddmFormDisplayContext.getFormInstanceId();
 
 						<c:choose>
 							<c:when test="<%= ddmFormDisplayContext.isAutosaveEnabled() %>">
-									<portlet:namespace />startAutoSave();
+								<portlet:namespace />startAutoSave();
 							</c:when>
 							<c:otherwise>
-									<portlet:namespace />startAutoExtendSession();
+								<portlet:namespace />startAutoExtendSession();
 							</c:otherwise>
 						</c:choose>
 					}
 
-					<portlet:namespace />form = Liferay.component('<%= ddmFormDisplayContext.getContainerId() %>');
+					<portlet:namespace />form = Liferay.component(
+						'<%= ddmFormDisplayContext.getContainerId() %>'
+					);
 
 					if (<portlet:namespace />form) {
 						<portlet:namespace />initForm();
-					}
-					else {
-						Liferay.componentReady('<%= ddmFormDisplayContext.getContainerId() %>').then(
-							function(component) {
-								<portlet:namespace />form = component;
+					} else {
+						Liferay.componentReady(
+							'<%= ddmFormDisplayContext.getContainerId() %>'
+						).then(function(component) {
+							<portlet:namespace />form = component;
 
-								if (component) {
-									<portlet:namespace />initForm();
-								}
+							if (component) {
+								<portlet:namespace />initForm();
 							}
-						);
+						});
 					}
 				</aui:script>
 			</c:when>

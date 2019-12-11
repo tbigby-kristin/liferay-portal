@@ -24,54 +24,65 @@ import java.util.regex.Pattern;
  */
 public class OASURLParser {
 
-	public OASURLParser(String oasURL) {
-		_oasURL = oasURL;
-	}
-
-	public String getHost() throws MalformedURLException {
-		return _getGroup(2);
-	}
-
-	public String getJaxRSAppBase() throws MalformedURLException {
-		return _getGroup(4);
-	}
-
-	public String getPort() throws MalformedURLException {
-		return _getGroup(3);
-	}
-
-	public String getProtocol() throws MalformedURLException {
-		return _getGroup(1);
-	}
-
-	public String getServerBaseURL() throws MalformedURLException {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(getProtocol());
-		sb.append("://");
-		sb.append(getHost());
-		sb.append(getPort());
-		sb.append("/o/");
-		sb.append(getJaxRSAppBase());
-
-		return sb.toString();
-	}
-
-	private String _getGroup(int group) throws MalformedURLException {
-		Matcher matcher = _oasURLPattern.matcher(_oasURL);
+	public OASURLParser(String oasURL) throws MalformedURLException {
+		Matcher matcher = _oasURLPattern.matcher(oasURL);
 
 		if (!matcher.matches()) {
 			throw new MalformedURLException(
 				"Unable to parse OpenAPI specification endpoint URL: " +
-					_oasURL);
+					oasURL);
 		}
 
-		return matcher.group(group);
+		_host = matcher.group(2);
+		_jaxRSAppBase = matcher.group(4);
+		_port = matcher.group(3);
+		_scheme = matcher.group(1);
+	}
+
+	public String getAuthorityWithScheme() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(_scheme);
+		sb.append("://");
+		sb.append(_host);
+		sb.append(":");
+		sb.append(_port);
+
+		return sb.toString();
+	}
+
+	public String getHost() {
+		return _host;
+	}
+
+	public String getJaxRSAppBase() {
+		return _jaxRSAppBase;
+	}
+
+	public String getPort() {
+		return _port;
+	}
+
+	public String getScheme() {
+		return _scheme;
+	}
+
+	public String getServerBaseURL() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(getAuthorityWithScheme());
+		sb.append("/o/");
+		sb.append(_jaxRSAppBase);
+
+		return sb.toString();
 	}
 
 	private static final Pattern _oasURLPattern = Pattern.compile(
-		"(.*)://(.+)(:\\d+)/o/(.+)/v(.+)/openapi\\.(yaml|json)");
+		"(.*)://(.+):(\\d+)/o/(.+)/v(.+)/openapi\\.(yaml|json)");
 
-	private final String _oasURL;
+	private final String _host;
+	private final String _jaxRSAppBase;
+	private final String _port;
+	private final String _scheme;
 
 }

@@ -21,18 +21,7 @@ SelectOrganizationsDisplayContext selectOrganizationsDisplayContext = (SelectOrg
 %>
 
 <clay:management-toolbar
-	clearResultsURL="<%= selectOrganizationsDisplayContext.getClearResultsURL() %>"
-	componentId="selectSegmentsEntryOrganizationsManagementToolbar"
-	disabled="<%= selectOrganizationsDisplayContext.isDisabledManagementBar() %>"
-	filterDropdownItems="<%= selectOrganizationsDisplayContext.getFilterDropdownItems() %>"
-	itemsTotal="<%= selectOrganizationsDisplayContext.getTotalItems() %>"
-	searchActionURL="<%= selectOrganizationsDisplayContext.getSearchActionURL() %>"
-	searchContainerId="selectSegmentsEntryOrganizations"
-	searchFormName="searchFm"
-	showSearch="<%= selectOrganizationsDisplayContext.isShowSearch() %>"
-	sortingOrder="<%= selectOrganizationsDisplayContext.getOrderByType() %>"
-	sortingURL="<%= selectOrganizationsDisplayContext.getSortingURL() %>"
-	viewTypeItems="<%= selectOrganizationsDisplayContext.getViewTypeItems() %>"
+	displayContext="<%= new SelectOrganizationsManagementToolbarDisplayContext(request, liferayPortletRequest, liferayPortletResponse, selectOrganizationsDisplayContext) %>"
 />
 
 <aui:form cssClass="container-fluid-1280" name="fm">
@@ -82,6 +71,7 @@ SelectOrganizationsDisplayContext selectOrganizationsDisplayContext = (SelectOrg
 </aui:form>
 
 <liferay-util:include page="/field/select_js.jsp" servletContext="<%= application %>">
+	<liferay-util:param name="displayStyle" value="<%= selectOrganizationsDisplayContext.getDisplayStyle() %>" />
 	<liferay-util:param name="searchContainerId" value="selectSegmentsEntryOrganizations" />
 	<liferay-util:param name="selectEventName" value="<%= selectOrganizationsDisplayContext.getEventName() %>" />
 </liferay-util:include>

@@ -35,7 +35,7 @@ public class TCKJunitBatchTestClassGroup extends BatchTestClassGroup {
 
 	@Override
 	public int getAxisCount() {
-		if (testRelevantIntegrationUnitOnly) {
+		if (!isStableTestSuiteBatch() && testRelevantIntegrationUnitOnly) {
 			return 0;
 		}
 
@@ -80,6 +80,22 @@ public class TCKJunitBatchTestClassGroup extends BatchTestClassGroup {
 			getPathMatchers(
 				getFirstPropertyValue("test.batch.class.names.includes"),
 				_tckHomeDirectory));
+
+		if (includeStableTestSuite && isStableTestSuiteBatch()) {
+			excludesPathMatchers.addAll(
+				getPathMatchers(
+					getFirstPropertyValue(
+						"test.batch.class.names.excludes", batchName,
+						NAME_STABLE_TEST_SUITE),
+					_tckHomeDirectory));
+
+			includesPathMatchers.addAll(
+				getPathMatchers(
+					getFirstPropertyValue(
+						"test.batch.class.names.includes", batchName,
+						NAME_STABLE_TEST_SUITE),
+					_tckHomeDirectory));
+		}
 
 		setTestClasses();
 

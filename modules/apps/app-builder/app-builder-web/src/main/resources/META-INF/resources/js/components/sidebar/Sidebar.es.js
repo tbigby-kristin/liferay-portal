@@ -12,24 +12,36 @@
  * details.
  */
 
-import classNames from 'classnames';
-import React, {useState} from 'react';
 import {ClayButtonWithIcon} from '@clayui/button';
-import {ClayInput} from '@clayui/form';
+import ClayForm from '@clayui/form';
+import classNames from 'classnames';
+import React, {useState, useEffect} from 'react';
+
 import Button from '../button/Button.es';
+import SearchInput from '../management-toolbar/search/SearchInput.es';
 
 const Sidebar = React.forwardRef(
 	(
-		{children, closeable = true, onSearch = null, onToggle = () => {}},
+		{
+			children,
+			closeable = true,
+			closed = false,
+			onSearch = null,
+			onToggle = () => {}
+		},
 		ref
 	) => {
-		const [isClosed, setClosed] = useState(false);
+		const [isClosed, setClosed] = useState(closed);
 
 		const handleToggle = () => {
 			const closed = !isClosed;
 			setClosed(closed);
 			onToggle(closed);
 		};
+
+		useEffect(() => {
+			setClosed(closed);
+		}, [closed]);
 
 		return (
 			<div ref={ref}>
@@ -40,11 +52,15 @@ const Sidebar = React.forwardRef(
 				>
 					<div className="sidebar sidebar-light">
 						{(closeable || onSearch) && (
-							<SidebarSearchInput
-								closeable={closeable}
-								onSearch={onSearch}
-								onToggle={handleToggle}
-							/>
+							<ClayForm
+								onSubmit={event => event.preventDefault()}
+							>
+								<SidebarSearchInput
+									closeable={closeable}
+									onSearch={onSearch}
+									onToggle={handleToggle}
+								/>
+							</ClayForm>
 						)}
 						{children}
 					</div>
@@ -67,8 +83,10 @@ const Sidebar = React.forwardRef(
 	}
 );
 
-const SidebarBody = ({children}) => {
-	return <div className="sidebar-body">{children}</div>;
+const SidebarBody = ({children, className}) => {
+	return (
+		<div className={classNames(className, 'sidebar-body')}>{children}</div>
+	);
 };
 
 const SidebarFooter = ({children}) => {
@@ -77,84 +95,56 @@ const SidebarFooter = ({children}) => {
 
 const SidebarHeader = ({children, className}) => {
 	return (
-		<div className={classNames(className, 'pb-0 sidebar-header')}>
+		<div className={classNames(className, 'sidebar-header')}>
 			{children}
 		</div>
 	);
 };
 
-const SidebarSearchInput = ({closeable, onSearch, onToggle}) => {
-	const [keywords, setKeywords] = useState('');
-
-	const onChange = event => {
-		const {value} = event.target;
-
-		setKeywords(value);
-
-		if (onSearch) {
-			onSearch(value);
-		}
-	};
-
-	return (
-		<SidebarHeader>
-			<div className="autofit-row sidebar-section">
-				<div className="autofit-col autofit-col-expand">
-					<ClayInput.Group>
-						{onSearch && (
-							<ClayInput.GroupItem>
-								<ClayInput
-									aria-label={Liferay.Language.get('search')}
-									className="input-group-inset input-group-inset-after"
-									onChange={onChange}
-									placeholder={`${Liferay.Language.get(
-										'search'
-									)}...`}
-									type="text"
-									value={keywords}
-								/>
-
-								<ClayInput.GroupInsetItem after>
-									<ClayButtonWithIcon
-										displayType="unstyled"
-										symbol="search"
-									/>
-								</ClayInput.GroupInsetItem>
-							</ClayInput.GroupItem>
-						)}
-						{closeable && (
-							<ClayInput.GroupItem shrink>
-								<ClayButtonWithIcon
-									displayType="secondary"
-									onClick={onToggle}
-									symbol="angle-right"
-								/>
-							</ClayInput.GroupItem>
-						)}
-					</ClayInput.Group>
-				</div>
+const SidebarSearchInput = ({closeable, onSearch, onToggle}) => (
+	<SidebarHeader>
+		<div className="autofit-row sidebar-section">
+			<div className="autofit-col autofit-col-expand">
+				{onSearch && (
+					<SearchInput
+						onChange={searchText => onSearch(searchText)}
+					/>
+				)}
 			</div>
-		</SidebarHeader>
-	);
-};
+			<div className="autofit-col ml-2">
+				{closeable && (
+					<ClayButtonWithIcon
+						displayType="secondary"
+						onClick={onToggle}
+						symbol="angle-right"
+					/>
+				)}
+			</div>
+		</div>
+	</SidebarHeader>
+);
 
 const SidebarTab = ({tabs}) => {
 	return (
 		<nav className="component-tbar tbar">
 			<div className="container-fluid">
 				<ul className="nav nav-underline" role="tablist">
-					{tabs.map((tab, index) => (
+					{tabs.map(({active, label, onClick}, index) => (
 						<li className="nav-item" key={index}>
 							<a
-								className="active nav-link"
+								className={classNames('nav-link', {active})}
 								data-senna-off
 								href=""
 								onClick={event => {
 									event.preventDefault();
+
+									if (onClick) {
+										onClick(index);
+									}
 								}}
 								role="tab"
 							>
-								{tab}
+								{label}
 							</a>
 						</li>
 					))}

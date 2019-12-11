@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -347,7 +348,7 @@ public class AssetEntryFinderImpl
 	protected SQLQuery buildAssetQuerySQL(
 		AssetEntryQuery entryQuery, boolean count, Session session) {
 
-		StringBundler sb = new StringBundler(59);
+		StringBundler sb = new StringBundler(67);
 
 		if (count) {
 			sb.append("SELECT COUNT(DISTINCT AssetEntry.entryId) AS ");
@@ -357,6 +358,7 @@ public class AssetEntryFinderImpl
 			sb.append("SELECT {AssetEntry.*} ");
 
 			boolean selectRatings = false;
+			boolean selectViewCount = false;
 
 			String orderByCol1 = entryQuery.getOrderByCol1();
 			String orderByCol2 = entryQuery.getOrderByCol2();
@@ -369,10 +371,22 @@ public class AssetEntryFinderImpl
 				sb.append(", TEMP_TABLE_ASSET_ENTRY.averageScore ");
 			}
 
+			if (orderByCol1.equals("viewCount") ||
+				orderByCol2.equals("viewCount")) {
+
+				selectViewCount = true;
+
+				sb.append(", TEMP_TABLE_ASSET_ENTRY.viewCount ");
+			}
+
 			sb.append("FROM (SELECT DISTINCT AssetEntry.entryId ");
 
 			if (selectRatings) {
 				sb.append(", RatingsStats.averageScore ");
+			}
+
+			if (selectViewCount) {
+				sb.append(", ViewCountEntry.viewCount ");
 			}
 		}
 
@@ -395,6 +409,16 @@ public class AssetEntryFinderImpl
 			sb.append("(TEMP_TABLE_ASSET_LINK.entryId = AssetEntry.entryId) ");
 		}
 
+		if (entryQuery.isExcludeZeroViewCount()) {
+			sb.append("INNER JOIN ViewCountEntry ON (");
+			sb.append("ViewCountEntry.companyId = AssetEntry.companyId) AND ");
+			sb.append("(ViewCountEntry.classNameId = ");
+			sb.append(
+				ClassNameLocalServiceUtil.getClassNameId(AssetEntry.class));
+			sb.append(") AND (ViewCountEntry.classPK = AssetEntry.entryId) ");
+			sb.append("AND (ViewCountEntry.viewCount > 0) ");
+		}
+
 		String orderByCol1 = AssetEntryQuery.ORDER_BY_COLUMNS[2];
 		String orderByCol2 = AssetEntryQuery.ORDER_BY_COLUMNS[2];
 
@@ -414,6 +438,17 @@ public class AssetEntryFinderImpl
 			sb.append("AssetEntry.classPK)");
 		}
 
+		if (orderByCol1.equals("viewCount") ||
+			orderByCol2.equals("viewCount")) {
+
+			sb.append(" LEFT JOIN ViewCountEntry ON ");
+			sb.append("(ViewCountEntry.companyId = AssetEntry.companyId) AND ");
+			sb.append("(ViewCountEntry.classNameId = ");
+			sb.append(
+				ClassNameLocalServiceUtil.getClassNameId(AssetEntry.class));
+			sb.append(") AND (ViewCountEntry.classPK = AssetEntry.entryId) ");
+		}
+
 		sb.append("WHERE ");
 
 		int whereIndex = sb.index();
@@ -428,10 +463,6 @@ public class AssetEntryFinderImpl
 
 		if (entryQuery.isVisible() != null) {
 			sb.append(" AND (visible = ?)");
-		}
-
-		if (entryQuery.isExcludeZeroViewCount()) {
-			sb.append(" AND (AssetEntry.viewCount > 0)");
 		}
 
 		// Keywords
@@ -545,6 +576,11 @@ public class AssetEntryFinderImpl
 				sb.append("IS NULL THEN 0 ");
 				sb.append("ELSE TEMP_TABLE_ASSET_ENTRY.averageScore END");
 			}
+			else if (orderByCol1.equals("viewCount")) {
+				sb.append("CASE WHEN TEMP_TABLE_ASSET_ENTRY.viewCount ");
+				sb.append("IS NULL THEN 0 ");
+				sb.append("ELSE TEMP_TABLE_ASSET_ENTRY.viewCount END");
+			}
 			else {
 				sb.append("AssetEntry.");
 				sb.append(orderByCol1);
@@ -561,6 +597,12 @@ public class AssetEntryFinderImpl
 					sb.append("TEMP_TABLE_ASSET_ENTRY.averageScore IS NULL ");
 					sb.append("THEN 0 ELSE ");
 					sb.append("TEMP_TABLE_ASSET_ENTRY.averageScore END");
+				}
+				else if (orderByCol2.equals("viewCount")) {
+					sb.append(", CASE WHEN ");
+					sb.append("TEMP_TABLE_ASSET_ENTRY.viewCount IS NULL ");
+					sb.append("THEN 0 ELSE ");
+					sb.append("TEMP_TABLE_ASSET_ENTRY.viewCount END");
 				}
 				else {
 					sb.append(", AssetEntry.");

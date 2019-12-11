@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.template.TemplateVariableGroup;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
@@ -51,7 +52,6 @@ import java.lang.reflect.InvocationHandler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -167,15 +167,6 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 		return displayStyle.substring(DISPLAY_STYLE_PREFIX.length());
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x)
-	 */
-	@Deprecated
-	@Override
-	public String getDDMTemplateUuid(String displayStyle) {
-		return getDDMTemplateKey(displayStyle);
-	}
-
 	@Override
 	public DDMTemplate getDefaultPortletDisplayTemplateDDMTemplate(
 		long groupId, long classNameId) {
@@ -234,29 +225,6 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 		return portletDisplayDDMTemplate;
 	}
 
-	/**
-	 * @deprecated As of Wilberforce (7.0.x)
-	 */
-	@Deprecated
-	@Override
-	public long getPortletDisplayTemplateDDMTemplateId(
-		long groupId, String displayStyle) {
-
-		long portletDisplayDDMTemplateId = 0;
-
-		if (displayStyle.startsWith(DISPLAY_STYLE_PREFIX)) {
-			DDMTemplate portletDisplayDDMTemplate = fetchDDMTemplate(
-				getDDMTemplateGroupId(groupId), displayStyle);
-
-			if (portletDisplayDDMTemplate != null) {
-				portletDisplayDDMTemplateId =
-					portletDisplayDDMTemplate.getTemplateId();
-			}
-		}
-
-		return portletDisplayDDMTemplateId;
-	}
-
 	@Override
 	public List<TemplateHandler> getPortletDisplayTemplateHandlers() {
 		List<TemplateHandler> templateHandlers =
@@ -293,9 +261,6 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 	public Map<String, TemplateVariableGroup> getTemplateVariableGroups(
 		String language) {
 
-		Map<String, TemplateVariableGroup> templateVariableGroups =
-			new LinkedHashMap<>();
-
 		TemplateVariableGroup fieldsTemplateVariableGroup =
 			new TemplateVariableGroup("fields");
 
@@ -304,8 +269,6 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 			"entries-item", null, "curEntry", null);
 		fieldsTemplateVariableGroup.addVariable(
 			"entry", null, PortletDisplayTemplateConstants.ENTRY);
-
-		templateVariableGroups.put("fields", fieldsTemplateVariableGroup);
 
 		TemplateVariableGroup generalVariablesTemplateVariableGroup =
 			new TemplateVariableGroup("general-variables");
@@ -323,9 +286,6 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 		generalVariablesTemplateVariableGroup.addVariable(
 			"theme-display", ThemeDisplay.class,
 			PortletDisplayTemplateConstants.THEME_DISPLAY);
-
-		templateVariableGroups.put(
-			"general-variables", generalVariablesTemplateVariableGroup);
 
 		TemplateVariableGroup utilTemplateVariableGroup =
 			new TemplateVariableGroup("util");
@@ -347,9 +307,13 @@ public class PortletDisplayTemplateImpl implements PortletDisplayTemplate {
 			"render-response", RenderResponse.class,
 			PortletDisplayTemplateConstants.RENDER_RESPONSE);
 
-		templateVariableGroups.put("util", utilTemplateVariableGroup);
-
-		return templateVariableGroups;
+		return LinkedHashMapBuilder.<String, TemplateVariableGroup>put(
+			"fields", fieldsTemplateVariableGroup
+		).put(
+			"general-variables", generalVariablesTemplateVariableGroup
+		).put(
+			"util", utilTemplateVariableGroup
+		).build();
 	}
 
 	@Override

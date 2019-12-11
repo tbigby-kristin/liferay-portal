@@ -16,6 +16,7 @@ package com.liferay.portal.jsonwebservice;
 
 import com.liferay.portal.jsonwebservice.action.JSONWebServiceInvokerAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,18 +43,18 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 
 	@Test
 	public void testAddVariableToInnerProperty() throws Exception {
-		Map<String, Object> commandMap = new LinkedHashMap<>();
-
-		Map<String, Object> pParams = new LinkedHashMap<>();
-
-		Map<String, Object> xxx2Params = new LinkedHashMap<>();
-
-		xxx2Params.put("@userId", "$p.page");
-		xxx2Params.put("worldName", "star");
-
-		pParams.put("data.$XXX2 = /foo/hello-world", xxx2Params);
-
-		commandMap.put("$p = /foo/get-foo-data-page", pParams);
+		Map<String, Object> commandMap =
+			LinkedHashMapBuilder.<String, Object>put(
+				"$p = /foo/get-foo-data-page",
+				LinkedHashMapBuilder.<String, Object>put(
+					"data.$XXX2 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "star"
+					).build()
+				).build()
+			).build();
 
 		Map<String, Object> expectedMap = prepareExpectedMap(
 			false, false, false);
@@ -64,64 +65,60 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 
 	@Test
 	public void testAddVariableToRootAndInnerProperty() throws Exception {
-		Map<String, Object> commandMap = new LinkedHashMap<>();
-
-		Map<String, Object> pParams = new LinkedHashMap<>();
-
-		Map<String, Object> xxx1Params = new LinkedHashMap<>();
-
-		xxx1Params.put("@userId", "$p.page");
-		xxx1Params.put("worldName", "galaxy");
-
-		pParams.put("$XXX1 = /foo/hello-world", xxx1Params);
-
-		Map<String, Object> xxx2Params = new LinkedHashMap<>();
-
-		xxx2Params.put("@userId", "$p.page");
-		xxx2Params.put("worldName", "star");
-
-		pParams.put("data.$XXX2 = /foo/hello-world", xxx2Params);
-
-		commandMap.put("$p = /foo/get-foo-data-page", pParams);
-
 		Map<String, Object> expectedMap = prepareExpectedMap(
 			true, false, false);
-		Map<String, Object> actualMap = invokeAndReturnMap(commandMap);
+		Map<String, Object> actualMap = invokeAndReturnMap(
+			LinkedHashMapBuilder.<String, Object>put(
+				"$p = /foo/get-foo-data-page",
+				LinkedHashMapBuilder.<String, Object>put(
+					"$XXX1 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "galaxy"
+					).build()
+				).put(
+					"data.$XXX2 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "star"
+					).build()
+				).build()
+			).build());
 
 		Assert.assertEquals(expectedMap, actualMap);
 	}
 
 	@Test
 	public void testAddVariableToRootInnerAndListProperty() throws Exception {
-		Map<String, Object> commandMap = new LinkedHashMap<>();
-
-		Map<String, Object> pParams = new LinkedHashMap<>();
-
-		Map<String, Object> xxx1Params = new LinkedHashMap<>();
-
-		xxx1Params.put("@userId", "$p.page");
-		xxx1Params.put("worldName", "galaxy");
-
-		pParams.put("$XXX1 = /foo/hello-world", xxx1Params);
-
-		Map<String, Object> xxx2Params = new LinkedHashMap<>();
-
-		xxx2Params.put("@userId", "$p.page");
-		xxx2Params.put("worldName", "star");
-
-		pParams.put("data.$XXX2 = /foo/hello-world", xxx2Params);
-
-		Map<String, Object> xxx3Params = new LinkedHashMap<>();
-
-		xxx3Params.put("@userId", "$p.page");
-		xxx3Params.put("worldName", "pulsar");
-
-		pParams.put("list.$XXX3 = /foo/hello-world", xxx3Params);
-
-		commandMap.put("$p = /foo/get-foo-data-page", pParams);
-
 		Map<String, Object> expectedMap = prepareExpectedMap(true, true, false);
-		Map<String, Object> actualMap = invokeAndReturnMap(commandMap);
+		Map<String, Object> actualMap = invokeAndReturnMap(
+			LinkedHashMapBuilder.<String, Object>put(
+				"$p = /foo/get-foo-data-page",
+				LinkedHashMapBuilder.<String, Object>put(
+					"$XXX1 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "galaxy"
+					).build()
+				).put(
+					"data.$XXX2 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "star"
+					).build()
+				).put(
+					"list.$XXX3 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "pulsar"
+					).build()
+				).build()
+			).build());
 
 		Assert.assertEquals(expectedMap, actualMap);
 	}
@@ -130,35 +127,33 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 	public void testAddVariableToRootInnerAndListPropertyAndListReference()
 		throws Exception {
 
-		Map<String, Object> commandMap = new LinkedHashMap<>();
-
-		Map<String, Object> pParams = new LinkedHashMap<>();
-
-		Map<String, Object> xxx1Params = new LinkedHashMap<>();
-
-		xxx1Params.put("@userId", "$p.page");
-		xxx1Params.put("worldName", "galaxy");
-
-		pParams.put("$XXX1 = /foo/hello-world", xxx1Params);
-
-		Map<String, Object> xxx2Params = new LinkedHashMap<>();
-
-		xxx2Params.put("@userId", "$p.page");
-		xxx2Params.put("worldName", "star");
-
-		pParams.put("data.$XXX2 = /foo/hello-world", xxx2Params);
-
-		Map<String, Object> xxx3Params = new LinkedHashMap<>();
-
-		xxx3Params.put("@userId", "$p.list.id");
-		xxx3Params.put("worldName", "pulsar");
-
-		pParams.put("list.$XXX3 = /foo/hello-world", xxx3Params);
-
-		commandMap.put("$p = /foo/get-foo-data-page", pParams);
-
 		Map<String, Object> expectedMap = prepareExpectedMap(true, true, true);
-		Map<String, Object> actualMap = invokeAndReturnMap(commandMap);
+		Map<String, Object> actualMap = invokeAndReturnMap(
+			LinkedHashMapBuilder.<String, Object>put(
+				"$p = /foo/get-foo-data-page",
+				LinkedHashMapBuilder.<String, Object>put(
+					"$XXX1 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "galaxy"
+					).build()
+				).put(
+					"data.$XXX2 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.page"
+					).put(
+						"worldName", "star"
+					).build()
+				).put(
+					"list.$XXX3 = /foo/hello-world",
+					LinkedHashMapBuilder.<String, Object>put(
+						"@userId", "$p.list.id"
+					).put(
+						"worldName", "pulsar"
+					).build()
+				).build()
+			).build());
 
 		Assert.assertEquals(expectedMap, actualMap);
 	}
@@ -194,20 +189,23 @@ public class JSONWebServiceInvokerInnerTest extends BaseJSONWebServiceTestCase {
 
 		expectedMap.put("page", 3);
 
-		Map<String, Object> data = new LinkedHashMap<>();
-
 		List<Integer> list = new ArrayList<>();
 
 		list.add(9);
 		list.add(5);
 		list.add(7);
 
-		data.put("array", list);
-
-		data.put("id", 2);
-		data.put("height", 8);
-		data.put("XXX2", "Welcome 3 to star");
-		data.put("name", "life");
+		Map<String, Object> data = LinkedHashMapBuilder.<String, Object>put(
+			"array", list
+		).put(
+			"id", 2
+		).put(
+			"height", 8
+		).put(
+			"XXX2", "Welcome 3 to star"
+		).put(
+			"name", "life"
+		).build();
 
 		expectedMap.put("data", data);
 

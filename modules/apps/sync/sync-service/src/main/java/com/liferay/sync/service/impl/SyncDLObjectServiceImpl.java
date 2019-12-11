@@ -61,6 +61,8 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -776,10 +778,12 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 
 			List<Group> groups = new ArrayList<>();
 
-			LinkedHashMap<String, Object> groupParams = new LinkedHashMap<>();
-
-			groupParams.put("active", true);
-			groupParams.put("usersGroups", user.getUserId());
+			LinkedHashMap<String, Object> groupParams =
+				LinkedHashMapBuilder.<String, Object>put(
+					"active", true
+				).put(
+					"usersGroups", user.getUserId()
+				).build();
 
 			List<Group> userSiteGroups = groupLocalService.search(
 				user.getCompanyId(), null, groupParams, QueryUtil.ALL_POS,
@@ -960,6 +964,8 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			ServiceContext serviceContext)
 		throws PortalException {
 
+		File sourceFile = null;
+
 		File patchedFile = null;
 
 		try {
@@ -972,8 +978,9 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 			DLFileVersion dlFileVersion =
 				dlFileVersionLocalService.getDLFileVersion(sourceVersionId);
 
-			File sourceFile = dlFileEntryLocalService.getFile(
-				fileEntryId, dlFileVersion.getVersion(), false);
+			sourceFile = FileUtil.createTempFile(
+				dlFileEntryLocalService.getFileAsStream(
+					fileEntryId, dlFileVersion.getVersion(), false));
 
 			patchedFile = FileUtil.createTempFile();
 
@@ -997,11 +1004,12 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 
 			return syncDLObject;
 		}
-		catch (PortalException pe) {
-			throw new PortalException(
-				_syncHelper.buildExceptionMessage(pe), pe);
+		catch (Exception e) {
+			throw new PortalException(_syncHelper.buildExceptionMessage(e), e);
 		}
 		finally {
+			FileUtil.delete(sourceFile);
+
 			FileUtil.delete(patchedFile);
 		}
 	}
@@ -1366,72 +1374,62 @@ public class SyncDLObjectServiceImpl extends SyncDLObjectServiceBaseImpl {
 	protected Map<String, String> getPortletPreferencesMap()
 		throws PortalException {
 
-		Map<String, String> portletPreferencesMap = new HashMap<>();
-
 		User user = getUser();
 
-		portletPreferencesMap.put(
+		return HashMapBuilder.put(
 			SyncServiceConfigurationKeys.
 				SYNC_CLIENT_AUTHENTICATION_RETRY_INTERVAL,
 			String.valueOf(
 				SyncServiceConfigurationValues.
-					SYNC_CLIENT_AUTHENTICATION_RETRY_INTERVAL));
-
-		int batchFileMaxSize = PrefsPropsUtil.getInteger(
-			user.getCompanyId(),
+					SYNC_CLIENT_AUTHENTICATION_RETRY_INTERVAL)
+		).put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_BATCH_FILE_MAX_SIZE,
-			SyncServiceConfigurationValues.SYNC_CLIENT_BATCH_FILE_MAX_SIZE);
-
-		portletPreferencesMap.put(
-			SyncServiceConfigurationKeys.SYNC_CLIENT_BATCH_FILE_MAX_SIZE,
-			String.valueOf(batchFileMaxSize));
-
-		boolean forceSecurityMode = PrefsPropsUtil.getBoolean(
-			user.getCompanyId(),
+			String.valueOf(
+				PrefsPropsUtil.getInteger(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.
+						SYNC_CLIENT_BATCH_FILE_MAX_SIZE,
+					SyncServiceConfigurationValues.
+						SYNC_CLIENT_BATCH_FILE_MAX_SIZE))
+		).put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_FORCE_SECURITY_MODE,
-			SyncServiceConfigurationValues.SYNC_CLIENT_FORCE_SECURITY_MODE);
-
-		portletPreferencesMap.put(
-			SyncServiceConfigurationKeys.SYNC_CLIENT_FORCE_SECURITY_MODE,
-			String.valueOf(forceSecurityMode));
-
-		int maxConnections = PrefsPropsUtil.getInteger(
-			user.getCompanyId(),
+			String.valueOf(
+				PrefsPropsUtil.getBoolean(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.
+						SYNC_CLIENT_FORCE_SECURITY_MODE,
+					SyncServiceConfigurationValues.
+						SYNC_CLIENT_FORCE_SECURITY_MODE))
+		).put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_CONNECTIONS,
-			SyncServiceConfigurationValues.SYNC_CLIENT_MAX_CONNECTIONS);
-
-		portletPreferencesMap.put(
-			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_CONNECTIONS,
-			String.valueOf(maxConnections));
-
-		int maxDownloadRate = PrefsPropsUtil.getInteger(
-			user.getCompanyId(),
+			String.valueOf(
+				PrefsPropsUtil.getInteger(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_CONNECTIONS,
+					SyncServiceConfigurationValues.SYNC_CLIENT_MAX_CONNECTIONS))
+		).put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_DOWNLOAD_RATE,
-			SyncServiceConfigurationValues.SYNC_CLIENT_MAX_DOWNLOAD_RATE);
-
-		portletPreferencesMap.put(
-			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_DOWNLOAD_RATE,
-			String.valueOf(maxDownloadRate));
-
-		int maxUploadRate = PrefsPropsUtil.getInteger(
-			user.getCompanyId(),
+			String.valueOf(
+				PrefsPropsUtil.getInteger(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_DOWNLOAD_RATE,
+					SyncServiceConfigurationValues.
+						SYNC_CLIENT_MAX_DOWNLOAD_RATE))
+		).put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_UPLOAD_RATE,
-			SyncServiceConfigurationValues.SYNC_CLIENT_MAX_UPLOAD_RATE);
-
-		portletPreferencesMap.put(
-			SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_UPLOAD_RATE,
-			String.valueOf(maxUploadRate));
-
-		int pollInterval = PrefsPropsUtil.getInteger(
-			user.getCompanyId(),
+			String.valueOf(
+				PrefsPropsUtil.getInteger(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.SYNC_CLIENT_MAX_UPLOAD_RATE,
+					SyncServiceConfigurationValues.SYNC_CLIENT_MAX_UPLOAD_RATE))
+		).put(
 			SyncServiceConfigurationKeys.SYNC_CLIENT_POLL_INTERVAL,
-			SyncServiceConfigurationValues.SYNC_CLIENT_POLL_INTERVAL);
-
-		portletPreferencesMap.put(
-			SyncServiceConfigurationKeys.SYNC_CLIENT_POLL_INTERVAL,
-			String.valueOf(pollInterval));
-
-		return portletPreferencesMap;
+			String.valueOf(
+				PrefsPropsUtil.getInteger(
+					user.getCompanyId(),
+					SyncServiceConfigurationKeys.SYNC_CLIENT_POLL_INTERVAL,
+					SyncServiceConfigurationValues.SYNC_CLIENT_POLL_INTERVAL))
+		).build();
 	}
 
 	protected boolean hasModelPermission(long groupId, String name)

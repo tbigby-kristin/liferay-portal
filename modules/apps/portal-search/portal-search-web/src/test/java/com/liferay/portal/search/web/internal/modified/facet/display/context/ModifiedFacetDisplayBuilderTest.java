@@ -58,12 +58,13 @@ public class ModifiedFacetDisplayBuilderTest {
 		MockitoAnnotations.initMocks(this);
 
 		_calendarFactory = new CalendarFactoryImpl();
+
 		_dateFormatFactory = new DateFormatFactoryImpl();
 
 		_dateRangeFactory = new DateRangeFactory(_dateFormatFactory);
 
-		_http = new HttpImpl();
-		_jsonFactory = new JSONFactoryImpl();
+		_httpImpl = new HttpImpl();
+		_jsonFactoryImpl = new JSONFactoryImpl();
 
 		setUpHtmlUtil();
 		setUpPortalUtil();
@@ -283,7 +284,7 @@ public class ModifiedFacetDisplayBuilderTest {
 	protected void addRangeJSONObject(
 		JSONArray jsonArray, String label, String range) {
 
-		JSONObject jsonObject = _jsonFactory.createJSONObject();
+		JSONObject jsonObject = _jsonFactoryImpl.createJSONObject();
 
 		jsonObject.put(
 			"label", label
@@ -296,12 +297,12 @@ public class ModifiedFacetDisplayBuilderTest {
 
 	protected void assertDoesNotHasParameter(String url, String name) {
 		Assert.assertTrue(
-			Validator.isNull(_http.getParameter(url, name, false)));
+			Validator.isNull(_httpImpl.getParameter(url, name, false)));
 	}
 
 	protected void assertHasParameter(String url, String name) {
 		Assert.assertTrue(
-			Validator.isNotNull(_http.getParameter(url, name, false)));
+			Validator.isNotNull(_httpImpl.getParameter(url, name, false)));
 	}
 
 	protected void assertTermDisplayContextsDoNotHaveFromAndToParameters(
@@ -325,7 +326,7 @@ public class ModifiedFacetDisplayBuilderTest {
 	}
 
 	protected JSONObject createDataJSONObject(String... labelsAndRanges) {
-		JSONObject dataJSONObject = _jsonFactory.createJSONObject();
+		JSONObject dataJSONObject = _jsonFactoryImpl.createJSONObject();
 
 		dataJSONObject.put("ranges", createRangesJSONArray(labelsAndRanges));
 
@@ -335,7 +336,7 @@ public class ModifiedFacetDisplayBuilderTest {
 	protected ModifiedFacetDisplayBuilder createDisplayBuilder() {
 		ModifiedFacetDisplayBuilder modifiedFacetDisplayBuilder =
 			new ModifiedFacetDisplayBuilder(
-				_calendarFactory, _dateFormatFactory, _http);
+				_calendarFactory, _dateFormatFactory, _httpImpl);
 
 		mockFacetConfiguration();
 
@@ -347,7 +348,7 @@ public class ModifiedFacetDisplayBuilderTest {
 	}
 
 	protected JSONArray createRangesJSONArray(String... labelsAndRanges) {
-		JSONArray jsonArray = _jsonFactory.createJSONArray();
+		JSONArray jsonArray = _jsonFactoryImpl.createJSONArray();
 
 		for (String labelAndRange : labelsAndRanges) {
 			String[] labelAndRangeArray = StringUtil.split(labelAndRange, '=');
@@ -360,7 +361,7 @@ public class ModifiedFacetDisplayBuilderTest {
 	}
 
 	protected FacetConfiguration getFacetConfiguration() {
-		JSONObject jsonObject = _jsonFactory.createJSONObject();
+		JSONObject jsonObject = _jsonFactoryImpl.createJSONObject();
 
 		return getFacetConfiguration(jsonObject);
 	}
@@ -456,7 +457,7 @@ public class ModifiedFacetDisplayBuilderTest {
 	@Mock
 	private FacetCollector _facetCollector;
 
-	private HttpImpl _http;
-	private JSONFactoryImpl _jsonFactory;
+	private HttpImpl _httpImpl;
+	private JSONFactoryImpl _jsonFactoryImpl;
 
 }

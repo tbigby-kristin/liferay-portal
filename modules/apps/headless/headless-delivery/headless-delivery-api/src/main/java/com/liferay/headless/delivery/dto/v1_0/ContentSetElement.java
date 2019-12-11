@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -45,6 +47,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ContentSetElement {
 
 	@Schema(description = "The content's fields.")
+	@Valid
 	public Object getContent() {
 		return content;
 	}
@@ -68,7 +71,7 @@ public class ContentSetElement {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content's fields.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Object content;
 
@@ -96,7 +99,7 @@ public class ContentSetElement {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content set element's type.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String contentType;
 
@@ -122,7 +125,7 @@ public class ContentSetElement {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content set element's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -150,7 +153,7 @@ public class ContentSetElement {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content's title.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String title;
 
@@ -237,6 +240,12 @@ public class ContentSetElement {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.ContentSetElement",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

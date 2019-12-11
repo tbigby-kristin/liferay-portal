@@ -52,6 +52,7 @@ import com.liferay.portal.search.query.TermQuery;
 import com.liferay.portal.search.query.TermsQuery;
 import com.liferay.portal.search.query.TermsSetQuery;
 import com.liferay.portal.search.query.WildcardQuery;
+import com.liferay.portal.search.query.WrapperQuery;
 import com.liferay.portal.search.script.Script;
 
 import java.util.Collections;
@@ -198,7 +199,7 @@ public class QueriesImpl implements Queries {
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #moreLikeThis(List<String>, String...)}
+	 *             #moreLikeThis(List, String...)}
 	 */
 	@Deprecated
 	@Override
@@ -223,7 +224,7 @@ public class QueriesImpl implements Queries {
 
 	/**
 	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
-	 *             #moreLikeThis(List<String>, String...)}
+	 *             #moreLikeThis(List, String...)}
 	 */
 	@Deprecated
 	@Override
@@ -317,6 +318,16 @@ public class QueriesImpl implements Queries {
 	@Override
 	public WildcardQuery wildcard(String field, String value) {
 		return new WildcardQueryImpl(field, value);
+	}
+
+	@Override
+	public WrapperQuery wrapper(byte[] source) {
+		return new WrapperQueryImpl(source);
+	}
+
+	@Override
+	public WrapperQuery wrapper(String source) {
+		return new WrapperQueryImpl(source);
 	}
 
 }

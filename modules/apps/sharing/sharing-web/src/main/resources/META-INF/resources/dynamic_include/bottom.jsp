@@ -27,30 +27,21 @@ sharingURL.setWindowState(LiferayWindowState.POP_UP);
 %>
 
 <aui:script sandbox="<%= true %>">
-	function showDialog(uri, title, namespace, refreshOnClose) {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					centered: true,
-					constrain: true,
-					cssClass: 'sharing-dialog',
-					destroyOnHide: true,
-					modal: true,
-					height: 540,
-					width: 600,
-					on: {
-						visibleChange: function(event) {
-							if (refreshOnClose && !event.newVal) {
-								Liferay.Portlet.refresh('#p_p_id' + namespace);
-							}
-						}
-					}
-				},
-				id: 'sharingDialog',
-				title: title,
-				uri: uri
-			}
-		);
+	function showDialog(uri, title) {
+		Liferay.Util.openWindow({
+			dialog: {
+				centered: true,
+				constrain: true,
+				cssClass: 'sharing-dialog',
+				destroyOnHide: true,
+				modal: true,
+				height: 540,
+				width: 600
+			},
+			id: 'sharingDialog',
+			title: title,
+			uri: uri
+		});
 	}
 
 	var Sharing = {};
@@ -58,7 +49,7 @@ sharingURL.setWindowState(LiferayWindowState.POP_UP);
 	Liferay.provide(
 		Sharing,
 		'share',
-		function(classNameId, classPK, title, namespace, refreshOnClose) {
+		function(classNameId, classPK, title) {
 			var sharingParameters = {
 				classNameId: classNameId,
 				classPK: classPK
@@ -69,7 +60,7 @@ sharingURL.setWindowState(LiferayWindowState.POP_UP);
 				sharingParameters
 			);
 
-			showDialog(sharingURL.toString(), title, namespace, refreshOnClose);
+			showDialog(sharingURL.toString(), title);
 		},
 		['liferay-util-window']
 	);
@@ -77,7 +68,7 @@ sharingURL.setWindowState(LiferayWindowState.POP_UP);
 	Liferay.provide(
 		Sharing,
 		'manageCollaborators',
-		function(classNameId, classPK, namespace, refreshOnClose) {
+		function(classNameId, classPK) {
 			var manageCollaboratorsParameters = {
 				classNameId: classNameId,
 				classPK: classPK
@@ -88,7 +79,10 @@ sharingURL.setWindowState(LiferayWindowState.POP_UP);
 				manageCollaboratorsParameters
 			);
 
-			showDialog(manageCollaboratorsURL.toString(), '<%= LanguageUtil.get(resourceBundle, "manage-collaborators") %>', namespace, refreshOnClose);
+			showDialog(
+				manageCollaboratorsURL.toString(),
+				'<%= LanguageUtil.get(resourceBundle, "manage-collaborators") %>'
+			);
 		},
 		['liferay-util-window']
 	);

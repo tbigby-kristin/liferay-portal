@@ -186,6 +186,16 @@ public class ModulesStructureTestUtil {
 
 			String projectPath = matcher.group(2);
 
+			int pathEndQuote = projectPath.indexOf('"');
+
+			if (pathEndQuote == -1) {
+				pathEndQuote = projectPath.indexOf("'");
+			}
+
+			if (pathEndQuote > -1) {
+				projectPath = projectPath.substring(0, pathEndQuote);
+			}
+
 			String projectDirName = StringUtil.replace(
 				projectPath.substring(1), CharPool.COLON, File.separatorChar);
 

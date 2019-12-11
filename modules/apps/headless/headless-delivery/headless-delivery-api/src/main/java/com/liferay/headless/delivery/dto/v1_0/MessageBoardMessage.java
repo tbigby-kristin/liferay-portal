@@ -38,6 +38,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -85,6 +87,7 @@ public class MessageBoardMessage {
 	}
 
 	@Schema(description = "The message's average rating.")
+	@Valid
 	public AggregateRating getAggregateRating() {
 		return aggregateRating;
 	}
@@ -109,7 +112,7 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The message's average rating.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected AggregateRating aggregateRating;
 
@@ -139,7 +142,9 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A flag that indicates whether the message's author is anonymous."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean anonymous;
 
@@ -167,11 +172,12 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The message's main content.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String articleBody;
 
 	@Schema(description = "The message's author.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -195,11 +201,12 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The message's author.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
 	@Schema
+	@Valid
 	public CustomField[] getCustomFields() {
 		return customFields;
 	}
@@ -251,7 +258,7 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The date the message was created.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -281,7 +288,9 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The last time the content or metadata of the message was changed."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -311,7 +320,9 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The message's media format (e.g., HTML, BBCode, etc.)."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String encodingFormat;
 
@@ -339,7 +350,7 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The message's main title.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String headline;
 
@@ -365,7 +376,7 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The message's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -393,7 +404,7 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "A list of keywords describing the message.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String[] keywords;
 
@@ -423,7 +434,9 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the Message Board Thread to which this message is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long messageBoardThreadId;
 
@@ -455,7 +468,7 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of the message's attachments.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfMessageBoardAttachments;
 
@@ -487,11 +500,12 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of the message's child messages.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfMessageBoardMessages;
 
 	@Schema
+	@Valid
 	public RelatedContent[] getRelatedContents() {
 		return relatedContents;
 	}
@@ -546,7 +560,9 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A flag that indicates whether the message is answering a question."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Boolean showAsAnswer;
 
@@ -574,13 +590,44 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which this message is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
+
+	@Schema
+	public Boolean getSubscribed() {
+		return subscribed;
+	}
+
+	public void setSubscribed(Boolean subscribed) {
+		this.subscribed = subscribed;
+	}
+
+	@JsonIgnore
+	public void setSubscribed(
+		UnsafeSupplier<Boolean, Exception> subscribedUnsafeSupplier) {
+
+		try {
+			subscribed = subscribedUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected Boolean subscribed;
 
 	@Schema(
 		description = "A write-only property that specifies the default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -613,7 +660,9 @@ public class MessageBoardMessage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -871,6 +920,16 @@ public class MessageBoardMessage {
 			sb.append(siteId);
 		}
 
+		if (subscribed != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(subscribed);
+		}
+
 		if (viewableBy != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -889,6 +948,12 @@ public class MessageBoardMessage {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.MessageBoardMessage",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -1,0 +1,15 @@
+@import '../../app/components/variables';
+
+$collapseLineColor: #dfdfe9;
+$collapseMarginBottom: $pageEditorSpacing * 2;
+
+.page-editor__collapse {
+	border-color: $collapseLineColor;
+	border-radius: 0px;
+	font-size: 12px;
+	margin-bottom: $collapseMarginBottom;
+
+	&:focus {
+		border-radius: 1px;
+	}
+}

@@ -36,14 +36,12 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletLayoutFinder;
 import com.liferay.portal.kernel.portlet.PortletLayoutFinderRegistryUtil;
-import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.repository.capabilities.CommentCapability;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -156,18 +154,11 @@ public class DLFileEntryAssetRenderer
 			return super.getNewName(oldName, token);
 		}
 
-		StringBundler sb = new StringBundler(5);
-
 		int index = oldName.lastIndexOf(CharPool.PERIOD);
 
-		sb.append(oldName.substring(0, index));
-
-		sb.append(StringPool.SPACE);
-		sb.append(token);
-		sb.append(StringPool.PERIOD);
-		sb.append(extension);
-
-		return sb.toString();
+		return StringBundler.concat(
+			oldName.substring(0, index), StringPool.SPACE, token,
+			StringPool.PERIOD, extension);
 	}
 
 	@Override
@@ -243,9 +234,8 @@ public class DLFileEntryAssetRenderer
 
 	@Override
 	public PortletURL getURLEdit(
-			LiferayPortletRequest liferayPortletRequest,
-			LiferayPortletResponse liferayPortletResponse)
-		throws Exception {
+		LiferayPortletRequest liferayPortletRequest,
+		LiferayPortletResponse liferayPortletResponse) {
 
 		PortletURL portletURL = _getPortletURL(liferayPortletRequest);
 
@@ -259,9 +249,8 @@ public class DLFileEntryAssetRenderer
 
 	@Override
 	public PortletURL getURLExport(
-			LiferayPortletRequest liferayPortletRequest,
-			LiferayPortletResponse liferayPortletResponse)
-		throws Exception {
+		LiferayPortletRequest liferayPortletRequest,
+		LiferayPortletResponse liferayPortletResponse) {
 
 		PortletURL portletURL = _getPortletURL(liferayPortletRequest);
 
@@ -322,7 +311,7 @@ public class DLFileEntryAssetRenderer
 
 			String friendlyURL =
 				_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
-					getClassName(), getClassPK(), themeDisplay);
+					FileEntry.class.getName(), getClassPK(), themeDisplay);
 
 			if (Validator.isNotNull(friendlyURL)) {
 				return friendlyURL;
@@ -449,32 +438,21 @@ public class DLFileEntryAssetRenderer
 	}
 
 	private PortletURL _getPortletURL(
-			LiferayPortletRequest liferayPortletRequest)
-		throws PortalException {
-
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)liferayPortletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
+		LiferayPortletRequest liferayPortletRequest) {
 
 		Group group = GroupLocalServiceUtil.fetchGroup(_fileEntry.getGroupId());
 
 		if (group.isCompany()) {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)liferayPortletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			group = themeDisplay.getScopeGroup();
 		}
 
-		if (PortletPermissionUtil.hasControlPanelAccessPermission(
-				themeDisplay.getPermissionChecker(), group.getGroupId(),
-				DLPortletKeys.DOCUMENT_LIBRARY_ADMIN)) {
-
-			return PortalUtil.getControlPanelPortletURL(
-				liferayPortletRequest, group,
-				DLPortletKeys.DOCUMENT_LIBRARY_ADMIN, 0, 0,
-				PortletRequest.RENDER_PHASE);
-		}
-
-		return PortletURLFactoryUtil.create(
-			liferayPortletRequest, DLPortletKeys.DOCUMENT_LIBRARY,
-			PortletRequest.RENDER_PHASE);
+		return PortalUtil.getControlPanelPortletURL(
+			liferayPortletRequest, group, DLPortletKeys.DOCUMENT_LIBRARY_ADMIN,
+			0, 0, PortletRequest.RENDER_PHASE);
 	}
 
 	private boolean _hasViewInContextGroupLayout(
@@ -484,6 +462,10 @@ public class DLFileEntryAssetRenderer
 			PortletLayoutFinder portletLayoutFinder =
 				PortletLayoutFinderRegistryUtil.getPortletLayoutFinder(
 					DLFileEntryConstants.getClassName());
+
+			if (portletLayoutFinder == null) {
+				return false;
+			}
 
 			PortletLayoutFinder.Result result = portletLayoutFinder.find(
 				themeDisplay, groupId);

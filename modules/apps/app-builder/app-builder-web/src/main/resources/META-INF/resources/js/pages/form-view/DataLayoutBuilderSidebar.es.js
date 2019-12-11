@@ -14,30 +14,79 @@
 
 import ClayDropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
+import {isEmptyRow} from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
 import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
-import React, {useEffect, useRef, useState, useContext} from 'react';
-import renderSettingsForm, {
-	getFilteredSettingsContext
-} from './renderSettingsForm.es';
-import {useSidebarContent} from '../../hooks/index.es';
+import React, {
+	useEffect,
+	useRef,
+	useState,
+	useContext,
+	useLayoutEffect
+} from 'react';
+
+import Button from '../../components/button/Button.es';
 import FieldTypeList from '../../components/field-types/FieldTypeList.es';
 import Sidebar from '../../components/sidebar/Sidebar.es';
-import Button from '../../components/button/Button.es';
+import {useSidebarContent} from '../../hooks/index.es';
 import isClickOutside from '../../utils/clickOutside.es';
 import DataLayoutBuilderContext from './DataLayoutBuilderContext.es';
 import FormViewContext from './FormViewContext.es';
+import {
+	dropLayoutBuilderField,
+	EDIT_CUSTOM_OBJECT_FIELD,
+	EVALUATION_ERROR
+} from './actions.es';
+import renderSettingsForm, {
+	getFilteredSettingsContext
+} from './renderSettingsForm.es';
 
 const DefaultSidebarBody = ({keywords}) => {
 	const [dataLayoutBuilder] = useContext(DataLayoutBuilderContext);
 
+	const onDoubleClick = ({name}) => {
+		const {activePage, pages} = dataLayoutBuilder.getStore();
+
+		dataLayoutBuilder.dispatch(
+			'fieldAdded',
+			dropLayoutBuilderField({
+				addedToPlaceholder: true,
+				dataLayoutBuilder,
+				fieldTypeName: name,
+				indexes: {
+					columnIndex: 0,
+					pageIndex: activePage,
+					rowIndex: pages[activePage].rows.reduce(
+						(lastEmptyRowIndex, row, rowIndex) => {
+							if (isEmptyRow(pages, activePage, rowIndex)) {
+								return rowIndex;
+							}
+
+							return lastEmptyRowIndex;
+						},
+						pages[activePage].rows.length
+					)
+				}
+			})
+		);
+	};
+
+	const fieldTypes = dataLayoutBuilder
+		.getFieldTypes()
+		.filter(({group}) => group === 'basic');
+
+	fieldTypes.sort(({displayOrder: a}, {displayOrder: b}) => a - b);
+
 	return (
 		<>
-			<Sidebar.Tab tabs={[Liferay.Language.get('fields')]} />
+			<Sidebar.Tab
+				tabs={[{active: true, label: Liferay.Language.get('fields')}]}
+			/>
 
 			<Sidebar.TabContent>
 				<FieldTypeList
-					fieldTypes={dataLayoutBuilder.getFieldTypes()}
+					fieldTypes={fieldTypes}
 					keywords={keywords}
+					onDoubleClick={onDoubleClick}
 				/>
 			</Sidebar.TabContent>
 		</>
@@ -46,38 +95,118 @@ const DefaultSidebarBody = ({keywords}) => {
 
 const SettingsSidebarBody = () => {
 	const [dataLayoutBuilder] = useContext(DataLayoutBuilderContext);
-	const [{focusedField}] = useContext(FormViewContext);
-	const {settingsContext} = focusedField;
+	const [state, dispatch] = useContext(FormViewContext);
+	const {focusedCustomObjectField, focusedField} = state;
+	const {
+		settingsContext: customObjectFieldSettingsContext
+	} = focusedCustomObjectField;
+	const {settingsContext: fieldSettingsContext} = focusedField;
 	const formRef = useRef();
 	const [form, setForm] = useState(null);
+	const hasFocusedCustomObjectField = !!customObjectFieldSettingsContext;
+	const settingsContext = hasFocusedCustomObjectField
+		? customObjectFieldSettingsContext
+		: fieldSettingsContext;
 
 	useEffect(() => {
-		if (form === null) {
+		const filteredSettingsContext = getFilteredSettingsContext(
+			settingsContext
+		);
+
+		if (form === null || form.isDisposed()) {
+			const dispatchEvent = (type, payload) => {
+				if (hasFocusedCustomObjectField && type === 'fieldEdited') {
+					dispatch({payload, type: EDIT_CUSTOM_OBJECT_FIELD});
+				} else if (!hasFocusedCustomObjectField) {
+					dataLayoutBuilder.dispatch(type, payload);
+				}
+			};
+
 			setForm(
 				renderSettingsForm(
-					{dataLayoutBuilder, settingsContext},
+					{
+						dispatchEvent,
+						settingsContext: filteredSettingsContext
+					},
 					formRef.current
 				)
 			);
 		} else {
-			const filteredSettingsContext = getFilteredSettingsContext(
-				settingsContext
-			);
+			const {pages} = filteredSettingsContext;
 
-			form.pages = filteredSettingsContext.pages;
+			form.setState({pages}, () => {
+				let evaluableForm = false;
+				const visitor = new PagesVisitor(pages);
+
+				visitor.mapFields(({evaluable}) => {
+					if (evaluable) {
+						evaluableForm = true;
+					}
+				});
+
+				if (evaluableForm) {
+					form.evaluate()
+						.then(pages => {
+							if (form.isDisposed()) {
+								return;
+							}
+
+							form.setState({pages});
+						})
+						.catch(error => dispatch(EVALUATION_ERROR, error));
+				}
+			});
 		}
-	}, [dataLayoutBuilder, form, formRef, settingsContext]);
+	}, [
+		dataLayoutBuilder,
+		dispatch,
+		form,
+		formRef,
+		hasFocusedCustomObjectField,
+		settingsContext
+	]);
 
 	useEffect(() => {
 		return () => form && form.dispose();
-	}, [form]);
+	}, [form, hasFocusedCustomObjectField]);
 
-	return <div ref={formRef}></div>;
+	const focusedFieldName = hasFocusedCustomObjectField
+		? focusedCustomObjectField.name
+		: focusedField.name;
+
+	useLayoutEffect(() => {
+		if (!form) {
+			return;
+		}
+
+		form.once('rendered', () => {
+			const firstInput = form.element.querySelector('input');
+
+			if (firstInput && !form.element.contains(document.activeElement)) {
+				firstInput.focus();
+
+				if (firstInput.select) {
+					firstInput.select();
+				}
+			}
+		});
+	}, [focusedFieldName, form]);
+
+	return (
+		<form onSubmit={event => event.preventDefault()} ref={formRef}></form>
+	);
 };
 
 const SettingsSidebarHeader = () => {
-	const [{fieldTypes, focusedField}] = useContext(FormViewContext);
-	const {settingsContext} = focusedField;
+	const [{fieldTypes, focusedCustomObjectField, focusedField}] = useContext(
+		FormViewContext
+	);
+	let {settingsContext} = focusedField;
+
+	if (focusedCustomObjectField.settingsContext) {
+		settingsContext = focusedCustomObjectField.settingsContext;
+	}
+
 	const visitor = new PagesVisitor(settingsContext.pages);
 	const typeField = visitor.findField(field => field.fieldName === 'type');
 
@@ -133,7 +262,9 @@ const SettingsSidebarHeader = () => {
 
 export default ({dataLayoutBuilderElementId}) => {
 	const [dataLayoutBuilder] = useContext(DataLayoutBuilderContext);
-	const [{focusedField}] = useContext(FormViewContext);
+	const [{focusedCustomObjectField, focusedField}] = useContext(
+		FormViewContext
+	);
 	const [keywords, setKeywords] = useState('');
 	const [sidebarClosed, setSidebarClosed] = useState(false);
 
@@ -157,20 +288,60 @@ export default ({dataLayoutBuilderElementId}) => {
 		return () => window.removeEventListener('click', eventHandler);
 	}, [dataLayoutBuilder, sidebarRef]);
 
+	useEffect(() => {
+		const productMenuToggle = document.querySelector(
+			'.product-menu-toggle'
+		);
+
+		if (productMenuToggle) {
+			const sidenav = Liferay.SideNavigation.instance(productMenuToggle);
+
+			if (!sidebarClosed) {
+				sidenav.hide();
+			}
+		}
+	}, [sidebarClosed]);
+
+	useLayoutEffect(() => {
+		const productMenuToggle = document.querySelector(
+			'.product-menu-toggle'
+		);
+
+		if (productMenuToggle) {
+			Liferay.SideNavigation.hide(productMenuToggle);
+
+			const sidenav = Liferay.SideNavigation.instance(productMenuToggle);
+			const openEventListener = sidenav.on(
+				'openStart.lexicon.sidenav',
+				() => {
+					setSidebarClosed(true);
+				}
+			);
+
+			return () => {
+				openEventListener.removeListener();
+			};
+		}
+	}, []);
+
 	const hasFocusedField = Object.keys(focusedField).length > 0;
+	const hasFocusedCustomObjectField =
+		Object.keys(focusedCustomObjectField).length > 0;
+	const displaySettings = hasFocusedCustomObjectField || hasFocusedField;
 
 	return (
 		<Sidebar
-			closeable={!hasFocusedField}
-			onSearch={hasFocusedField ? false : setKeywords}
+			closeable={!displaySettings || sidebarClosed}
+			closed={sidebarClosed}
+			onSearch={displaySettings ? false : setKeywords}
 			onToggle={closed => setSidebarClosed(closed)}
 			ref={sidebarRef}
 		>
 			<>
-				{hasFocusedField && <SettingsSidebarHeader />}
+				{displaySettings && <SettingsSidebarHeader />}
 
 				<Sidebar.Body>
-					{hasFocusedField ? (
+					{displaySettings ? (
 						<SettingsSidebarBody />
 					) : (
 						<DefaultSidebarBody keywords={keywords} />

@@ -12,16 +12,17 @@
  * details.
  */
 
+import {removeExperience} from '../utils/FragmentsEditorFetchUtils.es';
 import {
 	getRowFragmentEntryLinkIds,
 	getRowIndex
 } from '../utils/FragmentsEditorGetUtils.es';
 import {containsFragmentEntryLinkId} from '../utils/LayoutDataList.es';
-import {removeExperience} from '../utils/FragmentsEditorFetchUtils.es';
+import {isDropZoneFragment} from '../utils/isDropZoneFragment.es';
 import {REMOVE_ROW} from './actions.es';
 import {removeFragmentEntryLinksAction} from './removeFragmentEntryLinks.es';
-import {updateWidgetsAction} from './updateWidgets.es';
 import {updatePageEditorLayoutDataAction} from './updatePageEditorLayoutData.es';
+import {updateWidgetsAction} from './updateWidgets.es';
 
 /**
  * Removes a row of the layout data structure
@@ -32,13 +33,17 @@ function removeRowAction(rowId) {
 	return function(dispatch, getState) {
 		const state = getState();
 
-		dispatch(_removeRowAction(rowId));
-
 		const fragmentEntryLinkIds = getRowFragmentEntryLinkIds(
 			state.layoutData.structure[
 				getRowIndex(state.layoutData.structure, rowId)
 			]
 		);
+
+		if (fragmentEntryLinkIds.some(isDropZoneFragment)) {
+			return;
+		}
+
+		dispatch(_removeRowAction(rowId));
 
 		const fragmentEntryLinkIdsToRemove = fragmentEntryLinkIds.filter(
 			fragmentEntryLinkId =>

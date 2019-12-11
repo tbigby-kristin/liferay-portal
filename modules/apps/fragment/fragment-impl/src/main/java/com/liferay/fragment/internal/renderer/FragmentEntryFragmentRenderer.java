@@ -14,6 +14,7 @@
 
 package com.liferay.fragment.internal.renderer;
 
+import com.liferay.fragment.constants.FragmentEntryLinkConstants;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.processor.DefaultFragmentEntryProcessorContext;
 import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
@@ -27,14 +28,18 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.servlet.taglib.util.OutputData;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.servlet.PipingServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -96,7 +101,8 @@ public class FragmentEntryFragmentRenderer implements FragmentRenderer {
 
 	private String _renderFragmentEntry(
 		long fragmentEntryId, String css, String html, String js,
-		String configuration, String namespace) {
+		String configuration, String namespace,
+		HttpServletRequest httpServletRequest) {
 
 		StringBundler sb = new StringBundler(16);
 
@@ -116,9 +122,42 @@ public class FragmentEntryFragmentRenderer implements FragmentRenderer {
 		sb.append("</div>");
 
 		if (Validator.isNotNull(css)) {
-			sb.append("<style>");
-			sb.append(css);
-			sb.append("</style>");
+			String outputKey = fragmentEntryId + "_CSS";
+
+			OutputData outputData = (OutputData)httpServletRequest.getAttribute(
+				WebKeys.OUTPUT_DATA);
+
+			boolean cssLoaded = false;
+
+			if (outputData != null) {
+				Set<String> outputKeys = outputData.getOutputKeys();
+
+				cssLoaded = outputKeys.contains(outputKey);
+
+				StringBundler cssSB = outputData.getDataSB(
+					outputKey, StringPool.BLANK);
+
+				if (cssSB != null) {
+					cssLoaded = Objects.equals(cssSB.toString(), css);
+				}
+			}
+			else {
+				outputData = new OutputData();
+			}
+
+			if (!cssLoaded) {
+				sb.append("<style>");
+				sb.append(css);
+				sb.append("</style>");
+
+				outputData.addOutputKey(outputKey);
+
+				outputData.setDataSB(
+					outputKey, StringPool.BLANK, new StringBundler(css));
+
+				httpServletRequest.setAttribute(
+					WebKeys.OUTPUT_DATA, outputData);
+			}
 		}
 
 		if (Validator.isNotNull(js)) {
@@ -157,6 +196,8 @@ public class FragmentEntryFragmentRenderer implements FragmentRenderer {
 		defaultFragmentEntryProcessorContext.setFieldValues(
 			fieldValuesOptional.orElse(null));
 
+		defaultFragmentEntryProcessorContext.setPreviewClassNameId(
+			fragmentRendererContext.getPreviewClassNameId());
 		defaultFragmentEntryProcessorContext.setPreviewClassPK(
 			fragmentRendererContext.getPreviewClassPK());
 		defaultFragmentEntryProcessorContext.setPreviewType(
@@ -164,27 +205,48 @@ public class FragmentEntryFragmentRenderer implements FragmentRenderer {
 		defaultFragmentEntryProcessorContext.setSegmentsExperienceIds(
 			fragmentRendererContext.getSegmentsExperienceIds());
 
-		String css =
-			_fragmentEntryProcessorRegistry.processFragmentEntryLinkCSS(
+		String css = StringPool.BLANK;
+
+		if (Validator.isNotNull(fragmentEntryLink.getCss())) {
+			css = _fragmentEntryProcessorRegistry.processFragmentEntryLinkCSS(
 				fragmentEntryLink, defaultFragmentEntryProcessorContext);
+		}
 
-		String html =
-			_fragmentEntryProcessorRegistry.processFragmentEntryLinkHTML(
+		String html = StringPool.BLANK;
+
+		if (Validator.isNotNull(fragmentEntryLink.getHtml()) ||
+			Validator.isNotNull(fragmentEntryLink.getEditableValues())) {
+
+			html = _fragmentEntryProcessorRegistry.processFragmentEntryLinkHTML(
 				fragmentEntryLink, defaultFragmentEntryProcessorContext);
+		}
 
-		html = _writePortletPaths(
-			fragmentEntryLink, html, httpServletRequest, httpServletResponse);
+		if (Objects.equals(
+				defaultFragmentEntryProcessorContext.getMode(),
+				FragmentEntryLinkConstants.EDIT)) {
 
-		JSONObject configurationJSONObject =
-			FragmentEntryConfigUtil.getConfigurationJSONObject(
-				fragmentEntryLink.getConfiguration(),
-				fragmentEntryLink.getEditableValues(),
-				fragmentRendererContext.getSegmentsExperienceIds());
+			html = _writePortletPaths(
+				fragmentEntryLink, html, httpServletRequest,
+				httpServletResponse);
+		}
+
+		String configuration =
+			StringPool.OPEN_CURLY_BRACE + StringPool.CLOSE_CURLY_BRACE;
+
+		if (Validator.isNotNull(fragmentEntryLink.getConfiguration())) {
+			JSONObject configurationJSONObject =
+				FragmentEntryConfigUtil.getConfigurationJSONObject(
+					fragmentEntryLink.getConfiguration(),
+					fragmentEntryLink.getEditableValues(),
+					fragmentRendererContext.getSegmentsExperienceIds());
+
+			configuration = configurationJSONObject.toString();
+		}
 
 		return _renderFragmentEntry(
 			fragmentEntryLink.getFragmentEntryId(), css, html,
-			fragmentEntryLink.getJs(), configurationJSONObject.toString(),
-			fragmentEntryLink.getNamespace());
+			fragmentEntryLink.getJs(), configuration,
+			fragmentEntryLink.getNamespace(), httpServletRequest);
 	}
 
 	private String _writePortletPaths(

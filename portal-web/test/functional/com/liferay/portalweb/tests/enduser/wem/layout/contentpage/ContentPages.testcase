@@ -1,6 +1,8 @@
 @component-name = "portal-wcm"
 definition {
 
+	property osgi.module.configuration.file.names = "com.liferay.layout.content.page.editor.web.internal.configuration.ContentsContentPageEditorSidebarPanelConfiguration.config";
+	property osgi.module.configurations = "enabled=B&quot;true&quot;";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Content Pages";
@@ -158,108 +160,6 @@ definition {
 		}
 	}
 
-	@description = "Add a content page and edit its fragment immediately. This is a variation of the steps from LPS-85872."
-	@priority = "5"
-	test AddContentPageWithEditedFragmentText {
-		property testray.component.names = "Training";
-
-		task ("Add a content page") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-			ContentPages.addPage(pageName = "Test Content Page Name");
-		}
-
-		task ("Add a Content fragment to the content page") {
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Content");
-		}
-
-		task ("Edit the Content fragment editable text") {
-			PageEditor.editFragmentText(
-				fragmentName = "Content",
-				id = "content",
-				text = "New editable fragment text");
-		}
-
-		task ("Publish the content page") {
-			PageEditor.clickPublish();
-		}
-
-		task ("Navigate to the content page") {
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-content-page-name");
-		}
-
-		task ("Assert the Content fragment has the updated editable text") {
-			AssertVisible(
-				key_content = "New editable fragment text",
-				key_fragmentClass = "body",
-				key_position = "1",
-				locator1 = "Fragment#FRAGMENT");
-		}
-	}
-
-	@description = "This is a test for LPS-95045. A user should be able to add an image fragment and change the image in the fragment."
-	@priority = "5"
-	test AddContentPageWithImageFragment {
-		property portal.acceptance = "true";
-
-		task ("Add a content page") {
-			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
-
-			ContentPages.addPage(pageName = "Test Content Page Name");
-		}
-
-		task ("Add an Image fragment to the content page") {
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Image");
-		}
-
-		task ("Edit the Image fragment's image") {
-			PageEditor.editFragmentImage(
-				fileName = "Document_1.png",
-				fragmentName = "Image",
-				id = "image");
-		}
-
-		task ("Assert the Image fragment's image was changed") {
-			AssertVisible(
-				key_fragmentClass = "image",
-				key_image = "Document_1.png",
-				key_position = "1",
-				locator1 = "Fragment#PAGE_EDITOR_FRAGMENT_IMAGE");
-		}
-
-		task ("Publish the content page") {
-			PageEditor.clickPublish();
-		}
-
-		task ("Navigate to the content page") {
-			Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/test-content-page-name");
-		}
-
-		task ("Assert the Image fragment appears with the image") {
-			AssertVisible(
-				key_fragmentClass = "image",
-				key_image = "Document_1.png",
-				key_position = "1",
-				locator1 = "Fragment#FRAGMENT_IMAGE");
-		}
-
-		task ("Navigate to the content page's 'Edit Mode'") {
-			ContentPages.clickPencil();
-		}
-
-		task ("Assert the Image fragment's image has persisted") {
-			AssertVisible(
-				key_fragmentClass = "image",
-				key_image = "Document_1.png",
-				key_position = "1",
-				locator1 = "Fragment#PAGE_EDITOR_FRAGMENT_IMAGE");
-		}
-	}
-
 	@description = "This is a test for LPS-95042. Liferay should come out of the box with fragments."
 	@priority = "5"
 	test AddContentPageWithOOTBFragment {
@@ -273,7 +173,7 @@ definition {
 
 		task ("Add a Title fragment to the content page") {
 			PageEditor.addFragment(
-				collectionName = "Basic Sections",
+				collectionName = "Featured Content",
 				fragmentName = "Banner Center");
 		}
 
@@ -288,6 +188,33 @@ definition {
 		task ("Assert the Banner Center fragment is on the page") {
 			AssertVisible(locator1 = "//section//div[contains(@class,'banner')]");
 		}
+	}
+
+	@description = "This is a test for LPS-102887. A user can access content in a web content display widget through content panel"
+	@priority = "5"
+	test CanAccessContentPanel {
+		JSONWebcontent.addWebContent(
+			content = "Web Content Content",
+			groupName = "Test Site Name",
+			title = "WC WebContent Title");
+
+		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+		ContentPages.addPage(pageName = "Test Content Page Name");
+
+		PageEditor.addWidget(portletName = "Web Content Display");
+
+		WebContentDisplayPortlet.selectWebContent(
+			contentPage = "true",
+			webContentTitle = "WC WebContent Title");
+
+		Refresh();
+
+		PageEditor.gotoTab(tabName = "Contents");
+
+		LexiconEntry.gotoFragmentEllipsisMenuItem(menuItem = "Edit");
+
+		AssertVisible(locator1 = "WCEditWebContent#SIDEBAR");
 	}
 
 	@description = "Users can only edit content pages in edit mode."
@@ -340,9 +267,9 @@ definition {
 		}
 
 		task ("Assert the layout has exactly 2 columns") {
-			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-6')][1]");
-			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-6')][2]");
-			AssertElementNotPresent(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-6')][3]");
+			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link-list')]//div[contains(@class,'col-md-6')][1]");
+			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link-list')]//div[contains(@class,'col-md-6')][2]");
+			AssertElementNotPresent(locator1 = "//section[contains(@class,'fragment-entry-link-list')]//div[contains(@class,'col-md-6')][3]");
 		}
 
 		task ("Assert the layout by default has padding x1") {
@@ -356,16 +283,16 @@ definition {
 		task ("Edit the layout's spacing properties") {
 			PageEditor.editLayoutSectionSpacing(
 				numberOfColumns = "3",
-				paddingH = "x10",
-				paddingV = "x4",
+				paddingH = "10",
+				paddingV = "4",
 				spaceBetweenColumns = "false");
 		}
 
 		task ("Assert the layout now has exactly 2 columns") {
-			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-4')][1]");
-			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-4')][2]");
-			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-4')][3]");
-			AssertElementNotPresent(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-4')][4]");
+			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link-list')]//div[contains(@class,'col-md-4')][1]");
+			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link-list')]//div[contains(@class,'col-md-4')][2]");
+			AssertVisible(locator1 = "//section[contains(@class,'fragment-entry-link-list')]//div[contains(@class,'col-md-4')][3]");
+			AssertElementNotPresent(locator1 = "//section[contains(@class,'fragment-entry-link')]//div[contains(@class,'col-md-4')][4]");
 		}
 
 		task ("Assert the layout now has vertical padding x4") {
@@ -392,14 +319,14 @@ definition {
 			ContentPages.addPage(pageName = "Test Content Page Name");
 		}
 
-		task ("Assert the Discard Draft and Publish buttons start off disabled") {
+		task ("Assert the Discard Draft button starts off disabled but Publish button starts off enabled") {
 			AssertVisible(
 				key_text = "Discard Draft",
 				locator1 = "Button#ANY_DISABLED");
 
 			AssertVisible(
 				key_text = "Publish",
-				locator1 = "Button#ANY_DISABLED");
+				locator1 = "Button#ANY_ENABLED");
 		}
 
 		task ("Add a Title fragment to the content page") {
@@ -420,14 +347,14 @@ definition {
 				locator1 = "Fragment#FRAGMENT");
 		}
 
-		task ("Assert the Discard Draft and Publish buttons are now disabled") {
+		task ("Assert the Discard Draft button is now disabled but Publish button still is enabled") {
 			AssertVisible(
 				key_text = "Discard Draft",
 				locator1 = "Button#ANY_DISABLED");
 
 			AssertVisible(
 				key_text = "Publish",
-				locator1 = "Button#ANY_DISABLED");
+				locator1 = "Button#ANY_ENABLED");
 		}
 
 		task ("Add a Title fragment to the content page") {
@@ -458,14 +385,14 @@ definition {
 			ContentPages.clickPencil();
 		}
 
-		task ("Assert the Discard Draft and Publish buttons are now disabled") {
+		task ("Assert the Discard Draft button is disabled but Publish button is enabled") {
 			AssertVisible(
 				key_text = "Discard Draft",
 				locator1 = "Button#ANY_DISABLED");
 
 			AssertVisible(
 				key_text = "Publish",
-				locator1 = "Button#ANY_DISABLED");
+				locator1 = "Button#ANY_ENABLED");
 		}
 
 		task ("Edit the Title fragment's editable text") {
@@ -497,14 +424,14 @@ definition {
 				locator1 = "Fragment#FRAGMENT");
 		}
 
-		task ("Assert the Discard Draft and Publish buttons are now disabled") {
+		task ("Assert the Discard Draft button is now disabled but Publish button still is enabled") {
 			AssertVisible(
 				key_text = "Discard Draft",
 				locator1 = "Button#ANY_DISABLED");
 
 			AssertVisible(
 				key_text = "Publish",
-				locator1 = "Button#ANY_DISABLED");
+				locator1 = "Button#ANY_ENABLED");
 		}
 
 		task ("Add a Rich Text fragment to the content page") {
@@ -535,14 +462,14 @@ definition {
 				locator1 = "Fragment#FRAGMENT");
 		}
 
-		task ("Assert the Discard Draft and Publish buttons are now disabled") {
+		task ("Assert the Discard Draft button is now disabled but Publish button still is enabled") {
 			AssertVisible(
 				key_text = "Discard Draft",
 				locator1 = "Button#ANY_DISABLED");
 
 			AssertVisible(
 				key_text = "Publish",
-				locator1 = "Button#ANY_DISABLED");
+				locator1 = "Button#ANY_ENABLED");
 		}
 	}
 
@@ -775,13 +702,18 @@ definition {
 	@description = "This is a test for LPS-101328. Editable image name should be visible in the floating toolbar."
 	@priority = "5"
 	test ViewSelectedImageName {
-		property portal.acceptance = "true";
+
+		// Ignore test from acceptance until LRQA-52823 resolved
+
+		property portal.acceptance = "false";
 
 		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
 
 		ContentPages.addPage(pageName = "Test Content Page Name");
 
-		PageEditor.addBasicComponent(fragmentName = "Image");
+		PageEditor.addFragment(
+			collectionName = "Basic Components",
+			fragmentName = "Image");
 
 		PageEditor.editFragmentImage(
 			fileName = "Document_1.png",

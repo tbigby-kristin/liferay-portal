@@ -16,6 +16,7 @@ package com.liferay.source.formatter.checks;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.source.formatter.checks.util.YMLSourceUtil;
@@ -23,7 +24,6 @@ import com.liferay.source.formatter.checks.util.YMLSourceUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,6 +60,41 @@ public class YMLDefinitionOrderCheck extends BaseFileCheck {
 		content = _sortPathParameters(sb.toString());
 
 		return content;
+	}
+
+	private List<String> _combineComments(
+		List<String> definitions, String indent) {
+
+		List<String> definitionsList = new ArrayList<>();
+
+		StringBundler sb = new StringBundler();
+
+		String previousDefinition = StringPool.BLANK;
+
+		for (String definition : definitions) {
+			if (definition.startsWith(indent + StringPool.POUND)) {
+				sb.append(definition);
+				sb.append("\n");
+			}
+			else if (previousDefinition.startsWith(indent + StringPool.POUND)) {
+				sb.append(definition);
+
+				definitionsList.add(sb.toString());
+
+				sb.setIndex(0);
+			}
+			else {
+				definitionsList.add(definition);
+			}
+
+			previousDefinition = definition;
+		}
+
+		if (sb.index() > 0) {
+			definitionsList.add(StringUtil.trimTrailing(sb.toString()));
+		}
+
+		return definitionsList;
 	}
 
 	private String _getParameterType(String definition) {
@@ -109,9 +144,11 @@ public class YMLDefinitionOrderCheck extends BaseFileCheck {
 			return content;
 		}
 
-		List<String> oldDefinitions = new ArrayList<>(definitions);
-
 		definitions = _removeDuplicateAttribute(definitions);
+
+		definitions = _combineComments(definitions, indent);
+
+		List<String> oldDefinitions = new ArrayList<>(definitions);
 
 		Collections.sort(
 			definitions,
@@ -140,12 +177,6 @@ public class YMLDefinitionOrderCheck extends BaseFileCheck {
 					String trimmedDefinition1Line = definition1Lines[0];
 					String trimmedDefinition2Line = definition2Lines[0];
 
-					if (trimmedDefinition1Line.startsWith(StringPool.POUND) ||
-						trimmedDefinition2Line.startsWith(StringPool.POUND)) {
-
-						return 0;
-					}
-
 					if (trimmedDefinition1Line.equals(StringPool.DASH) &&
 						trimmedDefinition2Line.equals(StringPool.DASH)) {
 
@@ -172,8 +203,18 @@ public class YMLDefinitionOrderCheck extends BaseFileCheck {
 						return 1;
 					}
 
-					return trimmedDefinition1Line.compareTo(
-						trimmedDefinition2Line);
+					String definition1Key = definition1.replaceAll(
+						"( *#.*(\\Z|\n))*(.*)", "$3");
+					String definition2Key = definition2.replaceAll(
+						"( *#.*(\\Z|\n))*(.*)", "$3");
+
+					if (Validator.isNull(definition1Key) ||
+						Validator.isNull(definition2Key)) {
+
+						return 0;
+					}
+
+					return definition1Key.compareTo(definition2Key);
 				}
 
 			});
@@ -203,7 +244,9 @@ public class YMLDefinitionOrderCheck extends BaseFileCheck {
 		for (String definition : definitions) {
 			String[] lines = StringUtil.splitLines(definition);
 
-			if ((lines.length != 0) && lines[0].matches("^.+\\|- *$")) {
+			if ((lines.length != 0) &&
+				lines[0].matches(" *(description:|.+: +.+)")) {
+
 				continue;
 			}
 
@@ -320,25 +363,28 @@ public class YMLDefinitionOrderCheck extends BaseFileCheck {
 	}
 
 	private static final Map<String, Integer> _parameterTypesWeightMap =
-		new HashMap<String, Integer>() {
-			{
-				put("cookie", 4);
-				put("header", 3);
-				put("path", 1);
-				put("query", 2);
-			}
-		};
+		HashMapBuilder.put(
+			"cookie", 4
+		).put(
+			"header", 3
+		).put(
+			"path", 1
+		).put(
+			"query", 2
+		).build();
 	private static final Pattern _pathPattern = Pattern.compile(
 		"(?<=\n)( *)\"([^{}\"]*\\{[^}]+\\}[^{}\"]*){2,}\":(\n\\1 .*)*");
 	private static final Map<String, Integer> _specialQueriesKeyWeightMap =
-		new HashMap<String, Integer>() {
-			{
-				put("filter", 1);
-				put("page", 2);
-				put("pageSize", 3);
-				put("search", 4);
-				put("sort", 5);
-			}
-		};
+		HashMapBuilder.put(
+			"filter", 1
+		).put(
+			"page", 2
+		).put(
+			"pageSize", 3
+		).put(
+			"search", 4
+		).put(
+			"sort", 5
+		).build();
 
 }

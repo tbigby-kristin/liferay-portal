@@ -70,7 +70,9 @@ public class Location {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The organization's country. This follows the [`addressCountry`](https://schema.org/addressCountry) specification."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String addressCountry;
 
@@ -100,7 +102,9 @@ public class Location {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The organization's region. This follows the [`addressRegion`](https://schema.org/addressRegion) specification."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String addressRegion;
 
@@ -126,7 +130,7 @@ public class Location {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The location's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -199,6 +203,12 @@ public class Location {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.user.dto.v1_0.Location",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

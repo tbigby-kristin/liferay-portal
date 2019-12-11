@@ -14,8 +14,9 @@
 
 import ClayButton from 'clay-button';
 import Component from 'metal-jsx';
-import Notifications from '../../util/Notifications.es';
 import {Config} from 'metal-state';
+
+import Notifications from '../../util/Notifications.es';
 
 class PreviewButton extends Component {
 	preview() {
@@ -39,7 +40,6 @@ class PreviewButton extends Component {
 
 		return (
 			<ClayButton
-				elementClasses={'btn-default'}
 				events={{
 					click: this._handleButtonClicked.bind(this)
 				}}

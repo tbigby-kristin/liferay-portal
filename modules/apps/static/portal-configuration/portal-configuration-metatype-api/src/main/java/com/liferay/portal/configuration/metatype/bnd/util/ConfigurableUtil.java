@@ -18,8 +18,10 @@ import aQute.bnd.annotation.metatype.Configurable;
 
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import java.util.Dictionary;
@@ -67,9 +69,15 @@ public class ConfigurableUtil {
 				byte[] snapshotClassData = _generateSnapshotClassData(
 					interfaceClass, snapshotClassName);
 
-				snapshotClass = (Class<T>)_defineClassMethod.invoke(
-					classLoader, snapshotClassName, snapshotClassData, 0,
-					snapshotClassData.length);
+				try {
+					snapshotClass = (Class<T>)_defineClassMethod.invoke(
+						classLoader, snapshotClassName, snapshotClassData, 0,
+						snapshotClassData.length);
+				}
+				catch (InvocationTargetException ite) {
+					snapshotClass = (Class<T>)classLoader.loadClass(
+						snapshotClassName);
+				}
 			}
 
 			Constructor<T> snapshotClassConstructor =
@@ -189,7 +197,8 @@ public class ConfigurableUtil {
 	}
 
 	private static String _getClassBinaryName(String className) {
-		return className.replace(CharPool.PERIOD, CharPool.FORWARD_SLASH);
+		return StringUtil.replace(
+			className, CharPool.PERIOD, CharPool.FORWARD_SLASH);
 	}
 
 	private static final Method _defineClassMethod;

@@ -24,17 +24,16 @@
 	<aui:script sandbox="<%= true %>" use="aui-base,liferay-store">
 		var storeTask = A.debounce(Liferay.Store, 100);
 
-		$('#<%= id %>Content').on(
-			'hide.bs.collapse show.bs.collapse',
-			function(event) {
-				if (event.target.id === '<%= id %>Content') {
-					storeTask(
-						{
-							'<%= id %>': (event.type === 'hide')
-						}
-					);
-				}
+		$('#<%= id %>Content').on('hide.bs.collapse show.bs.collapse', function(
+			event
+		) {
+			if (event.target.id === '<%= id %>Content') {
+				var task = {};
+
+				task['<%= id %>'] = event.type === 'hide';
+
+				storeTask(task);
 			}
-		);
+		});
 	</aui:script>
 </c:if>

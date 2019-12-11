@@ -25,7 +25,7 @@ definition {
 
 			Page.tearDownCP();
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 		}
 	}
 
@@ -65,12 +65,6 @@ definition {
 			pageName = "Blogs Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
-			columnName = "1 Column",
-			pageName = "Blogs Page",
-			privacy = "Public Pages",
-			sitePageType = "Widget Page");
-
 		Navigator.gotoPage(pageName = "Blogs Page");
 
 		Portlet.addPG(portletName = "Blogs");
@@ -99,20 +93,8 @@ definition {
 			pageName = "Blank Page",
 			sitePageType = "Widget Page");
 
-		SitePages.configurePage(
-			columnName = "1 Column",
-			pageName = "Blank Page",
-			privacy = "Public Pages",
-			sitePageType = "Widget Page");
-
 		SitePages.addPublicPage(
 			pageName = "Invite Members Page",
-			sitePageType = "Widget Page");
-
-		SitePages.configurePage(
-			columnName = "1 Column",
-			pageName = "Invite Members Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoSitePage(
@@ -179,6 +161,128 @@ definition {
 		User.loginUserPG(
 			password = "test",
 			userEmailAddress = "test@liferay.com");
+	}
+
+	@description = "This test covers LPS-102749. It views a notification of the edited Web Content Article when staging is turned on."
+	@priority = "4"
+	test StagingViewEditedArticleNotification {
+		JSONGroup.addGroup(groupName = "Subscribe Site");
+
+		JSONLayout.addPublicLayout(
+			groupName = "Subscribe Site",
+			layoutName = "Staging Test Page");
+
+		SitePages.openPagesAdmin(siteURLKey = "Subscribe Site");
+
+		ProductMenu.gotoPortlet(
+			category = "Publishing",
+			panel = "Site Administration",
+			portlet = "Staging");
+
+		Staging.activateStagingCP(siteName = "Subscribe Site");
+
+		JSONUser.addUser(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		ProductMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.editPasswordCP(
+			password = "password",
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		ProductMenu.gotoPortlet(
+			category = "Users",
+			panel = "Control Panel",
+			portlet = "Users and Organizations");
+
+		User.assignRegularRoleCP(
+			roleTitle = "Administrator",
+			userScreenName = "usersn");
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Navigator.openSiteURL(siteName = "Subscribe Site");
+
+		ProductMenu.gotoLiveSite();
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		WebContent.subscribeToCurrentFolderCP();
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "test@liferay.com");
+
+		Navigator.openSiteURL(siteName = "Subscribe Site");
+
+		Navigator.gotoStagedView();
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		WebContentNavigator.gotoAddCP();
+
+		WebContent.addCP(
+			webContentContent = "WC WebContent Content",
+			webContentTitle = "WC WebContent Title");
+
+		PortletEntry.publish();
+
+		Staging.publishToLiveNowViaPortletCP();
+
+		Navigator.openSiteURL(siteName = "Subscribe Site");
+
+		Navigator.gotoStagedView();
+
+		ProductMenu.gotoPortlet(
+			category = "Content &amp; Data",
+			panel = "Site Administration",
+			portlet = "Web Content");
+
+		WebContentNavigator.gotoEditCP(webContentTitle = "WC WebContent Title");
+
+		WebContent.editCP(
+			webContentTitle = "WC WebContent Title",
+			webContentTitleEdit = "WC WebContent Title Edit");
+
+		Staging.publishToLiveNowViaPortletCP();
+
+		User.logoutAndLoginPG(
+			userLoginEmailAddress = "userea@liferay.com",
+			userLoginFullName = "userfn userln");
+
+		Notifications.viewBadgeCount(notificationCount = "2");
+
+		Notifications.gotoNotifications();
+
+		Notifications.viewUpdatedContent(
+			assetType = "web content article",
+			contentBody = "WC WebContent Title Edit",
+			user = "Test Test");
+
+		Notifications.navigateToContent(contentBody = "WC WebContent Title Edit");
+
+		WebContent.viewTitle(
+			onLive = "true",
+			webContentTitle = "WC WebContent Title Edit");
+
+		AssertConsoleTextNotPresent(value1 = "java.lang.IllegalArgumentException");
 	}
 
 	@priority = "3"

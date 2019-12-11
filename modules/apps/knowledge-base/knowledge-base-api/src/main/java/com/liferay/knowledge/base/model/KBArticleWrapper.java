@@ -43,6 +43,7 @@ public class KBArticleWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("kbArticleId", getKbArticleId());
 		attributes.put("resourcePrimKey", getResourcePrimKey());
@@ -64,7 +65,6 @@ public class KBArticleWrapper
 		attributes.put("description", getDescription());
 		attributes.put("priority", getPriority());
 		attributes.put("sections", getSections());
-		attributes.put("viewCount", getViewCount());
 		attributes.put("latest", isLatest());
 		attributes.put("main", isMain());
 		attributes.put("sourceURL", getSourceURL());
@@ -79,6 +79,12 @@ public class KBArticleWrapper
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -199,12 +205,6 @@ public class KBArticleWrapper
 
 		if (sections != null) {
 			setSections(sections);
-		}
-
-		Integer viewCount = (Integer)attributes.get("viewCount");
-
-		if (viewCount != null) {
-			setViewCount(viewCount);
 		}
 
 		Boolean latest = (Boolean)attributes.get("latest");
@@ -396,6 +396,16 @@ public class KBArticleWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this kb article.
+	 *
+	 * @return the mvcc version of this kb article
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	@Override
@@ -612,13 +622,8 @@ public class KBArticleWrapper
 		return model.getVersion();
 	}
 
-	/**
-	 * Returns the view count of this kb article.
-	 *
-	 * @return the view count of this kb article
-	 */
 	@Override
-	public int getViewCount() {
+	public long getViewCount() {
 		return model.getViewCount();
 	}
 
@@ -858,6 +863,16 @@ public class KBArticleWrapper
 	}
 
 	/**
+	 * Sets the mvcc version of this kb article.
+	 *
+	 * @param mvccVersion the mvcc version of this kb article
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
+	}
+
+	/**
 	 * Sets the parent resource class name ID of this kb article.
 	 *
 	 * @param parentResourceClassNameId the parent resource class name ID of this kb article
@@ -1055,16 +1070,6 @@ public class KBArticleWrapper
 	@Override
 	public void setVersion(int version) {
 		model.setVersion(version);
-	}
-
-	/**
-	 * Sets the view count of this kb article.
-	 *
-	 * @param viewCount the view count of this kb article
-	 */
-	@Override
-	public void setViewCount(int viewCount) {
-		model.setViewCount(viewCount);
 	}
 
 	@Override

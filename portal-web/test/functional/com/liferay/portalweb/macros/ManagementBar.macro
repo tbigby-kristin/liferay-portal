@@ -31,7 +31,14 @@ definition {
 	}
 
 	macro clickInfo {
-		Click.clickNoMouseOver(locator1 = "Icon#INFO");
+		var browserType = PropsUtil.get("browser.type");
+
+		if ("${browserType}" == "internetexplorer") {
+			Click(locator1 = "Icon#INFO_IE");
+		}
+		else {
+			Click.clickNoMouseOver(locator1 = "Icon#INFO");
+		}
 	}
 
 	macro clickSelectAllCheckbox {

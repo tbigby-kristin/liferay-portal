@@ -43,6 +43,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -66,7 +67,6 @@ import java.security.Key;
 import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1603,17 +1603,17 @@ public class PortletURLImpl
 		else {
 			mutableRenderParameterMap = new LinkedHashMap<>();
 
-			RenderParametersImpl liferayRenderParameters =
+			RenderParametersImpl liferayRenderParametersImpl =
 				(RenderParametersImpl)_portletRequest.getRenderParameters();
 
 			publicRenderParameterNames =
-				liferayRenderParameters.getPublicRenderParameterNames();
+				liferayRenderParametersImpl.getPublicRenderParameterNames();
 
 			if (MimeResponse.Copy.ALL.equals(_copy) ||
 				MimeResponse.Copy.PUBLIC.equals(_copy)) {
 
 				Map<String, String[]> liferayRenderParametersMap =
-					liferayRenderParameters.getParameterMap();
+					liferayRenderParametersImpl.getParameterMap();
 
 				for (Map.Entry<String, String[]> entry :
 						liferayRenderParametersMap.entrySet()) {
@@ -1621,7 +1621,8 @@ public class PortletURLImpl
 					String renderParameterName = entry.getKey();
 
 					if (MimeResponse.Copy.ALL.equals(_copy) ||
-						liferayRenderParameters.isPublic(renderParameterName)) {
+						liferayRenderParametersImpl.isPublic(
+							renderParameterName)) {
 
 						mutableRenderParameterMap.put(
 							renderParameterName, entry.getValue());
@@ -1699,13 +1700,13 @@ public class PortletURLImpl
 	private static final Log _log = LogFactoryUtil.getLog(PortletURLImpl.class);
 
 	private static final Map<String, String> _cacheabilities =
-		new HashMap<String, String>() {
-			{
-				put("FULL", ResourceURL.FULL);
-				put("PAGE", ResourceURL.PAGE);
-				put("PORTLET", ResourceURL.PORTLET);
-			}
-		};
+		HashMapBuilder.put(
+			"FULL", ResourceURL.FULL
+		).put(
+			"PAGE", ResourceURL.PAGE
+		).put(
+			"PORTLET", ResourceURL.PORTLET
+		).build();
 
 	private boolean _anchor = true;
 	private String _cacheability = ResourceURL.PAGE;

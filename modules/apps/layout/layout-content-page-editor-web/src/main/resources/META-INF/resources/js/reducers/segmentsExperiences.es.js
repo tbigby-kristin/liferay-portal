@@ -100,9 +100,7 @@ function _switchLayoutDataList(state, segmentsExperienceId) {
 						segmentedLayout => {
 							return segmentedLayout.segmentsExperienceId ===
 								prevSegmentsExperienceId
-								? Object.assign({}, segmentedLayout, {
-										layoutData: prevLayout
-								  })
+								? {...segmentedLayout, layoutData: prevLayout}
 								: segmentedLayout;
 						}
 					);
@@ -247,16 +245,17 @@ function createSegmentsExperienceReducer(state, action) {
 				return objectResponse;
 			})
 			.then(function _success({
-				segmentsExperience,
+				fragmentEntryLinks,
 				layoutData,
-				fragmentEntryLinks
+				segmentsExperience
 			}) {
 				const {
 					active,
 					name,
 					priority,
 					segmentsEntryId,
-					segmentsExperienceId
+					segmentsExperienceId,
+					segmentsExperimentStatus
 				} = segmentsExperience;
 
 				nextState = setIn(
@@ -282,14 +281,16 @@ function createSegmentsExperienceReducer(state, action) {
 					fragmentEntryLinks
 				);
 
+				nextState = _setExperienceLock(nextState, {
+					hasLockedSegmentsExperiment: false
+				});
+
 				_switchLayoutDataList(nextState, segmentsExperienceId)
-					.then(newState =>
-						setIn(
-							newState,
-							['segmentsExperienceId'],
-							segmentsExperienceId
-						)
-					)
+					.then(newState => ({
+						...newState,
+						segmentsExperienceId,
+						segmentsExperimentStatus
+					}))
 					.then(nextNewState =>
 						_updateFragmentEntryLinks(
 							nextNewState,
@@ -382,10 +383,9 @@ function deleteSegmentsExperienceReducer(state, action) {
 							segmentsExperienceId
 						].priority;
 
-					const availableSegmentsExperiences = Object.assign(
-						{},
-						nextState.availableSegmentsExperiences
-					);
+					const availableSegmentsExperiences = {
+						...nextState.availableSegmentsExperiences
+					};
 
 					delete availableSegmentsExperiences[segmentsExperienceId];
 
@@ -425,6 +425,13 @@ function deleteSegmentsExperienceReducer(state, action) {
 						experienceIdToSelect
 					);
 
+					nextState = _setExperienceLock(
+						nextState,
+						nextState.availableSegmentsExperiences[
+							experienceIdToSelect
+						]
+					);
+
 					return _setUsedWidgets(nextState, experienceIdToSelect);
 				})
 				.then(nextNewState => resolve(nextNewState))
@@ -438,6 +445,27 @@ function deleteSegmentsExperienceReducer(state, action) {
 }
 
 /**
+ * Sets `lockedSegmentsExperience` in the state, depending on the Experience
+ * @param {object} state
+ * @param {string | null} state.selectedSidebarPanelId
+ * @param {object} experience
+ * @param {boolean} experience.hasLockedSegmentsExperiment
+ * @return {object} nextState
+ */
+function _setExperienceLock(state, experience) {
+	const lockedSegmentsExperience = experience.hasLockedSegmentsExperiment;
+	const selectedSidebarPanelId = lockedSegmentsExperience
+		? null
+		: state.selectedSidebarPanelId;
+
+	return {
+		...state,
+		lockedSegmentsExperience,
+		selectedSidebarPanelId
+	};
+}
+
+/**
  *
  *
  * @export
@@ -447,6 +475,7 @@ function deleteSegmentsExperienceReducer(state, action) {
  * @param {string} state.segmentsExperienceId
  * @param {object} action
  * @param {string} action.segmentsExperienceId
+ * @param {object} action.segmentsExperimentStatus
  * @param {string} action.type
  * @returns {Promise}
  */
@@ -456,13 +485,19 @@ function selectSegmentsExperienceReducer(state, action) {
 
 		_switchLayoutDataList(nextState, action.segmentsExperienceId)
 			.then(newState => {
-				const nextNewState = setIn(
-					newState,
-					['segmentsExperienceId'],
-					action.segmentsExperienceId
-				);
+				const experience =
+					nextState.availableSegmentsExperiences[
+						action.segmentsExperienceId
+					];
 
-				return nextNewState;
+				const nextNewState = {
+					...newState,
+					segmentsExperienceId: action.segmentsExperienceId,
+					segmentsExperimentStatus:
+						experience.segmentsExperimentStatus
+				};
+
+				return _setExperienceLock(nextNewState, experience);
 			})
 			.then(nextNewState =>
 				_updateFragmentEntryLinks(
@@ -516,17 +551,22 @@ function editSegmentsExperienceReducer(state, action) {
 					segmentsExperienceId
 				} = obj;
 
-				nextState = setIn(
-					nextState,
-					['availableSegmentsExperiences', segmentsExperienceId],
-					{
-						active,
-						name: nameCurrentValue,
-						priority,
-						segmentsEntryId,
-						segmentsExperienceId
+				nextState = {
+					...nextState,
+					availableSegmentsExperiences: {
+						...nextState.availableSegmentsExperiences,
+						[segmentsExperienceId]: {
+							...nextState.availableSegmentsExperiences[
+								segmentsExperienceId
+							],
+							active,
+							name: nameCurrentValue,
+							priority,
+							segmentsEntryId,
+							segmentsExperienceId
+						}
 					}
-				);
+				};
 
 				resolve(nextState);
 			},
@@ -554,53 +594,59 @@ function updateSegmentsExperiencePriorityReducer(state, action) {
 		const {direction, priority: oldPriority, segmentsExperienceId} = action;
 		let nextState = state;
 
-		const priority =
+		const {availableSegmentsExperiences} = nextState;
+
+		const priorityForSubtarget =
 			typeof oldPriority === 'number'
 				? oldPriority
 				: parseInt(oldPriority, 10);
 
-		const newPriority = direction === 'up' ? priority + 1 : priority - 1;
+		const targetExperience =
+			availableSegmentsExperiences[segmentsExperienceId];
+
+		const availableSegmentsExperiencesArray = Object.entries(
+			availableSegmentsExperiences
+		)
+			.sort(([, a], [, b]) => a.priority - b.priority)
+			.map(([, experience]) => experience);
+
+		const targetExperiencePosition = availableSegmentsExperiencesArray.findIndex(
+			experience => experience === targetExperience
+		);
+
+		const subTargetPosition =
+			direction === 'up'
+				? targetExperiencePosition + 1
+				: targetExperiencePosition - 1;
+
+		const subTargetExperience =
+			availableSegmentsExperiencesArray[subTargetPosition];
+
+		const priorityForTarget = subTargetExperience.priority;
 
 		Liferay.Service(UPDATE_SEGMENTS_EXPERIENCE_PRIORITY_URL, {
-			newPriority,
+			newPriority: priorityForTarget,
 			segmentsExperienceId
 		})
 			.then(() => {
-				const availableSegmentsExperiencesArray = Object.values(
-					nextState.availableSegmentsExperiences
-				);
+				const updatedTargetExperience = {
+					...targetExperience,
+					priority: priorityForTarget
+				};
 
-				const subTargetExperience = availableSegmentsExperiencesArray.find(
-					experience => {
-						return experience.priority === newPriority;
+				const updatedSubtargetExperience = {
+					...subTargetExperience,
+					priority: priorityForSubtarget
+				};
+
+				nextState = {
+					...nextState,
+					availableSegmentsExperiences: {
+						...nextState.availableSegmentsExperiences,
+						[updatedSubtargetExperience.segmentsExperienceId]: updatedSubtargetExperience,
+						[updatedTargetExperience.segmentsExperienceId]: updatedTargetExperience
 					}
-				);
-
-				const targetExperience = availableSegmentsExperiencesArray.find(
-					experience => {
-						return experience.priority === priority;
-					}
-				);
-
-				nextState = setIn(
-					nextState,
-					[
-						'availableSegmentsExperiences',
-						targetExperience.segmentsExperienceId,
-						'priority'
-					],
-					newPriority
-				);
-
-				nextState = setIn(
-					nextState,
-					[
-						'availableSegmentsExperiences',
-						subTargetExperience.segmentsExperienceId,
-						'priority'
-					],
-					priority
-				);
+				};
 
 				resolve(nextState);
 			})

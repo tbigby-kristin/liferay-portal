@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -74,11 +76,14 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The list of languages the structure has a translation for."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String[] availableLanguages;
 
 	@Schema(description = "The list of the content structure's fields.")
+	@Valid
 	public ContentStructureField[] getContentStructureFields() {
 		return contentStructureFields;
 	}
@@ -105,11 +110,12 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The list of the content structure's fields.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected ContentStructureField[] contentStructureFields;
 
 	@Schema(description = "The content structure's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -133,7 +139,7 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content structure's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
@@ -161,7 +167,7 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content structure's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -191,7 +197,9 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The last time a field of the content structure changed."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -219,7 +227,7 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content structure's description.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String description;
 
@@ -245,7 +253,7 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content structure's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -271,7 +279,7 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The content structure's name.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String name;
 
@@ -301,7 +309,9 @@ public class ContentStructure {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which the content structure is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
 
@@ -469,6 +479,12 @@ public class ContentStructure {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.ContentStructure",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

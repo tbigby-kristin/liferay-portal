@@ -16,6 +16,7 @@ package com.liferay.gradle.plugins.node;
 
 import com.liferay.gradle.plugins.node.internal.util.FileUtil;
 import com.liferay.gradle.plugins.node.internal.util.GradleUtil;
+import com.liferay.gradle.plugins.node.internal.util.NodePluginUtil;
 import com.liferay.gradle.util.OSDetector;
 import com.liferay.gradle.util.Validator;
 
@@ -147,6 +148,29 @@ public class NodeExtension {
 
 		_project = project;
 
+		_scriptFile = new Callable<File>() {
+
+			@Override
+			public File call() throws Exception {
+				File nodeDir = getNodeDir();
+
+				if (nodeDir == null) {
+					return null;
+				}
+
+				if (isUseNpm()) {
+					File npmDir = NodePluginUtil.getNpmDir(nodeDir);
+
+					return new File(npmDir, "bin/npm-cli.js");
+				}
+
+				File projectDir = project.getProjectDir();
+
+				return NodePluginUtil.getYarnScriptFile(projectDir);
+			}
+
+		};
+
 		_useNpm = new Callable<Boolean>() {
 
 			@Override
@@ -155,34 +179,15 @@ public class NodeExtension {
 					return true;
 				}
 
-				if (getYarnScriptFile() == null) {
+				File projectDir = project.getProjectDir();
+
+				File file = NodePluginUtil.getYarnScriptFile(projectDir);
+
+				if (file == null) {
 					return true;
 				}
 
 				return false;
-			}
-
-		};
-
-		_yarnScriptFile = new Callable<File>() {
-
-			@Override
-			public File call() throws Exception {
-				File dir = project.getProjectDir();
-
-				while (true) {
-					File[] files = FileUtil.getFiles(dir, "yarn-", ".js");
-
-					if ((files != null) && (files.length > 0)) {
-						return files[0];
-					}
-
-					dir = dir.getParentFile();
-
-					if (dir == null) {
-						return null;
-					}
-				}
 			}
 
 		};
@@ -212,8 +217,8 @@ public class NodeExtension {
 		return GradleUtil.toString(_npmVersion);
 	}
 
-	public File getYarnScriptFile() {
-		return GradleUtil.toFile(_project, _yarnScriptFile);
+	public File getScriptFile() {
+		return GradleUtil.toFile(_project, _scriptFile);
 	}
 
 	public boolean isDownload() {
@@ -276,12 +281,12 @@ public class NodeExtension {
 		_npmVersion = npmVersion;
 	}
 
-	public void setUseNpm(Object useNpm) {
-		_useNpm = useNpm;
+	public void setScriptFile(Object scriptFile) {
+		_scriptFile = scriptFile;
 	}
 
-	public void setYarnScriptFile(Object yarnScriptFile) {
-		_yarnScriptFile = yarnScriptFile;
+	public void setUseNpm(Object useNpm) {
+		_useNpm = useNpm;
 	}
 
 	private static final Map<String, String> _npmVersions =
@@ -314,7 +319,7 @@ public class NodeExtension {
 	private Object _npmUrl;
 	private Object _npmVersion;
 	private final Project _project;
+	private Object _scriptFile;
 	private Object _useNpm;
-	private Object _yarnScriptFile;
 
 }

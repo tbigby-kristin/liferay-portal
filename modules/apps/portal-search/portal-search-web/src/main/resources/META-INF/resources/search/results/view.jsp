@@ -69,7 +69,7 @@ com.liferay.portal.kernel.dao.search.SearchContainer<com.liferay.portal.kernel.s
 </style>
 
 <p class="search-total-label text-default">
-	<%= searchContainer1.getTotal() %> results for <strong><%= HtmlUtil.escape(searchResultsPortletDisplayContext.getKeywords()) %></strong>
+	<liferay-ui:message arguments='<%= new String[] {String.valueOf(searchContainer1.getTotal()), "<strong>" + HtmlUtil.escape(searchResultsPortletDisplayContext.getKeywords()) + "</strong>"} %>' key="x-results-for-x" />
 </p>
 
 <liferay-ui:search-container
@@ -136,7 +136,7 @@ com.liferay.portal.kernel.dao.search.SearchContainer<com.liferay.portal.kernel.s
 
 						<c:if test="<%= searchResultSummaryDisplayContext.isCreatorVisible() %>">
 							&#183;
-							<liferay-ui:message key="written-by" /> <strong><%= searchResultSummaryDisplayContext.getCreatorUserName() %></strong>
+							<liferay-ui:message key="written-by" /> <strong><%= HtmlUtil.escape(searchResultSummaryDisplayContext.getCreatorUserName()) %></strong>
 						</c:if>
 
 						<c:if test="<%= searchResultSummaryDisplayContext.isCreationDateVisible() %>">

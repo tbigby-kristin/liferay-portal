@@ -14,14 +14,12 @@
 
 import ClayButton from '@clayui/button';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
-import Conjunction from './Conjunction.es';
-import CriteriaBuilder from './CriteriaBuilder.es';
-import CriteriaSidebar from '../criteria_sidebar/CriteriaSidebar.es';
-import EmptyPlaceholder from './EmptyPlaceholder.es';
 import getCN from 'classnames';
-import HTML5Backend from 'react-dnd-html5-backend';
 import PropTypes from 'prop-types';
 import React from 'react';
+import {DragDropContext as dragDropContext} from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+
 import {
 	conjunctionShape,
 	contributorShape,
@@ -29,8 +27,11 @@ import {
 	propertyGroupShape,
 	propertyTypesShape
 } from '../../utils/types.es';
-import {DragDropContext as dragDropContext} from 'react-dnd';
 import {getPluralMessage} from '../../utils/utils.es';
+import CriteriaSidebar from '../criteria_sidebar/CriteriaSidebar.es';
+import Conjunction from './Conjunction.es';
+import CriteriaBuilder from './CriteriaBuilder.es';
+import EmptyPlaceholder from './EmptyPlaceholder.es';
 
 class ContributorBuilder extends React.Component {
 	static propTypes = {
@@ -125,7 +126,7 @@ class ContributorBuilder extends React.Component {
 							<div className="content-wrapper">
 								<div className="sheet">
 									<div className="d-flex flex-wrap justify-content-between mb-4">
-										<h2 className="sheet-title mb-2">
+										<h2 className="mb-2 sheet-title">
 											{Liferay.Language.get('conditions')}
 										</h2>
 
@@ -206,7 +207,7 @@ class ContributorBuilder extends React.Component {
 																editing={
 																	editing
 																}
-																onClick={
+																onSelect={
 																	onConjunctionChange
 																}
 																supportedConjunctions={

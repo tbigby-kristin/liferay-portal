@@ -32,7 +32,7 @@ definition {
 
 			Page.tearDownCP();
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 
 			Site.tearDownCP();
 		}
@@ -123,8 +123,7 @@ definition {
 			value1 = "cat");
 
 		AssertClick(
-			key_tagName = "category",
-			locator1 = "AssetCategorization#TAG_AUTOCOMPLETE_SPECIFIC",
+			locator1 = "AssetCategorization#TAG_AUTOCOMPLETE_CONTAINER",
 			value1 = "category");
 
 		Button.clickSave();
@@ -746,8 +745,8 @@ definition {
 		var videoGenerationTimeCounter = "0";
 		var videoGenerationTimeMaxWaitTime = "6";
 
-		while ((!("${videoGenerationTimeCounter}" == "${videoGenerationTimeMaxWaitTime}")) && (IsElementPresent(locator1 = "Message#INFO"))) {
-			var videoGenerationTimeCounter = MathUtil.sum("${videoGenerationTimeCounter}", "1");
+		while (("${videoGenerationTimeCounter}" != "${videoGenerationTimeMaxWaitTime}") && (IsElementPresent(locator1 = "Message#INFO"))) {
+			var videoGenerationTimeCounter = ${videoGenerationTimeCounter} + 1;
 
 			Pause(locator1 = "30000");
 
@@ -771,11 +770,11 @@ definition {
 			locator1 = "DocumentsAndMediaDocument#VIDEO_GENERATION_THUMBNAIL_RESOLUTION");
 
 		AssertElementPresent.assertElementPresent(
-			key_videoGenerationThumbnailResolution = "1280",
+			key_videoGenerationThumbnailResolution = "854",
 			locator1 = "DocumentsAndMediaDocument#VIDEO_GENERATION_THUMBNAIL_RESOLUTION");
 
 		AssertElementPresent.assertElementPresent(
-			key_videoGenerationThumbnailResolution = "720",
+			key_videoGenerationThumbnailResolution = "480",
 			locator1 = "DocumentsAndMediaDocument#VIDEO_GENERATION_THUMBNAIL_RESOLUTION");
 	}
 
@@ -1599,6 +1598,64 @@ definition {
 		DMDocument.addPG(
 			dmDocumentFile = "Document_1.doc",
 			dmDocumentTitle = "Document_1.doc");
+	}
+
+	@description = "This test covers LPS-93601 and LPS-91661. It ensures that the user can check all files in the current pagination using the DM toolbar and can move documents not on the current pagination to another folder."
+	@priority = "4"
+	test ViewPaginationToolbarCheckboxAndMoveMultiplePaginationDocuments {
+		JSONLayout.addPublicLayout(
+			groupName = "Guest",
+			layoutName = "Documents and Media Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			column = "1",
+			groupName = "Guest",
+			layoutName = "Documents and Media Page",
+			widgetName = "Documents and Media");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMFolder.addCP(
+			dmFolderDescription = "DM Folder Description",
+			dmFolderName = "DM Folder Name");
+
+		DMFolder.gotoEntry(dmFolderName = "DM Folder Name");
+
+		DMDocument.addMultipleCP(dmDocumentFileList = "Document_1.doc,Document_2.jpg,Document_3.xls,Document_4.txt,Document_1.txt,Document_2.xls,Document_3.jpg,Document_4.jpg,Document_1.xls,Document_2.doc");
+
+		Pagination.changePagination(itemsPerPage = "5");
+
+		Pagination.viewResults(results = "Showing 1 to 5 of 10 entries.");
+
+		DMDocument.moveToFolderCP(
+			dmFolderName = "Home",
+			selectAll = "true");
+
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		Pagination.viewResults(results = "Showing 1 to 11 of 11 entries.");
+
+		Navigator.gotoPage(pageName = "Documents and Media Page");
+
+		LexiconEntry.changeDisplayStyle(displayStyle = "List");
+
+		Pagination.changePagination(itemsPerPage = "5");
+
+		Pagination.viewResults(results = "Showing 1 to 5 of 11 entries.");
+
+		DMDocument.checkDocumentCheckboxPG(dmDocumentTitle = "Document_2.jpg");
+
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "1 of 11 Selected");
+
+		Click(locator1 = "Pagination#NEXT_LINK");
+
+		Click(locator1 = "DocumentsAndMedia#TOOLBAR_SELECT_ALL_CHECKBOX");
+
+		AssertTextEquals(
+			locator1 = "ManagementBar#NAVBAR_TEXT",
+			value1 = "6 of 11 Selected");
 	}
 
 	@priority = "4"

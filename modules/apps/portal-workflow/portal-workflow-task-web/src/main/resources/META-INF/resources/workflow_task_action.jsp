@@ -55,8 +55,8 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 						<portlet:param name="mvcPath" value="/edit_workflow_task.jsp" />
 						<portlet:param name="redirect" value="<%= redirectURL.toString() %>" />
 						<portlet:param name="closeRedirect" value="<%= closeRedirect %>" />
-						<portlet:param name="workflowTaskId" value="<%= StringUtil.valueOf(workflowTask.getWorkflowTaskId()) %>" />
-						<portlet:param name="assigneeUserId" value="<%= StringUtil.valueOf(workflowTask.getAssigneeUserId()) %>" />
+						<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
+						<portlet:param name="assigneeUserId" value="<%= String.valueOf(workflowTask.getAssigneeUserId()) %>" />
 
 						<c:if test="<%= transitionName != null %>">
 							<portlet:param name="transitionName" value="<%= transitionName %>" />
@@ -95,7 +95,7 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 
 		<liferay-portlet:renderURL copyCurrentRenderParameters="<%= false %>" var="assignURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
 			<portlet:param name="mvcPath" value="/workflow_task_assign.jsp" />
-			<portlet:param name="redirect" value="<%= redirectURL.toString() %>" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
 			<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
 		</liferay-portlet:renderURL>
 
@@ -108,7 +108,7 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 		<liferay-portlet:actionURL copyCurrentRenderParameters="<%= false %>" name="updateWorkflowTask" portletName="<%= PortletKeys.MY_WORKFLOW_TASK %>" var="updateDueDateURL">
 			<portlet:param name="mvcPath" value="<%= mvcPath %>" />
 			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="workflowTaskId" value="<%= StringUtil.valueOf(workflowTask.getWorkflowTaskId()) %>" />
+			<portlet:param name="workflowTaskId" value="<%= String.valueOf(workflowTask.getWorkflowTaskId()) %>" />
 		</liferay-portlet:actionURL>
 
 		<liferay-ui:icon
@@ -133,15 +133,27 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 </aui:form>
 
 <aui:script use="liferay-workflow-tasks">
-	var maxLength = Liferay.AUI.getDateFormat().replace(/%[mdY]/gm,'').length + 8;
+	var maxLength = Liferay.AUI.getDateFormat().replace(/%[mdY]/gm, '').length + 8;
 
 	A.all('#<portlet:namespace />dueDate').set('maxLength', maxLength);
 
-	var onDueDateClickFn = A.rbind('onDueDateClick', Liferay.WorkflowTasks, '<%= randomId %>', '<portlet:namespace />');
+	var onDueDateClickFn = A.rbind(
+		'onDueDateClick',
+		Liferay.WorkflowTasks,
+		'<%= randomId %>',
+		'<portlet:namespace />'
+	);
 
-	Liferay.delegateClick('<portlet:namespace /><%= randomId %>taskDueDateLink', onDueDateClickFn);
+	Liferay.delegateClick(
+		'<portlet:namespace /><%= randomId %>taskDueDateLink',
+		onDueDateClickFn
+	);
 
-	var onTaskClickFn = A.rbind('onTaskClick', Liferay.WorkflowTasks, '<%= randomId %>');
+	var onTaskClickFn = A.rbind(
+		'onTaskClick',
+		Liferay.WorkflowTasks,
+		'<%= randomId %>'
+	);
 
 	<c:if test="<%= !workflowTask.isCompleted() && workflowTaskDisplayContext.isAssignedToUser(workflowTask) %>">
 
@@ -152,7 +164,10 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 			String message = workflowTaskDisplayContext.getTransitionMessage(transitionName);
 		%>
 
-			Liferay.delegateClick('<portlet:namespace /><%= randomId + HtmlUtil.escapeJS(transitionName) %>taskChangeStatusLink', onTaskClickFn);
+			Liferay.delegateClick(
+				'<portlet:namespace /><%= randomId + HtmlUtil.escapeJS(transitionName) %>taskChangeStatusLink',
+				onTaskClickFn
+			);
 
 		<%
 		}
@@ -163,41 +178,37 @@ redirectURL.setParameter("mvcPath", "/view.jsp");
 
 <aui:script>
 	function <portlet:namespace />taskAssign(uri) {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					destroyOnHide: true,
-					height: 470,
-					resizable: false,
-					width: 896
-				},
-				dialogIframe: {
-					bodyCssClass: 'dialog-with-footer task-dialog'
-				},
-				id: '<portlet:namespace />assignToDialog',
-				title: '<liferay-ui:message key="assign-to-..." />',
-				uri: uri
-			}
-		);
+		Liferay.Util.openWindow({
+			dialog: {
+				destroyOnHide: true,
+				height: 470,
+				resizable: false,
+				width: 896
+			},
+			dialogIframe: {
+				bodyCssClass: 'dialog-with-footer task-dialog'
+			},
+			id: '<portlet:namespace />assignToDialog',
+			title: '<liferay-ui:message key="assign-to-..." />',
+			uri: uri
+		});
 	}
 
 	function <portlet:namespace />taskAssignToMe(uri) {
-		Liferay.Util.openWindow(
-			{
-				dialog: {
-					destroyOnHide: true,
-					height: 380,
-					resizable: false,
-					width: 896
-				},
-				dialogIframe: {
-					bodyCssClass: 'dialog-with-footer task-dialog'
-				},
-				id: '<portlet:namespace />assignToDialog',
-				title: '<liferay-ui:message key="assign-to-me" />',
-				uri: uri
-			}
-		);
+		Liferay.Util.openWindow({
+			dialog: {
+				destroyOnHide: true,
+				height: 380,
+				resizable: false,
+				width: 896
+			},
+			dialogIframe: {
+				bodyCssClass: 'dialog-with-footer task-dialog'
+			},
+			id: '<portlet:namespace />assignToDialog',
+			title: '<liferay-ui:message key="assign-to-me" />',
+			uri: uri
+		});
 	}
 
 	function <portlet:namespace />refreshPortlet(uri) {

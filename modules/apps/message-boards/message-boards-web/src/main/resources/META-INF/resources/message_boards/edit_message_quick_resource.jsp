@@ -63,7 +63,7 @@ boolean showPermanentLink = GetterUtil.getBoolean(request.getAttribute("edit-mes
 %>
 
 <div class="panel-heading">
-	<div class="card-row card-row-padded">
+	<div class="card-body">
 		<div class="card-col-field">
 			<div class="list-group-card-icon">
 				<liferay-ui:user-portrait
@@ -125,7 +125,7 @@ boolean showPermanentLink = GetterUtil.getBoolean(request.getAttribute("edit-mes
 <div class="divider"></div>
 
 <div class="panel-body">
-	<div class="card-row card-row-padded message-content" id="<%= liferayPortletResponse.getNamespace() + "addQuickReply" + parentMessageId %>">
+	<div class="card-body message-content" id="<%= liferayPortletResponse.getNamespace() + "addQuickReply" + parentMessageId %>">
 		<portlet:actionURL name="/message_boards/edit_message" var="editMessageURL" />
 
 		<aui:form action="<%= editMessageURL %>" method="post" name='<%= "addQuickReplyFm" + parentMessageId %>' onSubmit='<%= "event.preventDefault(); " %>'>
@@ -219,22 +219,25 @@ boolean showPermanentLink = GetterUtil.getBoolean(request.getAttribute("edit-mes
 </div>
 
 <aui:script require='<%= npmResolvedPackageName + "/message_boards/js/MBPortlet.es as MBPortlet" %>'>
-	new MBPortlet.default(
-		{
-			constants: {
-				'ACTION_PUBLISH': '<%= WorkflowConstants.ACTION_PUBLISH %>',
-				'CMD': '<%= Constants.CMD %>'
-			},
-			currentAction: '<%= Constants.ADD %>',
-			namespace: '<portlet:namespace />',
-			replyToMessageId: '<%= parentMessageId %>',
-			rootNode: '#<portlet:namespace />addQuickReply<%= parentMessageId %>'
-		}
-	);
+	new MBPortlet.default({
+		constants: {
+			ACTION_PUBLISH: '<%= WorkflowConstants.ACTION_PUBLISH %>',
+			CMD: '<%= Constants.CMD %>'
+		},
+		currentAction: '<%= Constants.ADD %>',
+		namespace: '<portlet:namespace />',
+		replyToMessageId: '<%= parentMessageId %>',
+		rootNode: '#<portlet:namespace />addQuickReply<%= parentMessageId %>'
+	});
 </aui:script>
 
 <aui:script>
-	window['<portlet:namespace />replyMessageOnChange' + <%= parentMessageId %>] = function(html) {
-		Liferay.Util.toggleDisabled('#<portlet:namespace />replyMessageButton<%= parentMessageId %>', html === '');
+	window[
+		'<portlet:namespace />replyMessageOnChange' + <%= parentMessageId %>
+	] = function(html) {
+		Liferay.Util.toggleDisabled(
+			'#<portlet:namespace />replyMessageButton<%= parentMessageId %>',
+			html === ''
+		);
 	};
 </aui:script>

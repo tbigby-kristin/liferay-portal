@@ -1,0 +1,25 @@
+@import './variables';
+
+.page-editor__translation {
+	min-width: 35ch;
+
+	&__label {
+		text-transform: uppercase;
+
+		&.default {
+			border-color: #5a70c2;
+			color: #5a70c2;
+		}
+
+		&.untranslated,
+		&.translating {
+			border-color: #fea500;
+			color: #fea500;
+		}
+
+		&.translated {
+			border-color: #33a766;
+			color: #33a766;
+		}
+	}
+}

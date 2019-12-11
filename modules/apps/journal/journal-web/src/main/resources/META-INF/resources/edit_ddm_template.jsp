@@ -40,7 +40,6 @@ renderResponse.setTitle(journalEditDDMTemplateDisplayContext.getTitle());
 	<aui:input name="ddmTemplateId" type="hidden" value="<%= journalEditDDMTemplateDisplayContext.getDDMTemplateId() %>" />
 	<aui:input name="groupId" type="hidden" value="<%= journalEditDDMTemplateDisplayContext.getGroupId() %>" />
 	<aui:input name="classPK" type="hidden" value="<%= journalEditDDMTemplateDisplayContext.getClassPK() %>" />
-	<aui:input name="language" type="hidden" value="<%= journalEditDDMTemplateDisplayContext.getLanguage() %>" />
 
 	<aui:model-context bean="<%= ddmTemplate %>" model="<%= DDMTemplate.class %>" />
 
@@ -109,32 +108,39 @@ renderResponse.setTitle(journalEditDDMTemplateDisplayContext.getTitle());
 </aui:form>
 
 <aui:script>
-	Liferay.after(
-		'<portlet:namespace />saveTemplate',
-		function() {
-			submitForm(document.<portlet:namespace />fm);
-		}
+	Liferay.after('<portlet:namespace />saveTemplate', function() {
+		submitForm(document.<portlet:namespace />fm);
+	});
+
+	var contextualSidebarButton = document.getElementById(
+		'<portlet:namespace />contextualSidebarButton'
+	);
+	var contextualSidebarContainer = document.getElementById(
+		'<portlet:namespace />contextualSidebarContainer'
 	);
 
-	var contextualSidebarButton = document.getElementById('<portlet:namespace />contextualSidebarButton');
-	var contextualSidebarContainer = document.getElementById('<portlet:namespace />contextualSidebarContainer');
-
-	if (contextualSidebarContainer && (window.innerWidth > Liferay.BREAKPOINTS.PHONE)) {
+	if (
+		contextualSidebarContainer &&
+		window.innerWidth > Liferay.BREAKPOINTS.PHONE
+	) {
 		contextualSidebarContainer.classList.add('contextual-sidebar-visible');
 	}
 
 	if (contextualSidebarButton) {
-		contextualSidebarButton.addEventListener(
-			'click',
-			function(event) {
-				if (contextualSidebarContainer.classList.contains('contextual-sidebar-visible')) {
-					contextualSidebarContainer.classList.remove('contextual-sidebar-visible');
-
-				}
-				else {
-					contextualSidebarContainer.classList.add('contextual-sidebar-visible');
-				}
+		contextualSidebarButton.addEventListener('click', function(event) {
+			if (
+				contextualSidebarContainer.classList.contains(
+					'contextual-sidebar-visible'
+				)
+			) {
+				contextualSidebarContainer.classList.remove(
+					'contextual-sidebar-visible'
+				);
+			} else {
+				contextualSidebarContainer.classList.add(
+					'contextual-sidebar-visible'
+				);
 			}
-		);
+		});
 	}
 </aui:script>

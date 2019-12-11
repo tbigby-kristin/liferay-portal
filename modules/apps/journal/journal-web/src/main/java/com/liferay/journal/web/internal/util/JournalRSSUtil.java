@@ -472,7 +472,7 @@ public class JournalRSSUtil {
 
 		selfSyndLink.setRel("self");
 
-		syndFeed.setLinks(ListUtil.toList(selfSyndLink));
+		syndFeed.setLinks(ListUtil.fromArray(selfSyndLink));
 
 		syndFeed.setPublishedDate(new Date());
 		syndFeed.setTitle(feed.getName());
@@ -547,22 +547,6 @@ public class JournalRSSUtil {
 		}
 
 		return null;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #processContent(ResourceRequest, ResourceResponse,
-	 *             JournalFeed, JournalArticle, String, ThemeDisplay, SyndEntry,
-	 *             SyndContent)}
-	 */
-	@Deprecated
-	protected String processContent(
-			JournalFeed feed, JournalArticle article, String languageId,
-			ThemeDisplay themeDisplay, SyndEntry syndEntry,
-			SyndContent syndContent)
-		throws Exception {
-
-		return StringPool.BLANK;
 	}
 
 	protected String processContent(

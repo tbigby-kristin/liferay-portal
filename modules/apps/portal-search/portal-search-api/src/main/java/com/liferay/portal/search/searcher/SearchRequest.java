@@ -49,6 +49,12 @@ public interface SearchRequest {
 
 	public List<SearchRequest> getFederatedSearchRequests();
 
+	public Boolean getFetchSource();
+
+	public String[] getFetchSourceExcludes();
+
+	public String[] getFetchSourceIncludes();
+
 	public Integer getFrom();
 
 	/**
@@ -56,7 +62,6 @@ public interface SearchRequest {
 	 * specified fields.
 	 *
 	 * @return the GroupByRequests that are enabled for the search.
-	 *
 	 * @review
 	 */
 	public List<GroupByRequest> getGroupByRequests();

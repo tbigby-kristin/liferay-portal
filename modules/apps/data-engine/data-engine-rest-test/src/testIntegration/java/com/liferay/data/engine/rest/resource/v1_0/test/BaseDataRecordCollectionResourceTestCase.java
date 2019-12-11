@@ -197,6 +197,61 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 	}
 
 	@Test
+	public void testGetDataDefinitionDataRecordCollection() throws Exception {
+		DataRecordCollection postDataRecordCollection =
+			testGetDataDefinitionDataRecordCollection_addDataRecordCollection();
+
+		DataRecordCollection getDataRecordCollection =
+			dataRecordCollectionResource.getDataDefinitionDataRecordCollection(
+				postDataRecordCollection.getDataDefinitionId());
+
+		assertEquals(postDataRecordCollection, getDataRecordCollection);
+		assertValid(getDataRecordCollection);
+	}
+
+	protected DataRecordCollection
+			testGetDataDefinitionDataRecordCollection_addDataRecordCollection()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testGraphQLGetDataDefinitionDataRecordCollection()
+		throws Exception {
+
+		DataRecordCollection dataRecordCollection =
+			testGraphQLDataRecordCollection_addDataRecordCollection();
+
+		List<GraphQLField> graphQLFields = getGraphQLFields();
+
+		GraphQLField graphQLField = new GraphQLField(
+			"query",
+			new GraphQLField(
+				"dataDefinitionDataRecordCollection",
+				new HashMap<String, Object>() {
+					{
+						put(
+							"dataDefinitionId",
+							dataRecordCollection.getDataDefinitionId());
+					}
+				},
+				graphQLFields.toArray(new GraphQLField[0])));
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
+			invoke(graphQLField.toString()));
+
+		JSONObject dataJSONObject = jsonObject.getJSONObject("data");
+
+		Assert.assertTrue(
+			equalsJSONObject(
+				dataRecordCollection,
+				dataJSONObject.getJSONObject(
+					"dataDefinitionDataRecordCollection")));
+	}
+
+	@Test
 	public void testGetDataDefinitionDataRecordCollectionsPage()
 		throws Exception {
 
@@ -534,12 +589,56 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 	public void testPostDataRecordCollectionDataRecordCollectionPermission()
 		throws Exception {
 
-		Assert.assertTrue(false);
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DataRecordCollection dataRecordCollection =
+			testPostDataRecordCollectionDataRecordCollectionPermission_addDataRecordCollection();
+
+		assertHttpResponseStatusCode(
+			204,
+			dataRecordCollectionResource.
+				postDataRecordCollectionDataRecordCollectionPermissionHttpResponse(
+					dataRecordCollection.getId(), null, null));
+
+		assertHttpResponseStatusCode(
+			404,
+			dataRecordCollectionResource.
+				postDataRecordCollectionDataRecordCollectionPermissionHttpResponse(
+					0L, null, null));
+	}
+
+	protected DataRecordCollection
+			testPostDataRecordCollectionDataRecordCollectionPermission_addDataRecordCollection()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
 	public void testPostSiteDataRecordCollectionPermission() throws Exception {
-		Assert.assertTrue(false);
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DataRecordCollection dataRecordCollection =
+			testPostSiteDataRecordCollectionPermission_addDataRecordCollection();
+
+		assertHttpResponseStatusCode(
+			204,
+			dataRecordCollectionResource.
+				postSiteDataRecordCollectionPermissionHttpResponse(
+					null, null, null));
+
+		assertHttpResponseStatusCode(
+			404,
+			dataRecordCollectionResource.
+				postSiteDataRecordCollectionPermissionHttpResponse(
+					null, null, null));
+	}
+
+	protected DataRecordCollection
+			testPostSiteDataRecordCollectionPermission_addDataRecordCollection()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	@Test
@@ -692,7 +791,7 @@ public abstract class BaseDataRecordCollectionResourceTestCase {
 					{
 						put("page", 1);
 						put("pageSize", 2);
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 					}
 				},
 				graphQLFields.toArray(new GraphQLField[0])));

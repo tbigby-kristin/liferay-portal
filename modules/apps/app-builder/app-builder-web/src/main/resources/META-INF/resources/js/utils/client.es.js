@@ -14,16 +14,18 @@
 
 import {fetch} from 'frontend-js-web';
 
-export const addItem = (endpoint, item) => {
-	return fetch(getURL(endpoint), {
+const HEADERS = {
+	Accept: 'application/json',
+	'Accept-Language': Liferay.ThemeDisplay.getBCP47LanguageId(),
+	'Content-Type': 'application/json'
+};
+
+export const addItem = (endpoint, item) =>
+	fetch(getURL(endpoint), {
 		body: JSON.stringify(item),
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json'
-		},
+		headers: HEADERS,
 		method: 'POST'
 	}).then(response => response.json());
-};
 
 export const confirmDelete = endpoint => item =>
 	new Promise((resolve, reject) => {
@@ -40,35 +42,30 @@ export const confirmDelete = endpoint => item =>
 		}
 	});
 
-export const deleteItem = endpoint => {
-	return fetch(getURL(endpoint), {
+export const deleteItem = endpoint =>
+	fetch(getURL(endpoint), {
 		method: 'DELETE'
 	});
-};
 
 export const request = (endpoint, method = 'GET') =>
 	fetch(getURL(endpoint), {
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json'
-		},
+		headers: HEADERS,
 		method
 	});
 
-export const getItem = endpoint => {
-	return fetch(getURL(endpoint), {
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json'
-		},
+export const getItem = (endpoint, params) =>
+	fetch(getURL(endpoint, params), {
+		headers: HEADERS,
 		method: 'GET'
 	}).then(response => response.json());
-};
 
-export const getURL = (
-	path,
-	params = {['p_auth']: Liferay.authToken, t: Date.now()}
-) => {
+export const getURL = (path, params) => {
+	params = {
+		['p_auth']: Liferay.authToken,
+		t: Date.now(),
+		...params
+	};
+
 	const uri = new URL(`${window.location.origin}${path}`);
 	const keys = Object.keys(params);
 
@@ -77,13 +74,11 @@ export const getURL = (
 	return uri.toString();
 };
 
-export const updateItem = (endpoint, item) => {
-	return fetch(getURL(endpoint), {
+export const updateItem = (endpoint, item, params) =>
+	fetch(getURL(endpoint, params), {
 		body: JSON.stringify(item),
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json'
-		},
+		headers: HEADERS,
 		method: 'PUT'
-	}).then(response => response.json());
-};
+	})
+		.then(response => response.text())
+		.then(text => (text ? JSON.parse(text) : {}));

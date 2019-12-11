@@ -64,6 +64,7 @@ import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ServiceProxyFactory;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -872,18 +873,6 @@ public class PortletImpl extends PortletBaseImpl {
 	@Override
 	public Integer getExpCache() {
 		return _expCache;
-	}
-
-	/**
-	 * Returns the Facebook integration method of the portlet.
-	 *
-	 * @return     the Facebook integration method of the portlet
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String getFacebookIntegration() {
-		return _facebookIntegration;
 	}
 
 	/**
@@ -3174,21 +3163,6 @@ public class PortletImpl extends PortletBaseImpl {
 	}
 
 	/**
-	 * Sets the Facebook integration method of the portlet.
-	 *
-	 * @param      facebookIntegration the Facebook integration method of the
-	 *             portlet
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void setFacebookIntegration(String facebookIntegration) {
-		if (Validator.isNotNull(facebookIntegration)) {
-			_facebookIntegration = facebookIntegration;
-		}
-	}
-
-	/**
 	 * Sets a list of CSS files that will be referenced from the page's footer
 	 * relative to the portal's context path.
 	 *
@@ -3885,9 +3859,10 @@ public class PortletImpl extends PortletBaseImpl {
 					readiness._serviceRegistrar = serviceRegistrar;
 				}
 
-				Map<String, Object> properties = new HashMap<>();
-
-				properties.put("javax.portlet.name", getPortletName());
+				Map<String, Object> properties =
+					HashMapBuilder.<String, Object>put(
+						"javax.portlet.name", getPortletName()
+					).build();
 
 				serviceRegistrar.registerService(
 					Portlet.class, this, properties);
@@ -4451,15 +4426,6 @@ public class PortletImpl extends PortletBaseImpl {
 	 * The expiration cache of the portlet.
 	 */
 	private Integer _expCache;
-
-	/**
-	 * The Facebook integration method of the portlet.
-	 *
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	private String _facebookIntegration =
-		PortletConstants.FACEBOOK_INTEGRATION_IFRAME;
 
 	/**
 	 * A list of CSS files that will be referenced from the page's footer

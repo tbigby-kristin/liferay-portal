@@ -24,6 +24,7 @@ import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.validator.FragmentEntryValidator;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -124,13 +125,8 @@ public class FragmentRendererTrackerImpl implements FragmentRendererTracker {
 			FragmentRenderer fragmentRenderer = _bundleContext.getService(
 				serviceReference);
 
-			if (Validator.isNull(fragmentRenderer.getCollectionKey()) &&
-				!StringUtil.equals(
-					fragmentRenderer.getKey(),
-					FragmentRendererConstants.
-						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY)) {
-
-				_log.error("Fragment renderer collection key is null");
+			if (!_isValidFragmentCollectionKey(fragmentRenderer)) {
+				_log.error("Fragment renderer collection key is invalid");
 
 				return null;
 			}
@@ -172,6 +168,29 @@ public class FragmentRendererTrackerImpl implements FragmentRendererTracker {
 			FragmentRenderer fragmentRenderer) {
 
 			_bundleContext.ungetService(serviceReference);
+		}
+
+		private boolean _isValidFragmentCollectionKey(
+			FragmentRenderer fragmentRenderer) {
+
+			String fragmentCollectionKey = fragmentRenderer.getCollectionKey();
+
+			if (Validator.isNull(fragmentCollectionKey) &&
+				!StringUtil.equals(
+					fragmentRenderer.getKey(),
+					FragmentRendererConstants.
+						FRAGMENT_ENTRY_FRAGMENT_RENDERER_KEY)) {
+
+				return false;
+			}
+
+			if (Validator.isNotNull(fragmentCollectionKey) &&
+				fragmentCollectionKey.contains(StringPool.SPACE)) {
+
+				return false;
+			}
+
+			return true;
 		}
 
 		private final BundleContext _bundleContext;

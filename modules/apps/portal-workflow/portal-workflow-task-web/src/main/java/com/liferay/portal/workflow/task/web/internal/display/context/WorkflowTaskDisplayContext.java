@@ -42,8 +42,8 @@ import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalServiceUtil;
+import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -79,6 +79,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.portlet.PortletException;
 import javax.portlet.PortletMode;
@@ -113,27 +115,6 @@ public class WorkflowTaskDisplayContext {
 
 		_workflowTaskRequestHelper = new WorkflowTaskRequestHelper(
 			_httpServletRequest);
-	}
-
-	public String getActorName(long actorId) {
-		return HtmlUtil.escape(
-			PortalUtil.getUserName(actorId, StringPool.BLANK));
-	}
-
-	public long[] getActorsIds(WorkflowTask workflowTask)
-		throws PortalException {
-
-		List<Long> pooledActorIdsList = new ArrayList<>();
-
-		long[] pooledActorsIds = _getPooledActorsIds(workflowTask);
-
-		for (long pooledActorId : pooledActorsIds) {
-			if (pooledActorId != _workflowTaskRequestHelper.getUserId()) {
-				pooledActorIdsList.add(pooledActorId);
-			}
-		}
-
-		return ArrayUtil.toLongArray(pooledActorIdsList);
 	}
 
 	public AssetEntry getAssetEntry() throws PortalException {
@@ -208,16 +189,14 @@ public class WorkflowTaskDisplayContext {
 		return "x-assigned-the-task-to-herself";
 	}
 
-	public Object getAssignedTheTaskToMessageArguments(WorkflowLog workflowLog)
-		throws PortalException {
-
-		String actorName = _getActorName(workflowLog);
+	public Object getAssignedTheTaskToMessageArguments(
+		WorkflowLog workflowLog) {
 
 		return new Object[] {
 			HtmlUtil.escape(
 				PortalUtil.getUserName(
 					workflowLog.getAuditUserId(), StringPool.BLANK)),
-			HtmlUtil.escape(actorName)
+			HtmlUtil.escape(_getActorName(workflowLog))
 		};
 	}
 
@@ -339,6 +318,55 @@ public class WorkflowTaskDisplayContext {
 		return null;
 	}
 
+	public String getOrderByType() {
+		if (Validator.isNotNull(_orderByType)) {
+			return _orderByType;
+		}
+
+		_orderByType = ParamUtil.getString(_httpServletRequest, "orderByType");
+
+		if (Validator.isNull(_orderByType)) {
+			_orderByType = _portalPreferences.getValue(
+				PortletKeys.MY_WORKFLOW_TASK, "order-by-type", "asc");
+		}
+
+		return _orderByType;
+	}
+
+	public List<User> getPooledUsers(WorkflowTask workflowTask)
+		throws PortalException {
+
+		return Stream.of(
+			WorkflowTaskManagerUtil.getPooledActors(
+				_workflowTaskRequestHelper.getCompanyId(),
+				workflowTask.getWorkflowTaskId())
+		).flatMap(
+			List::stream
+		).filter(
+			pooledActor ->
+				pooledActor.getUserId() !=
+					_workflowTaskRequestHelper.getUserId()
+		).collect(
+			Collectors.toList()
+		);
+	}
+
+	public String getPortletResource() {
+		if (_portletResource != null) {
+			return _portletResource;
+		}
+
+		ThemeDisplay themeDisplay =
+			_workflowTaskRequestHelper.getThemeDisplay();
+
+		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
+
+		_portletResource = ParamUtil.getString(
+			_httpServletRequest, "portletResource", portletDisplay.getId());
+
+		return _portletResource;
+	}
+
 	public String getPreviewOfTitle(WorkflowTask workflowTask)
 		throws PortalException {
 
@@ -371,7 +399,7 @@ public class WorkflowTaskDisplayContext {
 		return portletURL.toString();
 	}
 
-	public String getSortingURL() throws PortletException {
+	public String getSortingURL() {
 		LiferayPortletResponse response =
 			_workflowTaskRequestHelper.getLiferayPortletResponse();
 
@@ -380,11 +408,9 @@ public class WorkflowTaskDisplayContext {
 		portletURL.setParameter("tabs1", _getTabs1());
 		portletURL.setParameter("orderByCol", _getOrderByCol());
 
-		String orderByType = ParamUtil.getString(
-			_httpServletRequest, "orderByType", "asc");
-
 		portletURL.setParameter(
-			"orderByType", Objects.equals(orderByType, "asc") ? "desc" : "asc");
+			"orderByType",
+			Objects.equals(getOrderByType(), "asc") ? "desc" : "asc");
 
 		return portletURL.toString();
 	}
@@ -407,10 +433,14 @@ public class WorkflowTaskDisplayContext {
 
 		PortletURL editPortletURL = _getEditPortletURL(workflowTask);
 
+		editPortletURL.setParameter(
+			"hideDefaultSuccessMessage", Boolean.TRUE.toString());
+
 		ThemeDisplay themeDisplay =
 			_workflowTaskRequestHelper.getThemeDisplay();
 
 		editPortletURL.setParameter("redirect", themeDisplay.getURLCurrent());
+		editPortletURL.setParameter("portletResource", getPortletResource());
 		editPortletURL.setParameter(
 			"refererPlid", String.valueOf(themeDisplay.getPlid()));
 
@@ -453,13 +483,10 @@ public class WorkflowTaskDisplayContext {
 		return sb.toString();
 	}
 
-	public Object getTaskCompletionMessageArguments(WorkflowLog workflowLog)
-		throws PortalException {
-
-		String actorName = _getActorName(workflowLog);
-
+	public Object getTaskCompletionMessageArguments(WorkflowLog workflowLog) {
 		return new Object[] {
-			HtmlUtil.escape(actorName), HtmlUtil.escape(workflowLog.getState())
+			HtmlUtil.escape(_getActorName(workflowLog)),
+			HtmlUtil.escape(workflowLog.getState())
 		};
 	}
 
@@ -474,24 +501,17 @@ public class WorkflowTaskDisplayContext {
 	}
 
 	public String getTaskInitiallyAssignedMessageArguments(
-			WorkflowLog workflowLog)
-		throws PortalException {
+		WorkflowLog workflowLog) {
 
-		String actorName = _getActorName(workflowLog);
-
-		return HtmlUtil.escape(actorName);
+		return HtmlUtil.escape(_getActorName(workflowLog));
 	}
 
 	public String getTaskName(WorkflowTask workflowTask) {
 		return HtmlUtil.escape(workflowTask.getName());
 	}
 
-	public Object getTaskUpdateMessageArguments(WorkflowLog workflowLog)
-		throws PortalException {
-
-		String actorName = _getActorName(workflowLog);
-
-		return HtmlUtil.escape(actorName);
+	public Object getTaskUpdateMessageArguments(WorkflowLog workflowLog) {
+		return HtmlUtil.escape(_getActorName(workflowLog));
 	}
 
 	public int getTotalItems() throws PortalException {
@@ -508,13 +528,9 @@ public class WorkflowTaskDisplayContext {
 		return HtmlUtil.escape(transitionName);
 	}
 
-	public Object getTransitionMessageArguments(WorkflowLog workflowLog)
-		throws PortalException {
-
-		String actorName = _getActorName(workflowLog);
-
+	public Object getTransitionMessageArguments(WorkflowLog workflowLog) {
 		return new Object[] {
-			HtmlUtil.escape(actorName),
+			HtmlUtil.escape(_getActorName(workflowLog)),
 			HtmlUtil.escape(workflowLog.getPreviousState()),
 			HtmlUtil.escape(workflowLog.getState())
 		};
@@ -573,9 +589,9 @@ public class WorkflowTaskDisplayContext {
 		logTypes.add(WorkflowLog.TASK_UPDATE);
 		logTypes.add(WorkflowLog.TRANSITION);
 
-		return WorkflowLogManagerUtil.getWorkflowLogsByWorkflowInstance(
+		return WorkflowLogManagerUtil.getWorkflowLogsByWorkflowTask(
 			_workflowTaskRequestHelper.getCompanyId(),
-			_getWorkflowInstanceId(workflowTask), logTypes, QueryUtil.ALL_POS,
+			workflowTask.getWorkflowTaskId(), logTypes, QueryUtil.ALL_POS,
 			QueryUtil.ALL_POS,
 			WorkflowComparatorFactoryUtil.getLogCreateDateComparator(false));
 	}
@@ -615,36 +631,40 @@ public class WorkflowTaskDisplayContext {
 	}
 
 	public WorkflowTaskSearch getWorkflowTaskSearch() throws PortalException {
+		if (_workflowTaskSearch != null) {
+			return _workflowTaskSearch;
+		}
+
 		boolean searchByUserRoles = _isAssignedToMyRolesTabSelected();
 
-		WorkflowTaskSearch workflowTaskSearch = new WorkflowTaskSearch(
+		_workflowTaskSearch = new WorkflowTaskSearch(
 			_liferayPortletRequest, _getCurParam(searchByUserRoles),
 			_getPortletURL());
 
-		DisplayTerms searchTerms = workflowTaskSearch.getDisplayTerms();
+		DisplayTerms searchTerms = _workflowTaskSearch.getDisplayTerms();
 
 		int total = WorkflowTaskManagerUtil.searchCount(
 			_workflowTaskRequestHelper.getCompanyId(),
 			_workflowTaskRequestHelper.getUserId(), searchTerms.getKeywords(),
-			_getAssetType(searchTerms.getKeywords()), _getCompleted(),
-			searchByUserRoles);
+			searchTerms.getKeywords(), _getAssetType(searchTerms.getKeywords()),
+			null, null, null, _getCompleted(), searchByUserRoles, false);
 
-		workflowTaskSearch.setTotal(total);
+		_workflowTaskSearch.setTotal(total);
 
 		List<WorkflowTask> results = WorkflowTaskManagerUtil.search(
 			_workflowTaskRequestHelper.getCompanyId(),
 			_workflowTaskRequestHelper.getUserId(), searchTerms.getKeywords(),
-			_getAssetType(searchTerms.getKeywords()), _getCompleted(),
-			searchByUserRoles, workflowTaskSearch.getStart(),
-			workflowTaskSearch.getEnd(),
-			workflowTaskSearch.getOrderByComparator());
+			searchTerms.getKeywords(), _getAssetType(searchTerms.getKeywords()),
+			null, null, null, _getCompleted(), searchByUserRoles, false,
+			_workflowTaskSearch.getStart(), _workflowTaskSearch.getEnd(),
+			_workflowTaskSearch.getOrderByComparator());
 
-		workflowTaskSearch.setResults(results);
+		_workflowTaskSearch.setResults(results);
 
 		_setWorkflowTaskSearchEmptyResultsMessage(
-			workflowTaskSearch, searchByUserRoles, _getCompleted());
+			_workflowTaskSearch, searchByUserRoles, _getCompleted());
 
-		return workflowTaskSearch;
+		return _workflowTaskSearch;
 	}
 
 	public String getWorkflowTaskUnassignedUserName() {
@@ -714,6 +734,14 @@ public class WorkflowTaskDisplayContext {
 		return false;
 	}
 
+	public boolean isDisabled() throws PortalException {
+		if (getTotalItems() == 0) {
+			return true;
+		}
+
+		return false;
+	}
+
 	public boolean isShowEditURL(WorkflowTask workflowTask) {
 		boolean showEditURL = false;
 
@@ -727,16 +755,23 @@ public class WorkflowTaskDisplayContext {
 		return showEditURL;
 	}
 
-	private String _getActorName(WorkflowLog workflowLog)
-		throws PortalException {
-
+	private String _getActorName(WorkflowLog workflowLog) {
 		if (workflowLog.getRoleId() != 0) {
 			Role role = _getRole(workflowLog.getRoleId());
 
-			return role.getDescriptiveName();
+			if (role == null) {
+				return String.valueOf(workflowLog.getRoleId());
+			}
+
+			return role.getTitle(
+				LanguageUtil.getLanguageId(_httpServletRequest));
 		}
 		else if (workflowLog.getUserId() != 0) {
 			User user = _getUser(workflowLog.getUserId());
+
+			if (user == null) {
+				return String.valueOf(workflowLog.getUserId());
+			}
 
 			return user.getFullName();
 		}
@@ -850,15 +885,6 @@ public class WorkflowTaskDisplayContext {
 				PortletKeys.MY_WORKFLOW_TASK, "order-by-col",
 				"last-activity-date");
 		}
-		else {
-			boolean saveOrderBy = ParamUtil.getBoolean(
-				_httpServletRequest, "saveOrderBy");
-
-			if (saveOrderBy) {
-				_portalPreferences.setValue(
-					PortletKeys.MY_WORKFLOW_TASK, "order-by-col", _orderByCol);
-			}
-		}
 
 		return _orderByCol;
 	}
@@ -876,14 +902,6 @@ public class WorkflowTaskDisplayContext {
 		};
 	}
 
-	private long[] _getPooledActorsIds(WorkflowTask workflowTask)
-		throws PortalException {
-
-		return WorkflowTaskManagerUtil.getPooledActorsIds(
-			_workflowTaskRequestHelper.getCompanyId(),
-			workflowTask.getWorkflowTaskId());
-	}
-
 	private PortletURL _getPortletURL() {
 		PortletURL portletURL = _liferayPortletResponse.createRenderURL();
 
@@ -899,11 +917,11 @@ public class WorkflowTaskDisplayContext {
 		return portletURL;
 	}
 
-	private Role _getRole(long roleId) throws PortalException {
+	private Role _getRole(long roleId) {
 		Role role = _roles.get(roleId);
 
 		if (role == null) {
-			role = RoleLocalServiceUtil.getRole(roleId);
+			role = RoleLocalServiceUtil.fetchRole(roleId);
 
 			_roles.put(roleId, role);
 		}
@@ -932,11 +950,11 @@ public class WorkflowTaskDisplayContext {
 			_liferayPortletRequest, "tabs1", "assigned-to-me");
 	}
 
-	private User _getUser(long userId) throws PortalException {
+	private User _getUser(long userId) {
 		User user = _users.get(userId);
 
 		if (user == null) {
-			user = UserLocalServiceUtil.getUser(userId);
+			user = UserLocalServiceUtil.fetchUser(userId);
 
 			_users.put(userId, user);
 		}
@@ -1014,9 +1032,9 @@ public class WorkflowTaskDisplayContext {
 		throws PortalException {
 
 		List<WorkflowLog> workflowLogs =
-			WorkflowLogManagerUtil.getWorkflowLogsByWorkflowInstance(
+			WorkflowLogManagerUtil.getWorkflowLogsByWorkflowTask(
 				_workflowTaskRequestHelper.getCompanyId(),
-				_getWorkflowInstanceId(workflowTask), null, 0, 1,
+				workflowTask.getWorkflowTaskId(), null, 0, 1,
 				WorkflowComparatorFactoryUtil.getLogCreateDateComparator());
 
 		if (!workflowLogs.isEmpty()) {
@@ -1095,9 +1113,12 @@ public class WorkflowTaskDisplayContext {
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private String _navigation;
 	private String _orderByCol;
+	private String _orderByType;
 	private final PortalPreferences _portalPreferences;
+	private String _portletResource;
 	private final Map<Long, Role> _roles = new HashMap<>();
 	private final Map<Long, User> _users = new HashMap<>();
 	private final WorkflowTaskRequestHelper _workflowTaskRequestHelper;
+	private WorkflowTaskSearch _workflowTaskSearch;
 
 }

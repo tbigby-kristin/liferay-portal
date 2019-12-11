@@ -66,7 +66,7 @@ public abstract class BaseWikiPageResourceImpl implements WikiPageResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-nodes/{wikiNodeId}/wiki-pages/'  -u 'test@liferay.com:test'
+	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-nodes/{wikiNodeId}/wiki-pages'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
@@ -83,7 +83,7 @@ public abstract class BaseWikiPageResourceImpl implements WikiPageResource {
 			@Parameter(in = ParameterIn.QUERY, name = "sort")
 		}
 	)
-	@Path("/wiki-nodes/{wikiNodeId}/wiki-pages/")
+	@Path("/wiki-nodes/{wikiNodeId}/wiki-pages")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "WikiPage")})
 	public Page<WikiPage> getWikiNodeWikiPagesPage(
@@ -100,7 +100,7 @@ public abstract class BaseWikiPageResourceImpl implements WikiPageResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-nodes/{wikiNodeId}/wiki-pages/' -d $'{"content": ___, "customFields": ___, "description": ___, "encodingFormat": ___, "headline": ___, "keywords": ___, "taxonomyCategoryIds": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-nodes/{wikiNodeId}/wiki-pages' -d $'{"content": ___, "customFields": ___, "description": ___, "encodingFormat": ___, "headline": ___, "keywords": ___, "taxonomyCategoryIds": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
@@ -109,7 +109,7 @@ public abstract class BaseWikiPageResourceImpl implements WikiPageResource {
 	@Parameters(
 		value = {@Parameter(in = ParameterIn.PATH, name = "wikiNodeId")}
 	)
-	@Path("/wiki-nodes/{wikiNodeId}/wiki-pages/")
+	@Path("/wiki-nodes/{wikiNodeId}/wiki-pages")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "WikiPage")})
 	public WikiPage postWikiNodeWikiPage(
@@ -119,6 +119,44 @@ public abstract class BaseWikiPageResourceImpl implements WikiPageResource {
 		throws Exception {
 
 		return new WikiPage();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-page/{wikiPageId}/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.PATH, name = "wikiPageId")}
+	)
+	@Path("/wiki-page/{wikiPageId}/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "WikiPage")})
+	public void putWikiPageSubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("wikiPageId") Long
+				wikiPageId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-page/{wikiPageId}/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.PATH, name = "wikiPageId")}
+	)
+	@Path("/wiki-page/{wikiPageId}/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "WikiPage")})
+	public void putWikiPageUnsubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("wikiPageId") Long
+				wikiPageId)
+		throws Exception {
 	}
 
 	/**

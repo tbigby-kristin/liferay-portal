@@ -35,6 +35,8 @@ import javax.annotation.Generated;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import javax.validation.constraints.NotEmpty;
+
 import javax.ws.rs.core.UriInfo;
 
 import org.osgi.service.component.ComponentServiceObjects;
@@ -95,8 +97,7 @@ public class Query {
 	 */
 	@GraphQLField
 	public AppPage apps(
-			@GraphQLName("siteId") Long siteId,
-			@GraphQLName("siteKey") String siteKey,
+			Long siteId, @GraphQLName("siteKey") @NotEmpty String siteKey,
 			@GraphQLName("keywords") String keywords,
 			@GraphQLName("pageSize") int pageSize,
 			@GraphQLName("page") int page,
@@ -116,6 +117,7 @@ public class Query {
 
 		public AppPage(Page appPage) {
 			items = appPage.getItems();
+			lastPage = appPage.getLastPage();
 			page = appPage.getPage();
 			pageSize = appPage.getPageSize();
 			totalCount = appPage.getTotalCount();
@@ -123,6 +125,9 @@ public class Query {
 
 		@GraphQLField
 		protected java.util.Collection<App> items;
+
+		@GraphQLField
+		protected long lastPage;
 
 		@GraphQLField
 		protected long page;

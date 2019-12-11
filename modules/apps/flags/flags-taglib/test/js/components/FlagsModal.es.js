@@ -13,8 +13,9 @@
  */
 
 import {cleanup, render, waitForElement} from '@testing-library/react';
-import FlagsModal from '../../../src/main/resources/META-INF/resources/flags/js/components/FlagsModal.es';
 import React from 'react';
+
+import FlagsModal from '../../../src/main/resources/META-INF/resources/flags/js/components/FlagsModal.es';
 import {
 	STATUS_ERROR,
 	STATUS_LOGIN,
@@ -34,6 +35,11 @@ function _renderFlagsModalComponent({
 	signedIn = true,
 	status = STATUS_REPORT
 } = {}) {
+	const observer = {
+		dispatch: () => {},
+		mutation: [1, 1]
+	};
+
 	return render(
 		<FlagsModal
 			companyName={companyName}
@@ -41,6 +47,7 @@ function _renderFlagsModalComponent({
 			handleInputChange={handleInputChange}
 			handleSubmit={handleSubmit}
 			isSending={isSending}
+			observer={observer}
 			pathTermsOfUse={pathTermsOfUse}
 			reasons={reasons}
 			selectedReason={selectedReason}
@@ -57,7 +64,7 @@ describe('FlagsModal', () => {
 	afterEach(cleanup);
 
 	it('renders', async () => {
-		const {getByText, getByRole} = _renderFlagsModalComponent();
+		const {getByRole, getByText} = _renderFlagsModalComponent();
 
 		await waitForElement(() => getByText('report-inappropriate-content'));
 		await waitForElement(() => getByRole('form'));

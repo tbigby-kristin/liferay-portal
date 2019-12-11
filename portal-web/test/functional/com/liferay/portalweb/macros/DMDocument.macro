@@ -60,6 +60,22 @@ definition {
 			PortletEntry.inputDescription(description = "${dmDocumentDescription}");
 		}
 
+		if (isSet(textField)) {
+			var key_fieldName = "Text";
+
+			Type(
+				locator1 = "TextInput#DDM",
+				value1 = "${textField}");
+		}
+
+		if (isSet(numberField)) {
+			var key_fieldName = "Number";
+
+			Type(
+				locator1 = "TextInput#DDM",
+				value1 = "${numberField}");
+		}
+
 		if (isSet(validationError)) {
 			Button.clickPublish();
 
@@ -75,35 +91,36 @@ definition {
 	macro addDMShortcutCP {
 		DMNavigator.gotoAddDocumentTypeCP(dmDocumentTypeName = "Shortcut");
 
-		Click(locator1 = "DocumentsAndMediaAddShortcut#SELECT_SITE_BUTTON");
+		Click(locator1 = "DocumentsAndMediaAddShortcut#SELECT_DOCUMENT_BUTTON");
 
 		var key_siteName = "${siteName}";
 
-		IFrame.selectModalFrame();
+		SelectFrame(locator1 = "ItemSelector#ITEM_SELECTOR_IFRAME");
 
-		AssertClick(
-			locator1 = "SitesSelectSite#SELECT_BUTTON",
-			value1 = "Select");
-
-		SelectFrameTop(value1 = "relative=top");
-
-		Click(locator1 = "DocumentsAndMediaAddShortcut#SELECT_DOCUMENT_BUTTON");
-
-		IFrame.selectModalFrame();
-
-		if (isSet(dmFolderName)) {
-			var key_dmFolderName = "${dmFolderName}";
-
+		if (isSet(siteName)) {
 			AssertClick(
-				locator1 = "DocumentsAndMediaAddShortcut#SELECT_FILE_FOLDER_NAME",
-				value1 = "${dmFolderName}");
+				key_breadcrumbName = "Workspaces",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+				value1 = "Workspaces");
+
+			LexiconCard.clickCard(card = "${siteName}");
 		}
 
-		var key_dmDocumentTitle = "${dmDocumentTitle}";
+		if (isSet(depotName)) {
+			AssertClick(
+				key_breadcrumbName = "Workspaces",
+				locator1 = "Breadcrumb#BREADCRUMB_ENTRY",
+				value1 = "Workspaces");
 
-		AssertClick.assertPartialTextClickAt(
-			locator1 = "DocumentsAndMediaAddShortcut#SELECT_FILE_DOCUMENT_TITLE",
-			value1 = "${dmDocumentTitle}");
+			AssertClick(
+				key_groupTab = "Repository",
+				locator1 = "ItemSelector#NAVIGATION_GROUP_TAB",
+				value1 = "Repository");
+
+			LexiconCard.clickCard(card = "${depotName}");
+		}
+
+		LexiconCard.clickCard(card = "${dmDocumentTitle}");
 
 		SelectFrameTop(value1 = "relative=top");
 
@@ -431,14 +448,24 @@ definition {
 			AssertTextEquals.assertPartialText(
 				locator1 = "Message#CHECKOUT_SUCCESS",
 				value1 = "You now have an indefinite lock on this document. No one else can edit this document until you unlock it. This lock will never expire.");
+
+			LexiconEntry.gotoHeaderMenuItem(menuItem = "Cancel Checkout");
 		}
 		else {
+			var key_dmDocumentTitle = "${dmDocumentTitle}";
+
+			DMNavigator.gotoDocumentCP(dmDocumentTitle = "${dmDocumentTitle}");
+
 			AssertTextEquals.assertPartialText(
 				locator1 = "Message#CHECKOUT_SUCCESS",
 				value1 = "You now have a lock on this document. No one else can edit this document until you unlock it. This lock will automatically expire in 1 day.");
-		}
 
-		LexiconEntry.gotoHeaderMenuItem(menuItem = "Cancel Checkout");
+			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+			Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Cancel Checkout");
+		}
 
 		Alert.viewSuccessMessage();
 	}
@@ -500,7 +527,7 @@ definition {
 
 		LexiconEntry.gotoEllipsisMenuItem(menuItem = "Checkin");
 
-		if (IsElementPresent(locator1 = "Radio#MAJOR_VERSION")) {
+		if (IsElementPresent(locator1 = "DocumentsAndMedia#CHECKIN_DIALOG_TITLE")) {
 			if ("${revision}" == "Major") {
 				Click(locator1 = "Radio#MAJOR_VERSION");
 			}
@@ -509,6 +536,10 @@ definition {
 			}
 			else if ("${revision}" == "Current") {
 				Click(locator1 = "Radio#CURRENT_VERSION");
+
+				AssertNotVisible(
+					key_fieldLabel = "Version Notes",
+					locator1 = "TextInput#GENERIC_TEXT_INPUT");
 			}
 
 			if (isSet(changeLog)) {
@@ -532,7 +563,7 @@ definition {
 
 		MenuItem.click(menuItem = "Checkin");
 
-		if (IsElementPresent(locator1 = "Radio#MAJOR_VERSION")) {
+		if (IsElementPresent(locator1 = "DocumentsAndMedia#CHECKIN_DIALOG_TITLE")) {
 			if ("${revision}" == "Major") {
 				Click(locator1 = "Radio#MAJOR_VERSION");
 			}
@@ -570,7 +601,7 @@ definition {
 			locator1 = "Button#CHECKIN",
 			value1 = "Checkin");
 
-		if (IsElementPresent(locator1 = "Radio#MAJOR_VERSION")) {
+		if (IsElementPresent(locator1 = "DocumentsAndMedia#CHECKIN_DIALOG_TITLE")) {
 			if ("${revision}" == "Major") {
 				Click(locator1 = "Radio#MAJOR_VERSION");
 			}
@@ -659,7 +690,7 @@ definition {
 			locator1 = "Button#MOVE_TO_RECYCLE_BIN",
 			value1 = "Move to Recycle Bin");
 
-		AssertElementPresent(locator1 = "Message#SUCCESS");
+		Alert.viewSuccessMessage();
 	}
 
 	macro deletePGViaMG {
@@ -698,6 +729,54 @@ definition {
 		AssertClick.assertPartialTextClickAt(
 			locator1 = "Button#DOWNLOAD",
 			value1 = "Download");
+	}
+
+	macro editCategoryTags {
+		SelectFrame(value1 = "relative=top");
+
+		AssertTextEquals(
+			locator1 = "Modal#HEADER",
+			value1 = "Edit Categories");
+
+		if ("${multipleDocuments}" == "true") {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Modal#BODY",
+				value1 = "You are editing the common categories for ${itemNumber} items. Select edit or replace current categories.");
+
+			Click(locator1 = "Modal#BODY");
+
+			if ("${editAction}" == "Append") {
+				FormFields.selectRadioOption(
+					fieldName = "add",
+					radioOption = "Add");
+			}
+			else if ("${editAction}" == "Replace") {
+				FormFields.selectRadioOption(
+					fieldName = "replace",
+					radioOption = "Replace");
+			}
+		}
+		else {
+			AssertTextEquals.assertPartialText(
+				locator1 = "Modal#BODY",
+				value1 = "You're editing the categories for the selected item.");
+		}
+
+		for (var categoryName : list "${categoryNameList}") {
+			Type(
+				locator1 = "DocumentsAndMedia#EDIT_TAGS_FIELD",
+				value1 = "${categoryName}");
+
+			KeyPress(
+				locator1 = "DocumentsAndMedia#EDIT_TAGS_FIELD",
+				value1 = "\RETURN");
+		}
+
+		Button.clickSave();
+
+		SelectFrame(value1 = "relative=top");
+
+		Alert.viewSuccessMessageText(successMessage = "Changes saved.");
 	}
 
 	macro editCmd {
@@ -788,7 +867,7 @@ definition {
 			Panel.expandPanel(panel = "Versioning");
 
 			Check.checkToggleSwitch(
-				key_toggleSwitchLabel = " Customize the Version Number Increment and Describe My Changes",
+				key_toggleSwitchLabel = "Customize the Version Number Increment and Describe My Changes",
 				locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 
 			if ("${revision}" == "Major") {
@@ -799,6 +878,13 @@ definition {
 			}
 			else if ("${revision}" == "Current") {
 				Click(locator1 = "Radio#CURRENT_VERSION");
+			}
+
+			if (isSet(versionNotes)) {
+				Type(
+					key_fieldLabel = "Version Notes",
+					locator1 = "TextInput#GENERIC_TEXT_INPUT",
+					value1 = "${versionNotes}");
 			}
 		}
 
@@ -1005,11 +1091,22 @@ definition {
 	}
 
 	macro moveToFolderCP {
-		var key_dmDocumentTitle = "${dmDocumentTitle}";
+		if (isSet(selectAll)) {
+			PortletEntry.selectAll();
 
-		Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
+			AssertClick(
+				locator1 = "Button#SELECT_ALL",
+				value1 = "Select All");
 
-		MenuItem.click(menuItem = "Move");
+			Click(locator1 = "Icon#MOVE");
+		}
+		else {
+			var key_dmDocumentTitle = "${dmDocumentTitle}";
+
+			Click(locator1 = "DocumentsAndMedia#DESCRIPTIVE_LIST_DOCUMENT_VERTICAL_ELLIPSIS");
+
+			MenuItem.click(menuItem = "Move");
+		}
 
 		SelectFrame(locator1 = "DocumentsAndMediaSelectFolder#SELECT_FOLDER_IFRAME");
 
@@ -1143,8 +1240,31 @@ definition {
 		Navigator.openWithAppendToBaseURL(urlAppend = "group/${siteURLKey}/~/control_panel/manage?p_p_id=com_liferay_document_library_web_portlet_DLAdminPortlet");
 	}
 
+	macro removeCategories {
+		SelectFrame(value1 = "relative=top");
+
+		for (var categoryName : list "${categoriesNameList}") {
+			Click(
+				key_categoryName = "${categoryName}",
+				locator1 = "Icon#REMOVE_CATEGORY");
+		}
+
+		Button.clickSave();
+
+		SelectFrame(value1 = "relative=top");
+
+		Alert.viewSuccessMessageText(successMessage = "Changes saved.");
+	}
+
 	macro removeTag {
-		Click(locator1 = "Button#EDIT");
+		if (IsElementPresent(locator1 = "Button#EDIT")) {
+			Click(locator1 = "Button#EDIT");
+		}
+		else {
+			LexiconEntry.gotoEntryMenuItem(
+				menuItem = "Edit",
+				rowEntry = "DM Document Title");
+		}
 
 		Panel.expandPanel(panel = "Categorization");
 
@@ -1176,7 +1296,7 @@ definition {
 			locator1 = "Button#SAVE_AND_CHECKIN",
 			value1 = "Save and Check In");
 
-		if (IsElementPresent(locator1 = "Radio#MAJOR_VERSION")) {
+		if (IsElementPresent(locator1 = "DocumentsAndMedia#CHECKIN_DIALOG_TITLE")) {
 			if ("${revision}" == "Major Version") {
 				Click(locator1 = "Radio#MAJOR_VERSION");
 			}
@@ -1338,6 +1458,25 @@ definition {
 
 			AssertTextEquals(
 				locator1 = "AssetCategorization#CATEGORY",
+				value1 = "${categoryName}");
+		}
+	}
+
+	macro viewCategoriesPG {
+		DMDocument.expandInfo();
+
+		if (isSet(categoryNameList)) {
+			for (var categoryName : list "${categoryNameList}") {
+				AssertTextEquals(
+					key_categoryName = "${categoryName}",
+					locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_CATEGORIES",
+					value1 = "${categoryName}");
+			}
+		}
+		else {
+			AssertTextEquals(
+				key_categoryName = "${categoryName}",
+				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_CATEGORIES",
 				value1 = "${categoryName}");
 		}
 	}
@@ -1750,6 +1889,21 @@ definition {
 			value1 = "${dmDocumentTitle}");
 	}
 
+	macro viewNoCategoriesPG {
+		if (isSet(categoryNameList)) {
+			for (var categoryName : list "${categoryNameList}") {
+				AssertElementNotPresent(
+					key_categoryName = "${categoryName}",
+					locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_CATEGORIES");
+			}
+		}
+		else {
+			AssertElementNotPresent(
+				key_categoryName = "${categoryName}",
+				locator1 = "DocumentsAndMediaDocument#DOCUMENT_INFO_CATEGORIES");
+		}
+	}
+
 	macro viewNoTag {
 		if (isSet(tagNameList)) {
 			for (var tagName : list "${tagNameList}") {
@@ -2013,7 +2167,7 @@ definition {
 
 		var key_dmDocumentTitle = "${dmDocumentTitle}";
 
-		AssertTextEquals(
+		AssertTextEquals.assertPartialText(
 			locator1 = "DocumentsAndMedia#SEARCH_TITLE",
 			value1 = "${dmDocumentTitle}");
 	}

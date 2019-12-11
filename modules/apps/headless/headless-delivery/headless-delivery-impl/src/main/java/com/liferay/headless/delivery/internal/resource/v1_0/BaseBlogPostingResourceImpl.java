@@ -334,7 +334,7 @@ public abstract class BaseBlogPostingResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's blog postings. Results can be paginated, filtered, searched, and sorted."
+		description = "Retrieves the site's blog postings. Results can be paginated, filtered, searched, and sorted."
 	)
 	@Parameters(
 		value = {
@@ -378,6 +378,38 @@ public abstract class BaseBlogPostingResourceImpl
 		throws Exception {
 
 		return new BlogPosting();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/blog-postings/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
+	@Path("/sites/{siteId}/blog-postings/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "BlogPosting")})
+	public void putSiteBlogPostingSubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/blog-postings/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
+	@Path("/sites/{siteId}/blog-postings/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "BlogPosting")})
+	public void putSiteBlogPostingUnsubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId)
+		throws Exception {
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {

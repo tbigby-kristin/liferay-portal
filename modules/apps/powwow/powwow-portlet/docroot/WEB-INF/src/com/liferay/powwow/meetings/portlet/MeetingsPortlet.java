@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -310,14 +311,11 @@ public class MeetingsPortlet extends MVCPortlet {
 		CalendarBooking calendarBooking = updateCalendarBooking(
 			actionRequest, powwowMeeting, powwowParticipants, serviceContext);
 
-		Map<String, String> options = new HashMap<>();
-
-		boolean autoStartVideo = ParamUtil.getBoolean(
-			actionRequest, "autoStartVideo");
-
-		options.put(
+		Map<String, String> options = HashMapBuilder.put(
 			PowwowMeetingConstants.OPTION_AUTO_START_VIDEO,
-			Boolean.toString(autoStartVideo));
+			Boolean.toString(
+				ParamUtil.getBoolean(actionRequest, "autoStartVideo"))
+		).build();
 
 		boolean requirePassword = ParamUtil.getBoolean(
 			actionRequest, "requirePassword");
@@ -468,9 +466,9 @@ public class MeetingsPortlet extends MVCPortlet {
 					serviceContext.getCompanyId(), userId);
 			}
 
-			Map<Locale, String> nameMap = new HashMap<>();
-
-			nameMap.put(LocaleUtil.getDefault(), userName);
+			Map<Locale, String> nameMap = HashMapBuilder.put(
+				LocaleUtil.getDefault(), userName
+			).build();
 
 			Map<Locale, String> descriptionMap = new HashMap<>();
 

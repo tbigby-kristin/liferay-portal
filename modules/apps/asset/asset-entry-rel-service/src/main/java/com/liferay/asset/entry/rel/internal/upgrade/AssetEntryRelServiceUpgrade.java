@@ -15,6 +15,8 @@
 package com.liferay.asset.entry.rel.internal.upgrade;
 
 import com.liferay.asset.entry.rel.internal.upgrade.v1_0_0.UpgradeAssetEntryAssetCategoryRel;
+import com.liferay.asset.entry.rel.internal.upgrade.v2_0_0.UpgradeCompanyId;
+import com.liferay.portal.kernel.upgrade.UpgradeMVCCVersion;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.component.annotations.Component;
@@ -29,6 +31,19 @@ public class AssetEntryRelServiceUpgrade implements UpgradeStepRegistrator {
 	public void register(Registry registry) {
 		registry.register(
 			"0.0.1", "1.0.0", new UpgradeAssetEntryAssetCategoryRel());
+
+		registry.register(
+			"1.0.0", "1.1.0",
+			new UpgradeMVCCVersion() {
+
+				@Override
+				protected String[] getModuleTableNames() {
+					return new String[] {"AssetEntryAssetCategoryRel"};
+				}
+
+			});
+
+		registry.register("1.1.0", "2.0.0", new UpgradeCompanyId());
 	}
 
 }

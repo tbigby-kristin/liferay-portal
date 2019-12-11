@@ -34,7 +34,6 @@ import java.util.Map;
 import org.apache.lucene.search.FuzzyQuery;
 
 import org.elasticsearch.ElasticsearchException;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.unit.TimeValue;
@@ -45,6 +44,7 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.search.MatchQuery;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.profile.ProfileShardResult;
 import org.elasticsearch.search.profile.query.QueryProfileShardResult;
 
@@ -60,14 +60,14 @@ public class CommonSearchResponseAssemblerImpl
 
 	@Override
 	public void assemble(
-		SearchRequestBuilder searchRequestBuilder,
-		SearchResponse searchResponse, BaseSearchRequest baseSearchRequest,
+		SearchSourceBuilder searchSourceBuilder, SearchResponse searchResponse,
+		BaseSearchRequest baseSearchRequest,
 		BaseSearchResponse baseSearchResponse) {
 
 		setExecutionProfile(searchResponse, baseSearchResponse);
 		setExecutionTime(searchResponse, baseSearchResponse);
 		setSearchRequestString(
-			searchRequestBuilder, baseSearchRequest, baseSearchResponse);
+			searchSourceBuilder, baseSearchRequest, baseSearchResponse);
 		setSearchResponseString(
 			searchResponse, baseSearchRequest, baseSearchResponse);
 		setTerminatedEarly(searchResponse, baseSearchResponse);
@@ -146,15 +146,17 @@ public class CommonSearchResponseAssemblerImpl
 	}
 
 	protected void setSearchRequestString(
-		SearchRequestBuilder searchRequestBuilder,
+		SearchSourceBuilder searchSourceBuilder,
 		BaseSearchRequest baseSearchRequest,
 		BaseSearchResponse baseSearchResponse) {
 
 		baseSearchResponse.setSearchRequestString(
 			StringUtil.removeSubstrings(
-				toString(searchRequestBuilder), ADJUST_PURE_NEGATIVE_STRING,
-				BOOST_STRING, FUZZY_TRANSPOSITIONS_STRING,
-				ZERO_TERMS_QUERY_STRING));
+				toString(searchSourceBuilder), ADJUST_PURE_NEGATIVE_STRING,
+				AUTO_GENERATE_SYNONYMS_PHRASE_QUERY_STRING, BOOST_STRING,
+				FUZZY_TRANSPOSITIONS_STRING, LENIENT_STRING,
+				MAX_EXPANSIONS_STRING, OPERATOR_STRING, PREFIX_LENGTH_STRING,
+				SLOP_STRING, ZERO_TERMS_QUERY_STRING));
 	}
 
 	protected void setSearchResponseString(
@@ -185,9 +187,9 @@ public class CommonSearchResponseAssemblerImpl
 		baseSearchResponse.setTimedOut(searchResponse.isTimedOut());
 	}
 
-	protected String toString(SearchRequestBuilder searchRequestBuilder) {
+	protected String toString(SearchSourceBuilder searchSourceBuilder) {
 		try {
-			return searchRequestBuilder.toString();
+			return searchSourceBuilder.toString();
 		}
 		catch (ElasticsearchException ee) {
 			if (_log.isDebugEnabled()) {
@@ -232,10 +234,27 @@ public class CommonSearchResponseAssemblerImpl
 	protected static final String ADJUST_PURE_NEGATIVE_STRING =
 		",\"adjust_pure_negative\":true";
 
+	protected static final String AUTO_GENERATE_SYNONYMS_PHRASE_QUERY_STRING =
+		",\"auto_generate_synonyms_phrase_query\":true";
+
 	protected static final String BOOST_STRING = ",\"boost\":1.0";
 
 	protected static final String FUZZY_TRANSPOSITIONS_STRING =
 		",\"fuzzy_transpositions\":" + FuzzyQuery.defaultTranspositions;
+
+	protected static final String LENIENT_STRING =
+		",\"lenient\":" + MatchQuery.DEFAULT_LENIENCY;
+
+	protected static final String MAX_EXPANSIONS_STRING =
+		",\"max_expansions\":" + FuzzyQuery.defaultMaxExpansions;
+
+	protected static final String OPERATOR_STRING = ",\"operator\":\"OR\"";
+
+	protected static final String PREFIX_LENGTH_STRING =
+		",\"prefix_length\":" + FuzzyQuery.defaultPrefixLength;
+
+	protected static final String SLOP_STRING =
+		",\"slop\":" + MatchQuery.DEFAULT_PHRASE_SLOP;
 
 	protected static final String ZERO_TERMS_QUERY_STRING =
 		",\"zero_terms_query\":\"" + MatchQuery.DEFAULT_ZERO_TERMS_QUERY + "\"";

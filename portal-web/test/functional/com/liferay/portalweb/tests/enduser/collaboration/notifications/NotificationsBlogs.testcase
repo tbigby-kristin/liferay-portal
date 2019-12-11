@@ -4,7 +4,7 @@ definition {
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property custom.properties = "default.layout.template.id=1_column";
-	property testray.component.names = "Blogs,Notifications";
+	property testray.component.names = "Notification";
 	property testray.main.component.name = "Notifications";
 	var pageName = "Blogs Page";
 	var portletName = "Blogs";
@@ -21,12 +21,6 @@ definition {
 
 		SitePages.addPublicPage(
 			pageName = "Blogs Page",
-			sitePageType = "Widget Page");
-
-		SitePages.configurePage(
-			columnName = "1 Column",
-			pageName = "Blogs Page",
-			privacy = "Public Pages",
 			sitePageType = "Widget Page");
 
 		Navigator.gotoPage(pageName = "Blogs Page");
@@ -74,7 +68,7 @@ definition {
 
 			Page.tearDownCP();
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 		}
 	}
 
@@ -341,6 +335,82 @@ definition {
 			entryTitle = "Blogs Entry Title Edit");
 	}
 
+	@description = "This test covers LPS-103502. It ensures that notifications are displayed correctly after being mentioned."
+	@priority = "3"
+	test ViewWebsiteNotificationdForMention {
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		Blogs.addEntry(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		Mentions.addMentionViaComments(
+			entryComment = "Comment mentioning",
+			mentionsUserFullName = "userfn userln",
+			mentionsUserScreenName = "usersn");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		Notifications.viewBadgeCount(notificationCount = "1");
+
+		Notifications.gotoNotifications();
+
+		Notifications.viewNewComment(
+			assetType = "Blogs Entry",
+			contentBody = "Comment mentioning @usersn",
+			mentioned = "true",
+			user = "Test Test");
+
+		Navigator.gotoPage(pageName = "Blogs Page");
+
+		BlogsNavigator.gotoEntryPG(
+			entryContent = "Blogs Entry Content",
+			entryTitle = "Blogs Entry Title");
+
+		Mentions.addMentionViaComments(
+			entryComment = "Reply comment mentioning",
+			mentionsUserFullName = "test test",
+			mentionsUserScreenName = "test");
+
+		User.logoutPG();
+
+		User.loginUserPG(
+			password = "test",
+			userEmailAddress = "test@liferay.com");
+
+		Notifications.viewBadgeCount(notificationCount = "2");
+
+		Notifications.gotoNotifications();
+
+		AssertTextEquals(
+			key_notificationsTitle = "userfn userln added a new comment to Blogs Entry Title",
+			locator1 = "Notifications#NOTIFICATIONS_TITLE_SPECIFIC",
+			value1 = "userfn userln added a new comment to Blogs Entry Title.");
+
+		AssertTextEquals(
+			key_notificationsTitle = "userfn userln added a new comment to Blogs Entry Title",
+			locator1 = "Notifications#NOTIFICATIONS_CONTENT_SPECIFIC",
+			value1 = "Reply comment mentioning @test");
+
+		AssertTextEquals(
+			key_notificationsTitle = "userfn userln mentioned you in a comment in a blogs entry",
+			locator1 = "Notifications#NOTIFICATIONS_TITLE_SPECIFIC",
+			value1 = "userfn userln mentioned you in a comment in a blogs entry.");
+
+		AssertTextEquals(
+			key_notificationsTitle = "userfn userln mentioned you in a comment in a blogs entry",
+			locator1 = "Notifications#NOTIFICATIONS_CONTENT_SPECIFIC",
+			value1 = "Reply comment mentioning @test");
+	}
+
 	@priority = "4"
 	test ViewWebsiteNotificationForNewBlogsEntry {
 		Navigator.gotoPage(pageName = "Blogs Page");
@@ -417,7 +487,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntryComment.add(entryComment = "Blogs Entry Comment");
+		Comments.addPG(entryComment = "Blogs Entry Comment");
 
 		Notifications.viewBadgeCount(notificationCount = "0");
 
@@ -443,7 +513,7 @@ definition {
 			entryContent = "Blogs Entry Content",
 			entryTitle = "Blogs Entry Title");
 
-		BlogsEntryComment.viewPG(
+		Comments.viewPG(
 			commentCount = "1",
 			entryComment = "Blogs Entry Comment",
 			userFullName = "userfn userln");

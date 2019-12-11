@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.ExpandoTableSearchFixture;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
@@ -43,7 +44,6 @@ import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.io.Serializable;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -105,10 +105,12 @@ public class UserGroupIndexerIndexedFieldsTest {
 			UserGroup.class, ExpandoColumnConstants.INDEX_TYPE_KEYWORD,
 			expandoColumnObs, expandoColumnName);
 
-		Map<String, Serializable> expandoValues = new HashMap<>();
-
-		expandoValues.put(expandoColumnName, "Software Developer");
-		expandoValues.put(expandoColumnObs, "Software Engineer");
+		Map<String, Serializable> expandoValues =
+			HashMapBuilder.<String, Serializable>put(
+				expandoColumnName, "Software Developer"
+			).put(
+				expandoColumnObs, "Software Engineer"
+			).build();
 
 		UserGroup userGroup = userGroupFixture.createUserGroup(expandoValues);
 
@@ -184,19 +186,25 @@ public class UserGroupIndexerIndexedFieldsTest {
 	private Map<String, String> _expectedFieldValues(UserGroup userGroup)
 		throws Exception {
 
-		Map<String, String> map = new HashMap<>();
-
-		map.put(Field.COMPANY_ID, String.valueOf(userGroup.getCompanyId()));
-		map.put(Field.DESCRIPTION, userGroup.getDescription());
-		map.put(Field.ENTRY_CLASS_NAME, UserGroup.class.getName());
-		map.put(
-			Field.ENTRY_CLASS_PK, String.valueOf(userGroup.getUserGroupId()));
-		map.put(Field.NAME, userGroup.getName());
-		map.put(
-			Field.USER_GROUP_ID, String.valueOf(userGroup.getUserGroupId()));
-		map.put(Field.USER_ID, String.valueOf(userGroup.getUserId()));
-		map.put(Field.USER_NAME, StringUtil.lowerCase(userGroup.getUserName()));
-		map.put("name_sortable", StringUtil.lowerCase(userGroup.getName()));
+		Map<String, String> map = HashMapBuilder.put(
+			Field.COMPANY_ID, String.valueOf(userGroup.getCompanyId())
+		).put(
+			Field.DESCRIPTION, userGroup.getDescription()
+		).put(
+			Field.ENTRY_CLASS_NAME, UserGroup.class.getName()
+		).put(
+			Field.ENTRY_CLASS_PK, String.valueOf(userGroup.getUserGroupId())
+		).put(
+			Field.NAME, userGroup.getName()
+		).put(
+			Field.USER_GROUP_ID, String.valueOf(userGroup.getUserGroupId())
+		).put(
+			Field.USER_ID, String.valueOf(userGroup.getUserId())
+		).put(
+			Field.USER_NAME, StringUtil.lowerCase(userGroup.getUserName())
+		).put(
+			"name_sortable", StringUtil.lowerCase(userGroup.getName())
+		).build();
 
 		indexedFieldsFixture.populateUID(
 			UserGroup.class.getName(), userGroup.getUserGroupId(), map);

@@ -1,5 +1,16 @@
 definition {
 
+	macro setCategoryId {
+		Variables.assertDefined(parameterList = "${categoryName},${groupId},${vocabularyId}");
+
+		var categoryId = JSONCategoryAPI._getCategoryIdByName(
+			categoryName = "${categoryName}",
+			groupId = "${groupId}",
+			vocabularyId = "${vocabularyId}");
+
+		return "${categoryId}";
+	}
+
 	macro setDescriptionMap {
 		if (isSet(descriptionMap)) {
 			var descriptionMap = JSONUtil2._convertLocalizedListToMap(listMap = "${descriptionMap}");
@@ -32,8 +43,7 @@ definition {
 			var parentCategoryId = JSONCategoryAPI._getCategoryIdByName(
 				categoryName = "${parentCategoryName}",
 				groupId = "${groupId}",
-				vocabularyId = "${vocabularyId}"
-			);
+				vocabularyId = "${vocabularyId}");
 		}
 
 		return "${parentCategoryId}";
@@ -60,8 +70,7 @@ definition {
 
 		var vocabularyId = JSONCategoryAPI._getVocabularyIdByName(
 			groupId = "${groupId}",
-			vocabularyName = "${vocabularyName}"
-		);
+			vocabularyName = "${vocabularyName}");
 
 		return "${vocabularyId}";
 	}

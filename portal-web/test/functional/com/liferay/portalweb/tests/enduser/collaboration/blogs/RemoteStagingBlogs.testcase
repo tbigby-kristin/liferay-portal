@@ -227,7 +227,7 @@ definition {
 
 		Button.clickPublish();
 
-		Pause(locator1 = "30000");
+		Pause(locator1 = "10000");
 
 		Staging.gotoPublishToLive();
 
@@ -268,10 +268,6 @@ definition {
 		Click(locator1 = "ItemSelector#SELECT_FILE_IMAGE_PREVIEW");
 
 		SelectFrameTop(value1 = "relative=top");
-
-		AssertClick(
-			locator1 = "ItemSelector#ADD_BUTTON",
-			value1 = "Add");
 
 		PortletEntry.publish();
 

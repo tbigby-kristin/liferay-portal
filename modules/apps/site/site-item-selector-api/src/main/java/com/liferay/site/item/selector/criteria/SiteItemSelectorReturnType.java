@@ -39,6 +39,9 @@ import com.liferay.item.selector.ItemSelectorReturnType;
  * </ul>
  *
  * @author Eudaldo Alonso
+ * @deprecated As of Athanasius (7.3.x), replaced by {@link
+ *             com.liferay.item.selector.criteria.GroupItemSelectorReturnType}
  */
+@Deprecated
 public class SiteItemSelectorReturnType implements ItemSelectorReturnType {
 }

@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 
@@ -102,20 +103,20 @@ public class DDMFormBuilderContextFactoryHelper {
 	}
 
 	protected Map<String, Object> createEmptyStateContext() {
-		Map<String, Object> emptyFormContext = new HashMap<>();
-
-		emptyFormContext.put("pages", new ArrayList<>());
-		emptyFormContext.put("rules", new ArrayList<>());
-
-		Map<String, Object> successPage = new HashMap<>();
-
-		successPage.put("body", StringPool.BLANK);
-		successPage.put("enabled", Boolean.FALSE);
-		successPage.put("title", StringPool.BLANK);
-
-		emptyFormContext.put("successPage", successPage);
-
-		return emptyFormContext;
+		return HashMapBuilder.<String, Object>put(
+			"pages", new ArrayList<>()
+		).put(
+			"rules", new ArrayList<>()
+		).put(
+			"successPage",
+			HashMapBuilder.<String, Object>put(
+				"body", StringPool.BLANK
+			).put(
+				"enabled", Boolean.FALSE
+			).put(
+				"title", StringPool.BLANK
+			).build()
+		).build();
 	}
 
 	protected Map<String, Object> createFormContext(
@@ -346,29 +347,33 @@ public class DDMFormBuilderContextFactoryHelper {
 			DDMForm ddmForm, DDMFormLayout ddmFormLayout)
 		throws PortalException {
 
-		Map<String, Object> formContext1 = new HashMap<>();
+		return HashMapBuilder.<String, Object>put(
+			"pages",
+			() -> {
+				Map<String, Object> formContext = createFormContext(
+					ddmForm, ddmFormLayout);
 
-		Map<String, Object> formContext2 = createFormContext(
-			ddmForm, ddmFormLayout);
+				return formContext.get("pages");
+			}
+		).put(
+			"paginationMode", ddmFormLayout.getPaginationMode()
+		).put(
+			"rules", new ArrayList<>()
+		).put(
+			"successPageSettings",
+			() -> {
+				DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
+					ddmForm.getDDMFormSuccessPageSettings();
 
-		formContext1.put("pages", formContext2.get("pages"));
-
-		formContext1.put("paginationMode", ddmFormLayout.getPaginationMode());
-
-		formContext1.put("rules", new ArrayList<>());
-
-		Map<String, Object> successPage = new HashMap<>();
-
-		DDMFormSuccessPageSettings ddmFormSuccessPageSettings =
-			ddmForm.getDDMFormSuccessPageSettings();
-
-		successPage.put("body", toMap(ddmFormSuccessPageSettings.getBody()));
-		successPage.put("enabled", ddmFormSuccessPageSettings.isEnabled());
-		successPage.put("title", toMap(ddmFormSuccessPageSettings.getTitle()));
-
-		formContext1.put("successPageSettings", successPage);
-
-		return formContext1;
+				return HashMapBuilder.<String, Object>put(
+					"body", toMap(ddmFormSuccessPageSettings.getBody())
+				).put(
+					"enabled", ddmFormSuccessPageSettings.isEnabled()
+				).put(
+					"title", toMap(ddmFormSuccessPageSettings.getTitle())
+				).build();
+			}
+		).build();
 	}
 
 	protected Map<String, Object> doCreateFormContext(DDMStructure ddmStructure)

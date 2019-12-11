@@ -12,6 +12,7 @@
  * details.
  */
 
+/* eslint-disable prefer-arrow-callback */
 AUI().ready(
 	/*
 	This function gets loaded when all the HTML, not including the portlets, is

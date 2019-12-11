@@ -14,7 +14,6 @@
 
 package com.liferay.data.engine.rest.internal.resource.v1_0;
 
-import com.liferay.data.engine.field.type.FieldTypeTracker;
 import com.liferay.data.engine.rest.dto.v1_0.DataDefinition;
 import com.liferay.data.engine.rest.dto.v1_0.DataDefinitionField;
 import com.liferay.data.engine.rest.dto.v1_0.DataDefinitionRule;
@@ -36,6 +35,7 @@ import com.liferay.dynamic.data.lists.model.DDLRecordSetVersion;
 import com.liferay.dynamic.data.lists.service.DDLRecordLocalService;
 import com.liferay.dynamic.data.lists.service.DDLRecordService;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalService;
+import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTypeServicesTracker;
 import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
 import com.liferay.dynamic.data.mapping.service.DDMStorageLinkLocalService;
@@ -91,7 +91,10 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 		DataStorage dataStorage = _getDataStorage(
 			ddmStructure.getStorageType());
 
-		dataStorage.delete(dataRecordId);
+		dataStorage.delete(ddlRecord.getDDMStorageId());
+
+		_ddmStorageLinkLocalService.deleteClassStorageLink(
+			ddlRecord.getDDMStorageId());
 
 		_ddlRecordLocalService.deleteDDLRecord(dataRecordId);
 	}
@@ -133,7 +136,7 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 			dataRecordCollectionId, DataActionKeys.EXPORT_DATA_RECORDS);
 
 		DataRecordExporter dataRecordExporter = new DataRecordExporter(
-			_ddlRecordSetLocalService, _fieldTypeTracker);
+			_ddlRecordSetLocalService, _ddmFormFieldTypeServicesTracker);
 
 		return dataRecordExporter.export(
 			transform(
@@ -197,20 +200,31 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 
 		_validate(
 			DataDefinitionUtil.toDataDefinition(
-				ddmStructure, _fieldTypeTracker),
+				_ddmFormFieldTypeServicesTracker, ddmStructure),
 			dataRecord);
 
 		DataStorage dataStorage = _getDataStorage(
 			ddmStructure.getStorageType());
 
+		long ddmStorageId = dataStorage.save(
+			ddlRecordSet.getRecordSetId(), dataRecord.getDataRecordValues(),
+			ddlRecordSet.getGroupId());
+
+		DDLRecordSetVersion ddlRecordSetVersion =
+			ddlRecordSet.getRecordSetVersion();
+
+		DDMStructureVersion ddmStructureVersion =
+			ddlRecordSetVersion.getDDMStructureVersion();
+
+		_ddmStorageLinkLocalService.addStorageLink(
+			_portal.getClassNameId(DataRecord.class.getName()), ddmStorageId,
+			ddmStructureVersion.getStructureVersionId(), new ServiceContext());
+
 		return _toDataRecord(
 			_ddlRecordLocalService.addRecord(
 				PrincipalThreadLocal.getUserId(), ddlRecordSet.getGroupId(),
-				dataStorage.save(
-					ddlRecordSet.getRecordSetId(),
-					dataRecord.getDataRecordValues(),
-					ddlRecordSet.getGroupId()),
-				dataRecord.getDataRecordCollectionId(), new ServiceContext()));
+				ddmStorageId, dataRecord.getDataRecordCollectionId(),
+				new ServiceContext()));
 	}
 
 	@Override
@@ -233,7 +247,7 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 
 		_validate(
 			DataDefinitionUtil.toDataDefinition(
-				ddmStructure, _fieldTypeTracker),
+				_ddmFormFieldTypeServicesTracker, ddmStructure),
 			dataRecord);
 
 		DataStorage dataStorage = _getDataStorage(
@@ -246,16 +260,6 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 		_ddlRecordLocalService.updateRecord(
 			PrincipalThreadLocal.getUserId(), dataRecordId, ddmStorageId,
 			new ServiceContext());
-
-		DDLRecordSetVersion ddlRecordSetVersion =
-			ddlRecordSet.getRecordSetVersion();
-
-		DDMStructureVersion ddmStructureVersion =
-			ddlRecordSetVersion.getDDMStructureVersion();
-
-		_ddmStorageLinkLocalService.addStorageLink(
-			_portal.getClassNameId(DataRecord.class.getName()), ddmStorageId,
-			ddmStructureVersion.getStructureVersionId(), new ServiceContext());
 
 		return dataRecord;
 	}
@@ -348,6 +352,10 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 					ArrayUtil.toStringArray(missingFieldNames));
 		}
 
+		if (ArrayUtil.isEmpty(dataDefinition.getDataDefinitionRules())) {
+			return;
+		}
+
 		// Field values
 
 		List<DataDefinitionRule> dataDefinitionRules = Stream.of(
@@ -427,13 +435,13 @@ public class DataRecordResourceImpl extends BaseDataRecordResourceImpl {
 	private DDLRecordSetLocalService _ddlRecordSetLocalService;
 
 	@Reference
+	private DDMFormFieldTypeServicesTracker _ddmFormFieldTypeServicesTracker;
+
+	@Reference
 	private DDMStorageLinkLocalService _ddmStorageLinkLocalService;
 
 	@Reference
 	private DDMStructureLocalService _ddmStructureLocalService;
-
-	@Reference
-	private FieldTypeTracker _fieldTypeTracker;
 
 	private ModelResourcePermission<InternalDataRecordCollection>
 		_modelResourcePermission;

@@ -19,13 +19,19 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.service.test.ServiceTestUtil;
@@ -40,11 +46,12 @@ import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.model.SegmentsEntryRel;
 import com.liferay.segments.service.SegmentsEntryLocalService;
 import com.liferay.segments.service.SegmentsEntryRelLocalService;
+import com.liferay.segments.service.SegmentsEntryRoleLocalService;
 import com.liferay.segments.service.SegmentsExperienceLocalService;
 import com.liferay.segments.test.util.SegmentsTestUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -74,6 +81,8 @@ public class SegmentsEntryLocalServiceTest {
 		_group = GroupTestUtil.addGroup();
 
 		_groups.add(_group);
+
+		_role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
 	}
 
 	@Test
@@ -277,20 +286,64 @@ public class SegmentsEntryLocalServiceTest {
 	}
 
 	@Test
+	public void testSearchSegmentsEntries() throws PortalException {
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		BaseModelSearchResult<SegmentsEntry> baseModelSearchResult =
+			_segmentsEntryLocalService.searchSegmentsEntries(
+				segmentsEntry.getCompanyId(), segmentsEntry.getGroupId(),
+				segmentsEntry.getNameCurrentValue(), true, 0, 1, null);
+
+		List<SegmentsEntry> segmentsEntries =
+			baseModelSearchResult.getBaseModels();
+
+		Assert.assertEquals(
+			segmentsEntries.toString(), 1, segmentsEntries.size());
+		Assert.assertEquals(segmentsEntry, segmentsEntries.get(0));
+	}
+
+	@Test
+	public void testSearchSegmentsEntriesWithRoleIds() throws PortalException {
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		_segmentsEntryRoleLocalService.addSegmentsEntryRole(
+			segmentsEntry.getSegmentsEntryId(), _role.getRoleId(),
+			ServiceContextTestUtil.getServiceContext());
+
+		LinkedHashMap<String, Object> params =
+			LinkedHashMapBuilder.<String, Object>put(
+				"roleIds", new long[] {_role.getRoleId()}
+			).build();
+
+		BaseModelSearchResult<SegmentsEntry> baseModelSearchResult =
+			_segmentsEntryLocalService.searchSegmentsEntries(
+				segmentsEntry.getCompanyId(), segmentsEntry.getGroupId(), null,
+				true, params, 0, 1, null);
+
+		List<SegmentsEntry> segmentsEntries =
+			baseModelSearchResult.getBaseModels();
+
+		Assert.assertEquals(
+			segmentsEntries.toString(), 1, segmentsEntries.size());
+		Assert.assertEquals(segmentsEntry, segmentsEntries.get(0));
+	}
+
+	@Test
 	public void testUpdateSegmentsEntry() throws PortalException {
 		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
 			_group.getGroupId());
 
 		String segmentsEntryKey = RandomTestUtil.randomString();
 
-		Map<Locale, String> nameMap = new HashMap<>();
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.getDefault(), RandomTestUtil.randomString()
+		).build();
 
-		nameMap.put(LocaleUtil.getDefault(), RandomTestUtil.randomString());
-
-		Map<Locale, String> descriptionMap = new HashMap<>();
-
-		descriptionMap.put(
-			LocaleUtil.getDefault(), RandomTestUtil.randomString());
+		Map<Locale, String> descriptionMap = HashMapBuilder.put(
+			LocaleUtil.getDefault(), RandomTestUtil.randomString()
+		).build();
 
 		String criteria = RandomTestUtil.randomString();
 
@@ -342,11 +395,17 @@ public class SegmentsEntryLocalServiceTest {
 	@DeleteAfterTestRun
 	private final List<Group> _groups = new ArrayList<>();
 
+	@DeleteAfterTestRun
+	private Role _role;
+
 	@Inject
 	private SegmentsEntryLocalService _segmentsEntryLocalService;
 
 	@Inject
 	private SegmentsEntryRelLocalService _segmentsEntryRelLocalService;
+
+	@Inject
+	private SegmentsEntryRoleLocalService _segmentsEntryRoleLocalService;
 
 	@Inject
 	private SegmentsExperienceLocalService _segmentsExperienceLocalService;

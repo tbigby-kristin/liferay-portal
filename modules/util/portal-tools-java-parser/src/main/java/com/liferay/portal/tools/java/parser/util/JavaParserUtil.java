@@ -1459,10 +1459,15 @@ public class JavaParserUtil {
 
 		DetailAST lastChildDetailAST = methodReferenceDetailAST.getLastChild();
 
+		JavaExpression referenceJavaExpression = _parseJavaExpression(
+			methodReferenceDetailAST.getFirstChild(), true);
+
+		if (referenceJavaExpression instanceof JavaTypeCast) {
+			referenceJavaExpression.setHasSurroundingParentheses(true);
+		}
+
 		return new JavaMethodReference(
-			lastChildDetailAST.getText(),
-			_parseJavaExpression(
-				methodReferenceDetailAST.getFirstChild(), true),
+			lastChildDetailAST.getText(), referenceJavaExpression,
 			_parseGenericJavaTypes(
 				methodReferenceDetailAST.findFirstToken(
 					TokenTypes.TYPE_ARGUMENTS),
@@ -1764,20 +1769,24 @@ public class JavaParserUtil {
 
 		List<JavaType> javaTypes = new ArrayList<>();
 
-		DetailAST firstChildDetailAST = typeCastDetailAST.getFirstChild();
+		DetailAST childDetailAST = typeCastDetailAST.getFirstChild();
 
-		if (firstChildDetailAST.getType() == TokenTypes.TYPE) {
-			javaTypes.add(_parseJavaType(firstChildDetailAST));
+		javaTypes.add(_parseJavaType(childDetailAST));
+
+		while (true) {
+			childDetailAST = childDetailAST.getNextSibling();
+
+			if (childDetailAST.getType() != TokenTypes.TYPE_EXTENSION_AND) {
+				return new JavaTypeCast(
+					javaTypes,
+					_parseJavaExpression(
+						typeCastDetailAST.getLastChild(), true));
+			}
+
+			childDetailAST = childDetailAST.getNextSibling();
+
+			javaTypes.add(_parseJavaType(childDetailAST));
 		}
-		else {
-			javaTypes.add(_parseJavaType(firstChildDetailAST.getFirstChild()));
-
-			javaTypes.add(_parseJavaType(firstChildDetailAST.getLastChild()));
-		}
-
-		return new JavaTypeCast(
-			javaTypes,
-			_parseJavaExpression(typeCastDetailAST.getLastChild(), true));
 	}
 
 	private static JavaVariableDefinition _parseJavaVariableDefinition(

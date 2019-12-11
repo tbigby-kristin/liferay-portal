@@ -58,7 +58,7 @@ definition {
 
 			Page.tearDownCP();
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 
 			Site.tearDownCP();
 		}
@@ -358,7 +358,8 @@ definition {
 
 		CalendarScheduler.viewNoRSVP(
 			eventTitle = "Edited Event Title",
-			eventToday = "false");
+			eventToday = "false",
+			setDates = "true");
 	}
 
 	@priority = "4"

@@ -278,6 +278,16 @@ public class MessageBoardThreadSerDes {
 			sb.append(messageBoardThread.getSiteId());
 		}
 
+		if (messageBoardThread.getSubscribed() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(messageBoardThread.getSubscribed());
+		}
+
 		if (messageBoardThread.getThreadType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -461,6 +471,15 @@ public class MessageBoardThreadSerDes {
 			map.put("siteId", String.valueOf(messageBoardThread.getSiteId()));
 		}
 
+		if (messageBoardThread.getSubscribed() == null) {
+			map.put("subscribed", null);
+		}
+		else {
+			map.put(
+				"subscribed",
+				String.valueOf(messageBoardThread.getSubscribed()));
+		}
+
 		if (messageBoardThread.getThreadType() == null) {
 			map.put("threadType", null);
 		}
@@ -616,6 +635,12 @@ public class MessageBoardThreadSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "subscribed")) {
+				if (jsonParserFieldValue != null) {
+					messageBoardThread.setSubscribed(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "threadType")) {
 				if (jsonParserFieldValue != null) {
 					messageBoardThread.setThreadType(
@@ -625,7 +650,7 @@ public class MessageBoardThreadSerDes {
 			else if (Objects.equals(jsonParserFieldName, "viewCount")) {
 				if (jsonParserFieldValue != null) {
 					messageBoardThread.setViewCount(
-						Integer.valueOf((String)jsonParserFieldValue));
+						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "viewableBy")) {
@@ -646,9 +671,11 @@ public class MessageBoardThreadSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

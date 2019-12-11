@@ -13,14 +13,12 @@
  */
 
 import ClayIcon from '@clayui/icon';
-import Conjunction from './Conjunction.es';
-import CriteriaRow from './CriteriaRow.es';
-import DropZone from './DropZone.es';
-import EmptyDropZone from './EmptyDropZone.es';
 import getCN from 'classnames';
+import {PropTypes} from 'prop-types';
 import React, {Component, Fragment} from 'react';
-import {CONJUNCTIONS} from '../../utils/constants.es';
 import {DragSource as dragSource} from 'react-dnd';
+
+import {CONJUNCTIONS} from '../../utils/constants.es';
 import {DragTypes} from '../../utils/drag-types.es';
 import {
 	generateGroupId,
@@ -29,7 +27,10 @@ import {
 	insertAtIndex,
 	replaceAtIndex
 } from '../../utils/utils.es';
-import {PropTypes} from 'prop-types';
+import Conjunction from './Conjunction.es';
+import CriteriaRow from './CriteriaRow.es';
+import DropZone from './DropZone.es';
+import EmptyDropZone from './EmptyDropZone.es';
 
 /**
  * Passes the required values to the drop target.
@@ -99,23 +100,12 @@ class CriteriaGroup extends Component {
 		this.NestedCriteriaGroupWithDrag = withDragSource(CriteriaGroup);
 	}
 
-	_handleConjunctionClick = event => {
-		event.preventDefault();
-
-		const {criteria, onChange, supportedConjunctions} = this.props;
-
-		const index = supportedConjunctions.findIndex(
-			item => item.name === criteria.conjunctionName
-		);
-
-		const conjunctionSelected =
-			index === supportedConjunctions.length - 1
-				? supportedConjunctions[0].name
-				: supportedConjunctions[index + 1].name;
+	_handleConjunctionSelect = conjunctionName => {
+		const {criteria, onChange} = this.props;
 
 		onChange({
 			...criteria,
-			conjunctionName: conjunctionSelected
+			conjunctionName
 		});
 	};
 
@@ -220,7 +210,7 @@ class CriteriaGroup extends Component {
 				<Conjunction
 					conjunctionName={criteria.conjunctionName}
 					editing={editing}
-					onClick={this._handleConjunctionClick}
+					onSelect={this._handleConjunctionSelect}
 					supportedConjunctions={supportedConjunctions}
 				/>
 

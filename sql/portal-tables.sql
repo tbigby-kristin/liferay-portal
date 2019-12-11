@@ -42,6 +42,7 @@ create table Address (
 );
 
 create table AnnouncementsDelivery (
+	mvccVersion LONG default 0 not null,
 	deliveryId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -52,6 +53,7 @@ create table AnnouncementsDelivery (
 );
 
 create table AnnouncementsEntry (
+	mvccVersion LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	entryId LONG not null primary key,
 	companyId LONG,
@@ -72,6 +74,7 @@ create table AnnouncementsEntry (
 );
 
 create table AnnouncementsFlag (
+	mvccVersion LONG default 0 not null,
 	flagId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -81,9 +84,11 @@ create table AnnouncementsFlag (
 );
 
 create table AssetCategory (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	externalReferenceCode VARCHAR(75) null,
-	categoryId LONG not null primary key,
+	categoryId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -91,13 +96,13 @@ create table AssetCategory (
 	createDate DATE null,
 	modifiedDate DATE null,
 	parentCategoryId LONG,
-	leftCategoryId LONG,
-	rightCategoryId LONG,
+	treePath STRING null,
 	name VARCHAR(75) null,
 	title STRING null,
 	description STRING null,
 	vocabularyId LONG,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (categoryId, ctCollectionId)
 );
 
 create table AssetEntries_AssetCategories (
@@ -115,7 +120,9 @@ create table AssetEntries_AssetTags (
 );
 
 create table AssetEntry (
-	entryId LONG not null primary key,
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
+	entryId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -141,11 +148,13 @@ create table AssetEntry (
 	height INTEGER,
 	width INTEGER,
 	priority DOUBLE,
-	viewCount INTEGER
+	primary key (entryId, ctCollectionId)
 );
 
 create table AssetLink (
-	linkId LONG not null primary key,
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
+	linkId LONG not null,
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
@@ -153,12 +162,15 @@ create table AssetLink (
 	entryId1 LONG,
 	entryId2 LONG,
 	type_ INTEGER,
-	weight INTEGER
+	weight INTEGER,
+	primary key (linkId, ctCollectionId)
 );
 
 create table AssetTag (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	tagId LONG not null primary key,
+	tagId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -167,13 +179,16 @@ create table AssetTag (
 	modifiedDate DATE null,
 	name VARCHAR(75) null,
 	assetCount INTEGER,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (tagId, ctCollectionId)
 );
 
 create table AssetVocabulary (
+	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
 	externalReferenceCode VARCHAR(75) null,
-	vocabularyId LONG not null primary key,
+	vocabularyId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -184,7 +199,8 @@ create table AssetVocabulary (
 	title STRING null,
 	description STRING null,
 	settings_ STRING null,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (vocabularyId, ctCollectionId)
 );
 
 create table BrowserTracker (
@@ -297,7 +313,6 @@ create table DLFileEntry (
 	fileEntryTypeId LONG,
 	version VARCHAR(75) null,
 	size_ LONG,
-	readCount INTEGER,
 	smallImageId LONG,
 	largeImageId LONG,
 	custom1ImageId LONG,
@@ -551,8 +566,9 @@ create table Image (
 
 create table Layout (
 	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	plid LONG not null primary key,
+	plid LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -580,11 +596,13 @@ create table Layout (
 	colorSchemeId VARCHAR(75) null,
 	css TEXT null,
 	priority INTEGER,
+	masterLayoutPlid LONG,
 	layoutPrototypeUuid VARCHAR(75) null,
 	layoutPrototypeLinkEnabled BOOLEAN,
 	sourcePrototypeLayoutUuid VARCHAR(75) null,
 	publishDate DATE null,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (plid, ctCollectionId)
 );
 
 create table LayoutBranch (
@@ -603,8 +621,9 @@ create table LayoutBranch (
 
 create table LayoutFriendlyURL (
 	mvccVersion LONG default 0 not null,
+	ctCollectionId LONG default 0 not null,
 	uuid_ VARCHAR(75) null,
-	layoutFriendlyURLId LONG not null primary key,
+	layoutFriendlyURLId LONG not null,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -615,7 +634,8 @@ create table LayoutFriendlyURL (
 	privateLayout BOOLEAN,
 	friendlyURL VARCHAR(255) null,
 	languageId VARCHAR(75) null,
-	lastPublishDate DATE null
+	lastPublishDate DATE null,
+	primary key (layoutFriendlyURLId, ctCollectionId)
 );
 
 create table LayoutPrototype (
@@ -909,13 +929,15 @@ create table PortletItem (
 
 create table PortletPreferences (
 	mvccVersion LONG default 0 not null,
-	portletPreferencesId LONG not null primary key,
+	ctCollectionId LONG default 0 not null,
+	portletPreferencesId LONG not null,
 	companyId LONG,
 	ownerId LONG,
 	ownerType INTEGER,
 	plid LONG,
 	portletId VARCHAR(200) null,
-	preferences TEXT null
+	preferences TEXT null,
+	primary key (portletPreferencesId, ctCollectionId)
 );
 
 create table RatingsEntry (
@@ -934,6 +956,8 @@ create table RatingsEntry (
 create table RatingsStats (
 	statsId LONG not null primary key,
 	companyId LONG,
+	createDate DATE null,
+	modifiedDate DATE null,
 	classNameId LONG,
 	classPK LONG,
 	totalEntries INTEGER,
@@ -1041,7 +1065,8 @@ create table ResourceAction (
 
 create table ResourcePermission (
 	mvccVersion LONG default 0 not null,
-	resourcePermissionId LONG not null primary key,
+	ctCollectionId LONG default 0 not null,
+	resourcePermissionId LONG not null,
 	companyId LONG,
 	name VARCHAR(255) null,
 	scope INTEGER,
@@ -1050,7 +1075,8 @@ create table ResourcePermission (
 	roleId LONG,
 	ownerId LONG,
 	actionIds LONG,
-	viewActionId BOOLEAN
+	viewActionId BOOLEAN,
+	primary key (resourcePermissionId, ctCollectionId)
 );
 
 create table Role_ (
@@ -1417,7 +1443,9 @@ create table VirtualHost (
 	virtualHostId LONG not null primary key,
 	companyId LONG,
 	layoutSetId LONG,
-	hostname VARCHAR(200) null
+	hostname VARCHAR(200) null,
+	defaultVirtualHost BOOLEAN,
+	languageId VARCHAR(75) null
 );
 
 create table WebDAVProps (

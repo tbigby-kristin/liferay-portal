@@ -491,19 +491,8 @@ public class ResourceOpenAPIParser {
 				pathName = StringUtil.upperCaseFirstLetter(pathName);
 			}
 
-			if (pathSegment.contains("{")) {
-				String previousMethodNameSegment = methodNameSegments.get(
-					methodNameSegments.size() - 1);
-
-				if (!previousMethodNameSegment.endsWith(pathName) &&
-					!previousMethodNameSegment.endsWith(schemaName)) {
-
-					methodNameSegments.add(pathName);
-				}
-			}
-			else if ((i == (pathSegments.length - 1)) &&
-					 StringUtil.startsWith(
-						 returnType, Page.class.getName() + "<")) {
+			if ((i == (pathSegments.length - 1)) &&
+				StringUtil.startsWith(returnType, Page.class.getName() + "<")) {
 
 				String previousMethodNameSegment = methodNameSegments.get(
 					methodNameSegments.size() - 1);
@@ -530,11 +519,26 @@ public class ResourceOpenAPIParser {
 
 				methodNameSegments.add(pathName + "Page");
 			}
+			else if (pathSegment.contains("{")) {
+				String previousMethodNameSegment = methodNameSegments.get(
+					methodNameSegments.size() - 1);
+
+				if (!previousMethodNameSegment.endsWith(pathName) &&
+					!previousMethodNameSegment.endsWith(schemaName)) {
+
+					methodNameSegments.add(pathName);
+				}
+			}
 			else if (Objects.equals(pathName, schemaName)) {
 				methodNameSegments.add(pathName);
 			}
-			else {
+			else if ((i != (pathSegments.length - 1)) ||
+					 !Objects.equals(returnType, String.class.getName())) {
+
 				methodNameSegments.add(OpenAPIUtil.formatSingular(pathName));
+			}
+			else {
+				methodNameSegments.add(pathName);
 			}
 		}
 
@@ -657,6 +661,12 @@ public class ResourceOpenAPIParser {
 
 				if (schema == null) {
 					return void.class.getName();
+				}
+
+				String format = schema.getFormat();
+
+				if ((format != null) && format.equals("binary")) {
+					return javax.ws.rs.core.Response.class.getName();
 				}
 
 				String returnType = OpenAPIParserUtil.getJavaDataType(

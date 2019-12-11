@@ -17,7 +17,7 @@
 	<div class="carousel slide" data-ride="carousel" id="main-carousel">
 		<#if ItemHeading.getSiblings()?has_content>
 
-			<ol class="carousel-indicators hidden-sm hidden-xs">
+			<ol class="carousel-indicators d-md-block d-none">
 				<#list ItemHeading.getSiblings() as cur_ItemCounter>
 					<#if cur_ItemCounter?counter == 1>
 						<li class="active" data-slide-to="0" data-target="#main-carousel"></li>
@@ -49,7 +49,7 @@
 								</p>
 
 								<p>
-									<a class="btn btn-default btn-wb-default text-uppercase" href="${cur_ItemHeading.ItemLinkText.ItemLinkURL.getData()}">${cur_ItemHeading.ItemLinkText.getData()}</a>
+									<a class="btn btn-secondary btn-wb-default text-uppercase" href="${cur_ItemHeading.ItemLinkText.ItemLinkURL.getData()}">${cur_ItemHeading.ItemLinkText.getData()}</a>
 								</p>
 							</div>
 						</div>

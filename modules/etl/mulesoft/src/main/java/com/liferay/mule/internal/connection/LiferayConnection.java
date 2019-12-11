@@ -16,6 +16,7 @@ package com.liferay.mule.internal.connection;
 
 import com.liferay.mule.internal.connection.authentication.BasicAuthentication;
 import com.liferay.mule.internal.connection.authentication.HttpAuthentication;
+import com.liferay.mule.internal.connection.authentication.OAuth2Authentication;
 import com.liferay.mule.internal.oas.OASURLParser;
 
 import java.io.IOException;
@@ -33,6 +34,7 @@ import org.mule.runtime.http.api.HttpService;
 import org.mule.runtime.http.api.client.HttpClient;
 import org.mule.runtime.http.api.client.HttpClientConfiguration;
 import org.mule.runtime.http.api.client.HttpClientFactory;
+import org.mule.runtime.http.api.client.proxy.ProxyConfig;
 import org.mule.runtime.http.api.domain.entity.InputStreamHttpEntity;
 import org.mule.runtime.http.api.domain.message.request.HttpRequest;
 import org.mule.runtime.http.api.domain.message.request.HttpRequestBuilder;
@@ -45,23 +47,39 @@ public final class LiferayConnection {
 
 	public static LiferayConnection withBasicAuthentication(
 			HttpService httpService, String openApiSpecPath, String username,
-			String password)
+			String password, ProxyConfig proxyConfig)
 		throws ConnectionException {
 
 		return new LiferayConnection(
 			httpService, openApiSpecPath,
-			new BasicAuthentication(username, password));
+			new BasicAuthentication(username, password), proxyConfig);
 	}
 
 	public static LiferayConnection withOAuth2Authentication(
-		HttpService httpService, String openApiSpecPath, String consumerKey,
-		String consumerSecret) {
+			HttpService httpService, String openApiSpecPath, String consumerKey,
+			String consumerSecret, ProxyConfig proxyConfig)
+		throws ConnectionException {
 
-		throw new UnsupportedOperationException();
+		return new LiferayConnection(
+			httpService, openApiSpecPath, consumerKey, consumerSecret,
+			proxyConfig);
+	}
+
+	public HttpResponse delete(
+			Map<String, String> pathParams,
+			MultiMap<String, String> queryParams, String endpoint)
+		throws IOException, TimeoutException {
+
+		return _httpClient.send(
+			_getHttpRequest(
+				HttpConstants.Method.DELETE,
+				_serverBaseURL + _resolvePathParams(endpoint, pathParams),
+				queryParams, null),
+			10000, true, null);
 	}
 
 	public HttpResponse get(
-			MultiMap<String, String> pathParams,
+			Map<String, String> pathParams,
 			MultiMap<String, String> queryParams, String endpoint)
 		throws IOException, TimeoutException {
 
@@ -85,8 +103,21 @@ public final class LiferayConnection {
 		_httpClient.stop();
 	}
 
+	public HttpResponse patch(
+			InputStream inputStream, Map<String, String> pathParams,
+			MultiMap<String, String> queryParams, String endpoint)
+		throws IOException, TimeoutException {
+
+		return _httpClient.send(
+			_getHttpRequest(
+				HttpConstants.Method.PATCH,
+				_serverBaseURL + _resolvePathParams(endpoint, pathParams),
+				queryParams, inputStream),
+			10000, true, null);
+	}
+
 	public HttpResponse post(
-			InputStream inputStream, MultiMap<String, String> pathParams,
+			InputStream inputStream, Map<String, String> pathParams,
 			MultiMap<String, String> queryParams, String endpoint)
 		throws IOException, TimeoutException {
 
@@ -100,24 +131,46 @@ public final class LiferayConnection {
 
 	private LiferayConnection(
 			HttpService httpService, String openApiSpecPath,
-			HttpAuthentication httpAuthentication)
+			BasicAuthentication basicAuthentication, ProxyConfig proxyConfig)
 		throws ConnectionException {
 
 		_openAPISpecPath = openApiSpecPath;
 		_serverBaseURL = _getServerBaseURL(openApiSpecPath);
-		_httpAuthentication = httpAuthentication;
+		_httpAuthentication = basicAuthentication;
 
-		_initHttpClient(httpService);
+		_initHttpClient(httpService, proxyConfig);
+	}
+
+	private LiferayConnection(
+			HttpService httpService, String openApiSpecPath, String consumerKey,
+			String consumerSecret, ProxyConfig proxyConfig)
+		throws ConnectionException {
+
+		_openAPISpecPath = openApiSpecPath;
+		_serverBaseURL = _getServerBaseURL(openApiSpecPath);
+
+		_initHttpClient(httpService, proxyConfig);
+
+		try {
+			_httpAuthentication = new OAuth2Authentication(
+				consumerKey, consumerSecret, _httpClient, _openAPISpecPath);
+		}
+		catch (MalformedURLException murle) {
+			throw new ConnectionException(murle);
+		}
 	}
 
 	private HttpRequest _getHttpRequest(
-		HttpConstants.Method method, String uri,
-		MultiMap<String, String> queryParams, InputStream inputStream) {
+			HttpConstants.Method method, String uri,
+			MultiMap<String, String> queryParams, InputStream inputStream)
+		throws IOException, TimeoutException {
 
 		HttpRequestBuilder httpRequestBuilder = HttpRequest.builder();
 
 		httpRequestBuilder.addHeader(
 			"Authorization", _httpAuthentication.getAuthorizationHeader()
+		).addHeader(
+			"Content-Type", "application/json"
 		).method(
 			method
 		).queryParams(
@@ -136,9 +189,9 @@ public final class LiferayConnection {
 	private String _getServerBaseURL(String openApiSpecPath)
 		throws ConnectionException {
 
-		OASURLParser oasURLParser = new OASURLParser(openApiSpecPath);
-
 		try {
+			OASURLParser oasURLParser = new OASURLParser(openApiSpecPath);
+
 			return oasURLParser.getServerBaseURL();
 		}
 		catch (MalformedURLException murle) {
@@ -146,9 +199,15 @@ public final class LiferayConnection {
 		}
 	}
 
-	private void _initHttpClient(HttpService httpService) {
+	private void _initHttpClient(
+		HttpService httpService, ProxyConfig proxyConfig) {
+
 		HttpClientConfiguration.Builder builder =
 			new HttpClientConfiguration.Builder();
+
+		if (proxyConfig != null) {
+			builder.setProxyConfig(proxyConfig);
+		}
 
 		builder.setName("Liferay Http Client");
 
@@ -160,7 +219,7 @@ public final class LiferayConnection {
 	}
 
 	private String _resolvePathParams(
-		String endpoint, MultiMap<String, String> pathParams) {
+		String endpoint, Map<String, String> pathParams) {
 
 		for (Map.Entry<String, String> pathParam : pathParams.entrySet()) {
 			endpoint = endpoint.replace(

@@ -45,7 +45,20 @@ public abstract class PortalAcceptanceTestSuiteJob
 				jobProperties, "test.batch.names");
 		}
 
-		return getSetFromString(testBatchNames);
+		Set<String> testBatchNamesSet = getSetFromString(testBatchNames);
+
+		if (!_testSuiteName.equals("relevant")) {
+			return testBatchNamesSet;
+		}
+
+		String stableTestBatchNames = JenkinsResultsParserUtil.getProperty(
+			jobProperties, "test.batch.names[stable]");
+
+		if (stableTestBatchNames != null) {
+			testBatchNamesSet.addAll(getSetFromString(stableTestBatchNames));
+		}
+
+		return testBatchNamesSet;
 	}
 
 	@Override
@@ -61,25 +74,28 @@ public abstract class PortalAcceptanceTestSuiteJob
 				jobProperties, "test.batch.dist.app.servers");
 		}
 
-		return getSetFromString(testBatchDistAppServers);
+		Set<String> testBatchDistAppServersSet = getSetFromString(
+			testBatchDistAppServers);
+
+		if (!_testSuiteName.equals("relevant")) {
+			return testBatchDistAppServersSet;
+		}
+
+		String stableTestBatchDistAppServers =
+			JenkinsResultsParserUtil.getProperty(
+				jobProperties, "test.batch.dist.app.servers[stable]");
+
+		if (stableTestBatchDistAppServers != null) {
+			testBatchDistAppServersSet.addAll(
+				getSetFromString(stableTestBatchDistAppServers));
+		}
+
+		return testBatchDistAppServersSet;
 	}
 
 	@Override
 	public String getTestSuiteName() {
 		return _testSuiteName;
-	}
-
-	@Override
-	public boolean isUsePreBuiltBundles() {
-		String preBuiltBundles = JenkinsResultsParserUtil.getProperty(
-			getJobProperties(), "test.batch.dist.pre.built.bundles",
-			getTestSuiteName());
-
-		if ((preBuiltBundles != null) && preBuiltBundles.equals("true")) {
-			return true;
-		}
-
-		return false;
 	}
 
 	private final String _testSuiteName;

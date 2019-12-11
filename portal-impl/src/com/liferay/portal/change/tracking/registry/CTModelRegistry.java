@@ -24,27 +24,28 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CTModelRegistry {
 
 	public static CTModelRegistration getCTModelRegistration(String tableName) {
-		return _ctModelRegistrations.get(tableName);
+		return _tableNameCTModelRegistrationMap.get(tableName);
 	}
 
 	public static Set<String> getTableNames() {
-		return _ctModelRegistrations.keySet();
+		return _tableNameCTModelRegistrationMap.keySet();
 	}
 
 	public static void registerCTModel(
-		String tableName, CTModelRegistration ctModelRegistration) {
+		CTModelRegistration ctModelRegistration) {
 
-		_ctModelRegistrations.put(tableName, ctModelRegistration);
+		_tableNameCTModelRegistrationMap.put(
+			ctModelRegistration.getTableName(), ctModelRegistration);
 	}
 
 	public static void unregisterCTModel(String tableName) {
-		_ctModelRegistrations.remove(tableName);
+		_tableNameCTModelRegistrationMap.remove(tableName);
 	}
 
 	private CTModelRegistry() {
 	}
 
 	private static final Map<String, CTModelRegistration>
-		_ctModelRegistrations = new ConcurrentHashMap<>();
+		_tableNameCTModelRegistrationMap = new ConcurrentHashMap<>();
 
 }

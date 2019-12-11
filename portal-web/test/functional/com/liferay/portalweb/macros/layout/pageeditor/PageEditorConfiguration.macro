@@ -5,6 +5,20 @@ definition {
 		Click.clickNoMouseOver(locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_CONFIGURATION");
 	}
 
+	macro changeConfigColor {
+		Click(
+			fragment_name = "${fragmentName}",
+			locator1 = "PageEditor#SECTION_NAME");
+
+		PageEditorConfiguration._toggleConfigurationFloatingToolbar();
+
+		Click(
+			colorPalette = "${colorPalette}",
+			locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_PALETTE_SELECT");
+
+		PageEditorConfiguration._toggleConfigurationFloatingToolbar();
+	}
+
 	macro changeConfigSelection {
 		Click(
 			fragment_name = "${fragmentName}",
@@ -12,9 +26,11 @@ definition {
 
 		PageEditorConfiguration._toggleConfigurationFloatingToolbar();
 
-		Select(
-			locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT",
-			value1 = "${optionValue}");
+		while (!IsTextEqual(locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT", value1 = "${optionValue}")) {
+			Select(
+				locator1 = "FragmentEditor#FRAGMENTS_EDITOR_FLOATING_TOOLBAR_FIELD_SELECT",
+				value1 = "${optionValue}");
+		}
 
 		PageEditorConfiguration._toggleConfigurationFloatingToolbar();
 	}
@@ -26,9 +42,11 @@ definition {
 
 		PageEditorConfiguration._toggleConfigurationFloatingToolbar();
 
-		FormFields.editText(
-			fieldName = "${textConfigName}",
-			fieldValue = "${editableText}");
+		while (!IsTextEqual(key_fieldName = "${textConfigName}", locator1 = "FormFields#TEXT_FIELD", value1 = "${editableText}")) {
+			FormFields.editText(
+				fieldName = "${textConfigName}",
+				fieldValue = "${editableText}");
+		}
 
 		PageEditorConfiguration._toggleConfigurationFloatingToolbar();
 	}

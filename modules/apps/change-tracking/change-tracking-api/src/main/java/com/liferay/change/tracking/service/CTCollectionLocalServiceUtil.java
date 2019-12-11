@@ -52,10 +52,22 @@ public class CTCollectionLocalServiceUtil {
 	}
 
 	public static com.liferay.change.tracking.model.CTCollection
-			addCTCollection(long userId, String name, String description)
+			addCTCollection(
+				long companyId, long userId, String name, String description)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return getService().addCTCollection(userId, name, description);
+		return getService().addCTCollection(
+			companyId, userId, name, description);
+	}
+
+	public static java.util.Map
+		<Long,
+		 java.util.List<com.liferay.change.tracking.conflict.ConflictInfo>>
+				checkConflicts(
+					com.liferay.change.tracking.model.CTCollection ctCollection)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().checkConflicts(ctCollection);
 	}
 
 	/**
@@ -70,9 +82,7 @@ public class CTCollectionLocalServiceUtil {
 		return getService().createCTCollection(ctCollectionId);
 	}
 
-	public static void deleteCompanyCTCollections(long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
+	public static void deleteCompanyCTCollections(long companyId) {
 		getService().deleteCompanyCTCollections(companyId);
 	}
 
@@ -136,7 +146,7 @@ public class CTCollectionLocalServiceUtil {
 	 * Performs a dynamic query on the database and returns a range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTCollectionModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTCollectionModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -155,7 +165,7 @@ public class CTCollectionLocalServiceUtil {
 	 * Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTCollectionModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTCollectionModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -205,12 +215,6 @@ public class CTCollectionLocalServiceUtil {
 		return getService().fetchCTCollection(ctCollectionId);
 	}
 
-	public static com.liferay.change.tracking.model.CTCollection
-		fetchCTCollection(long companyId, String name) {
-
-		return getService().fetchCTCollection(companyId, name);
-	}
-
 	public static com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery
 		getActionableDynamicQuery() {
 
@@ -235,7 +239,7 @@ public class CTCollectionLocalServiceUtil {
 	 * Returns a range of all the ct collections.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTCollectionModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.change.tracking.model.impl.CTCollectionModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of ct collections
@@ -257,28 +261,6 @@ public class CTCollectionLocalServiceUtil {
 
 		return getService().getCTCollections(
 			companyId, status, start, end, orderByComparator);
-	}
-
-	public static java.util.List<com.liferay.change.tracking.model.CTCollection>
-		getCTCollections(
-			long companyId,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition
-				<com.liferay.change.tracking.model.CTCollection>
-					queryDefinition) {
-
-		return getService().getCTCollections(companyId, queryDefinition);
-	}
-
-	public static java.util.List<com.liferay.change.tracking.model.CTCollection>
-		getCTCollections(
-			long companyId,
-			com.liferay.portal.kernel.dao.orm.QueryDefinition
-				<com.liferay.change.tracking.model.CTCollection>
-					queryDefinition,
-			boolean includeProduction) {
-
-		return getService().getCTCollections(
-			companyId, queryDefinition, includeProduction);
 	}
 
 	/**
@@ -313,6 +295,16 @@ public class CTCollectionLocalServiceUtil {
 		return getService().getPersistedModel(primaryKeyObj);
 	}
 
+	public static com.liferay.change.tracking.model.CTCollection
+			undoCTCollection(
+				long ctCollectionId, long userId, String name,
+				String description)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return getService().undoCTCollection(
+			ctCollectionId, userId, name, description);
+	}
+
 	/**
 	 * Updates the ct collection in the database or adds it if it does not yet exist. Also notifies the appropriate model listeners.
 	 *
@@ -334,15 +326,6 @@ public class CTCollectionLocalServiceUtil {
 
 		return getService().updateCTCollection(
 			userId, ctCollectionId, name, description);
-	}
-
-	public static com.liferay.change.tracking.model.CTCollection updateStatus(
-			long userId,
-			com.liferay.change.tracking.model.CTCollection ctCollection,
-			int status)
-		throws com.liferay.portal.kernel.exception.PortalException {
-
-		return getService().updateStatus(userId, ctCollection, status);
 	}
 
 	public static CTCollectionLocalService getService() {

@@ -68,7 +68,7 @@ public class AdaptedImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's relative URL.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String contentUrl;
 
@@ -96,7 +96,7 @@ public class AdaptedImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's height in pixels.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Integer height;
 
@@ -126,7 +126,9 @@ public class AdaptedImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The name of the image's Adaptive Media image resolution."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String resolutionName;
 
@@ -154,7 +156,7 @@ public class AdaptedImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's size in bytes.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Long sizeInBytes;
 
@@ -182,7 +184,7 @@ public class AdaptedImage {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The image's width in pixels.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Integer width;
 
@@ -275,6 +277,12 @@ public class AdaptedImage {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.AdaptedImage",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -25,6 +25,7 @@ import com.liferay.journal.service.JournalFolderService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.subscription.service.SubscriptionLocalService;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -75,6 +76,10 @@ public class StructuredContentFolderDTOConverter implements DTOConverter {
 						journalFolder.getGroupId(), journalFolder.getFolderId(),
 						WorkflowConstants.STATUS_APPROVED);
 				siteId = journalFolder.getGroupId();
+				subscribed = _subscriptionLocalService.isSubscribed(
+					journalFolder.getCompanyId(),
+					dtoConverterContext.getUserId(),
+					JournalFolder.class.getName(), journalFolder.getFolderId());
 			}
 		};
 	}
@@ -87,6 +92,9 @@ public class StructuredContentFolderDTOConverter implements DTOConverter {
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SubscriptionLocalService _subscriptionLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

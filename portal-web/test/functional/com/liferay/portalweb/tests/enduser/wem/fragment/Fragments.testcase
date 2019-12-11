@@ -73,6 +73,370 @@ definition {
 		}
 	}
 
+	@description = "This is a test for LPS-98241. Basic Component Button can be configured."
+	@priority = "4"
+	test ConfigureBasicComponentButton {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Button");
+
+			PageEditor.configureFragment(
+				align = "Center",
+				size = "Large",
+				type = "Link");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(
+				align = "center",
+				fragmentName = "button",
+				size = "lg",
+				type = "link");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Button");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Button");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Button");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Button",
+				id = "Button");
+		}
+	}
+
+	@description = "This is a test for LPS-98241. Basic Component Card can be configured."
+	@priority = "3"
+	test ConfigureBasicComponentCard {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Card");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Card");
+
+			PageEditor.configureFragment(
+				alignment = "Center",
+				borderRadius = "None",
+				bottomSpacing = "5",
+				boxShadow = "Large",
+				imageSize = "Fit");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(
+				alignment = "center",
+				borderRadius = "0",
+				bottomSpacing = "5",
+				boxShadow = "lg",
+				fragmentName = "card",
+				imageSize = "100");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Card");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Card");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Card");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Card",
+				id = "Card");
+		}
+	}
+
+	@description = "This is a test for LPS-98241. Contributed fragment components Heading can be configured."
+	@priority = "4"
+	test ConfigureBasicComponentHeading {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Heading");
+
+			PageEditor.configureFragment(
+				align = "Right",
+				headingLevel = "H2",
+				textColor = "secondary");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(
+				align = "right",
+				fragmentName = "heading",
+				headingLevel = "h2",
+				textColor = "secondary");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Heading");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Heading");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Heading");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Heading",
+				id = "Heading");
+		}
+	}
+
+	@description = "This is a test for LPS-98241. Basic Component Image can be configured."
+	@priority = "3"
+	test ConfigureBasicComponentImage {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Image");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Image");
+
+			PageEditor.configureFragment(
+				align = "Center",
+				bottomSpacing = "2",
+				imageSize = "Original Size");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(
+				align = "center",
+				bottomSpacing = "2",
+				fragmentName = "image",
+				imageSize = "0");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Image");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Image");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Image");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Image",
+				id = "Image");
+		}
+	}
+
+	@description = "This is a test for LPS-98241. Contributed fragment components Paragraph can be configured."
+	@priority = "4"
+	test ConfigureBasicComponentParagraph {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Paragraph");
+
+			PageEditor.configureFragment(
+				align = "Right",
+				textColor = "warning");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(
+				align = "right",
+				fragmentName = "paragraph",
+				textColor = "warning");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Paragraph");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Paragraph");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Paragraph");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Paragraph",
+				id = "Paragraph");
+		}
+	}
+
+	@description = "This is a test for LPS-98241. Contributed fragment components Separator can be configured."
+	@priority = "4"
+	test ConfigureBasicComponentSeparator {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Separator");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Separator");
+
+			PageEditor.configureFragment(
+				borderColor = "lighter",
+				verticalSpace = "3");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(
+				borderColor = "247, 248, 249",
+				fragmentName = "separator",
+				verticalSpace = "3");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Separator");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Separator");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Separator");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Separator",
+				id = "Separator");
+		}
+	}
+
+	@description = "This is a test for LPS-98241. Contributed fragment components Spacer can be configured."
+	@priority = "4"
+	test ConfigureBasicComponentSpacer {
+		task ("Add a content page") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(pageName = "Test Content Page Name");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Spacer");
+		}
+
+		task ("Configure the fragment") {
+			PageEditor.gotoConfiguration(fragmentName = "Spacer");
+
+			PageEditor.configureFragment(height = "4");
+		}
+
+		task ("View the fragment style") {
+			PageEditor.viewFragmentStyle(height = "4");
+		}
+
+		task ("Remove the fragment") {
+			PageEditor.removeFragment(fragmentName = "Spacer");
+		}
+
+		task ("Add a basic component") {
+			PageEditor.addFragment(
+				collectionName = "Basic Components",
+				fragmentName = "Spacer");
+		}
+
+		task ("Duplicate the fragment") {
+			PageEditor.gotoDuplicate(fragmentName = "Spacer");
+		}
+
+		task ("View the duplicate fragment") {
+			PageEditor.viewDuplicateFragment(
+				fragmentName = "Spacer",
+				id = "Spacer");
+		}
+	}
+
 	@description = "This is a test for LPS-90064 and is a supplementary frontend test to the integration tests in LPS-90307. Fragments can be copied."
 	@priority = "5"
 	test CopyFragment {
@@ -93,6 +457,26 @@ definition {
 		task ("Assert the copied section fragment is present") {
 			FragmentsAdmin.viewEntryPresent(entry = "Fragment Name (Copy)");
 		}
+	}
+
+	@description = "This is a test for LPS-102173. Inherited contributed fragments can be copied."
+	@priority = "5"
+	test CopyInheritedContributedFragment {
+		property portal.acceptance = "true";
+
+		FragmentsAdminNavigator.gotoCollection(collectionName = "Basic Components");
+
+		task ("Copy button fragment to created collection") {
+			FragmentsAdminNavigator.gotoEntryEllipsisItem(
+				entry = "Button",
+				item = "Copy To");
+
+			FragmentsAdmin.selectCollection(collectionName = "Collection Name");
+		}
+
+		FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
+
+		FragmentsAdmin.viewEntryPresent(entry = "Button (Copy)");
 	}
 
 	@description = "Fragments can be deleted."
@@ -136,6 +520,91 @@ definition {
 
 		task ("Assert the fragment collection is not present") {
 			Collection.viewNotPresent(collectionName = "Collection Name");
+		}
+	}
+
+	@description = "This is a test for LPS-100540. Global fragments can be propagated to all pages of a site or sites that use the fragments"
+	@priority = "5"
+	test PropagateGlobalFragmentChanges {
+		property osgi.module.configuration.file.names = "com.liferay.fragment.web.internal.configuration.FragmentGlobalPanelAppConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+
+		task ("Navigate to fragments admin") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+		}
+
+		task ("Add a fragment collection") {
+			FragmentsAdmin.addCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Navigate to the fragment collection") {
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Add a section fragment to the fragment collection via JSON") {
+			JSONFragment.addSection(
+				collectionName = "Global Collection Name",
+				groupName = "Global",
+				name = "Global Fragment Name 1");
+		}
+
+		task ("Add a section fragment to the fragment collection via JSON") {
+			JSONFragment.addSection(
+				collectionName = "Global Collection Name",
+				groupName = "Global",
+				name = "Global Fragment Name 2");
+		}
+
+		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+		ContentPages.addPage(pageName = "Content Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 1");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 2");
+
+		PageEditor.clickPublish();
+
+		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+
+		FragmentsAdminNavigator.gotoEntryEllipsisItem(
+			entry = "Global Fragment Name 1",
+			item = "Edit");
+
+		FragmentsEditor.typeFileContent(fileName = "fragment_button.html");
+
+		Button.clickPublish();
+
+		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+
+		FragmentsAdminNavigator.gotoEntryEllipsisItem(
+			entry = "Global Fragment Name 1",
+			item = "View Site Usages");
+
+		var key_siteName = "Test Site Name";
+
+		Check(locator1 = "Fragment#FRAGMENT_SITE_USAGE_CHECKBOX");
+
+		MouseOver(locator1 = "Fragment#FRAGMENT_SITE_USAGE_NAV_ITEM");
+
+		Click(locator1 = "Button#PROPAGATE");
+
+		Alert.viewSuccessMessage();
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page-name");
+
+		for (var button : list "Submit,Cancel") {
+			Button.viewPresent(button = "${button}");
+		}
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/content-page-name");
+
+		for (var button : list "Submit,Cancel") {
+			Button.viewPresent(button = "${button}");
 		}
 	}
 
@@ -220,11 +689,185 @@ definition {
 			FragmentsAdmin.viewEntryPresent(entry = "Button");
 		}
 
-		FragmentsAdminNavigator.gotoCollection(collectionName = "Basic Sections");
+		FragmentsAdminNavigator.gotoCollection(collectionName = "Featured Content");
 
 		task ("Assert a fragment appears in Fragments Admin") {
 			FragmentsAdmin.viewEntryPresent(entry = "Banner Center");
 		}
+	}
+
+	@description = "This is a test for LPS-101230 and LPS-100540. Global fragments are visible in fragment admin and added ones are visible in Test Site Name site. Global fragments "View Site Usages" option is not available if fragment is not used in any page"
+	@priority = "5"
+	test ViewGlobalFragments {
+		property osgi.module.configuration.file.names = "com.liferay.fragment.web.internal.configuration.FragmentGlobalPanelAppConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+
+		task ("Navigate to fragments admin") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+		}
+
+		task ("Add a fragment collection") {
+			FragmentsAdmin.addCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Navigate to the fragment collection") {
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Add a section fragment that uses the Button fragment code") {
+			FragmentsAdmin.addFragment(fragmentName = "Global Fragment Name 1");
+
+			FragmentsEditor.typeFileContent(fileName = "fragment_button.html");
+
+			FragmentsEditor.typeFileContent(fileName = "fragment_button.css");
+
+			FragmentsEditor.typeFileContent(fileName = "fragment_button.js");
+		}
+
+		task ("Publish the section fragment") {
+			Button.clickPublish();
+		}
+
+		task ("Assert the fragment appears in Fragments Admin") {
+			FragmentsAdmin.viewEntryPresent(entry = "Global Fragment Name");
+		}
+
+		task ("Assert the View Site Usages doesn not display in fragment's kebab menu") {
+			LexiconCard.viewMenuItemNotPresent(
+				card = "Global Fragment Name 1",
+				item = "View Site Usages");
+		}
+
+		task ("Add a section fragment to the fragment collection via JSON") {
+			JSONFragment.addSection(
+				collectionName = "Global Collection Name",
+				groupName = "Global",
+				name = "Global Fragment Name 2");
+		}
+
+		task ("Navigate to fragments admin") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "test-site-name");
+		}
+
+		task ("Navigate to Global Collection") {
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Assert the fragments appear in Fragments Admin") {
+			FragmentsAdmin.viewEntryPresent(entry = "Global Fragment Name 1");
+			FragmentsAdmin.viewEntryPresent(entry = "Global Fragment Name 2");
+		}
+	}
+
+	@description = "This is a test for LPS-100540. Global fragments "View Site Usages" option shows all the Sites that use the fragment and how many usages there are per site"
+	@priority = "5"
+	test ViewGlobalFragmentsSiteUsages {
+		property osgi.module.configuration.file.names = "com.liferay.fragment.web.internal.configuration.FragmentGlobalPanelAppConfiguration.config";
+		property osgi.module.configurations = "enabled=B&quot;true&quot;";
+
+		task ("Navigate to fragments admin") {
+			FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+		}
+
+		task ("Add a fragment collection") {
+			FragmentsAdmin.addCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Navigate to the fragment collection") {
+			FragmentsAdminNavigator.gotoCollection(collectionName = "Global Collection Name");
+		}
+
+		task ("Add a section fragment to the fragment collection via JSON") {
+			JSONFragment.addSection(
+				collectionName = "Global Collection Name",
+				groupName = "Global",
+				name = "Global Fragment Name 1");
+		}
+
+		task ("Add a section fragment to the fragment collection via JSON") {
+			JSONFragment.addSection(
+				collectionName = "Global Collection Name",
+				groupName = "Global",
+				name = "Global Fragment Name 2");
+		}
+
+		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+		ContentPages.addPage(pageName = "Content Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 1");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 2");
+
+		PageEditor.clickPublish();
+
+		SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+		ContentPages.addPage(pageName = "Content Page Name 2");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 1");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 2");
+
+		PageEditor.clickPublish();
+
+		JSONGroup.addGroup(groupName = "Test Site Name 2");
+
+		SitePages.openPagesAdmin(siteURLKey = "test-site-name-2");
+
+		ContentPages.addPage(pageName = "Content Page Name");
+
+		PageEditor.addFragment(
+			collectionName = "Global Collection Name",
+			fragmentName = "Global Fragment Name 1");
+
+		PageEditor.clickPublish();
+
+		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+
+		FragmentsAdminNavigator.gotoEntryEllipsisItem(
+			entry = "Global Fragment Name 1",
+			item = "View Site Usages");
+
+		AssertTextEquals(
+			locator1 = "//tr[1]/td[2]",
+			value1 = "Test Site Name");
+
+		AssertTextEquals(
+			locator1 = "//tr[1]/td[3]",
+			value1 = "4");
+
+		AssertTextEquals(
+			locator1 = "//tr[2]/td[2]",
+			value1 = "Test Site Name 2");
+
+		AssertTextEquals(
+			locator1 = "//tr[2]/td[3]",
+			value1 = "2");
+
+		FragmentsAdminNavigator.openFragmentsAdmin(siteURLKey = "global");
+
+		FragmentsAdminNavigator.gotoEntryEllipsisItem(
+			entry = "Global Fragment Name 2",
+			item = "View Site Usages");
+
+		AssertTextEquals(
+			locator1 = "//tr[1]/td[2]",
+			value1 = "Test Site Name");
+
+		AssertTextEquals(
+			locator1 = "//tr[1]/td[3]",
+			value1 = "4");
+
+		AssertElementNotPresent(locator1 = "//*[contains(.,'Test Site Name 2')]");
 	}
 
 	@description = "Once fragments are published, they can no longer be saved as draft."
@@ -234,13 +877,13 @@ definition {
 			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
 		}
 
-		task ("Add a second section fragment") {
-			FragmentsAdmin.addSection(fragmentName = "Fragment Name 2");
+		task ("Add a second fragment") {
+			FragmentsAdmin.addFragment(fragmentName = "Fragment Name 2");
 
 			SiteAdmin.viewPortletTitle(portletTitle = "Fragment Name 2 (Draft)");
 		}
 
-		task ("Save the second section fragment as draft") {
+		task ("Save the second fragment as draft") {
 			PortletEntry.saveAsDraft();
 		}
 
@@ -252,13 +895,13 @@ definition {
 			FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
 		}
 
-		task ("Assert the second section fragment is in draft status") {
+		task ("Assert the second fragment is in draft status") {
 			FragmentsAdmin.viewEntryWorkflowStatus(
 				entry = "Fragment Name 2",
 				workflowStatus = "Draft");
 		}
 
-		task ("Publish the second section fragment") {
+		task ("Publish the second fragment") {
 			FragmentsAdminNavigator.gotoEntryEllipsisItem(
 				entry = "Fragment Name 2",
 				item = "Edit");
@@ -268,7 +911,7 @@ definition {
 
 		FragmentsAdminNavigator.gotoEntry(entry = "Fragment Name 2");
 
-		task ("Assert the second section fragment can no longer be saved as draft") {
+		task ("Assert the second fragment can no longer be saved as draft") {
 			AssertElementNotPresent(locator1 = "Button#SAVE_AS_DRAFT");
 		}
 	}

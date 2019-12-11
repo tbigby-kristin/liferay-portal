@@ -429,6 +429,11 @@ public class JournalArticleExportImportContentProcessor
 				"className", JournalArticle.class.getName()
 			).put(
 				"classPK", journalArticle.getResourcePrimKey()
+			).put(
+				"title",
+				journalArticle.getTitle(journalArticle.getDefaultLanguageId())
+			).put(
+				"titleMap", journalArticle.getTitleMap()
 			);
 
 			content = StringUtil.replace(

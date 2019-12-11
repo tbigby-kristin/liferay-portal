@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Html;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
@@ -72,9 +73,7 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 		HttpServletRequest httpServletRequest =
 			ddmFormFieldRenderingContext.getHttpServletRequest();
 
-		if (ddmFormFieldRenderingContext.isReadOnly() &&
-			Validator.isNotNull(ddmFormFieldRenderingContext.getValue())) {
-
+		if (Validator.isNotNull(ddmFormFieldRenderingContext.getValue())) {
 			JSONObject valueJSONObject = getValueJSONObject(
 				ddmFormFieldRenderingContext.getValue());
 
@@ -97,8 +96,6 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 		parameters.put(
 			"lexiconIconsPath", getLexiconIconsPath(httpServletRequest));
 
-		Map<String, String> stringsMap = new HashMap<>();
-
 		Locale displayLocale;
 
 		if (ddmFormFieldRenderingContext.isViewMode()) {
@@ -109,9 +106,10 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 				ddmFormFieldRenderingContext.getHttpServletRequest());
 		}
 
-		stringsMap.put(
+		Map<String, String> stringsMap = HashMapBuilder.put(
 			"select",
-			LanguageUtil.get(getResourceBundle(displayLocale), "select"));
+			LanguageUtil.get(getResourceBundle(displayLocale), "select")
+		).build();
 
 		parameters.put("strings", stringsMap);
 
@@ -121,7 +119,7 @@ public class DocumentLibraryDDMFormFieldTemplateContextContributor
 			value = "{}";
 		}
 
-		parameters.put("value", jsonFactory.looseDeserialize(value));
+		parameters.put("value", value);
 
 		return parameters;
 	}

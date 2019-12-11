@@ -56,9 +56,9 @@ AssetEntryUsagesDisplayContext assetEntryUsagesDisplayContext = new AssetEntryUs
 					<c:if test="<%= curLayout != null %>">
 
 						<%
-						Map<String, String> data = new HashMap<>();
-
-						data.put("href", assetEntryUsagesDisplayContext.getPreviewURL(assetEntryUsage));
+						Map<String, String> data = HashMapBuilder.put(
+							"href", assetEntryUsagesDisplayContext.getPreviewURL(assetEntryUsage)
+						).build();
 						%>
 
 						<clay:button
@@ -90,19 +90,17 @@ AssetEntryUsagesDisplayContext assetEntryUsagesDisplayContext = new AssetEntryUs
 			function(event) {
 				var delegateTarget = event.delegateTarget;
 
-				Liferay.Util.openWindow(
-					{
-						dialog: {
-							destroyOnHide: true,
-							modal: true
-						},
-						dialogIframe: {
-							bodyCssClass: 'dialog-with-footer article-preview'
-						},
-						title: '<liferay-ui:message key="preview" />',
-						uri: delegateTarget.getAttribute('data-href')
-					}
-				);
+				Liferay.Util.openWindow({
+					dialog: {
+						destroyOnHide: true,
+						modal: true
+					},
+					dialogIframe: {
+						bodyCssClass: 'dialog-with-footer article-preview'
+					},
+					title: '<liferay-ui:message key="preview" />',
+					uri: delegateTarget.getAttribute('data-href')
+				});
 			}
 		);
 

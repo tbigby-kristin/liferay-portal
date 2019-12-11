@@ -27,6 +27,13 @@ import com.liferay.portal.test.rule.AspectJNewEnvTestRule;
 
 import java.util.Collections;
 import java.util.Dictionary;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.FutureTask;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -66,6 +73,35 @@ public class ConfigurableUtilTest {
 		catch (ExceptionInInitializerError eiie) {
 			Assert.assertSame(throwable, eiie.getCause());
 		}
+	}
+
+	@AdviseWith(adviceClasses = ConfigurableUtilAdvice.class)
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
+	@Test
+	public void testConcurrentCreateConfigurable() throws Exception {
+		Callable<TestConfiguration> callable =
+			() -> ConfigurableUtil.createConfigurable(
+				TestConfiguration.class,
+				Collections.singletonMap(
+					"testReqiredString", "testReqiredString"));
+
+		FutureTask<TestConfiguration> futureTask1 = new FutureTask<>(callable);
+		FutureTask<TestConfiguration> futureTask2 = new FutureTask<>(callable);
+
+		Thread thread1 = new Thread(
+			futureTask1, "Configurable Util Test Thread 1");
+		Thread thread2 = new Thread(
+			futureTask2, "Configurable Util Test Thread 2");
+
+		thread1.start();
+		thread2.start();
+
+		ConfigurableUtilAdvice.waitUntilBlock();
+
+		ConfigurableUtilAdvice.unblock();
+
+		_assertTestConfiguration(futureTask1.get(), "testReqiredString");
+		_assertTestConfiguration(futureTask2.get(), "testReqiredString");
 	}
 
 	@Test
@@ -122,6 +158,39 @@ public class ConfigurableUtilTest {
 		// Constructor
 
 		new ConfigurableUtil();
+	}
+
+	@Aspect
+	public static class ConfigurableUtilAdvice {
+
+		public static void unblock() {
+			_blockingCountDownLatch.countDown();
+		}
+
+		public static void waitUntilBlock() throws InterruptedException {
+			_waitingCountDownLatch.await();
+		}
+
+		@Around(
+			"execution(private * com.liferay.portal.configuration.metatype." +
+				"bnd.util.ConfigurableUtil._generateSnapshotClassData(..))"
+		)
+		public Object generateSnapshotClassData(
+				ProceedingJoinPoint proceedingJoinPoint)
+			throws Throwable {
+
+			_waitingCountDownLatch.countDown();
+
+			_blockingCountDownLatch.await();
+
+			return proceedingJoinPoint.proceed();
+		}
+
+		private static final CountDownLatch _blockingCountDownLatch =
+			new CountDownLatch(1);
+		private static final CountDownLatch _waitingCountDownLatch =
+			new CountDownLatch(2);
+
 	}
 
 	public static class TestClass {

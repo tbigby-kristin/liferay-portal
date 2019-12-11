@@ -58,11 +58,11 @@ public class AddDDMStructureMVCActionCommand extends BaseMVCActionCommand {
 		throws Exception {
 
 		long groupId = ParamUtil.getLong(actionRequest, "groupId");
-		String ddmStructureKey = ParamUtil.getString(
-			actionRequest, "ddmStructureKey");
 		long parentDDMStructureId = ParamUtil.getLong(
 			actionRequest, "parentDDMStructureId",
 			DDMStructureConstants.DEFAULT_PARENT_STRUCTURE_ID);
+		String structureKey = ParamUtil.getString(
+			actionRequest, "structureKey");
 		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
 			actionRequest, "name");
 		Map<Locale, String> descriptionMap =
@@ -83,7 +83,7 @@ public class AddDDMStructureMVCActionCommand extends BaseMVCActionCommand {
 		_ddmStructureService.addStructure(
 			groupId, parentDDMStructureId,
 			_portal.getClassNameId(JournalArticle.class.getName()),
-			ddmStructureKey, nameMap, descriptionMap, ddmForm, ddmFormLayout,
+			structureKey, nameMap, descriptionMap, ddmForm, ddmFormLayout,
 			storageType, DDMStructureConstants.TYPE_DEFAULT, serviceContext);
 	}
 

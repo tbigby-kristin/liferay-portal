@@ -79,6 +79,7 @@ import com.liferay.portal.kernel.servlet.DummyHttpServletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -102,7 +103,6 @@ import java.net.URI;
 import java.time.LocalDateTime;
 
 import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -259,8 +259,8 @@ public class StructuredContentResourceImpl
 	@Override
 	public Page<StructuredContent>
 			getStructuredContentFolderStructuredContentsPage(
-				Long structuredContentFolderId, String search, Filter filter,
-				Pagination pagination, Sort[] sorts)
+				Long structuredContentFolderId, Boolean flatten, String search,
+				Filter filter, Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		return _getStructuredContentsPage(
@@ -269,10 +269,16 @@ public class StructuredContentResourceImpl
 					BooleanFilter booleanFilter =
 						booleanQuery.getPreBooleanFilter();
 
+					String field =
+						com.liferay.portal.kernel.search.Field.FOLDER_ID;
+
+					if (GetterUtil.getBoolean(flatten)) {
+						field = "treePath";
+					}
+
 					booleanFilter.add(
 						new TermFilter(
-							com.liferay.portal.kernel.search.Field.FOLDER_ID,
-							structuredContentFolderId.toString()),
+							field, structuredContentFolderId.toString()),
 						BooleanClauseOccur.MUST);
 				}
 			},
@@ -488,6 +494,28 @@ public class StructuredContentResourceImpl
 			rating.getRatingValue(), structuredContentId);
 	}
 
+	@Override
+	public void putStructuredContentSubscribe(Long structuredContentId)
+		throws Exception {
+
+		JournalArticle journalArticle = _journalArticleService.getLatestArticle(
+			structuredContentId);
+
+		_journalArticleService.subscribe(
+			journalArticle.getGroupId(), journalArticle.getResourcePrimKey());
+	}
+
+	@Override
+	public void putStructuredContentUnsubscribe(Long structuredContentId)
+		throws Exception {
+
+		JournalArticle journalArticle = _journalArticleService.getLatestArticle(
+			structuredContentId);
+
+		_journalArticleService.unsubscribe(
+			journalArticle.getGroupId(), journalArticle.getResourcePrimKey());
+	}
+
 	private StructuredContent _addStructuredContent(
 			Long siteId, Long parentStructuredContentFolderId,
 			StructuredContent structuredContent)
@@ -517,20 +545,14 @@ public class StructuredContentResourceImpl
 		return _toStructuredContent(
 			_journalArticleService.addArticle(
 				siteId, parentStructuredContentFolderId, 0, 0, null, true,
-				new HashMap<Locale, String>() {
-					{
-						put(
-							contextAcceptLanguage.getPreferredLocale(),
-							structuredContent.getTitle());
-					}
-				},
-				new HashMap<Locale, String>() {
-					{
-						put(
-							contextAcceptLanguage.getPreferredLocale(),
-							structuredContent.getDescription());
-					}
-				},
+				HashMapBuilder.put(
+					contextAcceptLanguage.getPreferredLocale(),
+					structuredContent.getTitle()
+				).build(),
+				HashMapBuilder.put(
+					contextAcceptLanguage.getPreferredLocale(),
+					structuredContent.getDescription()
+				).build(),
 				_createJournalArticleContent(
 					DDMFormValuesUtil.toDDMFormValues(
 						structuredContent.getContentFields(),
@@ -809,7 +831,8 @@ public class StructuredContentResourceImpl
 				contextAcceptLanguage.getPreferredLocale(),
 				value.getString(contextAcceptLanguage.getPreferredLocale()));
 
-			ContentField[] nestedContentFields = contentField.getNestedFields();
+			ContentField[] nestedContentFields =
+				contentField.getNestedContentFields();
 
 			if (nestedContentFields != null) {
 				_toPatchedFields(nestedContentFields, journalArticle);
@@ -843,7 +866,8 @@ public class StructuredContentResourceImpl
 		return _structuredContentDTOConverter.toDTO(
 			new DefaultDTOConverterContext(
 				contextAcceptLanguage.getPreferredLocale(),
-				journalArticle.getResourcePrimKey(), contextUriInfo));
+				journalArticle.getResourcePrimKey(), contextUriInfo,
+				contextUser));
 	}
 
 	private void _validateContentFields(
@@ -866,7 +890,7 @@ public class StructuredContentResourceImpl
 			}
 
 			_validateContentFields(
-				contentField.getNestedFields(), ddmStructure);
+				contentField.getNestedContentFields(), ddmStructure);
 		}
 	}
 

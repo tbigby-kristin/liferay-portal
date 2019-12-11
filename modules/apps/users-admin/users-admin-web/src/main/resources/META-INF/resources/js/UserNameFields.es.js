@@ -12,11 +12,10 @@
  * details.
  */
 
+import {createPortletURL, PortletBase} from 'frontend-js-web';
 import dom from 'metal-dom';
 import {EventHandler} from 'metal-events';
 import {Config} from 'metal-state';
-
-import {createPortletURL, PortletBase} from 'frontend-js-web';
 
 /**
  * Handles actions to display user name field for a given locale.
@@ -144,7 +143,6 @@ class UserNameFields extends PortletBase {
 	 * @protected
 	 */
 	_handleError(error) {
-		// eslint-disable-next-line no-console
 		console.error(error);
 
 		this._removeLoadingIndicator();

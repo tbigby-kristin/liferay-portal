@@ -12,17 +12,18 @@
  * details.
  */
 
-import {useEffect, useCallback, useContext} from 'react';
-import FormViewContext from './FormViewContext.es';
-import DataLayoutBuilderContext from './DataLayoutBuilderContext.es';
-import {useDrop} from 'react-dnd';
 import {getIndexes} from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
 import dom from 'metal-dom';
+import {useEffect, useCallback, useContext} from 'react';
+import {useDrop} from 'react-dnd';
+
 import {
 	DRAG_CUSTOM_OBJECT_FIELD,
 	DRAG_FIELD_TYPE
 } from '../../utils/dragTypes.es';
-import {addCustomObjectField, addLayoutBuilderField} from './actions.es';
+import DataLayoutBuilderContext from './DataLayoutBuilderContext.es';
+import FormViewContext from './FormViewContext.es';
+import {dropCustomObjectField, dropLayoutBuilderField} from './actions.es';
 
 const replaceColumn = node => {
 	if (node.parentNode) {
@@ -41,7 +42,7 @@ export default ({node}) => {
 			if (type === DRAG_FIELD_TYPE) {
 				dataLayoutBuilder.dispatch(
 					'fieldAdded',
-					addLayoutBuilderField({
+					dropLayoutBuilderField({
 						addedToPlaceholder,
 						dataLayoutBuilder,
 						fieldTypeName: data.name,
@@ -51,12 +52,13 @@ export default ({node}) => {
 			} else if (type === DRAG_CUSTOM_OBJECT_FIELD) {
 				dataLayoutBuilder.dispatch(
 					'fieldAdded',
-					addCustomObjectField({
+					dropCustomObjectField({
 						addedToPlaceholder,
 						dataDefinition,
 						dataDefinitionFieldName: data.name,
 						dataLayoutBuilder,
-						indexes
+						indexes,
+						skipFieldNameGeneration: true
 					})
 				);
 			}

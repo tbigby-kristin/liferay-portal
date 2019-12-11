@@ -37,8 +37,10 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.util.GUtil;
 
 /**
- * @author Andrea Di Giorgi
+ * @author     Andrea Di Giorgi
+ * @deprecated As of Judson (7.1.x), with no direct replacement
  */
+@Deprecated
 public class TranspileJSTask extends ExecuteNodeScriptTask {
 
 	public TranspileJSTask() {

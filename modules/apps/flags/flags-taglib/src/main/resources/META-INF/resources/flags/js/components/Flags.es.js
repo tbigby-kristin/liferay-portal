@@ -12,13 +12,15 @@
  * details.
  */
 
-import {fetch, objectToFormData} from 'frontend-js-web';
-import {useIsMounted} from 'frontend-js-react-web';
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
+import {useModal} from '@clayui/modal';
+import {useIsMounted} from 'frontend-js-react-web';
+import {fetch, objectToFormData} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {useContext, useState} from 'react';
 
+import ThemeContext from '../ThemeContext.es';
 import {
 	OTHER_REASON_VALUE,
 	STATUS_ERROR,
@@ -26,8 +28,6 @@ import {
 	STATUS_REPORT,
 	STATUS_SUCCESS
 } from '../constants.es';
-
-import ThemeContext from '../ThemeContext.es';
 import FlagsModal from './FlagsModal.es';
 
 const Flags = ({
@@ -124,6 +124,10 @@ const Flags = ({
 			});
 	};
 
+	const {observer} = useModal({
+		onClose: handleClickClose
+	});
+
 	return (
 		<>
 			<ClayButton
@@ -155,6 +159,7 @@ const Flags = ({
 					handleInputChange={handleInputChange}
 					handleSubmit={handleSubmitReport}
 					isSending={isSending}
+					observer={observer}
 					pathTermsOfUse={pathTermsOfUse}
 					reasons={reasons}
 					selectedReason={selectedReason}

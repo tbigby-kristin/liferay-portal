@@ -248,12 +248,13 @@ definition {
 			required = "true",
 			vocabularyName = "Vocabulary Name");
 
-		JSONCategory.addCategory(
+		var categoryId = JSONCategory.addCategory(
 			groupName = "Test Site Name",
 			title = "Category Name",
 			vocabularyName = "Vocabulary Name");
 
 		JSONLayout.addPublicLayout(
+			assetCategoryIds = "${categoryId}",
 			groupName = "Test Site Name",
 			layoutName = "Test Page Name");
 
@@ -876,6 +877,8 @@ definition {
 			pageName = "Test Page Name",
 			siteName = "Import Site Name");
 
+		CategoriesNavigationPortlet.selectCategoryPG(categoryName = "Category Name");
+
 		CategoriesNavigationPortlet.selectCategoryPG(categoryName = "Subcategory Name");
 
 		AssetPublisherPortlet.viewAssetPG(
@@ -1028,48 +1031,52 @@ definition {
 
 	@priority = "4"
 	test SearchEditedCategory {
-		property testray.component.names = "Categories,Documents Management";
-
-		Category.openCategoriesAdmin(siteURLKey = "test-site-name");
-
-		Category.addCP(
-			categoryName = "Category Name",
-			vocabularyName = "Topic");
+		property testray.component.names = "Categories";
 
 		JSONLayout.addPublicLayout(
 			groupName = "Test Site Name",
 			layoutName = "Search Page");
 
-		ProductMenu.gotoPortlet(
-			category = "Content &amp; Data",
-			panel = "Site Administration",
-			portlet = "Documents and Media");
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Search Page",
+			widgetName = "Search Bar");
 
-		DMDocument.addCP(
-			categoryNameList = "Category Name",
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = "Document_1.doc",
-			dmDocumentTitle = "DM Document Title",
-			vocabularyName = "Topic");
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Search Page",
+			widgetName = "Search Results");
 
-		Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+		JSONCategory.addVocabulary(
+			groupName = "Test Site Name",
+			title = "Vocabulary Name");
 
-		Category.editCP(
+		var categoryId = JSONCategory.addCategory(
+			groupName = "Test Site Name",
+			title = "Category Name",
+			vocabularyName = "Vocabulary Name");
+
+		JSONWebcontent.addWebContent(
+			assetCategoryIds = "${categoryId}",
+			content = "Test Content",
+			groupName = "Test Site Name",
+			title = "Test Title");
+
+		JSONCategory.updateCategoryName(
 			categoryName = "Category Name",
-			categoryNameEdit = "Edited",
-			vocabularyName = "Topic");
+			groupName = "Test Site Name",
+			title = "Edited",
+			vocabularyName = "Vocabulary Name");
 
 		Navigator.gotoSitePage(
 			pageName = "Search Page",
 			siteName = "Test Site Name");
 
-		SearchPortlets.addWidgets(searchPortletList = "Search Bar,Search Results");
-
 		SearchPortlets.searchWidget(searchTerm = "Edited");
 
 		SearchResultPortlet.viewSearchResults(
-			searchAssetTitle = "DM Document Title",
-			searchAssetType = "Document");
+			searchAssetTitle = "Test Title",
+			searchAssetType = "Web Content Article");
 	}
 
 	@priority = "4"
@@ -1220,6 +1227,106 @@ definition {
 		Search.searchCP(searchTerm = "Null");
 
 		Vocabulary.viewSearchResultsCP(nullResult = "true");
+	}
+
+	@Description ="This is for LPS-101409. Validate if select a required category when entering the page name not based on a page template."
+	@priority ="5"
+	test SelectRequiredCategoryWhenEnterPageNameWithBlankPageTemplate {
+		property testray.component.names = "Categories";
+
+		task ("Add a vocabulary with required for page") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.addWithAssociatedAssetTypeCP(
+				assetType = "Page",
+				required = "true",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a page with blank page template and select a required category") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			ContentPages.addPage(
+				categoryName = "Category Name",
+				pageName = "Test Content Page Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Assert there is a success message") {
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Navigate to the Pages Administration") {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				panel = "Site Administration",
+				portlet = "Pages");
+		}
+
+		task ("Assert the page exist") {
+			SitePages.togglePrivacy(privacy = "Public Pages");
+
+			AssertVisible(
+				key_itemName = "Test Content Page Name",
+				locator1 = "SitePages#LIST_GROUP_ITEM");
+		}
+	}
+
+	@Description ="This is for LPS-101409. Validate if select a required category when entering the page name based on a page template."
+	@priority ="5"
+	test SelectRequiredCategoryWhenEnterPageNameWithWidgetPageTemplate {
+		property testray.component.names = "Categories";
+
+		task ("Add a vocabulary with required for page") {
+			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
+
+			Vocabulary.addWithAssociatedAssetTypeCP(
+				assetType = "Page",
+				required = "true",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a category") {
+			JSONCategory.addCategory(
+				groupName = "Test Site Name",
+				title = "Category Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Add a page with widget page template and select a required category") {
+			SitePages.openPagesAdmin(siteURLKey = "test-site-name");
+
+			SitePages.addPublicPage(
+				categoryName = "Category Name",
+				pageName = "Test Widget Page Name",
+				vocabularyName = "Vocabulary Name");
+		}
+
+		task ("Assert there is a success message") {
+			Alert.viewSuccessMessage();
+		}
+
+		task ("Navigate to the Pages Administration") {
+			ProductMenu.gotoPortlet(
+				category = "Site Builder",
+				panel = "Site Administration",
+				portlet = "Pages");
+		}
+
+		task ("Assert the page exist") {
+			SitePages.togglePrivacy(privacy = "Public Pages");
+
+			AssertVisible(
+				key_itemName = "Test Widget Page Name",
+				locator1 = "SitePages#LIST_GROUP_ITEM");
+		}
 	}
 
 	@priority = "4"

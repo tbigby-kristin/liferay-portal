@@ -103,10 +103,14 @@ public class SubscriptionSender implements Serializable {
 	}
 
 	public void addPersistedSubscribers(String className, long classPK) {
-		ObjectValuePair<String, Long> ovp = new ObjectValuePair<>(
-			className, classPK);
+		addPersistedSubscribers(className, classPK, true);
+	}
 
-		_persistestedSubscribersOVPs.add(ovp);
+	public void addPersistedSubscribers(
+		String className, long classPK, boolean notifyImmediately) {
+
+		_persistedSubscribersTuples.add(
+			new Tuple(className, classPK, notifyImmediately));
 	}
 
 	public void addRuntimeSubscribers(String toAddress, String toName) {
@@ -130,11 +134,10 @@ public class SubscriptionSender implements Serializable {
 				currentThread.setContextClassLoader(_classLoader);
 			}
 
-			for (ObjectValuePair<String, Long> ovp :
-					_persistestedSubscribersOVPs) {
-
-				String className = ovp.getKey();
-				long classPK = ovp.getValue();
+			for (Tuple tuple : _persistedSubscribersTuples) {
+				String className = (String)tuple.getObject(0);
+				long classPK = (long)tuple.getObject(1);
+				boolean notifyImmediately = (boolean)tuple.getObject(2);
 
 				List<Subscription> subscriptions =
 					SubscriptionLocalServiceUtil.getSubscriptions(
@@ -142,7 +145,8 @@ public class SubscriptionSender implements Serializable {
 
 				for (Subscription subscription : subscriptions) {
 					try {
-						notifyPersistedSubscriber(subscription);
+						notifyPersistedSubscriber(
+							subscription, notifyImmediately);
 					}
 					catch (Exception e) {
 						_log.error(
@@ -152,7 +156,7 @@ public class SubscriptionSender implements Serializable {
 				}
 			}
 
-			_persistestedSubscribersOVPs.clear();
+			_persistedSubscribersTuples.clear();
 
 			for (ObjectValuePair<String, String> ovp :
 					_runtimeSubscribersOVPs) {
@@ -255,6 +259,27 @@ public class SubscriptionSender implements Serializable {
 		return serviceContext;
 	}
 
+	public boolean hasSubscribers() {
+		if (!_runtimeSubscribersOVPs.isEmpty()) {
+			return true;
+		}
+
+		for (Tuple tuple : _persistedSubscribersTuples) {
+			String className = (String)tuple.getObject(0);
+			long classPK = (long)tuple.getObject(1);
+
+			List<Subscription> subscriptions =
+				SubscriptionLocalServiceUtil.getSubscriptions(
+					companyId, className, classPK);
+
+			if (!subscriptions.isEmpty()) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public void initialize() throws Exception {
 		if (_initialized) {
 			return;
@@ -301,6 +326,10 @@ public class SubscriptionSender implements Serializable {
 
 	public boolean isBulk() {
 		return bulk;
+	}
+
+	public void sendEmailNotification(long userId) throws Exception {
+		sendEmailNotification(UserLocalServiceUtil.getUser(userId));
 	}
 
 	public void setBody(String body) {
@@ -572,14 +601,38 @@ public class SubscriptionSender implements Serializable {
 		return Boolean.TRUE;
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	protected void notifyPersistedSubscriber(Subscription subscription)
 		throws Exception {
 
-		notifyPersistedSubscriber(subscription, _className, _classPK);
+		notifyPersistedSubscriber(subscription, true);
 	}
 
 	protected void notifyPersistedSubscriber(
+			Subscription subscription, boolean notifyImmediately)
+		throws Exception {
+
+		notifyPersistedSubscriber(
+			subscription, _className, _classPK, notifyImmediately);
+	}
+
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
+	protected void notifyPersistedSubscriber(
 			Subscription subscription, String className, long classPK)
+		throws Exception {
+
+		notifyPersistedSubscriber(subscription, _className, _classPK, true);
+	}
+
+	protected void notifyPersistedSubscriber(
+			Subscription subscription, String className, long classPK,
+			boolean notifyImmediately)
 		throws Exception {
 
 		User user = UserLocalServiceUtil.fetchUserById(
@@ -599,21 +652,42 @@ public class SubscriptionSender implements Serializable {
 
 		String emailAddress = user.getEmailAddress();
 
-		if (_sentEmailAddresses.contains(emailAddress)) {
-			if (_log.isDebugEnabled()) {
-				_log.debug("Do not send a duplicate email to " + emailAddress);
+		if (notifyImmediately) {
+			if (_sentEmailAddresses.contains(emailAddress)) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Do not send a duplicate email to " + emailAddress);
+				}
+
+				return;
 			}
 
-			return;
-		}
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"Add " + emailAddress +
+						" to the list of users who have received an email");
+			}
 
-		if (_log.isDebugEnabled()) {
-			_log.debug(
-				"Add " + emailAddress +
-					" to the list of users who have received an email");
+			_sentEmailAddresses.add(emailAddress);
 		}
+		else {
+			if (_delayedSentEmailAddresses.contains(emailAddress)) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Do not send a duplicate email to " + emailAddress);
+				}
 
-		_sentEmailAddresses.add(emailAddress);
+				return;
+			}
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"Add " + emailAddress +
+						" to the list of users who will receive an email");
+			}
+
+			_delayedSentEmailAddresses.add(emailAddress);
+		}
 
 		if (!user.isActive()) {
 			if (_log.isDebugEnabled()) {
@@ -640,7 +714,7 @@ public class SubscriptionSender implements Serializable {
 
 		_notifyHooks(Hook.Event.PERSISTED_SUBSCRIBER_FOUND, subscription);
 
-		sendNotification(user);
+		sendNotification(user, notifyImmediately);
 	}
 
 	protected void notifyRuntimeSubscriber(InternetAddress to, Locale locale)
@@ -681,11 +755,23 @@ public class SubscriptionSender implements Serializable {
 		).put(
 			"classPK", _classPK
 		).put(
+			"context", _context
+		).put(
 			"entryTitle", _entryTitle
 		).put(
 			"entryURL", _entryURL
 		).put(
+			"localizedBodyMap", localizedBodyMap
+		).put(
+			"localizedContext", _localizedContext
+		).put(
+			"localizedSubjectMap", localizedSubjectMap
+		).put(
+			"mailId", mailId
+		).put(
 			"notificationType", _notificationType
+		).put(
+			"portletId", portletId
 		).put(
 			"userId", currentUserId
 		);
@@ -718,16 +804,6 @@ public class SubscriptionSender implements Serializable {
 		mailMessage.setBody(processedBody);
 
 		_notifyHooks(Hook.Event.MAIL_MESSAGE_CREATED, mailMessage);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	protected String replaceContent(String content, Locale locale)
-		throws Exception {
-
-		return replaceContent(content, locale, true);
 	}
 
 	/**
@@ -835,7 +911,17 @@ public class SubscriptionSender implements Serializable {
 		}
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	protected void sendNotification(User user) throws Exception {
+		sendNotification(user, true);
+	}
+
+	protected void sendNotification(User user, boolean notifyImmediately)
+		throws Exception {
+
 		if (currentUserId == user.getUserId()) {
 			if (_log.isDebugEnabled()) {
 				_log.debug("Skip user " + currentUserId);
@@ -844,11 +930,24 @@ public class SubscriptionSender implements Serializable {
 			return;
 		}
 
-		sendEmailNotification(user);
-		sendUserNotification(user);
+		if (notifyImmediately) {
+			sendEmailNotification(user);
+		}
+
+		sendUserNotification(user, notifyImmediately);
 	}
 
+	/**
+	 * @deprecated As of Mueller (7.2.x)
+	 */
+	@Deprecated
 	protected void sendUserNotification(User user) throws Exception {
+		sendNotification(user, true);
+	}
+
+	protected void sendUserNotification(User user, boolean notifyImmediately)
+		throws Exception {
+
 		JSONObject notificationEventJSONObject =
 			JSONFactoryUtil.createJSONObject();
 
@@ -861,8 +960,8 @@ public class SubscriptionSender implements Serializable {
 
 			UserNotificationEventLocalServiceUtil.sendUserNotificationEvents(
 				user.getUserId(), portletId,
-				UserNotificationDeliveryConstants.TYPE_PUSH,
-				notificationEventJSONObject);
+				UserNotificationDeliveryConstants.TYPE_PUSH, notifyImmediately,
+				false, notificationEventJSONObject);
 		}
 
 		if (UserNotificationManagerUtil.isDeliver(
@@ -873,7 +972,7 @@ public class SubscriptionSender implements Serializable {
 			UserNotificationEventLocalServiceUtil.sendUserNotificationEvents(
 				user.getUserId(), portletId,
 				UserNotificationDeliveryConstants.TYPE_WEBSITE,
-				notificationEventJSONObject);
+				notifyImmediately, false, notificationEventJSONObject);
 		}
 	}
 
@@ -1018,6 +1117,7 @@ public class SubscriptionSender implements Serializable {
 	private final Map<String, EscapableObject<String>> _context =
 		new HashMap<>();
 	private String _contextCreatorUserPrefix;
+	private final Set<String> _delayedSentEmailAddresses = new HashSet<>();
 	private String _entryTitle;
 	private String _entryURL;
 	private final Map<Hook.Event<?>, List<Hook<?>>> _hooks = new HashMap<>();
@@ -1028,8 +1128,7 @@ public class SubscriptionSender implements Serializable {
 	private String _mailIdPopPortletPrefix;
 	private long _notificationClassNameId;
 	private int _notificationType;
-	private final List<ObjectValuePair<String, Long>>
-		_persistestedSubscribersOVPs = new ArrayList<>();
+	private final List<Tuple> _persistedSubscribersTuples = new ArrayList<>();
 	private final List<ObjectValuePair<String, String>>
 		_runtimeSubscribersOVPs = new ArrayList<>();
 	private final Set<String> _sentEmailAddresses = new HashSet<>();

@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
@@ -31,7 +32,6 @@ import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -137,32 +137,31 @@ public class PollsQuestionMultiLanguageSearchTest {
 
 	private void _createPollsQuestionMultiLanguage() throws Exception {
 		pollsQuestionFixture.createPollsQuestion(
-			new HashMap<Locale, String>() {
-				{
-					put(LocaleUtil.US, _KEYWORD_US);
-					put(LocaleUtil.JAPAN, _KEYWORD_JP);
-				}
-			},
-			new HashMap<Locale, String>() {
-				{
-					put(LocaleUtil.US, _KEYWORD_US);
-					put(LocaleUtil.JAPAN, _KEYWORD_JP);
-				}
-			});
+			HashMapBuilder.put(
+				LocaleUtil.JAPAN, _KEYWORD_JP
+			).put(
+				LocaleUtil.US, _KEYWORD_US
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.JAPAN, _KEYWORD_JP
+			).put(
+				LocaleUtil.US, _KEYWORD_US
+			).build());
 	}
 
 	private Map<String, String> _getMapResult(String prefix) {
-		return new HashMap<String, String>() {
-			{
-				put(prefix, _KEYWORD_US + StringPool.SPACE + _KEYWORD_JP);
-
+		return HashMapBuilder.put(
+			prefix, _KEYWORD_US + StringPool.SPACE + _KEYWORD_JP
+		).put(
+			() -> {
 				if (prefix == _TITLE) {
-					put(
-						prefix + "_sortable",
-						_KEYWORD_US + StringPool.SPACE + _KEYWORD_JP);
+					return prefix + "_sortable";
 				}
-			}
-		};
+
+				return null;
+			},
+			_KEYWORD_US + StringPool.SPACE + _KEYWORD_JP
+		).build();
 	}
 
 	private void _testLocaleKeyword(

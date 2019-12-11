@@ -44,7 +44,7 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface DataDefinitionResource {
 
-	public String getDataDefinitionDataDefinitionFieldFieldType()
+	public String getDataDefinitionDataDefinitionFieldFieldTypes()
 		throws Exception;
 
 	public void deleteDataDefinition(Long dataDefinitionId) throws Exception;
@@ -54,6 +54,10 @@ public interface DataDefinitionResource {
 
 	public DataDefinition putDataDefinition(
 			Long dataDefinitionId, DataDefinition dataDefinition)
+		throws Exception;
+
+	public String getDataDefinitionDataDefinitionFieldLinks(
+			Long dataDefinitionId, String fieldName)
 		throws Exception;
 
 	public void postDataDefinitionDataDefinitionPermission(
@@ -67,7 +71,8 @@ public interface DataDefinitionResource {
 		throws Exception;
 
 	public Page<DataDefinition> getSiteDataDefinitionsPage(
-			Long siteId, String keywords, Pagination pagination, Sort[] sorts)
+			Long siteId, Long classNameId, String keywords,
+			Pagination pagination, Sort[] sorts)
 		throws Exception;
 
 	public DataDefinition postSiteDataDefinition(
@@ -75,7 +80,7 @@ public interface DataDefinitionResource {
 		throws Exception;
 
 	public DataDefinition getSiteDataDefinition(
-			Long siteId, String dataDefinitionKey)
+			Long siteId, String dataDefinitionKey, Long classNameId)
 		throws Exception;
 
 	public default void setContextAcceptLanguage(

@@ -13,12 +13,15 @@
  */
 
 import {debounce} from 'frontend-js-web';
-import 'frontend-js-web/liferay/compat/slider/Slider.es';
+
+import './BrightnessSlider.es';
+
 import {core} from 'metal';
 import Component from 'metal-component';
 import Soy from 'metal-soy';
 
 import componentTemplates from './BrightnessComponent.soy';
+
 import './BrightnessControls.soy';
 
 /**

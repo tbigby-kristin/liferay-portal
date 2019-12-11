@@ -384,11 +384,60 @@ public abstract class BaseDocumentFolderResourceTestCase {
 	}
 
 	@Test
+	public void testPutDocumentFolderSubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DocumentFolder documentFolder =
+			testPutDocumentFolderSubscribe_addDocumentFolder();
+
+		assertHttpResponseStatusCode(
+			204,
+			documentFolderResource.putDocumentFolderSubscribeHttpResponse(
+				documentFolder.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			documentFolderResource.putDocumentFolderSubscribeHttpResponse(0L));
+	}
+
+	protected DocumentFolder testPutDocumentFolderSubscribe_addDocumentFolder()
+		throws Exception {
+
+		return documentFolderResource.postSiteDocumentFolder(
+			testGroup.getGroupId(), randomDocumentFolder());
+	}
+
+	@Test
+	public void testPutDocumentFolderUnsubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		DocumentFolder documentFolder =
+			testPutDocumentFolderUnsubscribe_addDocumentFolder();
+
+		assertHttpResponseStatusCode(
+			204,
+			documentFolderResource.putDocumentFolderUnsubscribeHttpResponse(
+				documentFolder.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			documentFolderResource.putDocumentFolderUnsubscribeHttpResponse(
+				0L));
+	}
+
+	protected DocumentFolder
+			testPutDocumentFolderUnsubscribe_addDocumentFolder()
+		throws Exception {
+
+		return documentFolderResource.postSiteDocumentFolder(
+			testGroup.getGroupId(), randomDocumentFolder());
+	}
+
+	@Test
 	public void testGetDocumentFolderDocumentFoldersPage() throws Exception {
 		Page<DocumentFolder> page =
 			documentFolderResource.getDocumentFolderDocumentFoldersPage(
 				testGetDocumentFolderDocumentFoldersPage_getParentDocumentFolderId(),
-				RandomTestUtil.randomString(), null, Pagination.of(1, 2), null);
+				null, RandomTestUtil.randomString(), null, Pagination.of(1, 2),
+				null);
 
 		Assert.assertEquals(0, page.getTotalCount());
 
@@ -404,7 +453,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 					randomIrrelevantDocumentFolder());
 
 			page = documentFolderResource.getDocumentFolderDocumentFoldersPage(
-				irrelevantParentDocumentFolderId, null, null,
+				irrelevantParentDocumentFolderId, null, null, null,
 				Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
@@ -424,7 +473,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				parentDocumentFolderId, randomDocumentFolder());
 
 		page = documentFolderResource.getDocumentFolderDocumentFoldersPage(
-			parentDocumentFolderId, null, null, Pagination.of(1, 2), null);
+			parentDocumentFolderId, null, null, null, Pagination.of(1, 2),
+			null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -461,7 +511,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> page =
 				documentFolderResource.getDocumentFolderDocumentFoldersPage(
-					parentDocumentFolderId, null,
+					parentDocumentFolderId, null, null,
 					getFilterString(entityField, "between", documentFolder1),
 					Pagination.of(1, 2), null);
 
@@ -497,7 +547,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> page =
 				documentFolderResource.getDocumentFolderDocumentFoldersPage(
-					parentDocumentFolderId, null,
+					parentDocumentFolderId, null, null,
 					getFilterString(entityField, "eq", documentFolder1),
 					Pagination.of(1, 2), null);
 
@@ -528,7 +578,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		Page<DocumentFolder> page1 =
 			documentFolderResource.getDocumentFolderDocumentFoldersPage(
-				parentDocumentFolderId, null, null, Pagination.of(1, 2), null);
+				parentDocumentFolderId, null, null, null, Pagination.of(1, 2),
+				null);
 
 		List<DocumentFolder> documentFolders1 =
 			(List<DocumentFolder>)page1.getItems();
@@ -538,7 +589,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		Page<DocumentFolder> page2 =
 			documentFolderResource.getDocumentFolderDocumentFoldersPage(
-				parentDocumentFolderId, null, null, Pagination.of(2, 2), null);
+				parentDocumentFolderId, null, null, null, Pagination.of(2, 2),
+				null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -550,7 +602,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 		Page<DocumentFolder> page3 =
 			documentFolderResource.getDocumentFolderDocumentFoldersPage(
-				parentDocumentFolderId, null, null, Pagination.of(1, 3), null);
+				parentDocumentFolderId, null, null, null, Pagination.of(1, 3),
+				null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(documentFolder1, documentFolder2, documentFolder3),
@@ -651,8 +704,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 		for (EntityField entityField : entityFields) {
 			Page<DocumentFolder> ascPage =
 				documentFolderResource.getDocumentFolderDocumentFoldersPage(
-					parentDocumentFolderId, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":asc");
+					parentDocumentFolderId, null, null, null,
+					Pagination.of(1, 2), entityField.getName() + ":asc");
 
 			assertEquals(
 				Arrays.asList(documentFolder1, documentFolder2),
@@ -660,8 +713,8 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 			Page<DocumentFolder> descPage =
 				documentFolderResource.getDocumentFolderDocumentFoldersPage(
-					parentDocumentFolderId, null, null, Pagination.of(1, 2),
-					entityField.getName() + ":desc");
+					parentDocumentFolderId, null, null, null,
+					Pagination.of(1, 2), entityField.getName() + ":desc");
 
 			assertEquals(
 				Arrays.asList(documentFolder2, documentFolder1),
@@ -1030,7 +1083,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 					{
 						put("page", 1);
 						put("pageSize", 2);
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 					}
 				},
 				graphQLFields.toArray(new GraphQLField[0])));
@@ -1225,6 +1278,24 @@ public abstract class BaseDocumentFolderResourceTestCase {
 
 				sb.append(", ");
 			}
+
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = documentFolder.getSubscribed();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
 		}
 
 		sb.append("}");
@@ -1239,7 +1310,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				"createSiteDocumentFolder",
 				new HashMap<String, Object>() {
 					{
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 						put("documentFolder", sb.toString());
 					}
 				},
@@ -1402,6 +1473,14 @@ public abstract class BaseDocumentFolderResourceTestCase {
 					"numberOfDocuments", additionalAssertFieldName)) {
 
 				if (documentFolder.getNumberOfDocuments() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				if (documentFolder.getSubscribed() == null) {
 					valid = false;
 				}
 
@@ -1578,6 +1657,17 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder1.getSubscribed(),
+						documentFolder2.getSubscribed())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("viewableBy", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						documentFolder1.getViewableBy(),
@@ -1648,6 +1738,17 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				if (!Objects.deepEquals(
 						documentFolder.getNumberOfDocuments(),
 						jsonObject.getInt("numberOfDocuments"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("subscribed", fieldName)) {
+				if (!Objects.deepEquals(
+						documentFolder.getSubscribed(),
+						jsonObject.getBoolean("subscribed"))) {
 
 					return false;
 				}
@@ -1825,6 +1926,11 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("subscribed")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("viewableBy")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -1862,6 +1968,7 @@ public abstract class BaseDocumentFolderResourceTestCase {
 				numberOfDocumentFolders = RandomTestUtil.randomInt();
 				numberOfDocuments = RandomTestUtil.randomInt();
 				siteId = testGroup.getGroupId();
+				subscribed = RandomTestUtil.randomBoolean();
 			}
 		};
 	}

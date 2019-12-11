@@ -113,7 +113,8 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 						layout.getDescriptionMap(), layout.getKeywordsMap(),
 						layout.getRobotsMap(), layout.getType(),
 						layout.getTypeSettings(), true, true,
-						Collections.emptyMap(), serviceContext);
+						layout.getMasterLayoutPlid(), Collections.emptyMap(),
+						serviceContext);
 
 					_layoutCopyHelper.copyLayout(layout, draftLayout);
 				}
@@ -170,9 +171,17 @@ public class EditLayoutModeProductNavigationControlMenuEntry
 			return false;
 		}
 
-		return LayoutPermissionUtil.contains(
-			themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
-			ActionKeys.UPDATE);
+		if (!LayoutPermissionUtil.contains(
+				themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
+				ActionKeys.UPDATE) &&
+			!LayoutPermissionUtil.contains(
+				themeDisplay.getPermissionChecker(), themeDisplay.getLayout(),
+				ActionKeys.UPDATE_LAYOUT_CONTENT)) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	@Reference

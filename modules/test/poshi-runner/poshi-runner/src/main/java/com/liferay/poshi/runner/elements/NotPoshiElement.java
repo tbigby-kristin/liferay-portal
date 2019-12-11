@@ -53,9 +53,18 @@ public class NotPoshiElement extends PoshiElement {
 	public void parsePoshiScript(String poshiScript)
 		throws PoshiScriptParserException {
 
-		add(
-			PoshiNodeFactory.newPoshiNode(
-				this, getParentheticalContent(poshiScript)));
+		if (poshiScript.contains("!=")) {
+			List<String> nestedConditions = getNestedConditions(
+				poshiScript, "!=");
+
+			poshiScript =
+				nestedConditions.get(0) + "==" + nestedConditions.get(1);
+		}
+		else {
+			poshiScript = getParentheticalContent(poshiScript);
+		}
+
+		add(PoshiNodeFactory.newPoshiNode(this, poshiScript));
 	}
 
 	@Override
@@ -110,6 +119,6 @@ public class NotPoshiElement extends PoshiElement {
 	private static final String _ELEMENT_NAME = "not";
 
 	private static final Pattern _conditionPattern = Pattern.compile(
-		"^![\\s\\S]*$");
+		"^(![\\s\\S]*|\"[\\s\\S]*\"[\\s]*!=[\\s]*\"[\\s\\S]*\")$");
 
 }

@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.model.wrapper.BaseModelWrapper;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * <p>
@@ -42,6 +44,8 @@ public class AssetEntryWrapper
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
+		attributes.put("ctCollectionId", getCtCollectionId());
 		attributes.put("entryId", getEntryId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -68,13 +72,24 @@ public class AssetEntryWrapper
 		attributes.put("height", getHeight());
 		attributes.put("width", getWidth());
 		attributes.put("priority", getPriority());
-		attributes.put("viewCount", getViewCount());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
+		Long ctCollectionId = (Long)attributes.get("ctCollectionId");
+
+		if (ctCollectionId != null) {
+			setCtCollectionId(ctCollectionId);
+		}
+
 		Long entryId = (Long)attributes.get("entryId");
 
 		if (entryId != null) {
@@ -230,12 +245,6 @@ public class AssetEntryWrapper
 		if (priority != null) {
 			setPriority(priority);
 		}
-
-		Integer viewCount = (Integer)attributes.get("viewCount");
-
-		if (viewCount != null) {
-			setViewCount(viewCount);
-		}
 	}
 
 	@Override
@@ -331,6 +340,16 @@ public class AssetEntryWrapper
 	@Override
 	public Date getCreateDate() {
 		return model.getCreateDate();
+	}
+
+	/**
+	 * Returns the ct collection ID of this asset entry.
+	 *
+	 * @return the ct collection ID of this asset entry
+	 */
+	@Override
+	public long getCtCollectionId() {
+		return model.getCtCollectionId();
 	}
 
 	@Override
@@ -502,6 +521,16 @@ public class AssetEntryWrapper
 	@Override
 	public Date getModifiedDate() {
 		return model.getModifiedDate();
+	}
+
+	/**
+	 * Returns the mvcc version of this asset entry.
+	 *
+	 * @return the mvcc version of this asset entry
+	 */
+	@Override
+	public long getMvccVersion() {
+		return model.getMvccVersion();
 	}
 
 	/**
@@ -746,13 +775,8 @@ public class AssetEntryWrapper
 		return model.getUserUuid();
 	}
 
-	/**
-	 * Returns the view count of this asset entry.
-	 *
-	 * @return the view count of this asset entry
-	 */
 	@Override
-	public int getViewCount() {
+	public long getViewCount() {
 		return model.getViewCount();
 	}
 
@@ -884,6 +908,16 @@ public class AssetEntryWrapper
 	@Override
 	public void setCreateDate(Date createDate) {
 		model.setCreateDate(createDate);
+	}
+
+	/**
+	 * Sets the ct collection ID of this asset entry.
+	 *
+	 * @param ctCollectionId the ct collection ID of this asset entry
+	 */
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		model.setCtCollectionId(ctCollectionId);
 	}
 
 	/**
@@ -1041,6 +1075,16 @@ public class AssetEntryWrapper
 	@Override
 	public void setModifiedDate(Date modifiedDate) {
 		model.setModifiedDate(modifiedDate);
+	}
+
+	/**
+	 * Sets the mvcc version of this asset entry.
+	 *
+	 * @param mvccVersion the mvcc version of this asset entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		model.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -1253,16 +1297,6 @@ public class AssetEntryWrapper
 	}
 
 	/**
-	 * Sets the view count of this asset entry.
-	 *
-	 * @param viewCount the view count of this asset entry
-	 */
-	@Override
-	public void setViewCount(int viewCount) {
-		model.setViewCount(viewCount);
-	}
-
-	/**
 	 * Sets whether this asset entry is visible.
 	 *
 	 * @param visible the visible of this asset entry
@@ -1280,6 +1314,20 @@ public class AssetEntryWrapper
 	@Override
 	public void setWidth(int width) {
 		model.setWidth(width);
+	}
+
+	@Override
+	public Map<String, Function<AssetEntry, Object>>
+		getAttributeGetterFunctions() {
+
+		return model.getAttributeGetterFunctions();
+	}
+
+	@Override
+	public Map<String, BiConsumer<AssetEntry, Object>>
+		getAttributeSetterBiConsumers() {
+
+		return model.getAttributeSetterBiConsumers();
 	}
 
 	@Override

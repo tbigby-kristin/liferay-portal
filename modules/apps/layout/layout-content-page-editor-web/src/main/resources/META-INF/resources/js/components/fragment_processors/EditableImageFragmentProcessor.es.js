@@ -12,8 +12,8 @@
  * details.
  */
 
-import {FLOATING_TOOLBAR_BUTTONS} from '../../utils/constants';
 import {openImageSelector} from '../../utils/FragmentsEditorDialogUtils';
+import {FLOATING_TOOLBAR_BUTTONS} from '../../utils/constants';
 
 /**
  * Handle item selector image changes and propagate them with an
@@ -53,7 +53,7 @@ function destroy() {}
 function getFloatingToolbarButtons(editableValues) {
 	const buttons = [];
 
-	const linkButton = Object.assign({}, FLOATING_TOOLBAR_BUTTONS.link);
+	const linkButton = {...FLOATING_TOOLBAR_BUTTONS.link};
 
 	if (
 		editableValues.config &&
@@ -71,7 +71,7 @@ function getFloatingToolbarButtons(editableValues) {
 		buttons.push(FLOATING_TOOLBAR_BUTTONS.imageProperties);
 	}
 
-	const mapButton = Object.assign({}, FLOATING_TOOLBAR_BUTTONS.map);
+	const mapButton = {...FLOATING_TOOLBAR_BUTTONS.map};
 
 	if (editableValues.fieldId || editableValues.mappedField) {
 		mapButton.cssClass = 'fragments-editor__floating-toolbar--mapped-field';
@@ -101,21 +101,14 @@ function init(
 	changedCallback,
 	destroyedCallback
 ) {
-	const {imageSelectorURL} = options;
-
-	openImageSelector({
-		callback: image => {
-			_handleImageEditorChange(
-				image,
-				editableElement,
-				fragmentEntryLinkId,
-				changedCallback
-			);
-		},
-		destroyedCallback,
-		imageSelectorURL,
-		portletNamespace
-	});
+	openImageSelector(image => {
+		_handleImageEditorChange(
+			image,
+			editableElement,
+			fragmentEntryLinkId,
+			changedCallback
+		);
+	}, destroyedCallback);
 }
 
 /**
@@ -134,7 +127,7 @@ function render(content, value, editableValues) {
 	const image = wrapper.querySelector('img');
 
 	if (image) {
-		image.src = value.url || value;
+		image.src = value.url || value || editableValues.defaultValue;
 
 		if (config.alt) {
 			image.alt = config.alt;

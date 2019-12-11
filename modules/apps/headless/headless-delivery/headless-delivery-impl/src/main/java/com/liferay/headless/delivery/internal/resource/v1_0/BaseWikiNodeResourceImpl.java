@@ -66,7 +66,7 @@ public abstract class BaseWikiNodeResourceImpl implements WikiNodeResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/wiki-nodes/'  -u 'test@liferay.com:test'
+	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/wiki-nodes'  -u 'test@liferay.com:test'
 	 */
 	@Override
 	@GET
@@ -83,7 +83,7 @@ public abstract class BaseWikiNodeResourceImpl implements WikiNodeResource {
 			@Parameter(in = ParameterIn.QUERY, name = "sort")
 		}
 	)
-	@Path("/sites/{siteId}/wiki-nodes/")
+	@Path("/sites/{siteId}/wiki-nodes")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "WikiNode")})
 	public Page<WikiNode> getSiteWikiNodesPage(
@@ -99,14 +99,14 @@ public abstract class BaseWikiNodeResourceImpl implements WikiNodeResource {
 	/**
 	 * Invoke this method with the command line:
 	 *
-	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/wiki-nodes/' -d $'{"description": ___, "name": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
+	 * curl -X 'POST' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/wiki-nodes' -d $'{"description": ___, "name": ___, "viewableBy": ___}' --header 'Content-Type: application/json' -u 'test@liferay.com:test'
 	 */
 	@Override
 	@Consumes({"application/json", "application/xml"})
 	@Operation(description = "Creates a new wiki node")
 	@POST
 	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
-	@Path("/sites/{siteId}/wiki-nodes/")
+	@Path("/sites/{siteId}/wiki-nodes")
 	@Produces({"application/json", "application/xml"})
 	@Tags(value = {@Tag(name = "WikiNode")})
 	public WikiNode postSiteWikiNode(
@@ -115,6 +115,44 @@ public abstract class BaseWikiNodeResourceImpl implements WikiNodeResource {
 		throws Exception {
 
 		return new WikiNode();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-node/{wikiNodeId}/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.PATH, name = "wikiNodeId")}
+	)
+	@Path("/wiki-node/{wikiNodeId}/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "WikiNode")})
+	public void putWikiNodeSubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("wikiNodeId") Long
+				wikiNodeId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/wiki-node/{wikiNodeId}/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {@Parameter(in = ParameterIn.PATH, name = "wikiNodeId")}
+	)
+	@Path("/wiki-node/{wikiNodeId}/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "WikiNode")})
+	public void putWikiNodeUnsubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("wikiNodeId") Long
+				wikiNodeId)
+		throws Exception {
 	}
 
 	/**

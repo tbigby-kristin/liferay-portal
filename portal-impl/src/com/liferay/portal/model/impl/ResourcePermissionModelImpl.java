@@ -69,12 +69,12 @@ public class ResourcePermissionModelImpl
 	public static final String TABLE_NAME = "ResourcePermission";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"mvccVersion", Types.BIGINT}, {"resourcePermissionId", Types.BIGINT},
-		{"companyId", Types.BIGINT}, {"name", Types.VARCHAR},
-		{"scope", Types.INTEGER}, {"primKey", Types.VARCHAR},
-		{"primKeyId", Types.BIGINT}, {"roleId", Types.BIGINT},
-		{"ownerId", Types.BIGINT}, {"actionIds", Types.BIGINT},
-		{"viewActionId", Types.BOOLEAN}
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
+		{"resourcePermissionId", Types.BIGINT}, {"companyId", Types.BIGINT},
+		{"name", Types.VARCHAR}, {"scope", Types.INTEGER},
+		{"primKey", Types.VARCHAR}, {"primKeyId", Types.BIGINT},
+		{"roleId", Types.BIGINT}, {"ownerId", Types.BIGINT},
+		{"actionIds", Types.BIGINT}, {"viewActionId", Types.BOOLEAN}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -82,6 +82,7 @@ public class ResourcePermissionModelImpl
 
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("resourcePermissionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("name", Types.VARCHAR);
@@ -95,7 +96,7 @@ public class ResourcePermissionModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table ResourcePermission (mvccVersion LONG default 0 not null,resourcePermissionId LONG not null primary key,companyId LONG,name VARCHAR(255) null,scope INTEGER,primKey VARCHAR(255) null,primKeyId LONG,roleId LONG,ownerId LONG,actionIds LONG,viewActionId BOOLEAN)";
+		"create table ResourcePermission (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,resourcePermissionId LONG not null,companyId LONG,name VARCHAR(255) null,scope INTEGER,primKey VARCHAR(255) null,primKeyId LONG,roleId LONG,ownerId LONG,actionIds LONG,viewActionId BOOLEAN,primary key (resourcePermissionId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table ResourcePermission";
 
@@ -156,6 +157,7 @@ public class ResourcePermissionModelImpl
 		ResourcePermission model = new ResourcePermissionImpl();
 
 		model.setMvccVersion(soapModel.getMvccVersion());
+		model.setCtCollectionId(soapModel.getCtCollectionId());
 		model.setResourcePermissionId(soapModel.getResourcePermissionId());
 		model.setCompanyId(soapModel.getCompanyId());
 		model.setName(soapModel.getName());
@@ -332,6 +334,12 @@ public class ResourcePermissionModelImpl
 			(BiConsumer<ResourcePermission, Long>)
 				ResourcePermission::setMvccVersion);
 		attributeGetterFunctions.put(
+			"ctCollectionId", ResourcePermission::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<ResourcePermission, Long>)
+				ResourcePermission::setCtCollectionId);
+		attributeGetterFunctions.put(
 			"resourcePermissionId",
 			ResourcePermission::getResourcePermissionId);
 		attributeSetterBiConsumers.put(
@@ -403,6 +411,17 @@ public class ResourcePermissionModelImpl
 	@Override
 	public void setMvccVersion(long mvccVersion) {
 		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -650,6 +669,7 @@ public class ResourcePermissionModelImpl
 			new ResourcePermissionImpl();
 
 		resourcePermissionImpl.setMvccVersion(getMvccVersion());
+		resourcePermissionImpl.setCtCollectionId(getCtCollectionId());
 		resourcePermissionImpl.setResourcePermissionId(
 			getResourcePermissionId());
 		resourcePermissionImpl.setCompanyId(getCompanyId());
@@ -764,6 +784,8 @@ public class ResourcePermissionModelImpl
 
 		resourcePermissionCacheModel.mvccVersion = getMvccVersion();
 
+		resourcePermissionCacheModel.ctCollectionId = getCtCollectionId();
+
 		resourcePermissionCacheModel.resourcePermissionId =
 			getResourcePermissionId();
 
@@ -871,6 +893,7 @@ public class ResourcePermissionModelImpl
 	}
 
 	private long _mvccVersion;
+	private long _ctCollectionId;
 	private long _resourcePermissionId;
 	private long _companyId;
 	private long _originalCompanyId;

@@ -97,28 +97,27 @@ Layout curLayout = (Layout)row.getObject();
 	</c:if>
 </liferay-ui:icon-menu>
 
-<aui:script require="metal-dom/src/all/dom as dom,frontend-js-web/liferay/modal/commands/OpenSimpleInputModal.es as modalCommands">
+<aui:script require="metal-dom/src/all/dom as dom">
 	var addLayoutPrototypeActionOptionQueryClickHandler = dom.delegate(
 		document.body,
 		'click',
 		'.<portlet:namespace />copy-layout-action-option',
 		function(event) {
-			Liferay.Util.openWindow(
-				{
-					dialog: {
-						destroyOnHide: true,
-						height: 480,
-						resizable: false,
-						width: 640
-					},
-					dialogIframe: {
-						bodyCssClass: 'dialog-with-footer'
-					},
-					id: '<portlet:namespace />copyLayoutDialog',
-					title: '<liferay-ui:message key="copy-page" />',
-					uri: '<%= layoutsAdminDisplayContext.getCopyLayoutRenderURL(layout) %>'
-				}
-			);
+			Liferay.Util.openWindow({
+				dialog: {
+					destroyOnHide: true,
+					height: 480,
+					resizable: false,
+					width: 640
+				},
+				dialogIframe: {
+					bodyCssClass: 'dialog-with-footer'
+				},
+				id: '<portlet:namespace />copyLayoutDialog',
+				title: '<liferay-ui:message key="copy-page" />',
+				uri:
+					'<%= layoutsAdminDisplayContext.getCopyLayoutRenderURL(layout) %>'
+			});
 		}
 	);
 

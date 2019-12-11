@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-alloy-editor-source',
-	function(A) {
+	A => {
 		var CSS_SHOW_SOURCE = 'show-source';
 
 		var MAP_TOGGLE_STATE = {
@@ -171,14 +171,14 @@ AUI.add(
 								},
 								title: strings.editContent
 							},
-							function(dialog) {
+							dialog => {
 								fullScreenDialog = dialog;
 
 								Liferay.Util.getTop()
 									.AUI()
 									.use(
 										'liferay-fullscreen-source-editor',
-										function(A) {
+										A => {
 											fullScreenEditor = new A.LiferayFullScreenSourceEditor(
 												{
 													boundingBox: dialog
@@ -238,12 +238,6 @@ AUI.add(
 					instance._isClicked = false;
 				},
 
-				_refreshTooltip() {
-					if (Liferay.Data.LFR_PORTAL_TOOLTIP) {
-						Liferay.Data.LFR_PORTAL_TOOLTIP.getTooltip().renderUI();
-					}
-				},
-
 				_setHTML(value) {
 					var instance = this;
 
@@ -288,8 +282,6 @@ AUI.add(
 					var instance = this;
 
 					instance._sourceEditor.switchTheme();
-
-					instance._refreshTooltip();
 				},
 
 				_toggleEditorModeUI() {
@@ -319,8 +311,6 @@ AUI.add(
 							? Liferay.Language.get('text-view')
 							: Liferay.Language.get('code-view')
 					);
-
-					instance._refreshTooltip();
 
 					instance._toggleSourceSwitchFn({
 						hidden: true

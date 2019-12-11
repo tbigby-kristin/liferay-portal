@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.3.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_3_0.dtd">
 
 <service-builder api-package-path="com.liferay.portal.kernel" auto-import-default-references="false" mvcc-enabled="true" package-path="com.liferay.portal">
 	<namespace>Portal</namespace>
@@ -586,7 +586,7 @@
 			<finder-column comparator="&lt;" name="size" />
 		</finder>
 	</entity>
-	<entity local-service="true" name="Layout" remote-service="true" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
+	<entity change-tracking-enabled="true" local-service="true" name="Layout" remote-service="true" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
 
 		<!-- PK fields -->
 
@@ -612,9 +612,9 @@
 		<column name="parentLayoutId" type="long" />
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
-		<column localized="true" name="name" type="String" />
-		<column localized="true" name="title" type="String" />
-		<column localized="true" name="description" type="String" />
+		<column change-tracking-resolution-type="merge" localized="true" name="name" type="String" />
+		<column change-tracking-resolution-type="merge" localized="true" name="title" type="String" />
+		<column change-tracking-resolution-type="merge" localized="true" name="description" type="String" />
 		<column localized="true" name="keywords" type="String" />
 		<column localized="true" name="robots" type="String" />
 		<column name="type" type="String" />
@@ -627,6 +627,7 @@
 		<column name="colorSchemeId" type="String" />
 		<column name="css" type="String" />
 		<column name="priority" type="int" />
+		<column name="masterLayoutPlid" type="long" />
 		<column name="layoutPrototypeUuid" type="String" />
 		<column name="layoutPrototypeLinkEnabled" type="boolean" />
 		<column name="sourcePrototypeLayoutUuid" type="String" />
@@ -667,6 +668,10 @@
 		<finder name="G_T" return-type="Collection" where="system = [$FALSE$]">
 			<finder-column name="groupId" />
 			<finder-column name="type" />
+		</finder>
+		<finder name="G_MLP" return-type="Collection" where="system = [$FALSE$]">
+			<finder-column name="groupId" />
+			<finder-column name="masterLayoutPlid" />
 		</finder>
 		<finder name="C_L" return-type="Collection" where="system = [$FALSE$]">
 			<finder-column name="companyId" />
@@ -791,7 +796,7 @@
 		<reference entity="Resource" package-path="com.liferay.portal" />
 		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
-	<entity local-service="true" name="LayoutFriendlyURL" remote-service="false" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
+	<entity change-tracking-enabled="true" local-service="true" name="LayoutFriendlyURL" remote-service="false" uad-application-name="Layout" uad-dir-path="../modules/apps/layout/layout-uad/src/main/java" uad-package-path="com.liferay.layout" uuid="true">
 
 		<!-- PK fields -->
 
@@ -1771,7 +1776,7 @@
 		<reference entity="ClassName" package-path="com.liferay.portal" />
 		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
-	<entity local-service="true" name="PortletPreferences" remote-service="true">
+	<entity change-tracking-enabled="true" local-service="true" name="PortletPreferences" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -2163,7 +2168,7 @@
 		<reference entity="Company" package-path="com.liferay.portal" />
 		<reference entity="ResourcePermission" package-path="com.liferay.portal" />
 	</entity>
-	<entity local-service="true" name="ResourcePermission" remote-service="true">
+	<entity change-tracking-enabled="true" local-service="true" name="ResourcePermission" remote-service="true">
 
 		<!-- PK fields -->
 
@@ -2303,6 +2308,12 @@
 			<finder-column name="companyId" />
 			<finder-column name="classNameId" />
 			<finder-column arrayable-operator="OR" name="classPK" />
+		</finder>
+		<finder name="C_C_C_T" return-type="Collection" unique="true">
+			<finder-column name="companyId" />
+			<finder-column name="classNameId" />
+			<finder-column arrayable-operator="OR" name="classPK" />
+			<finder-column name="type" />
 		</finder>
 
 		<!-- References -->
@@ -2995,12 +3006,17 @@
 			<finder-column name="deliveryType" />
 			<finder-column name="archived" />
 		</finder>
-		<finder name="U_D_A" return-type="Collection">
+		<finder name="U_D_AR" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="delivered" />
 			<finder-column name="actionRequired" />
 		</finder>
-		<finder name="U_A_A" return-type="Collection">
+		<finder name="U_D_A" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column name="delivered" />
+			<finder-column name="archived" />
+		</finder>
+		<finder name="U_AR_A" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="actionRequired" />
 			<finder-column name="archived" />
@@ -3011,15 +3027,41 @@
 			<finder-column name="deliveryType" />
 			<finder-column name="delivered" />
 		</finder>
-		<finder name="U_DT_D_A" return-type="Collection">
+		<finder name="U_DT_D_AR" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="deliveryType" />
 			<finder-column name="delivered" />
 			<finder-column name="actionRequired" />
 		</finder>
-		<finder name="U_DT_A_A" return-type="Collection">
+		<finder name="U_DT_D_A" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="deliveryType" />
+			<finder-column name="delivered" />
+			<finder-column name="archived" />
+		</finder>
+		<finder name="U_DT_AR_A" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column name="deliveryType" />
+			<finder-column name="actionRequired" />
+			<finder-column name="archived" />
+		</finder>
+		<finder name="U_D_AR_A" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column name="delivered" />
+			<finder-column name="actionRequired" />
+			<finder-column name="archived" />
+		</finder>
+		<finder name="U_T_DT_D_A" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column name="type" />
+			<finder-column name="deliveryType" />
+			<finder-column name="delivered" />
+			<finder-column name="archived" />
+		</finder>
+		<finder name="U_DT_D_AR_A" return-type="Collection">
+			<finder-column name="userId" />
+			<finder-column name="deliveryType" />
+			<finder-column name="delivered" />
 			<finder-column name="actionRequired" />
 			<finder-column name="archived" />
 		</finder>
@@ -3099,15 +3141,28 @@
 
 		<column name="layoutSetId" type="long" />
 		<column name="hostname" type="String" />
+		<column name="defaultVirtualHost" type="boolean" />
+		<column name="languageId" type="String" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="virtualHostId" />
+		</order>
 
 		<!-- Finder methods -->
 
 		<finder name="Hostname" return-type="VirtualHost" unique="true">
 			<finder-column name="hostname" />
 		</finder>
-		<finder name="C_L" return-type="VirtualHost" unique="true">
+		<finder name="C_L" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="layoutSetId" />
+		</finder>
+		<finder name="C_L_D" return-type="VirtualHost">
+			<finder-column name="companyId" />
+			<finder-column name="layoutSetId" />
+			<finder-column name="defaultVirtualHost" />
 		</finder>
 
 		<!-- References -->
@@ -3324,6 +3379,7 @@
 		<exception>AddressCity</exception>
 		<exception>AddressStreet</exception>
 		<exception>AddressZip</exception>
+		<exception>AvailableLocale</exception>
 		<exception>CompanyMaxUsers</exception>
 		<exception>CompanyMx</exception>
 		<exception>CompanyVirtualHost</exception>

@@ -150,7 +150,7 @@ definition {
 
 		FragmentsAdminNavigator.gotoCollection(collectionName = "Collection Name");
 
-		FragmentsAdmin.addSection(fragmentName = "Fragment Name");
+		FragmentsAdmin.addFragment(fragmentName = "Fragment Name");
 
 		var fragmentHTML = '''<lfr-widget-web-content>''';
 
@@ -208,6 +208,60 @@ definition {
 			siteName = "Site Name");
 
 		WebContent.viewPGViaWCD(webContentContent = "WC WebContent Content");
+	}
+
+	@description = "This is a use case for LPS-90127."
+	@priority = "3"
+	test ConfigureDDMStructureViaAPWhenNotStagedAssets {
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		Portlet.addPG(portletName = "Asset Publisher");
+
+		ProductMenu.gotoPortlet(
+			category = "Publishing",
+			panel = "Site Administration",
+			portlet = "Staging");
+
+		Staging.activateStagingCP(
+			noContent = "true",
+			siteName = "Site Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
+
+		Staging.viewNotStagedAssetMessageOnStaging();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		NavItem.gotoStructures();
+
+		WebContentStructures.addCP(
+			structureDescription = "WC Structure Description",
+			structureName = "WC Structure Name");
+
+		DynamicDataMapping.addField(
+			field = "Text",
+			fieldFieldLabel = "Text",
+			fieldName = "Text");
+
+		WebContentStructures.saveCP(structureName = "WC Structure Name");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
+		NavItem.gotoTemplates();
+
+		WebContentTemplates.addCP(
+			structureName = "WC Structure Name",
+			templateDescription = "WC Template Description",
+			templateFieldNames = "Text",
+			templateName = "WC Template Name");
+
+		Navigator.gotoStagedSitePage(
+			pageName = "Staging Test Page",
+			siteName = "Site Name");
+
+		AssetPublisherPortlet.configureAssetTypePG(
+			assetSubtype = "WC Structure Name",
+			selectedAsset = "Web Content Article");
 	}
 
 	@description = "This is a use case for LPS-92039 and LPS-92636."
@@ -2045,7 +2099,7 @@ definition {
 
 	@priority = "5"
 	test StagingMultipleDM {
-		property portal.acceptance = "true";
+		property portal.acceptance = "quarantine";
 		property testray.component.names = "Training";
 
 		JSONLayout.addWidgetToPublicLayout(
@@ -2945,6 +2999,8 @@ definition {
 
 	@priority = "4"
 	test StagingWithPublishTemplate {
+		property test.name.skip.portal.instance = "Staging#StagingWithPublishTemplate";
+
 		JSONLayout.addPublicLayout(
 			groupName = "Site Name",
 			layoutName = "Test Page 1");
@@ -3086,6 +3142,100 @@ definition {
 			dmDocumentTitle = "DM Document Title");
 	}
 
+	@description = "This is a use case for LPS-98473."
+	@priority = "3"
+	test SubscribeWebContentWithStaging {
+		JSONGroup.addGroup(groupName = "Test Site");
+
+		Navigator.openSiteURL(siteName = "Site Name");
+
+		ProductMenu.gotoPortlet(
+			category = "Publishing",
+			panel = "Site Administration",
+			portlet = "Staging");
+
+		Staging.activateStagingCP(siteName = "Site Name");
+
+		JSONRole.addRegularRole(
+			roleKey = "Web Content Subscriber Role",
+			roleTitle = "Web Content Subscriber Role");
+
+		for (var resourceActionIndex : list "VIEW,SUBSCRIBE") {
+			Permissions.definePermissionViaJSONAPI(
+				resourceAction = "${resourceActionIndex}",
+				resourceName = "com.liferay.journal",
+				roleTitle = "Web Content Subscriber Role");
+		}
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "SUBSCRIBE",
+			resourceName = "com.liferay.journal.model.JournalFolder",
+			roleTitle = "Web Content Subscriber Role");
+
+		Permissions.definePermissionViaJSONAPI(
+			resourceAction = "ACCESS_IN_CONTROL_PANEL",
+			resourceName = "com_liferay_journal_web_portlet_JournalPortlet",
+			roleTitle = "Web Content Subscriber Role");
+
+		User.openUsersAdmin();
+
+		User.addCP(
+			userEmailAddress = "userea@liferay.com",
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		User.openUsersAdmin();
+
+		User.editPasswordCP(
+			userEmailAddress = "userea@liferay.com",
+			userScreenName = "usersn");
+
+		Role.openRolesAdmin();
+
+		Role.assignRegRoleCP(
+			roleTitle = "Web Content Subscriber Role",
+			userScreenName = "usersn");
+
+		SitePages.openPagesAdmin(siteURLKey = "Test Site");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			panel = "Site Administration",
+			portlet = "Memberships");
+
+		Site.assignUserAsMemberCP(
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		SitePages.openPagesAdmin(siteURLKey = "site-name-staging");
+
+		ProductMenu.gotoPortlet(
+			category = "People",
+			panel = "Site Administration",
+			portlet = "Memberships");
+
+		Site.assignUserAsMemberCP(
+			userFirstName = "userfn",
+			userLastName = "userln",
+			userScreenName = "usersn");
+
+		User.logoutPG();
+
+		User.loginPG(
+			password = "test",
+			userEmailAddress = "userea@liferay.com");
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "Test Site");
+
+		WebContent.subscribeToCurrentFolderCP();
+
+		WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
+
+		WebContent.subscribeToCurrentFolderCP();
+	}
+
 	@description = "This is a use case for LPS-89116."
 	@priority = "3"
 	test ValidateFriendlyURLWithSpecialCharacters {
@@ -3124,6 +3274,8 @@ definition {
 
 	@priority = "4"
 	test ViewHistoryVersionWithDeletedUser {
+		property test.name.skip.portal.instance = "Staging#ViewHistoryVersionWithDeletedUser";
+
 		JSONUser.addUser(
 			userEmailAddress = "userea@liferay.com",
 			userFirstName = "userfn",
@@ -3235,6 +3387,7 @@ definition {
 	@priority = "4"
 	test ViewLastPublishDateBehaviourAfterInitialPublication {
 		property portal.release = "false";
+		property test.name.skip.portal.instance = "Staging#ViewLastPublishDateBehaviourAfterInitialPublication";
 
 		Navigator.openSiteURL(siteName = "Site Name");
 
@@ -3747,6 +3900,8 @@ definition {
 	@description = "This is a use case for LPS-96721."
 	@priority = "4"
 	test ViewPublishedContentWithSpecialCharsInDocumentTitle {
+		property test.name.skip.portal.instance = "Staging#ViewPublishedContentWithSpecialCharsInDocumentTitle";
+
 		Navigator.openSiteURL(siteName = "Site Name");
 
 		ProductMenu.gotoPortlet(
@@ -4002,7 +4157,7 @@ definition {
 
 		echo("## Keywords Parameter: ${keywordsParameter}");
 
-		if (!("${keywordsParameter}" == "query")) {
+		if ("${keywordsParameter}" != "query") {
 			fail("Invalid keywords parameter.");
 		}
 	}

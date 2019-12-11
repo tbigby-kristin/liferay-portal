@@ -16,19 +16,18 @@
 
 <%@ include file="/init.jsp" %>
 
+<%
+LayoutsAdminManagementToolbarDisplayContext layoutsManagementToolbarDisplayContext = new LayoutsAdminManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, layoutsAdminDisplayContext);
+%>
+
 <liferay-ui:success key='<%= portletDisplay.getPortletName() + "layoutUpdated" %>' message='<%= LanguageUtil.get(resourceBundle, "the-page-was-updated-succesfully") %>' />
 
 <liferay-ui:success key="layoutPublished" message="the-page-was-published-succesfully" />
 
-<liferay-ui:error embed="<%= false %>" exception="<%= GroupInheritContentException.class %>" message="this-page-cannot-be-deleted-and-cannot-have-child-pages-because-it-is-associated-to-a-site-template" />
-
-<clay:navigation-bar
-	inverted="<%= true %>"
-	navigationItems="<%= layoutsAdminDisplayContext.getNavigationItems() %>"
-/>
+<liferay-ui:error embed="<%= false %>" exception="<%= GroupInheritContentException.class %>" message="this-page-cannot-be-deleted-and-cannot-have-child-pages-because-it-is-associated-with-a-site-template" />
 
 <clay:management-toolbar
-	displayContext="<%= new LayoutsAdminManagementToolbarDisplayContext(liferayPortletRequest, liferayPortletResponse, request, layoutsAdminDisplayContext) %>"
+	displayContext="<%= layoutsManagementToolbarDisplayContext %>"
 />
 
 <liferay-ui:error exception="<%= LayoutTypeException.class %>">
@@ -44,11 +43,7 @@
 
 <liferay-ui:error exception="<%= RequiredSegmentsExperienceException.MustNotDeleteSegmentsExperienceReferencedBySegmentsExperiments.class %>" message="this-page-cannot-be-deleted-because-it-has-ab-tests-in-progress" />
 
-<portlet:actionURL name="/layout/delete_layout" var="deleteLayoutURL">
-	<portlet:param name="redirect" value="<%= currentURL %>" />
-</portlet:actionURL>
-
-<aui:form action="<%= deleteLayoutURL %>" cssClass="container-fluid-1280" name="fm">
+<aui:form cssClass="container-fluid-1280" name="fm">
 	<c:choose>
 		<c:when test="<%= layoutsAdminDisplayContext.hasLayouts() %>">
 			<c:choose>
@@ -88,29 +83,7 @@
 	</c:choose>
 </aui:form>
 
-<aui:script sandbox="<%= true %>">
-	var deleteSelectedPages = function() {
-		if (confirm('<liferay-ui:message key="are-you-sure-you-want-to-delete-this" />')) {
-			submitForm(document.<portlet:namespace />fm);
-		}
-	};
-
-	var ACTIONS = {
-		'deleteSelectedPages': deleteSelectedPages
-	};
-
-	Liferay.componentReady('pagesManagementToolbar').then(
-		function(managementToolbar) {
-			managementToolbar.on(
-				'actionItemClicked',
-				function(event) {
-					var itemData = event.data.item.data;
-
-					if (itemData && itemData.action && ACTIONS[itemData.action]) {
-						ACTIONS[itemData.action]();
-					}
-				}
-			);
-		}
-	);
-</aui:script>
+<liferay-frontend:component
+	componentId="<%= layoutsManagementToolbarDisplayContext.getDefaultEventHandler() %>"
+	module="js/LayoutsManagementToolbarDefaultEventHandler.es"
+/>

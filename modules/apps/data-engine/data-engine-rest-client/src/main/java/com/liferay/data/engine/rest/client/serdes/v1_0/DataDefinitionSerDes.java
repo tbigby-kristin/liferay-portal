@@ -90,6 +90,16 @@ public class DataDefinitionSerDes {
 			sb.append("]");
 		}
 
+		if (dataDefinition.getClassNameId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"classNameId\": ");
+
+			sb.append(dataDefinition.getClassNameId());
+		}
+
 		if (dataDefinition.getDataDefinitionFields() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -292,6 +302,14 @@ public class DataDefinitionSerDes {
 				String.valueOf(dataDefinition.getAvailableLanguageIds()));
 		}
 
+		if (dataDefinition.getClassNameId() == null) {
+			map.put("classNameId", null);
+		}
+		else {
+			map.put(
+				"classNameId", String.valueOf(dataDefinition.getClassNameId()));
+		}
+
 		if (dataDefinition.getDataDefinitionFields() == null) {
 			map.put("dataDefinitionFields", null);
 		}
@@ -407,6 +425,12 @@ public class DataDefinitionSerDes {
 						toStrings((Object[])jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "classNameId")) {
+				if (jsonParserFieldValue != null) {
+					dataDefinition.setClassNameId(
+						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "dataDefinitionFields")) {
 
@@ -509,9 +533,11 @@ public class DataDefinitionSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

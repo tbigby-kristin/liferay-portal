@@ -40,6 +40,7 @@ public class RetryWebElementImpl extends RemoteWebElement {
 
 	public RetryWebElementImpl(String locator, WebElement webElement) {
 		_locator = locator;
+
 		_webElement = webElement;
 
 		_remoteWebElement = (RemoteWebElement)_webElement;

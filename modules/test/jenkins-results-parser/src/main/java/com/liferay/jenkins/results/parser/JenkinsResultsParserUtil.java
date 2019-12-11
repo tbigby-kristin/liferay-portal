@@ -746,6 +746,21 @@ public class JenkinsResultsParserUtil {
 		return properties;
 	}
 
+	public static String getBuildProperty(
+			boolean checkCache, String propertyName)
+		throws IOException {
+
+		Properties buildProperties = getBuildProperties(checkCache);
+
+		return buildProperties.getProperty(propertyName);
+	}
+
+	public static String getBuildProperty(String propertyName)
+		throws IOException {
+
+		return getBuildProperty(false, propertyName);
+	}
+
 	public static List<String> getBuildPropertyAsList(
 			boolean checkCache, String key)
 		throws IOException {
@@ -796,9 +811,15 @@ public class JenkinsResultsParserUtil {
 	}
 
 	public static String getCohortName(String masterHostname) {
+		if (masterHostname == null) {
+			return null;
+		}
+
 		Matcher matcher = _jenkinsMasterPattern.matcher(masterHostname);
 
-		matcher.find();
+		if (!matcher.find()) {
+			return null;
+		}
 
 		return matcher.group("cohortName");
 	}
@@ -850,7 +871,8 @@ public class JenkinsResultsParserUtil {
 		try {
 			JSONObject jobJSONObject = toJSONObject(
 				_getDistPortalJobURL(portalBranchName) +
-					"/api/json?tree=builds[number]");
+					"/api/json?tree=builds[number]",
+				false);
 
 			JSONArray buildsJSONArray = jobJSONObject.getJSONArray("builds");
 
@@ -870,7 +892,7 @@ public class JenkinsResultsParserUtil {
 
 				try {
 					Matcher matcher = distPortalBundleFileNamesPattern.matcher(
-						toString(distPortalBundlesBuildURL));
+						toString(distPortalBundlesBuildURL, false));
 
 					if (matcher.find()) {
 						return distPortalBundlesBuildURL;
@@ -955,7 +977,8 @@ public class JenkinsResultsParserUtil {
 
 			String cohortName = getCohortName();
 
-			if (buildProperties.containsKey(
+			if ((cohortName != null) &&
+				buildProperties.containsKey(
 					"github.cache.hostnames[" + cohortName + "]")) {
 
 				gitHubCacheHostnames = buildProperties.getProperty(
@@ -1105,7 +1128,7 @@ public class JenkinsResultsParserUtil {
 	}
 
 	public static List<JenkinsMaster> getJenkinsMasters(
-		Properties buildProperties, String prefix) {
+		Properties buildProperties, int minimumRAM, String prefix) {
 
 		List<JenkinsMaster> jenkinsMasters = new ArrayList<>();
 
@@ -1114,7 +1137,11 @@ public class JenkinsResultsParserUtil {
 				 "master.slaves(" + prefix + "-" + i + ")");
 			 i++) {
 
-			jenkinsMasters.add(new JenkinsMaster(prefix + "-" + i));
+			JenkinsMaster jenkinsMaster = new JenkinsMaster(prefix + "-" + i);
+
+			if (jenkinsMaster.getSlaveRAM() >= minimumRAM) {
+				jenkinsMasters.add(jenkinsMaster);
+			}
 		}
 
 		return jenkinsMasters;
@@ -1266,12 +1293,23 @@ public class JenkinsResultsParserUtil {
 	public static String getMostAvailableMasterURL(
 		String baseInvocationURL, int invokedBatchSize) {
 
+		return getMostAvailableMasterURL(
+			baseInvocationURL, invokedBatchSize,
+			JenkinsMaster.SLAVE_RAM_DEFAULT);
+	}
+
+	public static String getMostAvailableMasterURL(
+		String baseInvocationURL, int invokedBatchSize, int minimumRAM) {
+
 		String loadBalancerServiceURL =
 			_URL_LOAD_BALANCER_SERVICE_TEMPLATE.replace(
 				"${baseInvocationURL}", baseInvocationURL);
 
 		loadBalancerServiceURL = loadBalancerServiceURL.replace(
 			"${invokedBatchSize}", String.valueOf(invokedBatchSize));
+
+		loadBalancerServiceURL = loadBalancerServiceURL.replace(
+			"${minimumRAM}", String.valueOf(minimumRAM));
 
 		try {
 			JSONObject jsonObject = toJSONObject(loadBalancerServiceURL);
@@ -1292,7 +1330,7 @@ public class JenkinsResultsParserUtil {
 			List<JenkinsMaster> availableJenkinsMasters =
 				LoadBalancerUtil.getAvailableJenkinsMasters(
 					LoadBalancerUtil.getMasterPrefix(baseInvocationURL),
-					buildProperties);
+					minimumRAM, buildProperties);
 
 			Random random = new Random(System.currentTimeMillis());
 
@@ -1450,11 +1488,11 @@ public class JenkinsResultsParserUtil {
 	}
 
 	public static int getRandomValue(int start, int end) {
-		int size = Math.abs(end - start);
+		int size = Math.abs(end - start) + 1;
 
 		double randomDouble = Math.random();
 
-		return start + (int)Math.round(size * randomDouble);
+		return Math.min(start, end) + (int)Math.floor(size * randomDouble);
 	}
 
 	public static String getRegexLiteral(String string) {
@@ -1997,35 +2035,6 @@ public class JenkinsResultsParserUtil {
 		}
 		catch (IOException ioe) {
 			throw new RuntimeException("Unable to save to cache file", ioe);
-		}
-	}
-
-	public static void sendEmail(
-			String body, String from, String subject, String to)
-		throws IOException, TimeoutException {
-
-		File file = new File("/tmp/" + body.hashCode() + ".txt");
-
-		write(file, body);
-
-		try {
-			StringBuffer sb = new StringBuffer();
-
-			sb.append("cat ");
-			sb.append(getCanonicalPath(file));
-			sb.append(" | mail -v -s ");
-			sb.append("\"");
-			sb.append(subject);
-			sb.append("\" -r \"");
-			sb.append(from);
-			sb.append("\" \"");
-			sb.append(to);
-			sb.append("\"");
-
-			executeBashCommands(sb.toString());
-		}
-		finally {
-			file.delete();
 		}
 	}
 
@@ -2901,6 +2910,22 @@ public class JenkinsResultsParserUtil {
 			_DIST_PORTAL_JOB_URL_DEFAULT, "(", portalBranchName, ")");
 	}
 
+	private static String _getFilteredPropertyValue(String propertyValue) {
+		if (propertyValue == null) {
+			return null;
+		}
+
+		List<String> propertyValues = new ArrayList<>();
+
+		for (String value : propertyValue.split("\\s*,\\s*")) {
+			if (!value.startsWith("#")) {
+				propertyValues.add(value);
+			}
+		}
+
+		return join(",", propertyValues);
+	}
+
 	private static String _getGitHubAPIRateLimitStatusMessage(
 		int limit, int remaining, long reset) {
 
@@ -3000,7 +3025,7 @@ public class JenkinsResultsParserUtil {
 			return null;
 		}
 
-		String value = properties.getProperty(name);
+		String value = _getFilteredPropertyValue(properties.getProperty(name));
 
 		Matcher matcher = _nestedPropertyPattern.matcher(value);
 
@@ -3120,7 +3145,7 @@ public class JenkinsResultsParserUtil {
 	private static final String _URL_LOAD_BALANCER_SERVICE_TEMPLATE = combine(
 		"http://cloud-10-0-0-31.lax.liferay.com/osb-jenkins-web/",
 		"load_balancer?baseInvocationURL=${baseInvocationURL}",
-		"&invokedJobBatchSize=${invokedBatchSize}");
+		"&invokedJobBatchSize=${invokedBatchSize}&minimumRAM=${minimumRAM}");
 
 	private static Hashtable<Object, Object> _buildProperties;
 	private static String[] _buildPropertiesURLs;

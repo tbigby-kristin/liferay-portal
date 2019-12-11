@@ -273,7 +273,7 @@ public class LiferayCIPlugin implements Plugin<Project> {
 				public void execute(YarnInstallTask yarnInstallTask) {
 					String taskName = yarnInstallTask.getName();
 
-					if (taskName.equals(
+					if (taskName.startsWith(
 							LiferayYarnPlugin.YARN_INSTALL_TASK_NAME)) {
 
 						_configureTaskYarnInstall(yarnInstallTask);
@@ -357,15 +357,21 @@ public class LiferayCIPlugin implements Plugin<Project> {
 	}
 
 	private void _configureTaskYarnInstall(YarnInstallTask yarnInstallTask) {
+		Project project = yarnInstallTask.getProject();
+
+		final String ciRegistry = GradleUtil.getProperty(
+			project, "nodejs.npm.ci.registry", (String)null);
+
+		if (Validator.isNull(ciRegistry)) {
+			return;
+		}
+
 		yarnInstallTask.doFirst(
 			new Action<Task>() {
 
 				@Override
 				public void execute(Task task) {
 					Project project = task.getProject();
-
-					final String ciRegistry = GradleUtil.getProperty(
-						project, "nodejs.npm.ci.registry", (String)null);
 
 					Logger logger = project.getLogger();
 

@@ -25,12 +25,12 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -66,19 +66,23 @@ public class LayoutFriendlyURLServiceTest {
 		_group = GroupTestUtil.updateDisplaySettings(
 			_group.getGroupId(), availableLocales, LocaleUtil.SPAIN);
 
-		Map<Locale, String> nameMap = new HashMap<>();
-
 		String name = RandomTestUtil.randomString();
 
-		nameMap.put(LocaleUtil.GERMANY, name);
-		nameMap.put(LocaleUtil.US, name);
-		nameMap.put(LocaleUtil.SPAIN, name);
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.GERMANY, name
+		).put(
+			LocaleUtil.SPAIN, name
+		).put(
+			LocaleUtil.US, name
+		).build();
 
-		Map<Locale, String> friendlyURLMap = new HashMap<>();
-
-		friendlyURLMap.put(LocaleUtil.GERMANY, "/germanurl");
-		friendlyURLMap.put(LocaleUtil.SPAIN, "/spanishurl");
-		friendlyURLMap.put(LocaleUtil.US, "/englishurl");
+		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
+			LocaleUtil.GERMANY, "/germanurl"
+		).put(
+			LocaleUtil.SPAIN, "/spanishurl"
+		).put(
+			LocaleUtil.US, "/englishurl"
+		).build();
 
 		Layout layout = LayoutTestUtil.addLayout(
 			_group.getGroupId(), false, nameMap, friendlyURLMap);
@@ -111,17 +115,19 @@ public class LayoutFriendlyURLServiceTest {
 		_group = GroupTestUtil.updateDisplaySettings(
 			_group.getGroupId(), availableLocales, defaultLocale);
 
-		Map<Locale, String> nameMap = new HashMap<>();
-
 		String name = RandomTestUtil.randomString();
 
-		nameMap.put(LocaleUtil.SPAIN, name);
-		nameMap.put(LocaleUtil.US, name);
+		Map<Locale, String> nameMap = HashMapBuilder.put(
+			LocaleUtil.SPAIN, name
+		).put(
+			LocaleUtil.US, name
+		).build();
 
-		Map<Locale, String> friendlyURLMap = new HashMap<>();
-
-		friendlyURLMap.put(LocaleUtil.SPAIN, "/spanishurl");
-		friendlyURLMap.put(LocaleUtil.US, "/englishurl");
+		Map<Locale, String> friendlyURLMap = HashMapBuilder.put(
+			LocaleUtil.SPAIN, "/spanishurl"
+		).put(
+			LocaleUtil.US, "/englishurl"
+		).build();
 
 		Layout layout = LayoutTestUtil.addLayout(
 			_group.getGroupId(), false, nameMap, friendlyURLMap);

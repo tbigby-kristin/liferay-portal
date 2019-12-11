@@ -18,6 +18,7 @@ import com.liferay.gradle.plugins.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.internal.util.StringUtil;
 import com.liferay.gradle.plugins.node.NodePlugin;
 import com.liferay.gradle.plugins.node.tasks.ExecutePackageManagerTask;
+import com.liferay.gradle.plugins.node.tasks.NpmInstallTask;
 import com.liferay.gradle.plugins.node.tasks.YarnInstallTask;
 
 import groovy.json.JsonSlurper;
@@ -29,13 +30,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.tasks.TaskContainer;
 
 /**
  * @author Peter Shin
@@ -56,10 +60,30 @@ public class LiferayYarnPlugin implements Plugin<Project> {
 
 		GradleUtil.applyPlugin(project, NodeDefaultsPlugin.class);
 
+		Task yarnInstallTask = _addTaskYarnInstall(project);
+
 		_addTaskYarnCheckFormat(project);
 		_addTaskYarnFormat(project);
-		_addTaskYarnInstall(project);
 		_addTaskYarnLock(project);
+
+		Gradle gradle = project.getGradle();
+
+		StartParameter startParameter = gradle.getStartParameter();
+
+		if (!startParameter.isParallelProjectExecutionEnabled()) {
+			for (final Project subproject : project.getSubprojects()) {
+				subproject.afterEvaluate(
+					new Action<Project>() {
+
+						@Override
+						public void execute(Project project) {
+							_configureTasksNpmInstall(
+								subproject, yarnInstallTask);
+						}
+
+					});
+			}
+		}
 	}
 
 	private ExecutePackageManagerTask _addTaskYarnCheckFormat(
@@ -273,6 +297,31 @@ public class LiferayYarnPlugin implements Plugin<Project> {
 				_addTaskYarnInstall(task, yarnLockFile, false)));
 
 		return task;
+	}
+
+	private void _configureTaskNpmInstall(
+		NpmInstallTask npmInstallTask, Task yarnInstallTask) {
+
+		if (!npmInstallTask.isUseNpm()) {
+			npmInstallTask.finalizedBy(yarnInstallTask);
+		}
+	}
+
+	private void _configureTasksNpmInstall(
+		Project project, final Task yarnInstallTask) {
+
+		TaskContainer taskContainer = project.getTasks();
+
+		taskContainer.withType(
+			NpmInstallTask.class,
+			new Action<NpmInstallTask>() {
+
+				@Override
+				public void execute(NpmInstallTask npmInstallTask) {
+					_configureTaskNpmInstall(npmInstallTask, yarnInstallTask);
+				}
+
+			});
 	}
 
 	private FileTree _getYarnLockFiles(Project project) {

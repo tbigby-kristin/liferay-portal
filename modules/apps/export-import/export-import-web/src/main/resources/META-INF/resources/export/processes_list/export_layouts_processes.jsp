@@ -310,36 +310,34 @@ OrderByComparator<BackgroundTask> orderByComparator = BackgroundTaskComparatorFa
 						markupView="lexicon"
 						showWhenSingleIcon="<%= true %>"
 					>
-						<c:if test="<%= !StagingUtil.isChangeTrackingEnabled(company.getCompanyId()) %>">
-							<portlet:actionURL name="editExportConfiguration" var="relaunchURL">
-								<portlet:param name="mvcRenderCommandName" value="exportLayoutsView" />
-								<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RELAUNCH %>" />
-								<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
-								<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
-							</portlet:actionURL>
+						<portlet:actionURL name="editExportConfiguration" var="relaunchURL">
+							<portlet:param name="mvcRenderCommandName" value="exportLayoutsView" />
+							<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RELAUNCH %>" />
+							<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
+							<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
+						</portlet:actionURL>
 
-							<liferay-ui:icon
-								icon="reload"
-								markupView="lexicon"
-								message="relaunch"
-								url="<%= relaunchURL %>"
-							/>
+						<liferay-ui:icon
+							icon="reload"
+							markupView="lexicon"
+							message="relaunch"
+							url="<%= relaunchURL %>"
+						/>
 
-							<portlet:actionURL name="deleteBackgroundTasks" var="deleteBackgroundTaskURL">
-								<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
-								<portlet:param name="deleteBackgroundTaskIds" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
-							</portlet:actionURL>
+						<portlet:actionURL name="deleteBackgroundTasks" var="deleteBackgroundTaskURL">
+							<portlet:param name="redirect" value="<%= portletURL.toString() %>" />
+							<portlet:param name="deleteBackgroundTaskIds" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
+						</portlet:actionURL>
 
-							<%
-							Date completionDate = backgroundTask.getCompletionDate();
-							%>
+						<%
+						Date completionDate = backgroundTask.getCompletionDate();
+						%>
 
-							<liferay-ui:icon-delete
-								label="<%= true %>"
-								message='<%= ((completionDate != null) && completionDate.before(new Date())) ? "clear" : "cancel" %>'
-								url="<%= deleteBackgroundTaskURL %>"
-							/>
-						</c:if>
+						<liferay-ui:icon-delete
+							label="<%= true %>"
+							message='<%= ((completionDate != null) && completionDate.before(new Date())) ? "clear" : "cancel" %>'
+							url="<%= deleteBackgroundTaskURL %>"
+						/>
 					</liferay-ui:icon-menu>
 				</c:if>
 			</liferay-ui:search-container-column-text>
@@ -365,36 +363,39 @@ int incompleteBackgroundTaskCount = BackgroundTaskManagerUtil.getBackgroundTasks
 
 <script>
 	function <portlet:namespace />deleteEntries() {
-		if (confirm('<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-the-selected-entries") %>')) {
+		if (
+			confirm(
+				'<%= UnicodeLanguageUtil.get(request, "are-you-sure-you-want-to-delete-the-selected-entries") %>'
+			)
+		) {
 			var form = document.<portlet:namespace />fm;
 
-			Liferay.Util.postForm(
-				form,
-				{
-					data: {
-						'<%= Constants.CMD %>': '<%= Constants.DELETE %>',
-						'deleteBackgroundTaskIds': Liferay.Util.listCheckedExcept(form, '<portlet:namespace />allRowIds')
-					}
+			Liferay.Util.postForm(form, {
+				data: {
+					<%= Constants.CMD %>: '<%= Constants.DELETE %>',
+					deleteBackgroundTaskIds: Liferay.Util.listCheckedExcept(
+						form,
+						'<portlet:namespace />allRowIds'
+					)
 				}
-			);
+			});
 		}
 	}
 
 	function <portlet:namespace />viewBackgroundTaskDetails(backgroundTaskId) {
 		var title = '';
 
-		var backgroundTaskNameElement = document.getElementById('<portlet:namespace />backgroundTaskName' + backgroundTaskId);
+		var backgroundTaskNameElement = document.getElementById(
+			'<portlet:namespace />backgroundTaskName' + backgroundTaskId
+		);
 
 		if (backgroundTaskNameElement) {
 			title = backgroundTaskNameElement.textContent;
 		}
 
-		Liferay.fire(
-			'<portlet:namespace />viewBackgroundTaskDetails',
-			{
-				nodeId: 'backgroundTaskStatusMessage' + backgroundTaskId,
-				title: title
-			}
-		);
+		Liferay.fire('<portlet:namespace />viewBackgroundTaskDetails', {
+			nodeId: 'backgroundTaskStatusMessage' + backgroundTaskId,
+			title: title
+		});
 	}
 </script>

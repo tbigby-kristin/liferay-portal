@@ -21,7 +21,7 @@
 
 AUI.add(
 	'liferay-pagination',
-	function(A) {
+	A => {
 		var ANode = A.Node;
 		var Lang = A.Lang;
 
@@ -266,7 +266,7 @@ AUI.add(
 				TPL_DELTA_SELECTOR:
 					'<div class="lfr-pagination-delta-selector">' +
 					'<div class="btn-group lfr-icon-menu">' +
-					'<a class="btn btn-default direction-down dropdown-toggle max-display-items-15" href="javascript:;" id="{id}" title="{title}">' +
+					'<a class="btn btn-secondary direction-down dropdown-toggle max-display-items-15" href="javascript:;" id="{id}" title="{title}">' +
 					'<span class="lfr-pagination-delta-selector-amount">{amount}</span>' +
 					'<span class="lfr-icon-menu-text">{title}</span>' +
 					'<i class="icon-caret-down"></i>' +
@@ -276,7 +276,7 @@ AUI.add(
 
 				TPL_ITEM:
 					'<li id="{idLi}" role="presentation">' +
-					'<a class="lfr-pagination-link taglib-icon" href="javascript:;" id="{idLink}" role="menuitem">' +
+					'<a class="dropdown-item lfr-pagination-link taglib-icon" href="javascript:;" id="{idLink}" role="menuitem">' +
 					'<span class="taglib-text-icon" data-index="{index}" data-value="{value}">{value}</span>' +
 					'</a>' +
 					'</li>',
@@ -378,7 +378,7 @@ AUI.add(
 
 					var buffer = instance
 						.get(ITEMS_PER_PAGE_LIST)
-						.map(function(item, index) {
+						.map((item, index) => {
 							return Lang.sub(instance.TPL_ITEM, {
 								idLi: namespace + 'itemLiId' + index,
 								idLink: namespace + 'itemLinkId' + index,

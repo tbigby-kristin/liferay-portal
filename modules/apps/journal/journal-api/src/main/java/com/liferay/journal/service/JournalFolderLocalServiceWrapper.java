@@ -14,7 +14,10 @@
 
 package com.liferay.journal.service;
 
+import com.liferay.journal.model.JournalFolder;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.service.ServiceWrapper;
+import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersistence;
 
 /**
  * Provides a wrapper for {@link JournalFolderLocalService}.
@@ -39,7 +42,7 @@ public class JournalFolderLocalServiceWrapper
 	 * Never modify or reference this interface directly. Always use {@link JournalFolderLocalServiceUtil} to access the journal folder local service. Add custom service methods to <code>com.liferay.journal.service.impl.JournalFolderLocalServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder addFolder(
+	public JournalFolder addFolder(
 			long userId, long groupId, long parentFolderId, String name,
 			String description,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -56,9 +59,7 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the journal folder that was added
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder addJournalFolder(
-		com.liferay.journal.model.JournalFolder journalFolder) {
-
+	public JournalFolder addJournalFolder(JournalFolder journalFolder) {
 		return _journalFolderLocalService.addJournalFolder(journalFolder);
 	}
 
@@ -69,24 +70,20 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the new journal folder
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder createJournalFolder(
-		long folderId) {
-
+	public JournalFolder createJournalFolder(long folderId) {
 		return _journalFolderLocalService.createJournalFolder(folderId);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder deleteFolder(
-			com.liferay.journal.model.JournalFolder folder)
+	public JournalFolder deleteFolder(JournalFolder folder)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.deleteFolder(folder);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder deleteFolder(
-			com.liferay.journal.model.JournalFolder folder,
-			boolean includeTrashedEntries)
+	public JournalFolder deleteFolder(
+			JournalFolder folder, boolean includeTrashedEntries)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.deleteFolder(
@@ -94,14 +91,14 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder deleteFolder(long folderId)
+	public JournalFolder deleteFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.deleteFolder(folderId);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder deleteFolder(
+	public JournalFolder deleteFolder(
 			long folderId, boolean includeTrashedEntries)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
@@ -123,9 +120,7 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the journal folder that was removed
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder deleteJournalFolder(
-		com.liferay.journal.model.JournalFolder journalFolder) {
-
+	public JournalFolder deleteJournalFolder(JournalFolder journalFolder) {
 		return _journalFolderLocalService.deleteJournalFolder(journalFolder);
 	}
 
@@ -137,8 +132,7 @@ public class JournalFolderLocalServiceWrapper
 	 * @throws PortalException if a journal folder with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder deleteJournalFolder(
-			long folderId)
+	public JournalFolder deleteJournalFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.deleteJournalFolder(folderId);
@@ -177,7 +171,7 @@ public class JournalFolderLocalServiceWrapper
 	 * Performs a dynamic query on the database and returns a range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.journal.model.impl.JournalFolderModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.journal.model.impl.JournalFolderModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -198,7 +192,7 @@ public class JournalFolderLocalServiceWrapper
 	 * Performs a dynamic query on the database and returns an ordered range of the matching rows.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.journal.model.impl.JournalFolderModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.journal.model.impl.JournalFolderModelImpl</code>.
 	 * </p>
 	 *
 	 * @param dynamicQuery the dynamic query
@@ -247,12 +241,12 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder fetchFolder(long folderId) {
+	public JournalFolder fetchFolder(long folderId) {
 		return _journalFolderLocalService.fetchFolder(folderId);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder fetchFolder(
+	public JournalFolder fetchFolder(
 		long groupId, long parentFolderId, String name) {
 
 		return _journalFolderLocalService.fetchFolder(
@@ -260,16 +254,12 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder fetchFolder(
-		long groupId, String name) {
-
+	public JournalFolder fetchFolder(long groupId, String name) {
 		return _journalFolderLocalService.fetchFolder(groupId, name);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder fetchJournalFolder(
-		long folderId) {
-
+	public JournalFolder fetchJournalFolder(long folderId) {
 		return _journalFolderLocalService.fetchJournalFolder(folderId);
 	}
 
@@ -281,8 +271,8 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the matching journal folder, or <code>null</code> if a matching journal folder could not be found
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder
-		fetchJournalFolderByUuidAndGroupId(String uuid, long groupId) {
+	public JournalFolder fetchJournalFolderByUuidAndGroupId(
+		String uuid, long groupId) {
 
 		return _journalFolderLocalService.fetchJournalFolderByUuidAndGroupId(
 			uuid, groupId);
@@ -296,8 +286,8 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder>
-		getCompanyFolders(long companyId, int start, int end) {
+	public java.util.List<JournalFolder> getCompanyFolders(
+		long companyId, int start, int end) {
 
 		return _journalFolderLocalService.getCompanyFolders(
 			companyId, start, end);
@@ -329,28 +319,26 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder getFolder(long folderId)
+	public JournalFolder getFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.getFolder(folderId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
-		long groupId) {
-
+	public java.util.List<JournalFolder> getFolders(long groupId) {
 		return _journalFolderLocalService.getFolders(groupId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId) {
 
 		return _journalFolderLocalService.getFolders(groupId, parentFolderId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId, int status) {
 
 		return _journalFolderLocalService.getFolders(
@@ -358,7 +346,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId, int start, int end) {
 
 		return _journalFolderLocalService.getFolders(
@@ -366,7 +354,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder> getFolders(
+	public java.util.List<JournalFolder> getFolders(
 		long groupId, long parentFolderId, int status, int start, int end) {
 
 		return _journalFolderLocalService.getFolders(
@@ -464,8 +452,7 @@ public class JournalFolderLocalServiceWrapper
 	 * @throws PortalException if a journal folder with the primary key could not be found
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder getJournalFolder(
-			long folderId)
+	public JournalFolder getJournalFolder(long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.getJournalFolder(folderId);
@@ -480,8 +467,8 @@ public class JournalFolderLocalServiceWrapper
 	 * @throws PortalException if a matching journal folder could not be found
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder
-			getJournalFolderByUuidAndGroupId(String uuid, long groupId)
+	public JournalFolder getJournalFolderByUuidAndGroupId(
+			String uuid, long groupId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.getJournalFolderByUuidAndGroupId(
@@ -492,7 +479,7 @@ public class JournalFolderLocalServiceWrapper
 	 * Returns a range of all the journal folders.
 	 *
 	 * <p>
-	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent and pagination is required (<code>start</code> and <code>end</code> are not <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code>), then the query will include the default ORDER BY logic from <code>com.liferay.journal.model.impl.JournalFolderModelImpl</code>. If both <code>orderByComparator</code> and pagination are absent, for performance reasons, the query will not have an ORDER BY clause and the returned result set will be sorted on by the primary key in an ascending order.
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>com.liferay.journal.model.impl.JournalFolderModelImpl</code>.
 	 * </p>
 	 *
 	 * @param start the lower bound of the range of journal folders
@@ -500,9 +487,7 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the range of journal folders
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder>
-		getJournalFolders(int start, int end) {
-
+	public java.util.List<JournalFolder> getJournalFolders(int start, int end) {
 		return _journalFolderLocalService.getJournalFolders(start, end);
 	}
 
@@ -514,8 +499,8 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the matching journal folders, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder>
-		getJournalFoldersByUuidAndCompanyId(String uuid, long companyId) {
+	public java.util.List<JournalFolder> getJournalFoldersByUuidAndCompanyId(
+		String uuid, long companyId) {
 
 		return _journalFolderLocalService.getJournalFoldersByUuidAndCompanyId(
 			uuid, companyId);
@@ -532,11 +517,10 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the range of matching journal folders, or an empty list if no matches were found
 	 */
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder>
-		getJournalFoldersByUuidAndCompanyId(
-			String uuid, long companyId, int start, int end,
-			com.liferay.portal.kernel.util.OrderByComparator
-				<com.liferay.journal.model.JournalFolder> orderByComparator) {
+	public java.util.List<JournalFolder> getJournalFoldersByUuidAndCompanyId(
+		String uuid, long companyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<JournalFolder>
+			orderByComparator) {
 
 		return _journalFolderLocalService.getJournalFoldersByUuidAndCompanyId(
 			uuid, companyId, start, end, orderByComparator);
@@ -553,9 +537,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.journal.model.JournalFolder>
-		getNoAssetFolders() {
-
+	public java.util.List<JournalFolder> getNoAssetFolders() {
 		return _journalFolderLocalService.getNoAssetFolders();
 	}
 
@@ -593,17 +575,6 @@ public class JournalFolderLocalServiceWrapper
 			folderIds, groupId, folderId);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public com.liferay.portal.kernel.service.SubscriptionLocalService
-		getSubscriptionLocalService() {
-
-		return _journalFolderLocalService.getSubscriptionLocalService();
-	}
-
 	@Override
 	public String getUniqueFolderName(
 		String uuid, long groupId, long parentFolderId, String name,
@@ -614,7 +585,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder moveFolder(
+	public JournalFolder moveFolder(
 			long folderId, long parentFolderId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -624,7 +595,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder moveFolderFromTrash(
+	public JournalFolder moveFolderFromTrash(
 			long userId, long folderId, long parentFolderId,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -634,8 +605,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder moveFolderToTrash(
-			long userId, long folderId)
+	public JournalFolder moveFolderToTrash(long userId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.moveFolderToTrash(userId, folderId);
@@ -679,19 +649,6 @@ public class JournalFolderLocalServiceWrapper
 			end, obc);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public void setSubscriptionLocalService(
-		com.liferay.portal.kernel.service.SubscriptionLocalService
-			subscriptionLocalService) {
-
-		_journalFolderLocalService.setSubscriptionLocalService(
-			subscriptionLocalService);
-	}
-
 	@Override
 	public void subscribe(long userId, long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -708,9 +665,8 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public void updateAsset(
-			long userId, com.liferay.journal.model.JournalFolder folder,
-			long[] assetCategoryIds, String[] assetTagNames,
-			long[] assetLinkEntryIds, Double priority)
+			long userId, JournalFolder folder, long[] assetCategoryIds,
+			String[] assetTagNames, long[] assetLinkEntryIds, Double priority)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_journalFolderLocalService.updateAsset(
@@ -719,7 +675,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder updateFolder(
+	public JournalFolder updateFolder(
 			long userId, long groupId, long folderId, long parentFolderId,
 			String name, String description, boolean mergeWithParentFolder,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -731,7 +687,7 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder updateFolder(
+	public JournalFolder updateFolder(
 			long userId, long groupId, long folderId, long parentFolderId,
 			String name, String description, long[] ddmStructureIds,
 			int restrictionType, boolean mergeWithParentFolder,
@@ -746,8 +702,7 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public void updateFolderDDMStructures(
-			com.liferay.journal.model.JournalFolder folder,
-			long[] ddmStructureIdsArray)
+			JournalFolder folder, long[] ddmStructureIdsArray)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_journalFolderLocalService.updateFolderDDMStructures(
@@ -761,16 +716,13 @@ public class JournalFolderLocalServiceWrapper
 	 * @return the journal folder that was updated
 	 */
 	@Override
-	public com.liferay.journal.model.JournalFolder updateJournalFolder(
-		com.liferay.journal.model.JournalFolder journalFolder) {
-
+	public JournalFolder updateJournalFolder(JournalFolder journalFolder) {
 		return _journalFolderLocalService.updateJournalFolder(journalFolder);
 	}
 
 	@Override
-	public com.liferay.journal.model.JournalFolder updateStatus(
-			long userId, com.liferay.journal.model.JournalFolder folder,
-			int status)
+	public JournalFolder updateStatus(
+			long userId, JournalFolder folder, int status)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _journalFolderLocalService.updateStatus(userId, folder, status);
@@ -782,6 +734,26 @@ public class JournalFolderLocalServiceWrapper
 
 		_journalFolderLocalService.validateFolderDDMStructures(
 			folderId, parentFolderId);
+	}
+
+	@Override
+	public CTPersistence<JournalFolder> getCTPersistence() {
+		return _journalFolderLocalService.getCTPersistence();
+	}
+
+	@Override
+	public Class<JournalFolder> getModelClass() {
+		return _journalFolderLocalService.getModelClass();
+	}
+
+	@Override
+	public <R, E extends Throwable> R updateWithUnsafeFunction(
+			UnsafeFunction<CTPersistence<JournalFolder>, R, E>
+				updateUnsafeFunction)
+		throws E {
+
+		return _journalFolderLocalService.updateWithUnsafeFunction(
+			updateUnsafeFunction);
 	}
 
 	@Override

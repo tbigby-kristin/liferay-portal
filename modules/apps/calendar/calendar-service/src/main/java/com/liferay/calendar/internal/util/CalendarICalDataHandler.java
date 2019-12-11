@@ -112,18 +112,6 @@ import org.osgi.service.component.annotations.Deactivate;
 )
 public class CalendarICalDataHandler implements CalendarDataHandler {
 
-	@Activate
-	public void activate() {
-		CalendarDataHandlerFactory.registerCalendarDataHandler(
-			CalendarDataFormat.ICAL, this);
-	}
-
-	@Deactivate
-	public void deactivate() {
-		CalendarDataHandlerFactory.unregisterCalendarDataHandler(
-			CalendarDataFormat.ICAL);
-	}
-
 	@Override
 	public String exportCalendar(long calendarId) throws Exception {
 		int[] statuses = {
@@ -147,7 +135,7 @@ public class CalendarICalDataHandler implements CalendarDataHandler {
 		throws Exception {
 
 		net.fortuna.ical4j.model.Calendar iCalCalendar = toICalCalendar(
-			ListUtil.toList(
+			ListUtil.fromArray(
 				CalendarBookingLocalServiceUtil.getCalendarBooking(
 					calendarBookingId)));
 
@@ -168,6 +156,18 @@ public class CalendarICalDataHandler implements CalendarDataHandler {
 		for (VEvent vEvent : vEvents) {
 			importICalEvent(calendarId, vEvent);
 		}
+	}
+
+	@Activate
+	protected void activate() {
+		CalendarDataHandlerFactory.registerCalendarDataHandler(
+			CalendarDataFormat.ICAL, this);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		CalendarDataHandlerFactory.unregisterCalendarDataHandler(
+			CalendarDataFormat.ICAL);
 	}
 
 	protected void importICalEvent(long calendarId, VEvent vEvent)

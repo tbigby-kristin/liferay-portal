@@ -13,15 +13,29 @@
  */
 
 import React, {useEffect, useContext} from 'react';
+
+import {getFieldNameFromIndexes} from '../../utils/dataLayoutVisitor.es';
+import generateDataDefinitionFieldName from '../../utils/generateDataDefinitionFieldName.es';
 import DataLayoutBuilderContext from './DataLayoutBuilderContext.es';
 import FormViewContext from './FormViewContext.es';
 import {
+	DELETE_DATA_LAYOUT_FIELD,
 	UPDATE_FIELD_TYPES,
 	UPDATE_FOCUSED_FIELD,
 	UPDATE_PAGES
 } from './actions.es';
+import useDeleteDefinitionField from './useDeleteDefinitionField.es';
+import useDeleteDefinitionFieldModal from './useDeleteDefinitionFieldModal.es';
 
-export default ({dataLayoutBuilder, children}) => {
+export default ({children, dataLayoutBuilder}) => {
+	const [{dataDefinition, dataLayout}, dispatch] = useContext(
+		FormViewContext
+	);
+	const deleteDefinitionField = useDeleteDefinitionField({dataLayoutBuilder});
+	const onDeleteDefinitionField = useDeleteDefinitionFieldModal(fieldName => {
+		deleteDefinitionField(fieldName);
+	});
+
 	useEffect(() => {
 		const provider = dataLayoutBuilder.getProvider();
 
@@ -32,21 +46,43 @@ export default ({dataLayoutBuilder, children}) => {
 				label: Liferay.Language.get('duplicate')
 			},
 			{
-				action: indexes =>
-					dataLayoutBuilder.dispatch('fieldDeleted', {indexes}),
+				action: indexes => {
+					const fieldName = getFieldNameFromIndexes(
+						dataLayout,
+						indexes
+					);
+
+					dispatch({
+						payload: {fieldName},
+						type: DELETE_DATA_LAYOUT_FIELD
+					});
+
+					dataLayoutBuilder.dispatch('fieldDeleted', {indexes});
+				},
 				label: Liferay.Language.get('remove'),
 				separator: true
 			},
 			{
-				action: indexes =>
-					dataLayoutBuilder.dispatch('fieldDeleted', {indexes}),
+				action: indexes => {
+					const fieldName = getFieldNameFromIndexes(
+						dataLayout,
+						indexes
+					);
+
+					onDeleteDefinitionField(fieldName);
+				},
 				label: Liferay.Language.get('delete-from-object'),
 				style: 'danger'
 			}
 		];
-	}, [dataLayoutBuilder]);
+	}, [dataLayout, dataLayoutBuilder, dispatch, onDeleteDefinitionField]);
 
-	const [, dispatch] = useContext(FormViewContext);
+	useEffect(() => {
+		const provider = dataLayoutBuilder.getProvider();
+
+		provider.props.fieldNameGenerator = desiredFieldName =>
+			generateDataDefinitionFieldName(dataDefinition, desiredFieldName);
+	}, [dataDefinition, dataLayoutBuilder]);
 
 	useEffect(() => {
 		const provider = dataLayoutBuilder.getProvider();

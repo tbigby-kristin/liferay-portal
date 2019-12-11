@@ -14,12 +14,11 @@
 
 package com.liferay.source.formatter.checks.configuration;
 
-import com.liferay.source.formatter.checkstyle.util.AlloyMVCCheckstyleUtil;
 import com.liferay.source.formatter.util.CheckType;
 import com.liferay.source.formatter.util.SourceFormatterUtil;
 
 import com.puppycrawl.tools.checkstyle.api.FilterSet;
-import com.puppycrawl.tools.checkstyle.filters.SuppressElement;
+import com.puppycrawl.tools.checkstyle.filters.SuppressFilterElement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,13 +73,6 @@ public class SourceFormatterSuppressions {
 				if (absolutePath.matches(".*" + fileNameRegex)) {
 					return true;
 				}
-
-				String fileName = AlloyMVCCheckstyleUtil.getSourceFileName(
-					absolutePath);
-
-				if (fileName.matches(".*" + fileNameRegex)) {
-					return true;
-				}
 			}
 		}
 
@@ -91,7 +83,7 @@ public class SourceFormatterSuppressions {
 		String checkName, String fileNameRegex) {
 
 		_checkstyleFilterSet.addFilter(
-			new SuppressElement(
+			new SuppressFilterElement(
 				fileNameRegex, checkName, null, null, null, null));
 	}
 

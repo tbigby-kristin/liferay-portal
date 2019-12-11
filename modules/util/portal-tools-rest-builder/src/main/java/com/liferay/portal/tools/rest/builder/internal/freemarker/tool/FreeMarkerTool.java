@@ -14,6 +14,7 @@
 
 package com.liferay.portal.tools.rest.builder.internal.freemarker.tool;
 
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.tools.rest.builder.internal.freemarker.tool.java.JavaMethodParameter;
@@ -54,7 +55,7 @@ import org.apache.commons.collections.CollectionUtils;
 public class FreeMarkerTool {
 
 	public static FreeMarkerTool getInstance() {
-		return _instance;
+		return _freeMarkerTool;
 	}
 
 	public Map<String, Schema> getDTOEnumSchemas(
@@ -112,9 +113,11 @@ public class FreeMarkerTool {
 	public String getEnumFieldName(String value) {
 		String fieldName = TextFormatter.format(value, TextFormatter.H);
 
-		fieldName = fieldName.replace(' ', '_');
-		fieldName = fieldName.replace('-', '_');
-		fieldName = fieldName.replace(".", "");
+		fieldName = fieldName.replaceAll("[ \\-\\/]", "_");
+
+		fieldName = fieldName.replaceAll("[^a-zA-Z0-9_]", "");
+
+		fieldName = fieldName.replaceAll("_+", "_");
 
 		return StringUtil.toUpperCase(fieldName);
 	}
@@ -124,14 +127,14 @@ public class FreeMarkerTool {
 
 		String arguments = OpenAPIParserUtil.getArguments(javaMethodParameters);
 
-		arguments = arguments.replace(
-			"filter",
+		arguments = StringUtil.replace(
+			arguments, "filter",
 			"_filterBiFunction.apply(" + schemaVarName +
 				"Resource, filterString)");
-		arguments = arguments.replace(
-			"pageSize,page", "Pagination.of(page, pageSize)");
-		arguments = arguments.replace(
-			"sorts",
+		arguments = StringUtil.replace(
+			arguments, "pageSize,page", "Pagination.of(page, pageSize)");
+		arguments = StringUtil.replace(
+			arguments, "sorts",
 			"_sortsBiFunction.apply(" + schemaVarName +
 				"Resource, sortsString)");
 
@@ -157,6 +160,35 @@ public class FreeMarkerTool {
 
 				return false;
 			});
+	}
+
+	public String getGraphQLJavaParameterName(
+		ConfigYAML configYAML, OpenAPIYAML openAPIYAML, String schemaName,
+		JavaMethodParameter javaMethodParameter) {
+
+		Map<String, String> properties = getDTOProperties(
+			configYAML, openAPIYAML, schemaName);
+
+		String parameterName = StringUtil.toLowerCase(
+			javaMethodParameter.getParameterName());
+
+		schemaName = StringUtil.toLowerCase(schemaName);
+
+		String shortParameterName = StringUtil.replace(
+			parameterName, schemaName, StringPool.BLANK);
+
+		shortParameterName = StringUtil.replace(
+			shortParameterName, "parent", StringPool.BLANK);
+
+		for (String propertyKey : properties.keySet()) {
+			if (StringUtil.equalsIgnoreCase(parameterName, propertyKey) ||
+				StringUtil.equalsIgnoreCase(shortParameterName, propertyKey)) {
+
+				return StringUtil.upperCaseFirstLetter(propertyKey);
+			}
+		}
+
+		return null;
 	}
 
 	public String getGraphQLMethodAnnotations(
@@ -197,17 +229,18 @@ public class FreeMarkerTool {
 		String parameters = GraphQLOpenAPIParser.getParameters(
 			javaMethodParameters, operation, annotation);
 
-		parameters = parameters.replace(
-			"com.liferay.portal.kernel.search.filter.Filter filter",
+		parameters = StringUtil.replace(
+			parameters, "com.liferay.portal.kernel.search.filter.Filter filter",
 			"String filterString");
 
-		parameters = parameters.replace(
-			"com.liferay.portal.kernel.search.Sort[] sorts",
+		parameters = StringUtil.replace(
+			parameters, "com.liferay.portal.kernel.search.Sort[] sorts",
 			"String sortsString");
 
-		parameters = parameters.replace(
-			"Long siteId",
-			"Long siteId, @GraphQLName(\"siteKey\") String siteKey");
+		parameters = StringUtil.replace(
+			parameters, "@GraphQLName(\"siteId\") java.lang.Long siteId",
+			"java.lang.Long siteId, @GraphQLName(\"siteKey\") @NotEmpty " +
+				"String siteKey");
 
 		return parameters;
 	}
@@ -768,15 +801,12 @@ public class FreeMarkerTool {
 	private JavaMethodSignature _getJavaMethodSignature(
 		JavaMethodSignature javaMethodSignature, String parentSchemaName) {
 
-		List<JavaMethodParameter> javaMethodParameters =
-			javaMethodSignature.getJavaMethodParameters();
-
 		return new JavaMethodSignature(
 			javaMethodSignature.getPath(), javaMethodSignature.getPathItem(),
 			javaMethodSignature.getOperation(),
 			javaMethodSignature.getRequestBodyMediaTypes(),
 			javaMethodSignature.getSchemaName(),
-			javaMethodParameters.subList(1, javaMethodParameters.size()),
+			javaMethodSignature.getJavaMethodParameters(),
 			javaMethodSignature.getMethodName(),
 			javaMethodSignature.getReturnType(), parentSchemaName);
 	}
@@ -868,7 +898,7 @@ public class FreeMarkerTool {
 
 		String returnType = StringUtil.toLowerCase(
 			javaMethodSignature.getReturnType());
-		String schemaName = parameterName.replace("Id", "");
+		String schemaName = StringUtil.replace(parameterName, "Id", "");
 
 		if (propertyName.equals(parameterName) &&
 			returnType.endsWith(StringUtil.toLowerCase(schemaName))) {
@@ -879,6 +909,6 @@ public class FreeMarkerTool {
 		return false;
 	}
 
-	private static FreeMarkerTool _instance = new FreeMarkerTool();
+	private static FreeMarkerTool _freeMarkerTool = new FreeMarkerTool();
 
 }

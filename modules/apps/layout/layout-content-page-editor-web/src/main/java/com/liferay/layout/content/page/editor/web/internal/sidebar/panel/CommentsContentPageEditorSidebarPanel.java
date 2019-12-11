@@ -15,19 +15,18 @@
 package com.liferay.layout.content.page.editor.web.internal.sidebar.panel;
 
 import com.liferay.layout.content.page.editor.sidebar.panel.ContentPageEditorSidebarPanel;
-import com.liferay.layout.content.page.editor.web.internal.configuration.ContentPageEditorConfiguration;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Eudaldo Alonso
@@ -63,14 +62,16 @@ public class CommentsContentPageEditorSidebarPanel
 	}
 
 	@Override
-	public boolean isVisible(boolean pageIsDisplayPage) {
-		try {
-			ContentPageEditorConfiguration companyConfiguration =
-				_configurationProvider.getCompanyConfiguration(
-					ContentPageEditorConfiguration.class,
-					CompanyThreadLocal.getCompanyId());
+	public boolean isVisible(
+		PermissionChecker permissionChecker, long plid,
+		boolean pageIsDisplayPage) {
 
-			return companyConfiguration.commentsEnabled();
+		try {
+			if (LayoutPermissionUtil.contains(
+					permissionChecker, plid, ActionKeys.UPDATE)) {
+
+				return true;
+			}
 		}
 		catch (Exception e) {
 			if (_log.isDebugEnabled()) {
@@ -83,8 +84,5 @@ public class CommentsContentPageEditorSidebarPanel
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommentsContentPageEditorSidebarPanel.class);
-
-	@Reference
-	private ConfigurationProvider _configurationProvider;
 
 }

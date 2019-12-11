@@ -45,20 +45,20 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ChangeTransition {
 
 	@Schema
-	public String getTransition() {
-		return transition;
+	public String getComment() {
+		return comment;
 	}
 
-	public void setTransition(String transition) {
-		this.transition = transition;
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
 	@JsonIgnore
-	public void setTransition(
-		UnsafeSupplier<String, Exception> transitionUnsafeSupplier) {
+	public void setComment(
+		UnsafeSupplier<String, Exception> commentUnsafeSupplier) {
 
 		try {
-			transition = transitionUnsafeSupplier.get();
+			comment = commentUnsafeSupplier.get();
 		}
 		catch (RuntimeException re) {
 			throw re;
@@ -70,7 +70,35 @@ public class ChangeTransition {
 
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	protected String transition;
+	protected String comment;
+
+	@Schema
+	public String getTransitionName() {
+		return transitionName;
+	}
+
+	public void setTransitionName(String transitionName) {
+		this.transitionName = transitionName;
+	}
+
+	@JsonIgnore
+	public void setTransitionName(
+		UnsafeSupplier<String, Exception> transitionNameUnsafeSupplier) {
+
+		try {
+			transitionName = transitionNameUnsafeSupplier.get();
+		}
+		catch (RuntimeException re) {
+			throw re;
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	protected String transitionName;
 
 	@Override
 	public boolean equals(Object object) {
@@ -99,16 +127,30 @@ public class ChangeTransition {
 
 		sb.append("{");
 
-		if (transition != null) {
+		if (comment != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"transition\": ");
+			sb.append("\"comment\": ");
 
 			sb.append("\"");
 
-			sb.append(_escape(transition));
+			sb.append(_escape(comment));
+
+			sb.append("\"");
+		}
+
+		if (transitionName != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"transitionName\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(transitionName));
 
 			sb.append("\"");
 		}
@@ -117,6 +159,12 @@ public class ChangeTransition {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.workflow.dto.v1_0.ChangeTransition",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -86,7 +86,7 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 											editAssetListEntryURL.setParameter("segmentsEntryId", String.valueOf(assetListEntrySegmentsEntryRel.getSegmentsEntryId()));
 											%>
 
-											<a class="nav-link truncate-text <%= (editAssetListDisplayContext.getSegmentsEntryId() == assetListEntrySegmentsEntryRel.getSegmentsEntryId()) ? "active" : StringPool.BLANK %>" href="<%= editAssetListEntryURL.toString() %>">
+											<a class="nav-link text-truncate <%= (editAssetListDisplayContext.getSegmentsEntryId() == assetListEntrySegmentsEntryRel.getSegmentsEntryId()) ? "active" : StringPool.BLANK %>" href="<%= editAssetListEntryURL.toString() %>">
 												<%= HtmlUtil.escape(editAssetListDisplayContext.getSegmentsEntryName(assetListEntrySegmentsEntryRel.getSegmentsEntryId(), locale)) %>
 											</a>
 										</li>
@@ -148,20 +148,19 @@ renderResponse.setTitle(assetListDisplayContext.getAssetListEntryTitle());
 					modal: true
 				},
 				id: '<portlet:namespace />selectEntity',
-				title: '<liferay-ui:message arguments="personalized-variation" key="new-x" />',
-				uri: '<%= editAssetListDisplayContext.getSelectSegmentsEntryURL() %>'
+				title:
+					'<liferay-ui:message arguments="personalized-variation" key="new-x" />',
+				uri:
+					'<%= editAssetListDisplayContext.getSelectSegmentsEntryURL() %>'
 			},
 			function(event) {
-				Liferay.Util.postForm(
-					document.<portlet:namespace />fm,
-					{
-						data: {
-							segmentsEntryId: event.entityid
-						},
-						url: '<%= addAssetListEntryVariationURL %>'
-					}
-				);
+				Liferay.Util.postForm(document.<portlet:namespace />fm, {
+					data: {
+						segmentsEntryId: event.entityid
+					},
+					url: '<%= addAssetListEntryVariationURL %>'
+				});
 			}
 		);
-	};
+	}
 </script>

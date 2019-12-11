@@ -12,10 +12,9 @@
  * details.
  */
 
+import {PortletBase} from 'frontend-js-web';
 import core from 'metal';
 import dom from 'metal-dom';
-
-import {PortletBase} from 'frontend-js-web';
 
 /**
  * EditAdaptiveMediaConfig

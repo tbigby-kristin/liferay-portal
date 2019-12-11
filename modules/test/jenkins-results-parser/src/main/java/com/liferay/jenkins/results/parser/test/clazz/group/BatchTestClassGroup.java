@@ -127,9 +127,21 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 		jobProperties = portalTestClassJob.getJobProperties();
 
+		String stableTestSuiteBatchNamesFirstPropertyValue =
+			getFirstPropertyValue(
+				"test.batch.names", batchName, NAME_STABLE_TEST_SUITE);
+
+		if (stableTestSuiteBatchNamesFirstPropertyValue != null) {
+			Collections.addAll(
+				stableTestSuiteBatchNames,
+				stableTestSuiteBatchNamesFirstPropertyValue.split("\\s*,\\s*"));
+		}
+
 		_setTestReleaseBundle();
 		_setTestRelevantChanges();
 		_setTestRelevantIntegrationUnitOnly();
+
+		_setIncludeStableTestSuite();
 	}
 
 	protected int getAxisMaxSize() {
@@ -195,11 +207,19 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	}
 
 	protected String getFirstPropertyValue(String basePropertyName) {
-		return getFirstPropertyValue(basePropertyName, batchName);
+		return getFirstPropertyValue(
+			basePropertyName, batchName, testSuiteName);
 	}
 
 	protected String getFirstPropertyValue(
 		String basePropertyName, String batchName) {
+
+		return getFirstPropertyValue(
+			basePropertyName, batchName, testSuiteName);
+	}
+
+	protected String getFirstPropertyValue(
+		String basePropertyName, String batchName, String testSuiteName) {
 
 		if (basePropertyName.contains("[") || basePropertyName.contains("]")) {
 			throw new RuntimeException(
@@ -350,6 +370,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return true;
 	}
 
+	protected boolean isStableTestSuiteBatch() {
+		return stableTestSuiteBatchNames.contains(batchName);
+	}
+
 	protected void setAxisTestClassGroups() {
 		int testClassCount = testClasses.size();
 
@@ -379,13 +403,17 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		}
 	}
 
+	protected static final String NAME_STABLE_TEST_SUITE = "stable";
+
 	protected final Map<Integer, AxisTestClassGroup> axisTestClassGroups =
 		new HashMap<>();
 	protected final String batchName;
 	protected final List<PathMatcher> excludesPathMatchers = new ArrayList<>();
 	protected final List<PathMatcher> includesPathMatchers = new ArrayList<>();
+	protected boolean includeStableTestSuite;
 	protected final Properties jobProperties;
 	protected final PortalGitWorkingDirectory portalGitWorkingDirectory;
+	protected List<String> stableTestSuiteBatchNames = new ArrayList<>();
 	protected boolean testPrivatePortalBranch;
 	protected boolean testReleaseBundle;
 	protected boolean testRelevantChanges;
@@ -494,6 +522,10 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		}
 
 		return Lists.newArrayList(requiredModuleDirs);
+	}
+
+	private void _setIncludeStableTestSuite() {
+		includeStableTestSuite = testRelevantChanges;
 	}
 
 	private void _setTestReleaseBundle() {

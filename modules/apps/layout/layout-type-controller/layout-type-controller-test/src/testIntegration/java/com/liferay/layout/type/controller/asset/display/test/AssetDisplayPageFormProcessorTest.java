@@ -21,7 +21,6 @@ import com.liferay.asset.display.page.portlet.AssetDisplayPageEntryFormProcessor
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
-import com.liferay.document.library.kernel.model.DLFileEntryConstants;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
@@ -44,6 +43,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -55,7 +55,6 @@ import java.security.Principal;
 
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -100,8 +99,7 @@ public class AssetDisplayPageFormProcessorTest {
 	public void testProcessUpdateAssetDisplayPageFromSpecificToDefaultExisting()
 		throws Exception {
 
-		long classNameId = _portal.getClassNameId(
-			DLFileEntryConstants.getClassName());
+		long classNameId = _portal.getClassNameId(FileEntry.class.getName());
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
@@ -113,15 +111,13 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_SPECIFIC),
 						String.valueOf(RandomTestUtil.randomLong())));
 
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_DEFAULT),
 						String.valueOf(
@@ -131,9 +127,7 @@ public class AssetDisplayPageFormProcessorTest {
 				AssetDisplayPageEntry assetDisplayPageEntry =
 					_assetDisplayPageEntryLocalService.
 						fetchAssetDisplayPageEntry(
-							_group.getGroupId(),
-							_portal.getClassNameId(
-								DLFileEntryConstants.getClassName()),
+							_group.getGroupId(), classNameId,
 							fileEntry.getFileEntryId());
 
 				Assert.assertEquals(
@@ -153,15 +147,13 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_SPECIFIC),
 						String.valueOf(RandomTestUtil.randomLong())));
 
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_DEFAULT),
 						null));
@@ -170,8 +162,7 @@ public class AssetDisplayPageFormProcessorTest {
 					_assetDisplayPageEntryLocalService.
 						fetchAssetDisplayPageEntry(
 							_group.getGroupId(),
-							_portal.getClassNameId(
-								DLFileEntryConstants.getClassName()),
+							_portal.getClassNameId(FileEntry.class.getName()),
 							fileEntry.getFileEntryId());
 
 				Assert.assertNotNull(assetDisplayPageEntry);
@@ -189,15 +180,13 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_SPECIFIC),
 						String.valueOf(RandomTestUtil.randomLong())));
 
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_NONE),
 						null));
@@ -206,16 +195,14 @@ public class AssetDisplayPageFormProcessorTest {
 					_assetDisplayPageEntryLocalService.
 						fetchAssetDisplayPageEntry(
 							_group.getGroupId(),
-							_portal.getClassNameId(
-								DLFileEntryConstants.getClassName()),
+							_portal.getClassNameId(FileEntry.class.getName()),
 							fileEntry.getFileEntryId()));
 			});
 	}
 
 	@Test
 	public void testProcessWithDefaultAssetDisplayPage() throws Exception {
-		long classNameId = _portal.getClassNameId(
-			DLFileEntryConstants.getClassName());
+		long classNameId = _portal.getClassNameId(FileEntry.class.getName());
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
@@ -227,8 +214,7 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_DEFAULT),
 						String.valueOf(
@@ -255,16 +241,14 @@ public class AssetDisplayPageFormProcessorTest {
 	public void testProcessWithDefaultNonexistingAssetDisplayPage()
 		throws Exception {
 
-		long classNameId = _portal.getClassNameId(
-			DLFileEntryConstants.getClassName());
+		long classNameId = _portal.getClassNameId(FileEntry.class.getName());
 
 		long defaultAssetDisplayPageEntryId = 0;
 
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_DEFAULT),
 						String.valueOf(defaultAssetDisplayPageEntryId)));
@@ -285,8 +269,7 @@ public class AssetDisplayPageFormProcessorTest {
 
 	@Test
 	public void testProcessWithDefaultParameters() throws Exception {
-		long classNameId = _portal.getClassNameId(
-			DLFileEntryConstants.getClassName());
+		long classNameId = _portal.getClassNameId(FileEntry.class.getName());
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
@@ -298,8 +281,7 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(null, null));
 
 				AssetDisplayPageEntry assetDisplayPageEntry =
@@ -323,8 +305,7 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_NONE),
 						null));
@@ -333,8 +314,7 @@ public class AssetDisplayPageFormProcessorTest {
 					_assetDisplayPageEntryLocalService.
 						fetchAssetDisplayPageEntry(
 							_group.getGroupId(),
-							_portal.getClassNameId(
-								DLFileEntryConstants.getClassName()),
+							_portal.getClassNameId(FileEntry.class.getName()),
 							fileEntry.getFileEntryId()));
 			});
 	}
@@ -344,8 +324,7 @@ public class AssetDisplayPageFormProcessorTest {
 		_withAndWithoutAssetEntry(
 			fileEntry -> {
 				_assetDisplayPageEntryFormProcessor.process(
-					DLFileEntryConstants.getClassName(),
-					fileEntry.getFileEntryId(),
+					FileEntry.class.getName(), fileEntry.getFileEntryId(),
 					new MockPortletRequest(
 						String.valueOf(AssetDisplayPageConstants.TYPE_SPECIFIC),
 						String.valueOf(RandomTestUtil.randomLong())));
@@ -354,8 +333,7 @@ public class AssetDisplayPageFormProcessorTest {
 					_assetDisplayPageEntryLocalService.
 						fetchAssetDisplayPageEntry(
 							_group.getGroupId(),
-							_portal.getClassNameId(
-								DLFileEntryConstants.getClassName()),
+							_portal.getClassNameId(FileEntry.class.getName()),
 							fileEntry.getFileEntryId()));
 			});
 	}
@@ -390,7 +368,7 @@ public class AssetDisplayPageFormProcessorTest {
 		dlFileEntry = DLTestUtil.addDLFileEntry(dlFolder.getFolderId());
 
 		AssetEntryLocalServiceUtil.deleteEntry(
-			DLFileEntryConstants.getClassName(), dlFileEntry.getFileEntryId());
+			FileEntry.class.getName(), dlFileEntry.getFileEntryId());
 
 		testFunction.accept(
 			_dlAppLocalService.getFileEntry(dlFileEntry.getFileEntryId()));
@@ -426,35 +404,27 @@ public class AssetDisplayPageFormProcessorTest {
 				String displayPageType, String assetDisplayPageId)
 			throws PortalException {
 
-			_attributes = new HashMap<String, Object>() {
-				{
-					put(WebKeys.THEME_DISPLAY, _getThemeDisplay());
-					put(WebKeys.CURRENT_URL, RandomTestUtil.randomString());
-					put(
-						PortletServlet.PORTLET_SERVLET_REQUEST,
-						new MockHttpServletRequest());
-				}
-			};
+			_attributes = HashMapBuilder.<String, Object>put(
+				PortletServlet.PORTLET_SERVLET_REQUEST,
+				new MockHttpServletRequest()
+			).put(
+				WebKeys.CURRENT_URL, RandomTestUtil.randomString()
+			).put(
+				WebKeys.THEME_DISPLAY, _getThemeDisplay()
+			).build();
 
-			_parameters = new HashMap<String, String[]>() {
-				{
-					put(
-						Constants.CMD,
-						new String[] {RandomTestUtil.randomString()});
-					put(
-						"assetDisplayPageId",
-						new String[] {assetDisplayPageId});
-					put(
-						"assetEntryVisible",
-						new String[] {String.valueOf(Boolean.TRUE)});
-					put("displayPageType", new String[] {displayPageType});
-					put(
-						"formDate",
-						new String[] {
-							String.valueOf(RandomTestUtil.randomLong())
-						});
-				}
-			};
+			_parameters = HashMapBuilder.put(
+				Constants.CMD, new String[] {RandomTestUtil.randomString()}
+			).put(
+				"assetDisplayPageId", new String[] {assetDisplayPageId}
+			).put(
+				"assetEntryVisible", new String[] {String.valueOf(Boolean.TRUE)}
+			).put(
+				"displayPageType", new String[] {displayPageType}
+			).put(
+				"formDate",
+				new String[] {String.valueOf(RandomTestUtil.randomLong())}
+			).build();
 		}
 
 		@Override

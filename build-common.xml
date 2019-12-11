@@ -19,12 +19,14 @@
 	<property file="${project.dir}/app.server.${env.HOSTNAME}.properties" />
 	<property file="${project.dir}/app.server.properties" />
 
+	<property file="${project.dir}/build.profile-dxp.properties" />
 	<property file="${project.dir}/build.${user.name}.properties" />
 	<property file="${project.dir}/build.${env.COMPUTERNAME}.properties" />
 	<property file="${project.dir}/build.${env.HOST}.properties" />
 	<property file="${project.dir}/build.${env.HOSTNAME}.properties" />
 	<property file="${project.dir}/build.properties" />
 
+	<property file="${project.dir}/release.profile-dxp.properties" />
 	<property file="${project.dir}/release.${user.name}.properties" />
 	<property file="${project.dir}/release.${env.COMPUTERNAME}.properties" />
 	<property file="${project.dir}/release.${env.HOST}.properties" />
@@ -37,6 +39,7 @@
 	<property file="${project.dir}/benchmarks/benchmarks.${env.HOSTNAME}.properties" />
 	<property file="${project.dir}/benchmarks/benchmarks.properties" />
 
+	<property file="${project.dir}/sql/sql.profile-dxp.properties" />
 	<property file="${project.dir}/sql/sql.${user.name}.properties" />
 	<property file="${project.dir}/sql/sql.${env.COMPUTERNAME}.properties" />
 	<property file="${project.dir}/sql/sql.${env.HOST}.properties" />
@@ -149,10 +152,6 @@
 		</not>
 	</condition>
 
-	<condition property="app.server.type" value="tomcat">
-		<equals arg1="${build.profile}" arg2="slim" />
-	</condition>
-
 	<property name="aspectj.agent" value="-javaagent:${project.dir}/lib/portal/aspectj-weaver.jar" />
 	<property name="aspectj.configuration" value="com/liferay/aspectj/aop.xml" />
 	<property name="definitions.dir" value="${project.dir}/definitions" />
@@ -200,10 +199,7 @@
 	<condition property="liferay.releng.ee">
 		<or>
 			<istrue value="${ee.override}" />
-			<resourcecontains
-				resource="${project.dir}/portal-kernel/src/com/liferay/portal/kernel/util/ReleaseInfo.java"
-				substring=" Digital Experience Platform"
-			/>
+			<equals arg1="${release.info.name}" arg2="Liferay Digital Experience Platform" />
 		</or>
 	</condition>
 
@@ -850,21 +846,19 @@ information.
 						<arg value="tasks" />
 						<arg value="--all" />
 						<env key="GRADLE_OPTS" value="${task.gradle.opts}" />
-						<redirector errorproperty="@{outputproperty}.error" outputproperty="tasks.output" unless:blank="tasks.output" />
+						<redirector errorproperty="tasks.error" outputproperty="tasks.output" unless:blank="tasks.output" />
 					</exec>
 
 					<condition else="false" property="task.available" value="true">
 						<contains string="${tasks.output}" substring="@{task} -" />
 					</condition>
 
-					<local name="task.error" />
-
-					<propertycopy from="@{outputproperty}.error" name="task.error" />
-
 					<if>
-						<equals arg1="${task.error}" arg2="" />
+						<not>
+							<equals arg1="${tasks.error}" arg2="" />
+						</not>
 						<then>
-							<var name="@{outputproperty}.error" unset="true" />
+							<propertycopy from="tasks.error" name="@{outputproperty}.error" />
 						</then>
 					</if>
 				</then>
@@ -875,8 +869,76 @@ information.
 			<if>
 				<equals arg1="${task.available}" arg2="true" />
 				<then>
+					<local name="gradle.executable.task" />
+
+					<if>
+						<isset property="@{dir}" />
+						<then>
+							<local name="gradle.task.dir.unix" />
+
+							<pathconvert property="gradle.task.dir.unix" targetos="unix">
+								<path location="@{dir}" />
+							</pathconvert>
+
+							<local name="gradle.project.path" />
+
+							<propertyregex
+								global="false"
+								input="${gradle.task.dir.unix}"
+								override="yes"
+								property="gradle.project.path"
+								regexp="^.*/modules(/.*)"
+								select="\1"
+							/>
+
+							<propertyregex
+								global="true"
+								input="${gradle.project.path}"
+								override="yes"
+								property="gradle.project.path"
+								regexp="/"
+								replace=":"
+							/>
+
+							<property name="gradle.executable.task" value="${gradle.project.path}:@{task}" />
+						</then>
+						<else>
+							<property name="gradle.executable.task" value="@{task}" />
+						</else>
+					</if>
+
+					<local name="redirector.error.property" />
+					<local name="redirector.output.property" />
+
+					<if>
+						<or>
+							<not>
+								<equals arg1="@{outputproperty}" arg2="" />
+							</not>
+							<and>
+								<not>
+									<isset property="env.JENKINS_HOME" />
+								</not>
+								<equals arg1="${gradle.execute.silent}" arg2="true" />
+							</and>
+						</or>
+						<then>
+							<property name="redirector.error.property" value="error.property" />
+							<property name="redirector.output.property" value="output.property" />
+						</then>
+						<else>
+							<property name="redirector.error.property" value="" />
+							<property name="redirector.output.property" value="" />
+						</else>
+					</if>
+
+					<local name="${redirector.error.property}" />
+					<local name="${redirector.output.property}" />
+
 					<trycatch>
 						<try>
+							<echo message="Executing Gradle task: ${gradle.executable.task}" />
+
 							<exec dir="@{dir}" executable="${project.dir}/gradlew${gradlew.suffix}" failonerror="@{failonerror}">
 								<args />
 								<arg if:set="env.JENKINS_HOME" value="--max-workers=${gradle.ci.max.workers}" />
@@ -896,18 +958,77 @@ information.
 								<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.qualifier=${build.patcher.hotfix.qualifier}" />
 								<arg line="@{task}" />
 								<env key="GRADLE_OPTS" value="${task.gradle.opts}" />
-								<redirector errorproperty="@{outputproperty}.error" outputproperty="@{outputproperty}" unless:blank="@{outputproperty}" />
+								<redirector errorproperty="${redirector.error.property}" outputproperty="${redirector.output.property}" unless:blank="${redirector.output.property}" />
 							</exec>
 						</try>
+						<catch>
+							<if>
+								<isset property="${redirector.error.property}" />
+								<then>
+									<local name="task.error" />
+
+									<propertycopy from="${redirector.error.property}" name="task.error" />
+
+									<echo message="${task.error}" />
+								</then>
+							</if>
+
+							<echo />
+
+							<echoxml>
+								<exec dir="@{dir}" executable="${project.dir}/gradlew${gradlew.suffix}" failonerror="@{failonerror}">
+									<args />
+									<arg if:set="env.JENKINS_HOME" value="--max-workers=${gradle.ci.max.workers}" />
+									<arg value="--no-daemon" />
+									<arg if:true="${gradle.profile.enabled}" value="--profile" />
+									<arg if:set="env.JENKINS_HOME" value="--profile" />
+									<arg value="--project-cache-dir=${project.dir}/.gradle" />
+									<arg if:true="@{refreshdependencies}" value="--refresh-dependencies" />
+									<arg value="--stacktrace" />
+									<arg value="-Dapp.server.parent.dir=${app.server.parent.dir}" />
+									<arg value="-Dforced.cache.enabled=@{forcedcacheenabled}" />
+									<arg value="-Dliferay.home=${liferay.home}" />
+									<arg if:set="env.JENKINS_HOME" value="-Dliferay.ssl.context.enabled=${gradle.ci.liferay.ssl.context.enabled}" />
+									<arg if:set="env.JENKINS_HOME" value="-Dorg.gradle.internal.http.connectionTimeout=${gradle.ci.http.connection.timeout}" />
+									<arg if:set="env.JENKINS_HOME" value="-Dorg.gradle.internal.http.socketTimeout=${gradle.ci.http.socket.timeout}" />
+									<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.dirs=${build.patcher.hotfix.dirs}" />
+									<arg if:set="env.FIX_PACKS_RELEASE_ENVIRONMENT" value="-Dpatcher.hotfix.qualifier=${build.patcher.hotfix.qualifier}" />
+									<arg line="@{task}" />
+									<env key="GRADLE_OPTS" value="${task.gradle.opts}" />
+									<redirector errorproperty="${redirector.error.property}" outputproperty="${redirector.output.property}" unless:blank="${redirector.output.property}" />
+								</exec>
+							</echoxml>
+
+							<fail message="Unable to execute Gradle task: ${gradle.executable.task}." />
+						</catch>
 						<finally>
 							<if>
-								<isset property="@{outputproperty}" />
+								<not>
+									<equals arg1="${redirector.output.property}" arg2="" />
+								</not>
 								<then>
-									<local name="outputproperty" />
+									<if>
+										<not>
+											<equals arg1="@{outputproperty}" arg2="" />
+										</not>
+										<then>
+											<propertycopy from="${redirector.error.property}" name="@{outputproperty}.error" />
+											<propertycopy from="${redirector.output.property}" name="@{outputproperty}" />
+										</then>
+									</if>
 
-									<propertycopy from="@{outputproperty}" name="outputproperty" />
+									<if>
+										<not>
+											<equals arg1="${gradle.execute.silent}" arg2="true" />
+										</not>
+										<then>
+											<local name="task.output" />
 
-									<echo message="${outputproperty}" />
+											<propertycopy from="${redirector.output.property}" name="task.output" />
+
+											<echo message="${task.output}" />
+										</then>
+									</if>
 								</then>
 							</if>
 						</finally>
@@ -1333,12 +1454,6 @@ artifact.url=${remote.repository.url}/com/liferay/portal/com.liferay.${processed
 								<arg value="-m" />
 								<arg value="artifact:ignore ${artifact.name} ${artifact.version} releng" />
 							</exec>
-
-							<gradle-execute dir="${project.dir}/modules" task="lockDependencyVersion">
-								<arg value="--build-file=releng.gradle" />
-								<arg value="-PdependencyName=com.liferay.${processed.artifact.name}" />
-								<arg value="-PdependencyVersion=${artifact.version.major.minor}.0" />
-							</gradle-execute>
 						</then>
 					</if>
 
@@ -1839,6 +1954,7 @@ rerun your task.
 					<propertyref prefix="org.gradle." />
 					<propertyref prefix="sonatype." />
 					<propertyref prefix="source.formatter." />
+					<propertyref prefix="systemProp." />
 					<propertyref regex=".+\.ignore\.local$" />
 					<propertyref regex="^\s*app\.server\.(?:jboss|tcserver|tomcat|weblogic|websphere|wildfly).*" />
 				</propertyset>

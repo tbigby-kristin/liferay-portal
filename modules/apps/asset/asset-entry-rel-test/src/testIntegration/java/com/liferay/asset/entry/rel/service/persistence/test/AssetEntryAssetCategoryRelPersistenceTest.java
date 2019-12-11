@@ -127,6 +127,10 @@ public class AssetEntryAssetCategoryRelPersistenceTest {
 		AssetEntryAssetCategoryRel newAssetEntryAssetCategoryRel =
 			_persistence.create(pk);
 
+		newAssetEntryAssetCategoryRel.setMvccVersion(RandomTestUtil.nextLong());
+
+		newAssetEntryAssetCategoryRel.setCompanyId(RandomTestUtil.nextLong());
+
 		newAssetEntryAssetCategoryRel.setAssetEntryId(
 			RandomTestUtil.nextLong());
 
@@ -143,9 +147,15 @@ public class AssetEntryAssetCategoryRelPersistenceTest {
 				newAssetEntryAssetCategoryRel.getPrimaryKey());
 
 		Assert.assertEquals(
+			existingAssetEntryAssetCategoryRel.getMvccVersion(),
+			newAssetEntryAssetCategoryRel.getMvccVersion());
+		Assert.assertEquals(
 			existingAssetEntryAssetCategoryRel.
 				getAssetEntryAssetCategoryRelId(),
 			newAssetEntryAssetCategoryRel.getAssetEntryAssetCategoryRelId());
+		Assert.assertEquals(
+			existingAssetEntryAssetCategoryRel.getCompanyId(),
+			newAssetEntryAssetCategoryRel.getCompanyId());
 		Assert.assertEquals(
 			existingAssetEntryAssetCategoryRel.getAssetEntryId(),
 			newAssetEntryAssetCategoryRel.getAssetEntryId());
@@ -209,7 +219,8 @@ public class AssetEntryAssetCategoryRelPersistenceTest {
 		getOrderByComparator() {
 
 		return OrderByComparatorFactoryUtil.create(
-			"AssetEntryAssetCategoryRel", "assetEntryAssetCategoryRelId", true,
+			"AssetEntryAssetCategoryRel", "mvccVersion", true,
+			"assetEntryAssetCategoryRelId", true, "companyId", true,
 			"assetEntryId", true, "assetCategoryId", true, "priority", true);
 	}
 
@@ -489,6 +500,10 @@ public class AssetEntryAssetCategoryRelPersistenceTest {
 
 		AssetEntryAssetCategoryRel assetEntryAssetCategoryRel =
 			_persistence.create(pk);
+
+		assetEntryAssetCategoryRel.setMvccVersion(RandomTestUtil.nextLong());
+
+		assetEntryAssetCategoryRel.setCompanyId(RandomTestUtil.nextLong());
 
 		assetEntryAssetCategoryRel.setAssetEntryId(RandomTestUtil.nextLong());
 

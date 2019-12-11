@@ -202,6 +202,11 @@ public abstract class BaseMessageBoardMessageResourceImpl
 				messageBoardMessage.getSiteId());
 		}
 
+		if (messageBoardMessage.getSubscribed() != null) {
+			existingMessageBoardMessage.setSubscribed(
+				messageBoardMessage.getSubscribed());
+		}
+
 		if (messageBoardMessage.getViewableBy() != null) {
 			existingMessageBoardMessage.setViewableBy(
 				messageBoardMessage.getViewableBy());
@@ -346,6 +351,48 @@ public abstract class BaseMessageBoardMessageResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+		}
+	)
+	@Path("/message-board-messages/{messageBoardMessageId}/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	public void putMessageBoardMessageSubscribe(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("messageBoardMessageId") Long messageBoardMessageId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{messageBoardMessageId}/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "messageBoardMessageId")
+		}
+	)
+	@Path("/message-board-messages/{messageBoardMessageId}/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	public void putMessageBoardMessageUnsubscribe(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("messageBoardMessageId") Long messageBoardMessageId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/message-board-messages/{parentMessageBoardMessageId}/message-board-messages'  -u 'test@liferay.com:test'
 	 */
 	@Override
@@ -358,6 +405,7 @@ public abstract class BaseMessageBoardMessageResourceImpl
 			@Parameter(
 				in = ParameterIn.PATH, name = "parentMessageBoardMessageId"
 			),
+			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
 			@Parameter(in = ParameterIn.QUERY, name = "search"),
 			@Parameter(in = ParameterIn.QUERY, name = "filter"),
 			@Parameter(in = ParameterIn.QUERY, name = "page"),
@@ -375,6 +423,8 @@ public abstract class BaseMessageBoardMessageResourceImpl
 				@NotNull @Parameter(hidden = true)
 				@PathParam("parentMessageBoardMessageId") Long
 					parentMessageBoardMessageId,
+				@Parameter(hidden = true) @QueryParam("flatten") Boolean
+					flatten,
 				@Parameter(hidden = true) @QueryParam("search") String search,
 				@Context Filter filter, @Context Pagination pagination,
 				@Context Sort[] sorts)
@@ -481,6 +531,39 @@ public abstract class BaseMessageBoardMessageResourceImpl
 		throws Exception {
 
 		return new MessageBoardMessage();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/message-board-messages'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@GET
+	@Operation(description = "Retrieves the site's message board messages.")
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "siteId"),
+			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
+			@Parameter(in = ParameterIn.QUERY, name = "search"),
+			@Parameter(in = ParameterIn.QUERY, name = "filter"),
+			@Parameter(in = ParameterIn.QUERY, name = "page"),
+			@Parameter(in = ParameterIn.QUERY, name = "pageSize"),
+			@Parameter(in = ParameterIn.QUERY, name = "sort")
+		}
+	)
+	@Path("/sites/{siteId}/message-board-messages")
+	@Produces({"application/json", "application/xml"})
+	@Tags(value = {@Tag(name = "MessageBoardMessage")})
+	public Page<MessageBoardMessage> getSiteMessageBoardMessagesPage(
+			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId,
+			@Parameter(hidden = true) @QueryParam("flatten") Boolean flatten,
+			@Parameter(hidden = true) @QueryParam("search") String search,
+			@Context Filter filter, @Context Pagination pagination,
+			@Context Sort[] sorts)
+		throws Exception {
+
+		return Page.of(Collections.emptyList());
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {

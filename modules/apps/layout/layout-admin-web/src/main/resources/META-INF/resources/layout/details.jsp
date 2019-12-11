@@ -23,6 +23,7 @@ Layout selLayout = layoutsAdminDisplayContext.getSelLayout();
 LayoutType selLayoutType = selLayout.getLayoutType();
 
 Locale defaultLocale = LocaleUtil.getDefault();
+
 String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
 %>
 
@@ -34,22 +35,13 @@ String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
 <aui:model-context bean="<%= selLayout %>" model="<%= Layout.class %>" />
 
 <%
-StringBuilder friendlyURLBase = new StringBuilder();
+String friendlyURLBase = StringPool.BLANK;
 %>
 
 <c:if test="<%= !group.isLayoutPrototype() && selLayoutType.isURLFriendliable() && !layoutsAdminDisplayContext.isDraft() %>">
 
 	<%
-	friendlyURLBase.append(themeDisplay.getPortalURL());
-
-	LayoutSet layoutSet = selLayout.getLayoutSet();
-
-	String virtualHostname = layoutSet.getVirtualHostname();
-
-	if (Validator.isNull(virtualHostname) || (friendlyURLBase.indexOf(virtualHostname) == -1)) {
-		friendlyURLBase.append(group.getPathFriendlyURL(layoutsAdminDisplayContext.isPrivateLayout(), themeDisplay));
-		friendlyURLBase.append(HttpUtil.decodeURL(group.getFriendlyURL()));
-	}
+	friendlyURLBase = layoutsAdminDisplayContext.getFriendlyURLBase();
 	%>
 
 	<liferay-ui:error exception="<%= LayoutFriendlyURLException.class %>" focusField="friendlyURL">
@@ -165,44 +157,63 @@ StringBuilder friendlyURLBase = new StringBuilder();
 	</liferay-util:include>
 </div>
 
-<aui:script require="metal-dom/src/dom as dom">
-	Liferay.Util.toggleBoxes('<portlet:namespace />layoutPrototypeLinkEnabled', '<portlet:namespace />layoutPrototypeMergeAlert');
-	Liferay.Util.toggleBoxes('<portlet:namespace />layoutPrototypeLinkEnabled', '<portlet:namespace />typeOptions', true);
+<c:if test="<%= !StringUtil.equals(selLayout.getType(), LayoutConstants.TYPE_ASSET_DISPLAY) %>">
+	<div class="sheet-section">
+		<h3 class="sheet-subtitle"><liferay-ui:message key="categorization" /></h3>
 
-	var layoutPrototypeLinkEnabled = document.getElementById('<portlet:namespace />layoutPrototypeLinkEnabled');
+		<liferay-util:include page="/layout/categorization.jsp" servletContext="<%= application %>" />
+	</div>
+</c:if>
+
+<aui:script require="metal-dom/src/dom as dom">
+	Liferay.Util.toggleBoxes(
+		'<portlet:namespace />layoutPrototypeLinkEnabled',
+		'<portlet:namespace />layoutPrototypeMergeAlert'
+	);
+	Liferay.Util.toggleBoxes(
+		'<portlet:namespace />layoutPrototypeLinkEnabled',
+		'<portlet:namespace />typeOptions',
+		true
+	);
+
+	var layoutPrototypeLinkEnabled = document.getElementById(
+		'<portlet:namespace />layoutPrototypeLinkEnabled'
+	);
 
 	if (layoutPrototypeLinkEnabled) {
-		layoutPrototypeLinkEnabled.addEventListener(
-			'change',
-			function(event) {
-				var layoutPrototypeLinkChecked = event.currentTarget.checked;
+		layoutPrototypeLinkEnabled.addEventListener('change', function(event) {
+			var layoutPrototypeLinkChecked = event.currentTarget.checked;
 
-				var layoutPrototypeInfoMessage = document.querySelector('.layout-prototype-info-message');
+			var layoutPrototypeInfoMessage = document.querySelector(
+				'.layout-prototype-info-message'
+			);
 
-				var applyLayoutPrototype = document.getElementById('<portlet:namespace />applyLayoutPrototype');
+			var applyLayoutPrototype = document.getElementById(
+				'<portlet:namespace />applyLayoutPrototype'
+			);
 
-				if (layoutPrototypeInfoMessage) {
-					if (layoutPrototypeLinkChecked) {
-						layoutPrototypeInfoMessage.classList.remove('hide');
+			if (layoutPrototypeInfoMessage) {
+				if (layoutPrototypeLinkChecked) {
+					layoutPrototypeInfoMessage.classList.remove('hide');
 
-						applyLayoutPrototype.value = '<%= true %>';
-					}
-					else {
-						layoutPrototypeInfoMessage.classList.add('hide');
+					applyLayoutPrototype.value = '<%= true %>';
+				} else {
+					layoutPrototypeInfoMessage.classList.add('hide');
 
-						applyLayoutPrototype.value = '<%= false %>';
-					}
+					applyLayoutPrototype.value = '<%= false %>';
 				}
-
-				var propagatableFields = document.querySelectorAll('#<portlet:namespace />editLayoutFm .propagatable-field');
-
-				Array.prototype.forEach.call(
-					propagatableFields,
-					function(field, index) {
-						Liferay.Util.toggleDisabled(field, layoutPrototypeLinkChecked);
-					}
-				);
 			}
-		);
+
+			var propagatableFields = document.querySelectorAll(
+				'#<portlet:namespace />editLayoutFm .propagatable-field'
+			);
+
+			Array.prototype.forEach.call(propagatableFields, function(
+				field,
+				index
+			) {
+				Liferay.Util.toggleDisabled(field, layoutPrototypeLinkChecked);
+			});
+		});
 	}
 </aui:script>

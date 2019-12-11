@@ -14,7 +14,7 @@
 
 AUI.add(
 	'liferay-management-bar',
-	function(A) {
+	A => {
 		var Lang = A.Lang;
 
 		var ATTR_CHECKED = 'checked';
@@ -173,6 +173,7 @@ AUI.add(
 							checkBoxesSelector: instance.get(
 								'checkBoxesSelector'
 							),
+							id: instance.get('id'),
 							itemsCountContainerSelector: instance
 								.get('itemsCountContainer')
 								.attr('class'),
@@ -292,7 +293,7 @@ AUI.add(
 					if (searchContainerNode) {
 						var selectedElements = A.Array.partition(
 							state.data.elements,
-							function(item) {
+							item => {
 								var valueSelector =
 									'[value="' + item.value + '"]';
 
@@ -335,6 +336,10 @@ AUI.add(
 			},
 
 			testRestoreTask(state, params, node) {
+				if (state.owner !== params.id) {
+					return;
+				}
+
 				var returnNode;
 
 				var currentNode = A.one(node);

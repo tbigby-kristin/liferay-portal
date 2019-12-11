@@ -16,7 +16,9 @@
 
 <%@ include file="/init.jsp" %>
 
-<blockquote><p>Buttons communicate an action to happen on user interaction.</p></blockquote>
+<blockquote>
+	<p>Buttons communicate an action to happen on user interaction.</p>
+</blockquote>
 
 <h3>TYPES</h3>
 
@@ -41,7 +43,9 @@
 					<div class="col"><clay:button ariaLabel="Workflow" disabled="<%= true %>" icon="workflow" /></div>
 				</div>
 			</td>
-			<td><strong>Primary</strong>: The primary button is always use for the most important actions. There can't be two primary actions together or near by.</td>
+			<td>
+				<strong>Primary</strong>: The primary button is always use for the most important actions. There can't be two primary actions together or near by.
+			</td>
 		</tr>
 		<tr>
 			<td>
@@ -55,7 +59,9 @@
 					<div class="col"><clay:button ariaLabel="Wiki" disabled="<%= true %>" icon="wiki" style="secondary" /></div>
 				</div>
 			</td>
-			<td><strong>Secondary</strong>: The secondary button is always use for the secondary actions. There can be several secondary actions near by.</td>
+			<td>
+				<strong>Secondary</strong>: The secondary button is always use for the secondary actions. There can be several secondary actions near by.
+			</td>
 		</tr>
 		<tr>
 			<td>
@@ -69,7 +75,9 @@
 					<div class="col"><clay:button ariaLabel="Page Template" disabled="<%= true %>" icon="page-template" style="borderless" /></div>
 				</div>
 			</td>
-			<td><strong>Borderless</strong>: Use in those cases as toolbars where the secondary button would be too heavy for the pattern design. In this way the design gets cleaner.</td>
+			<td>
+				<strong>Borderless</strong>: Use in those cases as toolbars where the secondary button would be too heavy for the pattern design. In this way the design gets cleaner.
+			</td>
 		</tr>
 		<tr>
 			<td>
@@ -83,7 +91,9 @@
 					<div class="col"><clay:button ariaLabel="Add Role" disabled="<%= true %>" icon="add-role" style="link" /></div>
 				</div>
 			</td>
-			<td><strong>Link</strong>: Used for many Cancel actions.</td>
+			<td>
+				<strong>Link</strong>: Used for many Cancel actions.
+			</td>
 		</tr>
 	</tbody>
 </table>
@@ -91,51 +101,51 @@
 <h3>VARIATIONS</h3>
 
 <div class="row text-center">
-		<div class="col-md-2">
-			<clay:button
-				icon="share"
-				label="Share"
-			/>
+	<div class="col-md-2">
+		<clay:button
+			icon="share"
+			label="Share"
+		/>
 
-			<div>Icon and Text Button</div>
-		</div>
-
-		<div class="col-md-2">
-			<clay:button
-				icon="indent-less"
-				monospaced="<%= true %>"
-				style="secondary"
-			/>
-
-			<div>Monospaced Button</div>
-		</div>
-
-		<div class="col-md-4">
-			<clay:button
-				block="<%= true %>"
-				label="Button"
-			/>
-
-			<div>Block Level Button</div>
-		</div>
-
-		<div class="col-md-2">
-			<clay:button
-				icon="plus"
-				monospaced="<%= true %>"
-				style="secondary"
-			/>
-
-			<div>Plus Button</div>
-		</div>
-
-		<div class="col-md-2">
-			<clay:button
-				icon="ellipsis-v"
-				monospaced="<%= true %>"
-				style="borderless"
-			/>
-
-			<div>Action Button</div>
-		</div>
+		<div>Icon and Text Button</div>
 	</div>
+
+	<div class="col-md-2">
+		<clay:button
+			icon="indent-less"
+			monospaced="<%= true %>"
+			style="secondary"
+		/>
+
+		<div>Monospaced Button</div>
+	</div>
+
+	<div class="col-md-4">
+		<clay:button
+			block="<%= true %>"
+			label="Button"
+		/>
+
+		<div>Block Level Button</div>
+	</div>
+
+	<div class="col-md-2">
+		<clay:button
+			icon="plus"
+			monospaced="<%= true %>"
+			style="secondary"
+		/>
+
+		<div>Plus Button</div>
+	</div>
+
+	<div class="col-md-2">
+		<clay:button
+			icon="ellipsis-v"
+			monospaced="<%= true %>"
+			style="borderless"
+		/>
+
+		<div>Action Button</div>
+	</div>
+</div>

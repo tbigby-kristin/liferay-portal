@@ -26,22 +26,19 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
-import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.ResourceBundle;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -64,15 +61,13 @@ public class SelectDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put(
+		Map<String, Object> parameters = HashMapBuilder.<String, Object>put(
 			"dataSourceType",
 			GetterUtil.getString(
-				ddmFormField.getProperty("dataSourceType"), "manual"));
-		parameters.put(
-			"multiple",
-			getMultiple(ddmFormField, ddmFormFieldRenderingContext));
+				ddmFormField.getProperty("dataSourceType"), "manual")
+		).put(
+			"multiple", getMultiple(ddmFormField, ddmFormFieldRenderingContext)
+		).build();
 
 		DDMFormFieldOptions ddmFormFieldOptions =
 			ddmFormFieldOptionsFactory.create(
@@ -84,10 +79,7 @@ public class SelectDDMFormFieldTemplateContextContributor
 				ddmFormFieldOptions, ddmFormFieldRenderingContext.getLocale(),
 				ddmFormFieldRenderingContext));
 
-		Map<String, String> stringsMap = new HashMap<>();
-
-		Locale displayLocale = getDisplayLocale(
-			ddmFormFieldRenderingContext.getHttpServletRequest());
+		Locale displayLocale = LocaleThreadLocal.getThemeDisplayLocale();
 
 		if (displayLocale == null) {
 			displayLocale = ddmFormFieldRenderingContext.getLocale();
@@ -95,18 +87,19 @@ public class SelectDDMFormFieldTemplateContextContributor
 
 		ResourceBundle resourceBundle = getResourceBundle(displayLocale);
 
-		stringsMap.put(
+		Map<String, String> stringsMap = HashMapBuilder.put(
 			"chooseAnOption",
-			LanguageUtil.get(resourceBundle, "choose-an-option"));
-		stringsMap.put(
-			"chooseOptions",
-			LanguageUtil.get(resourceBundle, "choose-options"));
-		stringsMap.put(
+			LanguageUtil.get(resourceBundle, "choose-an-option")
+		).put(
+			"chooseOptions", LanguageUtil.get(resourceBundle, "choose-options")
+		).put(
 			"dynamicallyLoadedData",
-			LanguageUtil.get(resourceBundle, "dynamically-loaded-data"));
-		stringsMap.put(
-			"emptyList", LanguageUtil.get(resourceBundle, "empty-list"));
-		stringsMap.put("search", LanguageUtil.get(resourceBundle, "search"));
+			LanguageUtil.get(resourceBundle, "dynamically-loaded-data")
+		).put(
+			"emptyList", LanguageUtil.get(resourceBundle, "empty-list")
+		).put(
+			"search", LanguageUtil.get(resourceBundle, "search")
+		).build();
 
 		parameters.put("strings", stringsMap);
 
@@ -124,14 +117,6 @@ public class SelectDDMFormFieldTemplateContextContributor
 					ddmFormFieldRenderingContext.getValue(), "[]")));
 
 		return parameters;
-	}
-
-	protected Locale getDisplayLocale(HttpServletRequest httpServletRequest) {
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		return themeDisplay.getLocale();
 	}
 
 	protected boolean getMultiple(
@@ -160,8 +145,6 @@ public class SelectDDMFormFieldTemplateContextContributor
 		List<Object> options = new ArrayList<>();
 
 		for (String optionValue : ddmFormFieldOptions.getOptionsValues()) {
-			Map<String, String> optionMap = new HashMap<>();
-
 			LocalizedValue optionLabel = ddmFormFieldOptions.getOptionLabels(
 				optionValue);
 
@@ -171,9 +154,11 @@ public class SelectDDMFormFieldTemplateContextContributor
 				optionLabelString = HtmlUtil.extractText(optionLabelString);
 			}
 
-			optionMap.put("label", optionLabelString);
-
-			optionMap.put("value", optionValue);
+			Map<String, String> optionMap = HashMapBuilder.put(
+				"label", optionLabelString
+			).put(
+				"value", optionValue
+			).build();
 
 			options.add(optionMap);
 		}

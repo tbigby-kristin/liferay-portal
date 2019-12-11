@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.3.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_3_0.dtd">
 
 <service-builder auto-import-default-references="false" auto-namespace-tables="false" mvcc-enabled="true" package-path="com.liferay.account">
 	<namespace>Account</namespace>
@@ -22,6 +22,7 @@
 		<column name="parentAccountEntryId" type="long" />
 		<column name="name" type="String" />
 		<column name="description" type="String" />
+		<column name="domains" type="String" />
 		<column name="logoId" type="long" />
 		<column name="status" type="int" />
 
@@ -43,6 +44,7 @@
 
 		<!-- References -->
 
+		<reference entity="Group" package-path="com.liferay.portal" />
 		<reference entity="Resource" package-path="com.liferay.portal" />
 		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
@@ -52,6 +54,10 @@
 
 		<column name="accountEntryUserRelId" primary="true" type="long" />
 
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+
 		<!-- Other fields -->
 
 		<column name="accountEntryId" type="long" />
@@ -59,6 +65,12 @@
 
 		<!-- Finder methods -->
 
+		<finder name="AEI" return-type="Collection">
+			<finder-column name="accountEntryId" />
+		</finder>
+		<finder name="AUI" return-type="Collection">
+			<finder-column name="accountUserId" />
+		</finder>
 		<finder name="AEI_AUI" return-type="AccountEntryUserRel">
 			<finder-column name="accountEntryId" />
 			<finder-column name="accountUserId" />
@@ -69,7 +81,42 @@
 		<reference entity="AccountEntry" package-path="com.liferay.account" />
 		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
+	<entity local-service="true" name="AccountRole">
+
+		<!-- PK fields -->
+
+		<column name="accountRoleId" primary="true" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+
+		<!-- Other fields -->
+
+		<column name="accountEntryId" type="long" />
+		<column name="roleId" type="long" />
+
+		<!-- Finder methods -->
+
+		<finder name="CompanyId" return-type="Collection">
+			<finder-column name="companyId" />
+		</finder>
+		<finder name="AccountEntryId" return-type="Collection">
+			<finder-column arrayable-operator="OR" name="accountEntryId" />
+		</finder>
+		<finder name="RoleId" return-type="AccountRole">
+			<finder-column name="roleId" />
+		</finder>
+
+		<!-- References -->
+
+		<reference entity="AccountEntry" package-path="com.liferay.account" />
+		<reference entity="Role" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
+		<reference entity="UserGroupRole" package-path="com.liferay.portal" />
+	</entity>
 	<exceptions>
+		<exception>AccountEntryDomains</exception>
 		<exception>AccountEntryName</exception>
 		<exception>DuplicateAccountEntryUserRel</exception>
 	</exceptions>

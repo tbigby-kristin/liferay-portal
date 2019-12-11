@@ -383,6 +383,27 @@ public class MessageBoardThread {
 
 	protected Long siteId;
 
+	public Boolean getSubscribed() {
+		return subscribed;
+	}
+
+	public void setSubscribed(Boolean subscribed) {
+		this.subscribed = subscribed;
+	}
+
+	public void setSubscribed(
+		UnsafeSupplier<Boolean, Exception> subscribedUnsafeSupplier) {
+
+		try {
+			subscribed = subscribedUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean subscribed;
+
 	public String getThreadType() {
 		return threadType;
 	}
@@ -404,16 +425,16 @@ public class MessageBoardThread {
 
 	protected String threadType;
 
-	public Integer getViewCount() {
+	public Long getViewCount() {
 		return viewCount;
 	}
 
-	public void setViewCount(Integer viewCount) {
+	public void setViewCount(Long viewCount) {
 		this.viewCount = viewCount;
 	}
 
 	public void setViewCount(
-		UnsafeSupplier<Integer, Exception> viewCountUnsafeSupplier) {
+		UnsafeSupplier<Long, Exception> viewCountUnsafeSupplier) {
 
 		try {
 			viewCount = viewCountUnsafeSupplier.get();
@@ -423,7 +444,7 @@ public class MessageBoardThread {
 		}
 	}
 
-	protected Integer viewCount;
+	protected Long viewCount;
 
 	public ViewableBy getViewableBy() {
 		return viewableBy;

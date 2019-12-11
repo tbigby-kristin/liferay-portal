@@ -13,28 +13,29 @@
  */
 
 import ClayButton from '@clayui/button';
-import ClayToggle from '../shared/ClayToggle.es';
-import ContributorInputs from '../criteria_builder/ContributorInputs.es';
-import ContributorsBuilder from '../criteria_builder/ContributorsBuilder.es';
-import LocalizedInput from '../title_editor/LocalizedInput.es';
+import {FieldArray, withFormik} from 'formik';
+import {debounce, fetch} from 'frontend-js-web';
 import PropTypes from 'prop-types';
 import React, {Component} from 'react';
+
 import ThemeContext from '../../ThemeContext.es';
-import {
-	applyConjunctionChangeToContributor,
-	applyCriteriaChangeToContributors,
-	initialContributorsToContributors
-} from '../../utils/contributors.es';
-import {debounce, fetch} from 'frontend-js-web';
-import {FieldArray, withFormik} from 'formik';
-import {initialContributorShape} from '../../utils/types.es';
 import {
 	SOURCES,
 	SUPPORTED_CONJUNCTIONS,
 	SUPPORTED_OPERATORS,
 	SUPPORTED_PROPERTY_TYPES
 } from '../../utils/constants.es';
+import {
+	applyConjunctionChangeToContributor,
+	applyCriteriaChangeToContributors,
+	initialContributorsToContributors
+} from '../../utils/contributors.es';
+import {initialContributorShape} from '../../utils/types.es';
 import {sub} from '../../utils/utils.es';
+import ContributorInputs from '../criteria_builder/ContributorInputs.es';
+import ContributorsBuilder from '../criteria_builder/ContributorsBuilder.es';
+import ClayToggle from '../shared/ClayToggle.es';
+import LocalizedInput from '../title_editor/LocalizedInput.es';
 
 class SegmentEdit extends Component {
 	static contextType = ThemeContext;
@@ -182,7 +183,7 @@ class SegmentEdit extends Component {
 		Liferay.Portal.ToolTip.show(event.currentTarget, message);
 	};
 
-	_handleConjunctionChange = () => {
+	_handleConjunctionChange = _conjunctionName => {
 		this.setState(prevState => {
 			const contributors = applyConjunctionChangeToContributor(
 				prevState.contributors

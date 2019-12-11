@@ -22,6 +22,7 @@ int deltaDefault = GetterUtil.getInteger(SessionClicks.get(request, "com.liferay
 int delta = ParamUtil.getInteger(request, "delta", deltaDefault);
 
 String displayStyleDefault = GetterUtil.getString(SessionClicks.get(request, "com.liferay.product.navigation.control.menu.web_addPanelDisplayStyle", "descriptive"));
+
 String displayStyle = ParamUtil.getString(request, "displayStyle", displayStyleDefault);
 
 String keywords = ParamUtil.getString(request, "keywords");
@@ -58,7 +59,7 @@ if (Validator.isNotNull(keywords)) {
 			%>
 
 				<li class="num-item <%= (delta == curDelta) ? "active" : StringPool.BLANK %>">
-					<aui:a cssClass="num-item" data="<%= data %>" href="javascript:;" label="<%= String.valueOf(curDelta) %>" />
+					<aui:a cssClass="dropdown-item num-item" data="<%= data %>" href="javascript:;" label="<%= String.valueOf(curDelta) %>" />
 				</li>
 
 			<%
@@ -67,7 +68,7 @@ if (Validator.isNotNull(keywords)) {
 
 		</ul>
 	</span>
-	<span class="pull-right" id="<portlet:namespace />displayStyleContainer">
+	<span class="float-right" id="<portlet:namespace />displayStyleContainer">
 
 		<%
 		Map<String, Object> data = new HashMap<String, Object>();
@@ -256,12 +257,9 @@ if (Validator.isNotNull(keywords)) {
 		function(event) {
 			var delta = event.currentTarget.attr('data-delta');
 
-			Liferay.fire(
-				'AddContent:refreshContentList',
-				{
-					delta: delta
-				}
-			);
+			Liferay.fire('AddContent:refreshContentList', {
+				delta: delta
+			});
 		},
 		'.num-item'
 	);
@@ -271,12 +269,9 @@ if (Validator.isNotNull(keywords)) {
 		function(event) {
 			var displayStyle = event.currentTarget.attr('data-displaystyle');
 
-			Liferay.fire(
-				'AddContent:refreshContentList',
-				{
-					displayStyle: displayStyle
-				}
-			);
+			Liferay.fire('AddContent:refreshContentList', {
+				displayStyle: displayStyle
+			});
 		},
 		'.display-style'
 	);

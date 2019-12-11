@@ -12,11 +12,12 @@
  * details.
  */
 
+import {getIndexes} from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
 import dom from 'metal-dom';
 import React, {useEffect, useState} from 'react';
+
 import DragLayer from '../../components/drag-and-drop/DragLayer.es';
 import DataLayoutBuilderColumn from './DataLayoutBuilderColumn.es';
-import {getIndexes} from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
 
 const getColumns = () => [
 	...document.querySelectorAll('.col-empty .ddm-target')
@@ -35,14 +36,12 @@ export default ({dataLayoutBuilder}) => {
 	useEffect(() => {
 		const provider = dataLayoutBuilder.getProvider();
 
-		const eventHandler = provider.on('pagesChanged', () => {
-			provider.once('rendered', () => {
-				setColumns(getColumns());
-			});
-		});
+		const eventHandler = provider.on('rendered', () =>
+			setColumns(getColumns())
+		);
 
 		return () => eventHandler.removeListener();
-	});
+	}, [dataLayoutBuilder]);
 
 	return (
 		<>

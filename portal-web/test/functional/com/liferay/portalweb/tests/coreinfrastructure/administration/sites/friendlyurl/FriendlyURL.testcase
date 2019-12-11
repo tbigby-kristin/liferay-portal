@@ -1,0 +1,70 @@
+@component-name = "portal-friendly-url"
+definition {
+
+	property portal.release = "true";
+	property portal.upstream = "true";
+	property testray.main.component.name = "Friendly URL";
+
+	setUp {
+		TestCase.setUpPortalInstance();
+
+		User.firstLoginPG();
+
+		JSONGroup.addGroup(groupName = "Test Site Name");
+	}
+
+	tearDown {
+		var testPortalInstance = PropsUtil.get("test.portal.instance");
+
+		if ("${testPortalInstance}" == "true") {
+			PortalInstances.tearDownCP();
+		}
+		else {
+			JSONGroup.deleteGroupByName(groupName = "Test Site Name");
+		}
+	}
+
+	@priority = "5"
+	test ViewCanonicalURLWithLocalizedFriendlyURL {
+		property portal.acceptance = "true";
+
+		JSONLayout.addPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page");
+
+		User.logoutPG();
+
+		var portalURL = PropsUtil.get("portal.url");
+
+		Navigator.openSpecificURL(url = "${portalURL}/web/test-site-name");
+
+		Page.assertCanonicalURL(portalURL = "${portalURL}/web/test-site-name");
+
+		Navigator.openSpecificURL(url = "${portalURL}/es/web/test-site-name");
+
+		Page.assertCanonicalURL(portalURL = "${portalURL}/web/test-site-name");
+	}
+
+	@description = "This is a use case for LRQA-52002. FriendlyURLS should support Unicode characters."
+	@priority = "4"
+	test ViewFriendlyURLWithUnicodeChars {
+		JSONLayout.addPublicLayout(
+			friendlyURL = "/⚽⚽⚽",
+			groupName = "Test Site Name",
+			layoutName = "Test Page");
+
+		JSONLayout.addWidgetToPublicLayout(
+			groupName = "Test Site Name",
+			layoutName = "Test Page",
+			widgetName = "Asset Publisher");
+
+		Navigator.openWithAppendToBaseURL(urlAppend = "web/test-site-name/⚽⚽⚽");
+
+		task ("Assert navigation occurs with no errors by asserting added Widget.") {
+			AssertElementPresent(
+				key_portletName = "Asset Publisher",
+				locator1 = "Portlet#TITLE");
+		}
+	}
+
+}

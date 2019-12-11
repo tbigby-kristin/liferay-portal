@@ -13,8 +13,8 @@
  */
 
 import core from 'metal';
-import dom from 'metal-dom';
 import Component from 'metal-component';
+import dom from 'metal-dom';
 
 import objectToFormData from './util/form/object_to_form_data.es';
 

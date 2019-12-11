@@ -67,7 +67,7 @@ public class AddDDMTemplateMVCActionCommand extends BaseMVCActionCommand {
 		long groupId = ParamUtil.getLong(uploadPortletRequest, "groupId");
 		long classPK = ParamUtil.getLong(uploadPortletRequest, "classPK");
 		String templateKey = ParamUtil.getString(
-			uploadPortletRequest, "ddmTemplateKey");
+			uploadPortletRequest, "templateKey");
 		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
 			uploadPortletRequest, "name");
 		Map<Locale, String> descriptionMap =

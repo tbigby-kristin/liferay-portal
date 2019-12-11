@@ -86,6 +86,14 @@ public class FragmentEntryLinkStagedModelDataHandler
 		Element fragmentEntryLinkElement =
 			portletDataContext.getExportDataElement(fragmentEntryLink);
 
+		String html =
+			_dlReferencesExportImportContentProcessor.
+				replaceExportContentReferences(
+					portletDataContext, fragmentEntryLink,
+					fragmentEntryLink.getHtml(), true, false);
+
+		fragmentEntryLink.setHtml(html);
+
 		String editableValues =
 			_fragmentEntryLinkExportImportContentProcessor.
 				replaceExportContentReferences(
@@ -182,6 +190,14 @@ public class FragmentEntryLinkStagedModelDataHandler
 		importedFragmentEntryLink.setFragmentEntryId(fragmentEntryId);
 		importedFragmentEntryLink.setClassPK(referenceClassPK);
 
+		String html =
+			_dlReferencesExportImportContentProcessor.
+				replaceImportContentReferences(
+					portletDataContext, fragmentEntryLink,
+					fragmentEntryLink.getHtml());
+
+		importedFragmentEntryLink.setHtml(html);
+
 		String editableValues =
 			_fragmentEntryLinkExportImportContentProcessor.
 				replaceImportContentReferences(
@@ -202,6 +218,8 @@ public class FragmentEntryLinkStagedModelDataHandler
 				portletDataContext, importedFragmentEntryLink);
 		}
 		else {
+			importedFragmentEntryLink.setMvccVersion(
+				existingFragmentEntryLink.getMvccVersion());
 			importedFragmentEntryLink.setFragmentEntryLinkId(
 				existingFragmentEntryLink.getFragmentEntryLinkId());
 
@@ -220,6 +238,10 @@ public class FragmentEntryLinkStagedModelDataHandler
 
 		return _stagedModelRepository;
 	}
+
+	@Reference(target = "(content.processor.type=DLReferences)")
+	private ExportImportContentProcessor<String>
+		_dlReferencesExportImportContentProcessor;
 
 	@Reference(
 		policy = ReferencePolicy.DYNAMIC,

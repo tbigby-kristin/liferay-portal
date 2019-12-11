@@ -109,7 +109,7 @@ public abstract class BaseStructuredContentResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's structured content. Results can be paginated, filtered, searched, flattened, and sorted."
+		description = "Retrieves the site's structured content. Results can be paginated, filtered, searched, flattened, and sorted."
 	)
 	@Parameters(
 		value = {
@@ -224,6 +224,7 @@ public abstract class BaseStructuredContentResourceImpl
 			@Parameter(
 				in = ParameterIn.PATH, name = "structuredContentFolderId"
 			),
+			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
 			@Parameter(in = ParameterIn.QUERY, name = "search"),
 			@Parameter(in = ParameterIn.QUERY, name = "filter"),
 			@Parameter(in = ParameterIn.QUERY, name = "page"),
@@ -241,6 +242,8 @@ public abstract class BaseStructuredContentResourceImpl
 				@NotNull @Parameter(hidden = true)
 				@PathParam("structuredContentFolderId") Long
 					structuredContentFolderId,
+				@Parameter(hidden = true) @QueryParam("flatten") Boolean
+					flatten,
 				@Parameter(hidden = true) @QueryParam("search") String search,
 				@Context Filter filter, @Context Pagination pagination,
 				@Context Sort[] sorts)
@@ -278,6 +281,48 @@ public abstract class BaseStructuredContentResourceImpl
 		throws Exception {
 
 		return new StructuredContent();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/structured-content/{structuredContentId}/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "structuredContentId")
+		}
+	)
+	@Path("/structured-content/{structuredContentId}/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "StructuredContent")})
+	public void putStructuredContentSubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("structuredContentId")
+				Long structuredContentId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/structured-content/{structuredContentId}/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "structuredContentId")
+		}
+	)
+	@Path("/structured-content/{structuredContentId}/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "StructuredContent")})
+	public void putStructuredContentUnsubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("structuredContentId")
+				Long structuredContentId)
+		throws Exception {
 	}
 
 	/**
@@ -407,6 +452,11 @@ public abstract class BaseStructuredContentResourceImpl
 
 		if (structuredContent.getSiteId() != null) {
 			existingStructuredContent.setSiteId(structuredContent.getSiteId());
+		}
+
+		if (structuredContent.getSubscribed() != null) {
+			existingStructuredContent.setSubscribed(
+				structuredContent.getSubscribed());
 		}
 
 		if (structuredContent.getTaxonomyCategoryIds() != null) {

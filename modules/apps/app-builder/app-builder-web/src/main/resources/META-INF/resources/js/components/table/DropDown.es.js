@@ -15,8 +15,9 @@
 import ClayDropDown, {Align} from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
 import React, {useState} from 'react';
-import DropDownAction from './DropDownAction.es';
+
 import Button from '../button/Button.es';
+import DropDownAction from './DropDownAction.es';
 
 const {ItemList} = ClayDropDown;
 
@@ -27,6 +28,10 @@ export default ({actions, item}) => {
 		<Button className="page-link" displayType="unstyled">
 			<ClayIcon symbol="ellipsis-v" />
 		</Button>
+	);
+
+	actions = actions.filter(action =>
+		action.show ? action.show(item) : true
 	);
 
 	if (actions.length === 0) {

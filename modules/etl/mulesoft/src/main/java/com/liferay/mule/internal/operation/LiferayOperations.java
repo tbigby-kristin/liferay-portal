@@ -14,20 +14,30 @@
 
 package com.liferay.mule.internal.operation;
 
+import static org.mule.runtime.http.api.HttpConstants.Method;
+
 import com.liferay.mule.internal.connection.LiferayConnection;
-import com.liferay.mule.internal.metadata.GETEndpointTypeKeysResolver;
-import com.liferay.mule.internal.metadata.GETEndpointTypeResolver;
-import com.liferay.mule.internal.metadata.POSTEndpointTypeKeysResolver;
-import com.liferay.mule.internal.metadata.POSTEndpointTypeResolver;
+import com.liferay.mule.internal.error.LiferayResponseErrorProvider;
+import com.liferay.mule.internal.error.LiferayResponseValidator;
+import com.liferay.mule.internal.metadata.input.PATCHEndpointInputTypeResolver;
+import com.liferay.mule.internal.metadata.input.POSTEndpointInputTypeResolver;
+import com.liferay.mule.internal.metadata.key.DELETEEndpointTypeKeysResolver;
+import com.liferay.mule.internal.metadata.key.GETEndpointTypeKeysResolver;
+import com.liferay.mule.internal.metadata.key.PATCHEndpointTypeKeysResolver;
+import com.liferay.mule.internal.metadata.key.POSTEndpointTypeKeysResolver;
+import com.liferay.mule.internal.metadata.output.DELETEEndpointOutputTypeResolver;
+import com.liferay.mule.internal.metadata.output.GETEndpointOutputTypeResolver;
+import com.liferay.mule.internal.metadata.output.PATCHEndpointOutputTypeResolver;
+import com.liferay.mule.internal.metadata.output.POSTEndpointOutputTypeResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import org.mule.runtime.api.meta.ExpressionSupport;
 import org.mule.runtime.api.util.MultiMap;
-import org.mule.runtime.extension.api.annotation.Expression;
+import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.metadata.MetadataKeyId;
 import org.mule.runtime.extension.api.annotation.metadata.OutputResolver;
 import org.mule.runtime.extension.api.annotation.metadata.TypeResolver;
@@ -36,30 +46,38 @@ import org.mule.runtime.extension.api.annotation.param.Content;
 import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.NullSafe;
 import org.mule.runtime.extension.api.annotation.param.Optional;
-import org.mule.runtime.extension.api.annotation.param.Parameter;
+import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.http.api.domain.entity.HttpEntity;
 import org.mule.runtime.http.api.domain.message.response.HttpResponse;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * @author Matija Petanjek
  */
+@Throws(LiferayResponseErrorProvider.class)
 public class LiferayOperations {
 
-	@MediaType(strict = false, value = MediaType.ANY)
-	public String delete() {
-		throw new UnsupportedOperationException();
-	}
-
-	@MediaType(strict = false, value = MediaType.APPLICATION_JSON)
-	@OutputResolver(output = GETEndpointTypeResolver.class)
-	public Result<InputStream, Void> get(
+	@MediaType(MediaType.APPLICATION_JSON)
+	@OutputResolver(output = DELETEEndpointOutputTypeResolver.class)
+	public Result<InputStream, Void> delete(
 			@Connection LiferayConnection connection,
-			@MetadataKeyId(GETEndpointTypeKeysResolver.class) String endpoint)
-		throws Exception {
+			@MetadataKeyId(DELETEEndpointTypeKeysResolver.class)
+				String endpoint,
+			@DisplayName("Path Parameters") @NullSafe @Optional
+				Map<String, String> pathParams,
+			@DisplayName("Query Parameters") @NullSafe @Optional
+				MultiMap<String, String> queryParams)
+		throws IOException, TimeoutException {
 
-		HttpResponse httpResponse = connection.get(
-			_pathParams, _queryParams, endpoint);
+		_logEndpointParams(Method.DELETE, endpoint, pathParams, queryParams);
+
+		HttpResponse httpResponse = connection.delete(
+			pathParams, queryParams, endpoint);
+
+		_liferayResponseValidator.validate(httpResponse);
 
 		HttpEntity httpEntity = httpResponse.getEntity();
 
@@ -71,21 +89,55 @@ public class LiferayOperations {
 		).build();
 	}
 
-	@MediaType(strict = false, value = MediaType.ANY)
-	public String patch() {
-		throw new UnsupportedOperationException();
+	@MediaType(MediaType.APPLICATION_JSON)
+	@OutputResolver(output = GETEndpointOutputTypeResolver.class)
+	public Result<InputStream, Void> get(
+			@Connection LiferayConnection connection,
+			@MetadataKeyId(GETEndpointTypeKeysResolver.class) String endpoint,
+			@DisplayName("Path Parameters") @NullSafe @Optional
+				Map<String, String> pathParams,
+			@DisplayName("Query Parameters") @NullSafe @Optional
+				MultiMap<String, String> queryParams)
+		throws Exception {
+
+		_logEndpointParams(Method.GET, endpoint, pathParams, queryParams);
+
+		HttpResponse httpResponse = connection.get(
+			pathParams, queryParams, endpoint);
+
+		_liferayResponseValidator.validate(httpResponse);
+
+		HttpEntity httpEntity = httpResponse.getEntity();
+
+		InputStream inputStream = httpEntity.getContent();
+
+		return Result.<InputStream, Void>builder(
+		).output(
+			inputStream
+		).build();
 	}
 
-	@MediaType(strict = false, value = MediaType.APPLICATION_JSON)
-	public Result<InputStream, Void> post(
+	@DisplayName("Update")
+	@MediaType(MediaType.APPLICATION_JSON)
+	@OutputResolver(output = PATCHEndpointOutputTypeResolver.class)
+	public Result<InputStream, Void> patch(
 			@Connection LiferayConnection connection,
-			@MetadataKeyId(POSTEndpointTypeKeysResolver.class) String endpoint,
-			@Content @TypeResolver(value = POSTEndpointTypeResolver.class)
-				InputStream inputStream)
+			@MetadataKeyId(PATCHEndpointTypeKeysResolver.class) String endpoint,
+			@Content @DisplayName("Records")
+			@TypeResolver(value = PATCHEndpointInputTypeResolver.class)
+				InputStream inputStream,
+			@DisplayName("Path Parameters") @NullSafe @Optional
+				Map<String, String> pathParams,
+			@DisplayName("Query Parameters") @NullSafe @Optional
+				MultiMap<String, String> queryParams)
 		throws IOException, TimeoutException {
 
-		HttpResponse httpResponse = connection.post(
-			inputStream, _pathParams, _queryParams, endpoint);
+		_logEndpointParams(Method.PATCH, endpoint, pathParams, queryParams);
+
+		HttpResponse httpResponse = connection.patch(
+			inputStream, pathParams, queryParams, endpoint);
+
+		_liferayResponseValidator.validate(httpResponse);
 
 		HttpEntity httpEntity = httpResponse.getEntity();
 
@@ -95,16 +147,50 @@ public class LiferayOperations {
 		).build();
 	}
 
-	@Expression(ExpressionSupport.NOT_SUPPORTED)
-	@NullSafe
-	@Optional
-	@Parameter
-	private MultiMap<String, String> _pathParams;
+	@DisplayName("Create")
+	@MediaType(MediaType.APPLICATION_JSON)
+	@OutputResolver(output = POSTEndpointOutputTypeResolver.class)
+	public Result<InputStream, Void> post(
+			@Connection LiferayConnection connection,
+			@MetadataKeyId(POSTEndpointTypeKeysResolver.class) String endpoint,
+			@Content @DisplayName("Records")
+			@TypeResolver(value = POSTEndpointInputTypeResolver.class)
+				InputStream inputStream,
+			@DisplayName("Path Parameters") @NullSafe @Optional
+				Map<String, String> pathParams,
+			@DisplayName("Query Parameters") @NullSafe @Optional
+				MultiMap<String, String> queryParams)
+		throws IOException, TimeoutException {
 
-	@Expression(ExpressionSupport.NOT_SUPPORTED)
-	@NullSafe
-	@Optional
-	@Parameter
-	private MultiMap<String, String> _queryParams;
+		_logEndpointParams(Method.POST, endpoint, pathParams, queryParams);
+
+		HttpResponse httpResponse = connection.post(
+			inputStream, pathParams, queryParams, endpoint);
+
+		_liferayResponseValidator.validate(httpResponse);
+
+		HttpEntity httpEntity = httpResponse.getEntity();
+
+		return Result.<InputStream, Void>builder(
+		).output(
+			httpEntity.getContent()
+		).build();
+	}
+
+	private void _logEndpointParams(
+		Method method, String endpoint, Map<String, String> pathParams,
+		Map<String, String> queryParams) {
+
+		_logger.debug(
+			"Send {} request to endpoint {}, with path parameters {} and " +
+				"query parameters {}",
+			method, endpoint, pathParams, queryParams);
+	}
+
+	private static final Logger _logger = LoggerFactory.getLogger(
+		LiferayOperations.class);
+
+	private final LiferayResponseValidator _liferayResponseValidator =
+		new LiferayResponseValidator();
 
 }

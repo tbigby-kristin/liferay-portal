@@ -116,17 +116,13 @@ else if ((dlFileEntryType != null) && (fileEntryTypeId != 0)) {
 	headerTitle = LanguageUtil.format(request, "new-x", dlFileEntryType.getName(locale), false);
 }
 
-boolean portletTitleBasedNavigation = GetterUtil.getBoolean(portletConfig.getInitParameter("portlet-title-based-navigation"));
+portletDisplay.setShowBackIcon(true);
+portletDisplay.setURLBack(redirect);
 
-if (portletTitleBasedNavigation) {
-	portletDisplay.setShowBackIcon(true);
-	portletDisplay.setURLBack(redirect);
-
-	renderResponse.setTitle(headerTitle);
-}
+renderResponse.setTitle(headerTitle);
 %>
 
-<c:if test="<%= portletTitleBasedNavigation && (fileVersion != null) %>">
+<c:if test="<%= fileVersion != null %>">
 
 	<%
 	String version = null;
@@ -141,7 +137,7 @@ if (portletTitleBasedNavigation) {
 	</liferay-frontend:info-bar>
 </c:if>
 
-<div <%= portletTitleBasedNavigation ? "class=\"container-fluid-1280\"" : StringPool.BLANK %>>
+<div class="container-fluid-1280">
 	<c:if test="<%= checkedOut %>">
 
 		<%
@@ -171,14 +167,6 @@ if (portletTitleBasedNavigation) {
 		</c:choose>
 	</c:if>
 
-	<c:if test="<%= !portletTitleBasedNavigation && showHeader %>">
-		<liferay-ui:header
-			backURL="<%= redirect %>"
-			localizeTitle="<%= false %>"
-			title="<%= headerTitle %>"
-		/>
-	</c:if>
-
 	<liferay-portlet:actionURL name="/document_library/edit_file_entry" varImpl="editFileEntryURL">
 		<liferay-portlet:param name="mvcRenderCommandName" value="/document_library/edit_file_entry" />
 	</liferay-portlet:actionURL>
@@ -186,6 +174,7 @@ if (portletTitleBasedNavigation) {
 	<aui:form action="<%= editFileEntryURL %>" cssClass="lfr-dynamic-form" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveFileEntry(" + saveAsDraft + ");" %>'>
 		<aui:input name="<%= Constants.CMD %>" type="hidden" />
 		<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+		<aui:input name="portletResource" type="hidden" value='<%= ParamUtil.getString(request, "portletResource") %>' />
 		<aui:input name="uploadProgressId" type="hidden" value="<%= uploadProgressId %>" />
 		<aui:input name="repositoryId" type="hidden" value="<%= repositoryId %>" />
 		<aui:input name="folderId" type="hidden" value="<%= folderId %>" />
@@ -287,42 +276,42 @@ if (portletTitleBasedNavigation) {
 							<aui:button disabled="<%= folderId <= 0 %>" name="removeFolderButton" onClick="<%= taglibRemoveFolder %>" value="remove" />
 
 							<script>
-								var selectFolderButton = document.getElementById('<portlet:namespace />selectFolderButton');
+								var selectFolderButton = document.getElementById(
+									'<portlet:namespace />selectFolderButton'
+								);
 
 								if (selectFolderButton) {
-									selectFolderButton.addEventListener(
-										'click',
-										function(event) {
-											Liferay.Util.selectEntity(
-												{
-													dialog: {
-														constrain: true,
-														destroyOnHide: true,
-														modal: true,
-														width: 680
-													},
-													id: '<portlet:namespace />selectFolder',
-													title: '<liferay-ui:message arguments="folder" key="select-x" />',
-
-													<liferay-portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
-														<portlet:param name="mvcRenderCommandName" value="/document_library/select_folder" />
-													</liferay-portlet:renderURL>
-
-													uri: '<%= selectFolderURL.toString() %>'
+									selectFolderButton.addEventListener('click', function(event) {
+										Liferay.Util.selectEntity(
+											{
+												dialog: {
+													constrain: true,
+													destroyOnHide: true,
+													modal: true,
+													width: 680
 												},
-												function(event) {
-													var folderData = {
-														idString: 'folderId',
-														idValue: event.folderid,
-														nameString: 'folderName',
-														nameValue: event.foldername
-													};
+												id: '<portlet:namespace />selectFolder',
+												title:
+													'<liferay-ui:message arguments="folder" key="select-x" />',
 
-													Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
-												}
-											);
-										}
-									);
+												<liferay-portlet:renderURL var="selectFolderURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+													<portlet:param name="mvcRenderCommandName" value="/document_library/select_folder" />
+												</liferay-portlet:renderURL>
+
+												uri: '<%= selectFolderURL.toString() %>'
+											},
+											function(event) {
+												var folderData = {
+													idString: 'folderId',
+													idValue: event.folderid,
+													nameString: 'folderName',
+													nameValue: event.foldername
+												};
+
+												Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
+											}
+										);
+									});
 								}
 							</script>
 						</c:if>
@@ -459,7 +448,7 @@ if (portletTitleBasedNavigation) {
 				<c:if test="<%= !scopeGroup.isCompany() %>">
 					<aui:fieldset collapsed="<%= true %>" collapsible="<%= true %>" label="display-page-template">
 						<liferay-asset:select-asset-display-page
-							classNameId="<%= PortalUtil.getClassNameId(DLFileEntry.class) %>"
+							classNameId="<%= PortalUtil.getClassNameId(FileEntry.class) %>"
 							classPK="<%= (fileEntry != null) ? fileEntry.getFileEntryId() : 0 %>"
 							classTypeId="<%= (fileEntryTypeId < 0) ? DLFileEntryTypeConstants.FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT : fileEntryTypeId %>"
 							groupId="<%= scopeGroupId %>"
@@ -566,52 +555,39 @@ if (portletTitleBasedNavigation) {
 	var form = document.<portlet:namespace />fm;
 
 	function <portlet:namespace />changeFileEntryType() {
-		Liferay.Util.postForm(
-			form,
-			{
-				data: {
-					'<%= Constants.CMD %>': '<%= Constants.PREVIEW %>'
-				}
+		Liferay.Util.postForm(form, {
+			data: {
+				<%= Constants.CMD %>: '<%= Constants.PREVIEW %>'
 			}
-		);
+		});
 	}
 
 	function <portlet:namespace />cancelCheckOut() {
-		Liferay.Util.postForm(
-			form,
-			{
-				data: {
-					'<%= Constants.CMD %>': '<%= Constants.CANCEL_CHECKOUT %>'
-				}
+		Liferay.Util.postForm(form, {
+			data: {
+				<%= Constants.CMD %>: '<%= Constants.CANCEL_CHECKOUT %>'
 			}
-		);
+		});
 	}
 
 	function <portlet:namespace />checkIn() {
-		Liferay.Util.setFormValues(
-			form,
-			{
-				'<%= Constants.CMD %>': '<%= Constants.UPDATE_AND_CHECKIN %>'
-			}
-		)
+		Liferay.Util.setFormValues(form, {
+			<%= Constants.CMD %>: '<%= Constants.UPDATE_AND_CHECKIN %>'
+		});
 
 		if (<%= dlAdminDisplayContext.isVersioningStrategyOverridable() %>) {
 			<portlet:namespace />showVersionDetailsDialog(form);
-		}
-		else {
+		} else {
 			submitForm(form);
 		}
 	}
 
 	function <portlet:namespace />checkOut() {
-		Liferay.Util.postForm(
-			form,
-			{
-				data: {
-					'<%= Constants.CMD %>': '<%= Constants.CHECKOUT %>'
-				}
+		Liferay.Util.postForm(form, {
+			data: {
+				<%= Constants.CMD %>: '<%= Constants.CHECKOUT %>'
 			}
-		);
+		});
 	}
 
 	function <portlet:namespace />saveFileEntry(draft) {
@@ -622,19 +598,17 @@ if (portletTitleBasedNavigation) {
 		}
 
 		var data = {
-			'<%= Constants.CMD %>': '<%= (fileEntry == null) ? Constants.ADD : Constants.UPDATE %>'
+			<%= Constants.CMD %>:
+				'<%= (fileEntry == null) ? Constants.ADD : Constants.UPDATE %>'
 		};
 
 		if (draft) {
 			data.workflowAction = '<%= WorkflowConstants.ACTION_SAVE_DRAFT %>';
 		}
 
-		Liferay.Util.postForm(
-			form,
-			{
-				data: data
-			}
-		);
+		Liferay.Util.postForm(form, {
+			data: data
+		});
 	}
 
 	Liferay.provide(
@@ -644,16 +618,13 @@ if (portletTitleBasedNavigation) {
 			Liferay.DocumentLibraryCheckin.showDialog(
 				'<portlet:namespace />',
 				function(versionIncrease, changeLog) {
-					Liferay.Util.postForm(
-						form,
-						{
-							data: {
-								changeLog: changeLog,
-								updateVersionDetails: true,
-								versionIncrease: versionIncrease
-							}
+					Liferay.Util.postForm(form, {
+						data: {
+							changeLog: changeLog,
+							updateVersionDetails: true,
+							versionIncrease: versionIncrease
 						}
-					);
+					});
 				}
 			);
 		},
@@ -679,16 +650,17 @@ if (portletTitleBasedNavigation) {
 
 <c:if test="<%= (fileEntry != null) && !checkedOut && dlAdminDisplayContext.isVersioningStrategyOverridable() %>">
 	<aui:script require="metal-dom/src/dom as dom">
-		var updateVersionDetailsElement = document.getElementById('<portlet:namespace />updateVersionDetails');
-		var versionDetailsElement = document.getElementById('<portlet:namespace />versionDetails');
+		var updateVersionDetailsElement = document.getElementById(
+			'<portlet:namespace />updateVersionDetails'
+		);
+		var versionDetailsElement = document.getElementById(
+			'<portlet:namespace />versionDetails'
+		);
 
 		if (updateVersionDetailsElement && versionDetailsElement) {
-			updateVersionDetailsElement.addEventListener(
-				'click',
-				function(event) {
-					dom.toggleClasses(versionDetailsElement, 'hide');
-				}
-			);
+			updateVersionDetailsElement.addEventListener('click', function(event) {
+				dom.toggleClasses(versionDetailsElement, 'hide');
+			});
 		}
 	</aui:script>
 </c:if>

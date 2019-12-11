@@ -13,45 +13,8 @@
  */
 
 import {
-	addFragmentEntryLinkReducer,
-	deleteFragmentEntryLinkCommentReducer,
-	duplicateFragmentEntryLinkReducer,
-	moveFragmentEntryLinkReducer,
-	removeFragmentEntryLinkReducer,
-	toggleShowResolvedCommentsReducer,
-	updateEditableValueReducer,
-	updateFragmentEntryLinkCommentReducer,
-	updateFragmentEntryLinkConfigReducer,
-	updateFragmentEntryLinkContentReducer
-} from './fragments.es';
-import {addMappingAssetEntry} from './mapping.es';
-import {addPortletReducer} from './portlets.es';
-import {
-	addRowReducer,
-	moveRowReducer,
-	removeRowReducer,
-	updateRowColumnsNumberReducer,
-	updateRowConfigReducer
-} from './rows.es';
-import {
-	createSegmentsExperienceReducer,
-	deleteSegmentsExperienceReducer,
-	editSegmentsExperienceReducer,
-	selectSegmentsExperienceReducer,
-	updateSegmentsExperiencePriorityReducer
-} from './segmentsExperiences.es';
-import {saveChangesReducer} from './changes.es';
-import {
-	updateActiveItemReducer,
-	updateDropTargetReducer,
-	updateHoveredItemReducer
-} from './placeholders.es';
-
-import {updateWigetsReducer} from './widgets.es';
-
-import {
 	ADD_FRAGMENT_ENTRY_LINK,
-	ADD_MAPPED_ASSET_ENTRY,
+	ADD_MAPPED_INFO_ITEM,
 	ADD_PORTLET,
 	ADD_ROW,
 	CHANGE_LANGUAGE_ID,
@@ -89,7 +52,42 @@ import {
 	UPDATE_SELECTED_SIDEBAR_PANEL_ID,
 	UPDATE_WIDGETS
 } from '../actions/actions.es';
+import {saveChangesReducer} from './changes.es';
 import {createSetValueReducer} from './createSetValueReducer.es';
+import {
+	addFragmentEntryLinkReducer,
+	deleteFragmentEntryLinkCommentReducer,
+	duplicateFragmentEntryLinkReducer,
+	moveFragmentEntryLinkReducer,
+	removeFragmentEntryLinkReducer,
+	toggleShowResolvedCommentsReducer,
+	updateEditableValueReducer,
+	updateFragmentEntryLinkCommentReducer,
+	updateFragmentEntryLinkConfigReducer,
+	updateFragmentEntryLinkContentReducer
+} from './fragments.es';
+import {addMappingInfoItem} from './mapping.es';
+import {
+	updateActiveItemReducer,
+	updateDropTargetReducer,
+	updateHoveredItemReducer
+} from './placeholders.es';
+import {addPortletReducer} from './portlets.es';
+import {
+	addRowReducer,
+	moveRowReducer,
+	removeRowReducer,
+	updateRowColumnsNumberReducer,
+	updateRowConfigReducer
+} from './rows.es';
+import {
+	createSegmentsExperienceReducer,
+	deleteSegmentsExperienceReducer,
+	editSegmentsExperienceReducer,
+	selectSegmentsExperienceReducer,
+	updateSegmentsExperiencePriorityReducer
+} from './segmentsExperiences.es';
+import {updateWigetsReducer} from './widgets.es';
 
 /**
  * List of reducers
@@ -97,7 +95,7 @@ import {createSetValueReducer} from './createSetValueReducer.es';
  */
 const reducers = {
 	[ADD_FRAGMENT_ENTRY_LINK]: addFragmentEntryLinkReducer,
-	[ADD_MAPPED_ASSET_ENTRY]: addMappingAssetEntry,
+	[ADD_MAPPED_INFO_ITEM]: addMappingInfoItem,
 	[ADD_PORTLET]: addPortletReducer,
 	[ADD_ROW]: addRowReducer,
 	[CHANGE_LANGUAGE_ID]: createSetValueReducer('languageId'),

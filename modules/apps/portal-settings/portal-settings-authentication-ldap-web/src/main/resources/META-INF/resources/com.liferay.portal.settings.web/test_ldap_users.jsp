@@ -32,9 +32,11 @@ if (credentials.equals(Portal.TEMP_OBFUSCATION_VALUE)) {
 
 }
 
-LdapContext ldapContext = PortalLDAPUtil.getContext(themeDisplay.getCompanyId(), baseProviderURL, principal, credentials);
+SafePortalLDAP safePortalLDAP = SafePortalLDAPUtil.getSafePortalLDAP();
 
-if (ldapContext == null) {
+SafeLdapContext safeLdapContext = safePortalLDAP.getSafeLdapContext(themeDisplay.getCompanyId(), baseProviderURL, principal, credentials);
+
+if (safeLdapContext == null) {
 %>
 
 	<liferay-ui:message key="liferay-has-failed-to-connect-to-the-ldap-server" />
@@ -54,9 +56,11 @@ if (Validator.isNull(ParamUtil.getString(request, "userMappingScreenName")) || V
 	return;
 }
 
+LDAPFilterValidator ldapFilterValidator = LDAPFilterValidatorUtil.getLDAPFilterValidator();
+
 String userFilter = ParamUtil.getString(request, "importUserSearchFilter");
 
-if (!LDAPFilterValidatorUtil.isValidFilter(userFilter)) {
+if (!ldapFilterValidator.isValid(userFilter)) {
 %>
 
 	<liferay-ui:message key="please-enter-a-valid-ldap-search-filter" />
@@ -83,9 +87,9 @@ List<SearchResult> searchResults = new ArrayList<SearchResult>();
 
 if (Validator.isNotNull(userFilter) && !userFilter.equals(StringPool.STAR)) {
 	try {
-		PortalLDAPUtil.getUsers(themeDisplay.getCompanyId(), ldapContext, new byte[0], 20, baseDN, userFilter, attributeIds, searchResults);
+		safePortalLDAP.getUsers(themeDisplay.getCompanyId(), safeLdapContext, new byte[0], 20, SafeLdapNameFactory.fromUnsafe(baseDN), SafeLdapFilterFactory.fromUnsafeFilter(userFilter, ldapFilterValidator), attributeIds, searchResults);
 	}
-	catch (NameNotFoundException nnfe) {
+	catch (NameNotFoundException | InvalidNameException nnfe) {
 %>
 
 		<liferay-ui:message key="please-enter-a-valid-ldap-base-dn" />
@@ -199,7 +203,7 @@ if (showMissingAttributeMessage) {
 <%
 }
 
-if (ldapContext != null) {
-	ldapContext.close();
+if (safeLdapContext != null) {
+	safeLdapContext.close();
 }
 %>

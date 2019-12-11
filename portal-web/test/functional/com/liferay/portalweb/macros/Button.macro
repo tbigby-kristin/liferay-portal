@@ -92,6 +92,10 @@ definition {
 		Button.click(button = "Share");
 	}
 
+	macro clickSubmitButton {
+		Click(locator1 = "Button#SUBMIT");
+	}
+
 	macro clickSubmitForPublication {
 		Button.click(button = "Submit for Publication");
 	}

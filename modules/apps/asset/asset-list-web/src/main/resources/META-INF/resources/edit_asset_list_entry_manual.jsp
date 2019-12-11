@@ -150,64 +150,51 @@
 	</liferay-frontend:edit-form-body>
 </liferay-frontend:edit-form>
 
-<aui:script require="metal-dom/src/dom as dom">
-	AUI().use(
-		'liferay-item-selector-dialog',
-		function(A) {
-			var delegateHandler = dom.delegate(
-				document.body,
-				'click',
-				'.asset-selector a',
-				function(event) {
-					event.preventDefault();
+<aui:script require="metal-dom/src/dom as dom, frontend-js-web/liferay/ItemSelectorDialog.es as ItemSelectorDialog">
+	var delegateHandler = dom.delegate(
+		document.body,
+		'click',
+		'.asset-selector a',
+		function(event) {
+			event.preventDefault();
 
-					var delegateTarget = event.delegateTarget;
+			var delegateTarget = event.delegateTarget;
 
-					var itemSelectorDialog = new A.LiferayItemSelectorDialog(
-						{
-							eventName: '<portlet:namespace />selectAsset',
-							id: '<portlet:namespace />selectAsset' + delegateTarget.id,
-							on: {
-								selectedItemChange: function(event) {
-									var selectedItems = event.newVal;
+			var itemSelectorDialog = new ItemSelectorDialog.default({
+				eventName: '<portlet:namespace />selectAsset',
+				title: encodeURI(delegateTarget.dataset.title),
+				url: delegateTarget.dataset.href
+			});
 
-									if (selectedItems) {
-										var assetEntryIds = [];
+			itemSelectorDialog.open();
 
-										Array.prototype.forEach.call(
-											selectedItems,
-											function(assetEntry) {
-												assetEntryIds.push(assetEntry.entityid);
-											}
-										);
+			itemSelectorDialog.on('selectedItemChange', function(event) {
+				var selectedItems = event.selectedItem;
 
-										Liferay.Util.postForm(
-											document.<portlet:namespace />fm,
-											{
-												data: {
-													assetEntryIds: assetEntryIds.join(',')
-												}
-											}
-										);
-									}
-								}
-							},
-							title: A.Escape.html(delegateTarget.dataset.title),
-							url: delegateTarget.dataset.href
+				if (selectedItems) {
+					var assetEntryIds = [];
+
+					Array.prototype.forEach.call(selectedItems, function(
+						assetEntry
+					) {
+						assetEntryIds.push(assetEntry.entityid);
+					});
+
+					Liferay.Util.postForm(document.<portlet:namespace />fm, {
+						data: {
+							assetEntryIds: assetEntryIds.join(',')
 						}
-					);
-
-					itemSelectorDialog.open();
+					});
 				}
-			);
-
-			var onDestroyPortlet = function() {
-				delegateHandler.removeListener();
-
-				Liferay.detach('destroyPortlet', onDestroyPortlet);
-			};
-
-			Liferay.on('destroyPortlet', onDestroyPortlet);
+			});
 		}
 	);
+
+	var onDestroyPortlet = function() {
+		delegateHandler.removeListener();
+
+		Liferay.detach('destroyPortlet', onDestroyPortlet);
+	};
+
+	Liferay.on('destroyPortlet', onDestroyPortlet);
 </aui:script>

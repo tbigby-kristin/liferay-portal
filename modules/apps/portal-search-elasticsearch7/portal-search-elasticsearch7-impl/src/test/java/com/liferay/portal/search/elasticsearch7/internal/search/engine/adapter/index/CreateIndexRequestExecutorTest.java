@@ -18,8 +18,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.search.elasticsearch7.internal.connection.ElasticsearchFixture;
 import com.liferay.portal.search.engine.adapter.index.CreateIndexRequest;
 
-import org.elasticsearch.action.admin.indices.create.CreateIndexRequestBuilder;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -48,14 +46,16 @@ public class CreateIndexRequestExecutorTest {
 		CreateIndexRequest createIndexRequest = new CreateIndexRequest(
 			_INDEX_NAME);
 
-		StringBundler sb = new StringBundler(10);
+		StringBundler sb = new StringBundler(12);
 
 		sb.append("{\n");
-		sb.append("    \"analysis\": {\n");
-		sb.append("        \"analyzer\": {\n");
-		sb.append("            \"content\": {\n");
-		sb.append("                \"tokenizer\": \"whitespace\",\n");
-		sb.append("                \"type\": \"custom\"\n");
+		sb.append("    \"settings\": {\n");
+		sb.append("        \"analysis\": {\n");
+		sb.append("            \"analyzer\": {\n");
+		sb.append("                \"content\": {\n");
+		sb.append("                    \"tokenizer\": \"whitespace\",\n");
+		sb.append("                    \"type\": \"custom\"\n");
+		sb.append("                }\n");
 		sb.append("            }\n");
 		sb.append("        }\n");
 		sb.append("    }\n");
@@ -70,13 +70,10 @@ public class CreateIndexRequestExecutorTest {
 				}
 			};
 
-		CreateIndexRequestBuilder createIndexRequestBuilder =
-			createIndexRequestExecutorImpl.createCreateIndexRequestBuilder(
-				createIndexRequest);
-
 		org.elasticsearch.action.admin.indices.create.CreateIndexRequest
 			elasticsearchCreateIndexRequest =
-				createIndexRequestBuilder.request();
+				createIndexRequestExecutorImpl.createCreateIndexRequest(
+					createIndexRequest);
 
 		Assert.assertEquals(
 			_INDEX_NAME, elasticsearchCreateIndexRequest.index());

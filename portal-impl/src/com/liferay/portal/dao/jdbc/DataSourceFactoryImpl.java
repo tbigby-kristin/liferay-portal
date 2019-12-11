@@ -223,16 +223,6 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 		return initDataSource(properties);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public interface PACL {
-
-		public DataSource getDataSource(DataSource dataSource);
-
-	}
-
 	protected DataSource initDataSourceC3PO(Properties properties)
 		throws Exception {
 
@@ -579,9 +569,20 @@ public class DataSourceFactoryImpl implements DataSourceFactory {
 				return;
 			}
 
-			JarUtil.downloadAndInstallJar(
-				new URL(url), PropsValues.LIFERAY_LIB_GLOBAL_DIR, name,
-				(URLClassLoader)classLoader);
+			try {
+				JarUtil.downloadAndInstallJar(
+					new URL(url), PropsValues.LIFERAY_LIB_GLOBAL_DIR, name,
+					(URLClassLoader)classLoader);
+			}
+			catch (Exception e) {
+				_log.error(
+					StringBundler.concat(
+						"Unable to download and install ", name, " to ",
+						PropsValues.LIFERAY_LIB_GLOBAL_DIR, " from ", url),
+					e);
+
+				throw cnfe;
+			}
 		}
 	}
 

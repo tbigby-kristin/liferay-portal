@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.URLUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -35,6 +36,7 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.jasper.EmbeddedServletOptions;
 import org.apache.jasper.JasperException;
 import org.apache.jasper.JspCompilationContext;
 import org.apache.jasper.Options;
@@ -123,16 +125,15 @@ public class CompilerWrapper extends Compiler {
 	}
 
 	private URL _getClassURL(String className) {
-		String classNamePath = className.replace(
-			CharPool.PERIOD, File.separatorChar);
+		String classNamePath = StringUtil.replace(
+			className, CharPool.PERIOD, File.separatorChar);
 
 		classNamePath = classNamePath.concat(".class");
 
+		Options options = ctxt.getOptions();
 		URL url = null;
 
 		if (PropsValues.WORK_DIR_OVERRIDE_ENABLED) {
-			Options options = ctxt.getOptions();
-
 			File scratchDir = options.getScratchDir();
 
 			File classFile = new File(scratchDir, classNamePath);
@@ -152,6 +153,15 @@ public class CompilerWrapper extends Compiler {
 		}
 
 		if (url == null) {
+			EmbeddedServletOptions embeddedServletOptions =
+				(EmbeddedServletOptions)options;
+
+			if (Boolean.valueOf(
+					embeddedServletOptions.getProperty("hasFragment"))) {
+
+				return null;
+			}
+
 			JSPClassInfo jspClassInfo = _jspClassInfos.get(className);
 
 			if ((jspClassInfo != null) && jspClassInfo.isOverride()) {

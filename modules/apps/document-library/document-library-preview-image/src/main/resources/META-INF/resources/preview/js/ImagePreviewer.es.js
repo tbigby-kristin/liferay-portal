@@ -12,13 +12,12 @@
  * details.
  */
 
-import {Config} from 'metal-state';
+import ClayButton from '@clayui/button';
+import ClayIcon from '@clayui/icon';
+import {useEventListener, useIsMounted} from 'frontend-js-react-web';
 import {debounce} from 'frontend-js-web';
-import Component from 'metal-component';
-import Soy from 'metal-soy';
-import 'clay-button';
-
-import templates from './ImagePreviewer.soy';
+import PropTypes from 'prop-types';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 
 /**
  * Zoom ratio limit that fire the autocenter
@@ -42,224 +41,193 @@ const ZOOM_LEVELS_REVERSED = ZOOM_LEVELS.slice().reverse();
  * Component that create an image preview to allow zoom
  * @review
  */
-class ImagePreviewer extends Component {
-	/**
-	 * @inheritDoc
-	 */
-	attached() {
-		this._imageNaturalHeight = this.refs.image.naturalHeight;
-		this._imageNaturalWidth = this.refs.image.naturalWidth;
-		this._isPreviewFit = true;
+const ImagePreviewer = ({imageURL}) => {
+	const [currentZoom, setCurrentZoom] = useState(1);
+	const [imageHeight, setImageHeight] = useState(null);
+	const [imageWidth, setImageWidth] = useState(null);
+	const [imageMargin, setImageMargin] = useState(null);
+	const [zoomInDisabled, setZoomInDisabled] = useState(true);
+	const [zoomOutDisabled, setZoomOutDisabled] = useState(false);
+	const [zoomRatio, setZoomRatio] = useState(false);
 
-		this._updateDimensions();
+	const image = useRef();
+	const imageContainer = useRef();
 
-		this._updateDimensionsDebounced = debounce(
-			this._updateDimensions.bind(this),
-			250
-		);
-		window.addEventListener('resize', this._updateDimensionsDebounced);
-	}
+	const isMounted = useIsMounted();
 
-	/**
-	 * @inheritDoc
-	 */
-	detached() {
-		window.removeEventListener('resize', this._updateDimensionsDebounced);
-	}
+	const applyZoom = zoom => {
+		const imageElement = image.current;
 
-	/**
-	 * @inheritDoc
-	 */
-	rendered() {
-		if (this._zoomRatio) {
-			this._setScrollContainer();
+		setImageHeight(imageElement.naturalHeight * zoom);
+		setImageWidth(imageElement.naturalWidth * zoom);
+		setZoomRatio(zoom / currentZoom);
+
+		updateToolbar(zoom);
+	};
+
+	const getFittingZoom = () => {
+		const imageElement = image.current;
+
+		return imageElement.width / imageElement.naturalWidth;
+	};
+
+	const getImageStyles = () => {
+		const imageStyles = {};
+
+		if (imageHeight && imageWidth) {
+			imageStyles.height = imageHeight;
+			imageStyles.maxHeight = imageHeight;
+			imageStyles.maxWidth = imageWidth;
+			imageStyles.width = imageWidth;
 		}
 
-		if (this._reCalculateCurrentZoom) {
-			this._reCalculateCurrentZoom = false;
-
-			this._calculateCurrentZoom();
-		}
-	}
-
-	/**
-	 * @inheritDoc
-	 */
-	syncCurrentZoom() {
-		this.zoomInDisabled = ZOOM_LEVELS_REVERSED[0] === this.currentZoom;
-		this.zoomOutDisabled = ZOOM_LEVELS[0] >= this.currentZoom;
-	}
-
-	/**
-	 * Set the zoom based in multiplier
-	 * @param {number} zoomNumber
-	 * @private
-	 * @review
-	 */
-	_applyZoom(zoomNumber) {
-		this.imageHeight = this._imageNaturalHeight * zoomNumber;
-		this.imageWidth = this._imageNaturalWidth * zoomNumber;
-		this._zoomRatio = zoomNumber / this.currentZoom;
-		this._isPreviewFit = false;
-		this.currentZoom = zoomNumber;
-		this._updateDimensions();
-	}
-
-	/**
-	 * Calculate actual zoom based in image rendered
-	 * @private
-	 * @review
-	 */
-	_calculateCurrentZoom() {
-		this.currentZoom = this.refs.image.width / this._imageNaturalWidth;
-	}
-
-	/**
-	 * Clear zoom and allow the image fit the container in natural way
-	 * @private
-	 * @review
-	 */
-	_clearZoom() {
-		this.imageHeight = null;
-		this.imageMargin = null;
-		this.imageWidth = null;
-		this._isPreviewFit = true;
-		this._reCalculateCurrentZoom = true;
-	}
-
-	/**
-	 * Event handler executed when zoom changed
-	 * @param {!Event} event
-	 * @private
-	 * @review
-	 */
-	_handleToolbarClick(event) {
-		const value = event.currentTarget.value;
-
-		let zoomValue;
-
-		if (value === 'in') {
-			zoomValue = ZOOM_LEVELS.find(zoom => zoom > this.currentZoom);
-		} else if (value === 'out') {
-			zoomValue = ZOOM_LEVELS_REVERSED.find(
-				zoom => zoom < this.currentZoom
-			);
-		} else if (value === 'real') {
-			zoomValue = 1;
-		} else if (value === 'fit') {
-			this._clearZoom();
+		if (imageMargin) {
+			imageStyles.margin = imageMargin;
 		}
 
-		if (zoomValue) {
-			this._applyZoom(zoomValue);
-		}
-	}
+		return imageStyles;
+	};
 
-	/**
-	 * Move the scroll of the cointainer based in the actual position or center
-	 * @private
-	 * @review
-	 */
-	_setScrollContainer() {
-		const imageContainer = this.refs.imageContainer;
-		let scrollLeft;
-		let scrollTop;
+	const handleImageLoad = () => {
+		updateToolbar(getFittingZoom());
+	};
 
-		if (this._zoomRatio < MIN_ZOOM_RATIO_AUTOCENTER) {
-			scrollLeft =
-				(imageContainer.clientWidth * (this._zoomRatio - 1)) / 2 +
-				imageContainer.scrollLeft * this._zoomRatio;
-			scrollTop =
-				(imageContainer.clientHeight * (this._zoomRatio - 1)) / 2 +
-				imageContainer.scrollTop * this._zoomRatio;
+	const handlePercentButtonClick = () => {
+		if (currentZoom === 1) {
+			setImageHeight(null);
+			setImageWidth(null);
 		} else {
-			scrollTop = (this.imageHeight - imageContainer.clientHeight) / 2;
-			scrollLeft = (this.imageWidth - imageContainer.clientWidth) / 2;
+			applyZoom(1);
+		}
+	};
+
+	const handleWindowResize = debounce(() => {
+		if (isMounted() && !image.current.style.width) {
+			updateToolbar(getFittingZoom());
+		}
+	}, 250);
+
+	const updateToolbar = zoom => {
+		setCurrentZoom(zoom);
+		setZoomInDisabled(ZOOM_LEVELS_REVERSED[0] === zoom);
+		setZoomOutDisabled(ZOOM_LEVELS[0] >= zoom);
+	};
+
+	useEventListener('resize', handleWindowResize, false, window);
+
+	useLayoutEffect(() => {
+		const imageContainerElement = imageContainer.current;
+
+		setImageMargin(
+			`${imageHeight > imageContainerElement.clientHeight ? 0 : 'auto'} ${
+				imageWidth > imageContainerElement.clientWidth ? 0 : 'auto'
+			}`
+		);
+
+		if (
+			zoomRatio &&
+			(imageContainerElement.clientWidth < image.current.naturalWidth ||
+				imageContainerElement.clientHeight <
+					image.current.naturalHeight)
+		) {
+			let scrollLeft;
+			let scrollTop;
+
+			if (zoomRatio < MIN_ZOOM_RATIO_AUTOCENTER) {
+				scrollLeft =
+					(imageContainerElement.clientWidth * (zoomRatio - 1)) / 2 +
+					imageContainerElement.scrollLeft * zoomRatio;
+				scrollTop =
+					(imageContainerElement.clientHeight * (zoomRatio - 1)) / 2 +
+					imageContainerElement.scrollTop * zoomRatio;
+			} else {
+				scrollTop =
+					(imageHeight - imageContainerElement.clientHeight) / 2;
+				scrollLeft =
+					(imageWidth - imageContainerElement.clientWidth) / 2;
+			}
+
+			imageContainerElement.scrollLeft = scrollLeft;
+			imageContainerElement.scrollTop = scrollTop;
+
+			setZoomRatio(null);
 		}
 
-		imageContainer.scrollLeft = scrollLeft;
-		imageContainer.scrollTop = scrollTop;
-
-		this._zoomRatio = null;
-	}
-
-	/**
-	 * Calculate actual dimensions based in container rendered
-	 * @private
-	 * @review
-	 */
-	_updateDimensions() {
-		this.imageMargin = `${
-			this.imageHeight > this.refs.imageContainer.clientHeight
-				? 0
-				: 'auto'
-		} ${
-			this.imageWidth > this.refs.imageContainer.clientWidth ? 0 : 'auto'
-		}`;
-
-		if (this._isPreviewFit) {
-			this._calculateCurrentZoom();
+		if (!image.current.style.width) {
+			updateToolbar(getFittingZoom());
 		}
-	}
-}
+	}, [imageHeight, imageWidth, zoomRatio, imageMargin]);
 
-/**
- * State definition.
- * @review
- * @static
- * @type {!Object}
- */
-ImagePreviewer.STATE = {
-	/**
-	 * The current zoom value that is shown in the toolbar.
-	 * @type {Number}
-	 */
-	currentZoom: Config.number().internal(),
-
-	/**
-	 * The height of the <img> element.
-	 * @type {Number}
-	 */
-	imageHeight: Config.number().internal(),
-
-	/**
-	 * The margin of the <img> element
-	 * @type {String}
-	 */
-	imageMargin: Config.string().internal(),
-
-	/**
-	 * The "src" attribute of the <img> element
-	 * @type {String}
-	 */
-	imageURL: Config.string().required(),
-
-	/**
-	 * The width of the <img> element.
-	 * @type {Number}
-	 */
-	imageWidth: Config.number().internal(),
-
-	/**
-	 * Path to icon images.
-	 * @type {String}
-	 */
-	spritemap: Config.string().required(),
-
-	/**
-	 * Flag that indicate if 'zoom in' is disabled.
-	 * @type {Boolean}
-	 */
-	zoomInDisabled: Config.bool().internal(),
-
-	/**
-	 * Flag that indicate if 'zoom out' is disabled.
-	 * @type {Boolean}
-	 */
-	zoomOutDisabled: Config.bool().internal()
+	return (
+		<div className="preview-file">
+			<div
+				className="preview-file-container preview-file-max-height"
+				ref={imageContainer}
+			>
+				<img
+					className="preview-file-image"
+					onLoad={handleImageLoad}
+					ref={image}
+					src={imageURL}
+					style={getImageStyles()}
+				/>
+			</div>
+			<div className="preview-toolbar-container">
+				<ClayButton.Group className="floating-bar">
+					<ClayButton
+						className="btn-floating-bar"
+						disabled={zoomOutDisabled}
+						displayType={null}
+						monospaced
+						onClick={() => {
+							applyZoom(
+								ZOOM_LEVELS_REVERSED.find(
+									zoom => zoom < currentZoom
+								)
+							);
+						}}
+						title={Liferay.Language.get('zoom-out')}
+					>
+						<ClayIcon symbol="hr" />
+					</ClayButton>
+					<ClayButton
+						className="btn-floating-bar btn-floating-bar-text"
+						displayType={null}
+						onClick={handlePercentButtonClick}
+						title={
+							currentZoom === 1
+								? Liferay.Language.get('zoom-to-fit')
+								: Liferay.Language.get('real-size')
+						}
+					>
+						<span className="preview-toolbar-label-percent">
+							{Math.round((currentZoom || 0) * 100)}%
+						</span>
+					</ClayButton>
+					<ClayButton
+						className="btn-floating-bar"
+						disabled={zoomInDisabled}
+						displayType={null}
+						monospaced
+						onClick={() => {
+							applyZoom(
+								ZOOM_LEVELS.find(zoom => zoom > currentZoom)
+							);
+						}}
+						title={Liferay.Language.get('zoom-in')}
+					>
+						<ClayIcon symbol="plus" />
+					</ClayButton>
+				</ClayButton.Group>
+			</div>
+		</div>
+	);
 };
 
-Soy.register(ImagePreviewer, templates);
+ImagePreviewer.propTypes = {
+	imageURL: PropTypes.string
+};
 
-export {ImagePreviewer};
-export default ImagePreviewer;
+export default function(props) {
+	return <ImagePreviewer {...props} />;
+}

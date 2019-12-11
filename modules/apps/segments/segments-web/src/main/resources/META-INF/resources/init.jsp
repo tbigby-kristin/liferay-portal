@@ -52,9 +52,12 @@ page import="com.liferay.segments.web.internal.display.context.EditSegmentsEntry
 page import="com.liferay.segments.web.internal.display.context.PreviewSegmentsEntryUsersDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SegmentsDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SelectOrganizationsDisplayContext" %><%@
+page import="com.liferay.segments.web.internal.display.context.SelectOrganizationsManagementToolbarDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SelectSegmentsEntryDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SelectUsersDisplayContext" %><%@
-page import="com.liferay.segments.web.internal.security.permission.resource.SegmentsEntryPermission" %>
+page import="com.liferay.segments.web.internal.display.context.SelectUsersManagementToolbarDisplayContext" %><%@
+page import="com.liferay.segments.web.internal.security.permission.resource.SegmentsEntryPermission" %><%@
+page import="com.liferay.segments.web.internal.servlet.taglib.clay.SelectUserUserCard" %>
 
 <%@ page import="java.util.HashMap" %><%@
 page import="java.util.Map" %><%@

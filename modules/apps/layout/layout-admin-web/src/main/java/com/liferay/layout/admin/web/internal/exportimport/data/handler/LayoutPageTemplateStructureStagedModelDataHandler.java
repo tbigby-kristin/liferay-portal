@@ -24,6 +24,8 @@ import com.liferay.exportimport.staged.model.repository.StagedModelRepository;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalService;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.xml.Element;
 
 import java.util.List;
@@ -91,12 +93,19 @@ public class LayoutPageTemplateStructureStagedModelDataHandler
 					portletDataContext, importedLayoutPageTemplateStructure);
 		}
 		else {
+			Element element = portletDataContext.getImportDataElement(
+				importedLayoutPageTemplateStructure);
+
 			importedLayoutPageTemplateStructure.setMvccVersion(
 				existingLayoutPageTemplateStructure.getMvccVersion());
 			importedLayoutPageTemplateStructure.
 				setLayoutPageTemplateStructureId(
 					existingLayoutPageTemplateStructure.
 						getLayoutPageTemplateStructureId());
+			importedLayoutPageTemplateStructure.setClassNameId(
+				_portal.getClassNameId(element.attributeValue("className")));
+			importedLayoutPageTemplateStructure.setClassPK(
+				GetterUtil.getLong(element.attributeValue("classPK")));
 
 			importedLayoutPageTemplateStructure =
 				_stagedModelRepository.updateStagedModel(
@@ -172,6 +181,9 @@ public class LayoutPageTemplateStructureStagedModelDataHandler
 	@Reference
 	private LayoutPageTemplateStructureRelLocalService
 		_layoutPageTemplateStructureRelLocalService;
+
+	@Reference
+	private Portal _portal;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.layout.page.template.model.LayoutPageTemplateStructure)",

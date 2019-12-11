@@ -102,8 +102,8 @@ public class SanitizedServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void setContentType(String type) {
-		super.setContentType(HttpUtil.sanitizeHeader(type));
+	public void setContentType(String contentType) {
+		super.setContentType(HttpUtil.sanitizeHeader(contentType));
 	}
 
 	@Override

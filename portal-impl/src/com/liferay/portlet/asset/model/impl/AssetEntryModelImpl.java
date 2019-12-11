@@ -80,6 +80,7 @@ public class AssetEntryModelImpl
 	public static final String TABLE_NAME = "AssetEntry";
 
 	public static final Object[][] TABLE_COLUMNS = {
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
 		{"entryId", Types.BIGINT}, {"groupId", Types.BIGINT},
 		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
 		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
@@ -92,14 +93,15 @@ public class AssetEntryModelImpl
 		{"title", Types.VARCHAR}, {"description", Types.CLOB},
 		{"summary", Types.CLOB}, {"url", Types.VARCHAR},
 		{"layoutUuid", Types.VARCHAR}, {"height", Types.INTEGER},
-		{"width", Types.INTEGER}, {"priority", Types.DOUBLE},
-		{"viewCount", Types.INTEGER}
+		{"width", Types.INTEGER}, {"priority", Types.DOUBLE}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
 		new HashMap<String, Integer>();
 
 	static {
+		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("entryId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -126,11 +128,10 @@ public class AssetEntryModelImpl
 		TABLE_COLUMNS_MAP.put("height", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("width", Types.INTEGER);
 		TABLE_COLUMNS_MAP.put("priority", Types.DOUBLE);
-		TABLE_COLUMNS_MAP.put("viewCount", Types.INTEGER);
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table AssetEntry (entryId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,classUuid VARCHAR(75) null,classTypeId LONG,listable BOOLEAN,visible BOOLEAN,startDate DATE null,endDate DATE null,publishDate DATE null,expirationDate DATE null,mimeType VARCHAR(75) null,title STRING null,description TEXT null,summary TEXT null,url STRING null,layoutUuid VARCHAR(75) null,height INTEGER,width INTEGER,priority DOUBLE,viewCount INTEGER)";
+		"create table AssetEntry (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,entryId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,classUuid VARCHAR(75) null,classTypeId LONG,listable BOOLEAN,visible BOOLEAN,startDate DATE null,endDate DATE null,publishDate DATE null,expirationDate DATE null,mimeType VARCHAR(75) null,title STRING null,description TEXT null,summary TEXT null,url STRING null,layoutUuid VARCHAR(75) null,height INTEGER,width INTEGER,priority DOUBLE,primary key (entryId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP = "drop table AssetEntry";
 
@@ -194,6 +195,8 @@ public class AssetEntryModelImpl
 
 		AssetEntry model = new AssetEntryImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
+		model.setCtCollectionId(soapModel.getCtCollectionId());
 		model.setEntryId(soapModel.getEntryId());
 		model.setGroupId(soapModel.getGroupId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -220,7 +223,6 @@ public class AssetEntryModelImpl
 		model.setHeight(soapModel.getHeight());
 		model.setWidth(soapModel.getWidth());
 		model.setPriority(soapModel.getPriority());
-		model.setViewCount(soapModel.getViewCount());
 
 		return model;
 	}
@@ -411,6 +413,15 @@ public class AssetEntryModelImpl
 		Map<String, BiConsumer<AssetEntry, ?>> attributeSetterBiConsumers =
 			new LinkedHashMap<String, BiConsumer<AssetEntry, ?>>();
 
+		attributeGetterFunctions.put("mvccVersion", AssetEntry::getMvccVersion);
+		attributeSetterBiConsumers.put(
+			"mvccVersion",
+			(BiConsumer<AssetEntry, Long>)AssetEntry::setMvccVersion);
+		attributeGetterFunctions.put(
+			"ctCollectionId", AssetEntry::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<AssetEntry, Long>)AssetEntry::setCtCollectionId);
 		attributeGetterFunctions.put("entryId", AssetEntry::getEntryId);
 		attributeSetterBiConsumers.put(
 			"entryId", (BiConsumer<AssetEntry, Long>)AssetEntry::setEntryId);
@@ -506,15 +517,33 @@ public class AssetEntryModelImpl
 		attributeSetterBiConsumers.put(
 			"priority",
 			(BiConsumer<AssetEntry, Double>)AssetEntry::setPriority);
-		attributeGetterFunctions.put("viewCount", AssetEntry::getViewCount);
-		attributeSetterBiConsumers.put(
-			"viewCount",
-			(BiConsumer<AssetEntry, Integer>)AssetEntry::setViewCount);
 
 		_attributeGetterFunctions = Collections.unmodifiableMap(
 			attributeGetterFunctions);
 		_attributeSetterBiConsumers = Collections.unmodifiableMap(
 			(Map)attributeSetterBiConsumers);
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -1270,17 +1299,6 @@ public class AssetEntryModelImpl
 		_priority = priority;
 	}
 
-	@JSON
-	@Override
-	public int getViewCount() {
-		return _viewCount;
-	}
-
-	@Override
-	public void setViewCount(int viewCount) {
-		_viewCount = viewCount;
-	}
-
 	public long getColumnBitmask() {
 		return _columnBitmask;
 	}
@@ -1425,6 +1443,8 @@ public class AssetEntryModelImpl
 	public Object clone() {
 		AssetEntryImpl assetEntryImpl = new AssetEntryImpl();
 
+		assetEntryImpl.setMvccVersion(getMvccVersion());
+		assetEntryImpl.setCtCollectionId(getCtCollectionId());
 		assetEntryImpl.setEntryId(getEntryId());
 		assetEntryImpl.setGroupId(getGroupId());
 		assetEntryImpl.setCompanyId(getCompanyId());
@@ -1451,7 +1471,6 @@ public class AssetEntryModelImpl
 		assetEntryImpl.setHeight(getHeight());
 		assetEntryImpl.setWidth(getWidth());
 		assetEntryImpl.setPriority(getPriority());
-		assetEntryImpl.setViewCount(getViewCount());
 
 		assetEntryImpl.resetOriginalValues();
 
@@ -1554,6 +1573,10 @@ public class AssetEntryModelImpl
 	@Override
 	public CacheModel<AssetEntry> toCacheModel() {
 		AssetEntryCacheModel assetEntryCacheModel = new AssetEntryCacheModel();
+
+		assetEntryCacheModel.mvccVersion = getMvccVersion();
+
+		assetEntryCacheModel.ctCollectionId = getCtCollectionId();
 
 		assetEntryCacheModel.entryId = getEntryId();
 
@@ -1697,8 +1720,6 @@ public class AssetEntryModelImpl
 
 		assetEntryCacheModel.priority = getPriority();
 
-		assetEntryCacheModel.viewCount = getViewCount();
-
 		return assetEntryCacheModel;
 	}
 
@@ -1772,6 +1793,8 @@ public class AssetEntryModelImpl
 
 	}
 
+	private long _mvccVersion;
+	private long _ctCollectionId;
 	private long _entryId;
 	private long _groupId;
 	private long _originalGroupId;
@@ -1816,7 +1839,6 @@ public class AssetEntryModelImpl
 	private int _height;
 	private int _width;
 	private double _priority;
-	private int _viewCount;
 	private long _columnBitmask;
 	private AssetEntry _escapedModel;
 

@@ -15,7 +15,6 @@
 package com.liferay.portal.search.engine.adapter.search;
 
 import com.liferay.portal.kernel.search.GroupBy;
-import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.Stats;
 import com.liferay.portal.search.groupby.GroupByRequest;
 import com.liferay.portal.search.highlight.Highlight;
@@ -54,6 +53,14 @@ public class SearchSearchRequest
 		return _fetchSource;
 	}
 
+	public String[] getFetchSourceExcludes() {
+		return _fetchSourceExcludes;
+	}
+
+	public String[] getFetchSourceIncludes() {
+		return _fetchSourceIncludes;
+	}
+
 	/**
 	 * @deprecated As of Mueller (7.2.x), replaced by GroupByRequest
 	 */
@@ -88,15 +95,6 @@ public class SearchSearchRequest
 
 	public String getPreference() {
 		return _preference;
-	}
-
-	/**
-	 * @return
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public QueryConfig getQueryConfig() {
-		throw new UnsupportedOperationException();
 	}
 
 	public Boolean getScoreEnabled() {
@@ -182,6 +180,14 @@ public class SearchSearchRequest
 
 	public void setFetchSource(Boolean fetchSource) {
 		_fetchSource = fetchSource;
+	}
+
+	public void setFetchSourceExcludes(String[] fetchSourceExcludes) {
+		_fetchSourceExcludes = fetchSourceExcludes;
+	}
+
+	public void setFetchSourceIncludes(String[] fetchSourceIncludes) {
+		_fetchSourceIncludes = fetchSourceIncludes;
 	}
 
 	/**
@@ -278,6 +284,8 @@ public class SearchSearchRequest
 	private boolean _allFieldsSelected;
 	private String _alternateUidFieldName;
 	private Boolean _fetchSource;
+	private String[] _fetchSourceExcludes;
+	private String[] _fetchSourceIncludes;
 	private GroupBy _groupBy;
 	private List<GroupByRequest> _groupByRequests = Collections.emptyList();
 	private Highlight _highlight;

@@ -31,9 +31,12 @@ import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 
 import java.util.concurrent.Callable;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -97,7 +100,7 @@ public class AssetEntryModelListener extends BaseModelListener<AssetEntry> {
 	}
 
 	@Activate
-	protected void activate() {
+	protected void activate(BundleContext bundleContext) {
 		DestinationConfiguration destinationConfiguration =
 			new DestinationConfiguration(
 				DestinationConfiguration.DESTINATION_TYPE_PARALLEL,
@@ -106,13 +109,15 @@ public class AssetEntryModelListener extends BaseModelListener<AssetEntry> {
 		Destination destination = _destinationFactory.createDestination(
 			destinationConfiguration);
 
-		_messageBus.addDestination(destination);
+		_destinationServiceRegistration = bundleContext.registerService(
+			Destination.class, destination,
+			MapUtil.singletonDictionary(
+				"destination.name", destination.getName()));
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_messageBus.removeDestination(
-			AssetAutoTaggerDestinationNames.ASSET_AUTO_TAGGER);
+		_destinationServiceRegistration.unregister();
 	}
 
 	@Reference
@@ -126,6 +131,8 @@ public class AssetEntryModelListener extends BaseModelListener<AssetEntry> {
 
 	@Reference
 	private DestinationFactory _destinationFactory;
+
+	private ServiceRegistration<Destination> _destinationServiceRegistration;
 
 	@Reference
 	private MessageBus _messageBus;

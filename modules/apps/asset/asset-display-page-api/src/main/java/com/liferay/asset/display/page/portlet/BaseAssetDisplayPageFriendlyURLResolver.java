@@ -18,6 +18,9 @@ import com.liferay.asset.display.page.constants.AssetDisplayPageConstants;
 import com.liferay.asset.display.page.constants.AssetDisplayPageWebKeys;
 import com.liferay.asset.display.page.model.AssetDisplayPageEntry;
 import com.liferay.asset.display.page.service.AssetDisplayPageEntryLocalService;
+import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.util.AssetHelper;
 import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.info.display.contributor.InfoDisplayContributor;
@@ -30,13 +33,16 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutFriendlyURLComposite;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import java.util.List;
@@ -96,16 +102,18 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 		Locale locale = portal.getLocale(httpServletRequest);
 
 		portal.setPageDescription(
-			infoDisplayObjectProvider.getDescription(locale),
+			HtmlUtil.unescape(
+				HtmlUtil.stripHtml(
+					infoDisplayObjectProvider.getDescription(locale))),
 			httpServletRequest);
 		portal.setPageKeywords(
 			infoDisplayObjectProvider.getKeywords(locale), httpServletRequest);
 		portal.setPageTitle(
 			infoDisplayObjectProvider.getTitle(locale), httpServletRequest);
 
-		httpServletRequest.setAttribute(
-			WebKeys.LAYOUT_ASSET_ENTRY,
-			infoDisplayObjectProvider.getDisplayObject());
+		AssetEntry assetEntry = _getAssetEntry(infoDisplayObjectProvider);
+
+		httpServletRequest.setAttribute(WebKeys.LAYOUT_ASSET_ENTRY, assetEntry);
 
 		Layout layout = _getInfoDisplayObjectProviderLayout(
 			infoDisplayObjectProvider);
@@ -145,9 +153,6 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 	protected AssetHelper assetHelper;
 
 	@Reference
-	protected Http http;
-
-	@Reference
 	protected InfoDisplayContributorTracker infoDisplayContributorTracker;
 
 	@Reference
@@ -161,6 +166,34 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 
 	@Reference
 	protected Portal portal;
+
+	private AssetEntry _getAssetEntry(
+		InfoDisplayObjectProvider infoDisplayObjectProvider) {
+
+		String classNameId = PortalUtil.getClassName(
+			infoDisplayObjectProvider.getClassNameId());
+
+		AssetRendererFactory assetRendererFactory =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
+				classNameId);
+
+		if (assetRendererFactory == null) {
+			return null;
+		}
+
+		long classPK = infoDisplayObjectProvider.getClassPK();
+
+		try {
+			return assetRendererFactory.getAssetEntry(classNameId, classPK);
+		}
+		catch (PortalException pe) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(pe, pe);
+			}
+		}
+
+		return null;
+	}
 
 	private InfoDisplayContributor _getInfoDisplayContributor(
 			String friendlyURL)
@@ -245,7 +278,7 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 				friendlyURL.length() - versionClassPKValue.length() - 1);
 		}
 
-		return http.encodePath(urlTitle);
+		return urlTitle;
 	}
 
 	private long _getVersionClassPK(String friendlyURL) {
@@ -257,5 +290,8 @@ public abstract class BaseAssetDisplayPageFriendlyURLResolver
 
 		return GetterUtil.getLong(paths.get(paths.size() - 1));
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		BaseAssetDisplayPageFriendlyURLResolver.class);
 
 }

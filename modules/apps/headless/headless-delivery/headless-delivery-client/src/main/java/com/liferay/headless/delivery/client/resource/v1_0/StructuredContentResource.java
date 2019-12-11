@@ -86,13 +86,13 @@ public interface StructuredContentResource {
 
 	public Page<StructuredContent>
 			getStructuredContentFolderStructuredContentsPage(
-				Long structuredContentFolderId, String search,
+				Long structuredContentFolderId, Boolean flatten, String search,
 				String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
 	public HttpInvoker.HttpResponse
 			getStructuredContentFolderStructuredContentsPageHttpResponse(
-				Long structuredContentFolderId, String search,
+				Long structuredContentFolderId, Boolean flatten, String search,
 				String filterString, Pagination pagination, String sortString)
 		throws Exception;
 
@@ -104,6 +104,20 @@ public interface StructuredContentResource {
 			postStructuredContentFolderStructuredContentHttpResponse(
 				Long structuredContentFolderId,
 				StructuredContent structuredContent)
+		throws Exception;
+
+	public void putStructuredContentSubscribe(Long structuredContentId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putStructuredContentSubscribeHttpResponse(
+			Long structuredContentId)
+		throws Exception;
+
+	public void putStructuredContentUnsubscribe(Long structuredContentId)
+		throws Exception;
+
+	public HttpInvoker.HttpResponse putStructuredContentUnsubscribeHttpResponse(
+			Long structuredContentId)
 		throws Exception;
 
 	public void deleteStructuredContent(Long structuredContentId)
@@ -601,15 +615,15 @@ public interface StructuredContentResource {
 
 		public Page<StructuredContent>
 				getStructuredContentFolderStructuredContentsPage(
-					Long structuredContentFolderId, String search,
-					String filterString, Pagination pagination,
+					Long structuredContentFolderId, Boolean flatten,
+					String search, String filterString, Pagination pagination,
 					String sortString)
 			throws Exception {
 
 			HttpInvoker.HttpResponse httpResponse =
 				getStructuredContentFolderStructuredContentsPageHttpResponse(
-					structuredContentFolderId, search, filterString, pagination,
-					sortString);
+					structuredContentFolderId, flatten, search, filterString,
+					pagination, sortString);
 
 			String content = httpResponse.getContent();
 
@@ -624,8 +638,8 @@ public interface StructuredContentResource {
 
 		public HttpInvoker.HttpResponse
 				getStructuredContentFolderStructuredContentsPageHttpResponse(
-					Long structuredContentFolderId, String search,
-					String filterString, Pagination pagination,
+					Long structuredContentFolderId, Boolean flatten,
+					String search, String filterString, Pagination pagination,
 					String sortString)
 			throws Exception {
 
@@ -649,6 +663,10 @@ public interface StructuredContentResource {
 			}
 
 			httpInvoker.httpMethod(HttpInvoker.HttpMethod.GET);
+
+			if (flatten != null) {
+				httpInvoker.parameter("flatten", String.valueOf(flatten));
+			}
 
 			if (search != null) {
 				httpInvoker.parameter("search", String.valueOf(search));
@@ -744,6 +762,119 @@ public interface StructuredContentResource {
 					_builder._port +
 						"/o/headless-delivery/v1.0/structured-content-folders/{structuredContentFolderId}/structured-contents",
 				structuredContentFolderId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putStructuredContentSubscribe(Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putStructuredContentSubscribeHttpResponse(structuredContentId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				putStructuredContentSubscribeHttpResponse(
+					Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				structuredContentId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-content/{structuredContentId}/subscribe",
+				structuredContentId);
+
+			httpInvoker.userNameAndPassword(
+				_builder._login + ":" + _builder._password);
+
+			return httpInvoker.invoke();
+		}
+
+		public void putStructuredContentUnsubscribe(Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker.HttpResponse httpResponse =
+				putStructuredContentUnsubscribeHttpResponse(
+					structuredContentId);
+
+			String content = httpResponse.getContent();
+
+			_logger.fine("HTTP response content: " + content);
+
+			_logger.fine("HTTP response message: " + httpResponse.getMessage());
+			_logger.fine(
+				"HTTP response status code: " + httpResponse.getStatusCode());
+		}
+
+		public HttpInvoker.HttpResponse
+				putStructuredContentUnsubscribeHttpResponse(
+					Long structuredContentId)
+			throws Exception {
+
+			HttpInvoker httpInvoker = HttpInvoker.newHttpInvoker();
+
+			httpInvoker.body(
+				structuredContentId.toString(), "application/json");
+
+			if (_builder._locale != null) {
+				httpInvoker.header(
+					"Accept-Language", _builder._locale.toLanguageTag());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._headers.entrySet()) {
+
+				httpInvoker.header(entry.getKey(), entry.getValue());
+			}
+
+			for (Map.Entry<String, String> entry :
+					_builder._parameters.entrySet()) {
+
+				httpInvoker.parameter(entry.getKey(), entry.getValue());
+			}
+
+			httpInvoker.httpMethod(HttpInvoker.HttpMethod.PUT);
+
+			httpInvoker.path(
+				_builder._scheme + "://" + _builder._host + ":" +
+					_builder._port +
+						"/o/headless-delivery/v1.0/structured-content/{structuredContentId}/unsubscribe",
+				structuredContentId);
 
 			httpInvoker.userNameAndPassword(
 				_builder._login + ":" + _builder._password);

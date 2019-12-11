@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -45,6 +47,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class KeywordBulkSelection {
 
 	@Schema
+	@Valid
 	public DocumentBulkSelection getDocumentBulkSelection() {
 		return documentBulkSelection;
 	}
@@ -221,6 +224,12 @@ public class KeywordBulkSelection {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.bulk.rest.dto.v1_0.KeywordBulkSelection",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

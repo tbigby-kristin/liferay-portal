@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.test.ReflectionTestUtil;
 
 import java.io.IOException;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
@@ -71,13 +70,6 @@ public class UnicodePropertiesTest {
 		Assert.assertEquals(
 			"testDefaultValue",
 			unicodeProperties.getProperty(_TEST_KEY_2, "testDefaultValue"));
-	}
-
-	@Test
-	public void testGetToStringLength() {
-		UnicodeProperties unicodeProperties = new UnicodeProperties();
-
-		Assert.assertEquals(-1, unicodeProperties.getToStringLength());
 	}
 
 	@Test
@@ -134,13 +126,13 @@ public class UnicodePropertiesTest {
 		UnicodeProperties unicodeProperties = new UnicodeProperties();
 
 		unicodeProperties.putAll(
-			new HashMap<String, String>() {
-				{
-					put(_TEST_KEY_1, _TEST_VALUE_1);
-					put(_TEST_KEY_2, _TEST_VALUE_2);
-					put(_TEST_KEY_3, _TEST_VALUE_3);
-				}
-			});
+			HashMapBuilder.put(
+				_TEST_KEY_1, _TEST_VALUE_1
+			).put(
+				_TEST_KEY_2, _TEST_VALUE_2
+			).put(
+				_TEST_KEY_3, _TEST_VALUE_3
+			).build());
 
 		_assertUnicodeProperties(
 			new String[] {_TEST_VALUE_1, _TEST_VALUE_2, _TEST_VALUE_3},

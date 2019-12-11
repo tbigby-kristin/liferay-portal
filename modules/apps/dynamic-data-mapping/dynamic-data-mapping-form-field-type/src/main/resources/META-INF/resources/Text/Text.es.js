@@ -13,15 +13,33 @@
  */
 
 import '../FieldBase/FieldBase.es';
+
 import './TextRegister.soy.js';
+
 import 'clay-autocomplete';
+import {debounce, cancelDebounce} from 'frontend-js-web';
 import Component from 'metal-component';
 import dom from 'metal-dom';
 import Soy from 'metal-soy';
-import templates from './Text.soy.js';
 import {Config} from 'metal-state';
 
+import templates from './Text.soy.js';
+
 class Text extends Component {
+	created() {
+		this.debouncedUpdate = debounce(_value => {
+			if (this.animationFrameRequest) {
+				window.cancelAnimationFrame(this.animationFrameRequest);
+			}
+
+			this.animationFrameRequest = window.requestAnimationFrame(() => {
+				if (!this.isDisposed()) {
+					this.setState({_value});
+				}
+			});
+		}, 300);
+	}
+
 	attached() {
 		const portalElement = dom.toElement('#clay_dropdown_portal');
 
@@ -59,11 +77,24 @@ class Text extends Component {
 		};
 	}
 
+	shouldUpdate(changes) {
+		return Object.keys(changes || {}).some(key => {
+			if (key === 'events' || key === 'value') {
+				return false;
+			}
+
+			if (
+				!Liferay.Util.isEqual(changes[key].newVal, changes[key].prevVal)
+			) {
+				return true;
+			}
+		});
+	}
+
 	willReceiveState(changes) {
 		if (changes.value) {
-			this.setState({
-				_value: changes.value.newVal
-			});
+			cancelDebounce(this.debouncedUpdate);
+			this.debouncedUpdate(changes.value.newVal);
 		}
 	}
 
@@ -161,6 +192,15 @@ Text.STATE = {
 	 */
 
 	dataType: Config.string().value('string'),
+
+	/**
+	 * @default false
+	 * @instance
+	 * @memberof Text
+	 * @type {?(boolean|undefined)}
+	 */
+
+	displayErrors: Config.bool().value(false),
 
 	/**
 	 * @default undefined

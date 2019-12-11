@@ -34,9 +34,11 @@ public class DataLayoutRendererTag extends BaseDataLayoutRendererTag {
 
 	@Override
 	public int doStartTag() throws JspException {
+		int result = super.doStartTag();
+
 		setNamespacedAttribute(request, "content", _getContent());
 
-		return super.doStartTag();
+		return result;
 	}
 
 	private String _getContent() {

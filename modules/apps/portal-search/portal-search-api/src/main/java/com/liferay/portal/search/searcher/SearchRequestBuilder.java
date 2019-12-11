@@ -86,6 +86,14 @@ public interface SearchRequestBuilder {
 
 	public SearchRequestBuilder federatedSearchKey(String federatedSearchKey);
 
+	public SearchRequestBuilder fetchSource(boolean fetchSource);
+
+	public SearchRequestBuilder fetchSourceExcludes(
+		String[] fetchSourceExcludes);
+
+	public SearchRequestBuilder fetchSourceIncludes(
+		String[] fetchSourceIncludes);
+
 	public SearchRequestBuilder fields(String... fields);
 
 	public SearchRequestBuilder from(Integer from);
@@ -96,9 +104,8 @@ public interface SearchRequestBuilder {
 	/**
 	 * Provides a top hits aggregations for each of the specified fields.
 	 *
-	 * @param groupByRequests the grouping that is enabled for each field
+	 * @param  groupByRequests the grouping that is enabled for each field
 	 * @return the search request builder
-	 *
 	 * @review
 	 */
 	public SearchRequestBuilder groupByRequests(

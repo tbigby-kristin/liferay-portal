@@ -21,6 +21,7 @@ import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
 import com.liferay.exportimport.kernel.lar.ExportImportHelper;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportProcessCallbackRegistry;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataContextFactory;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
@@ -95,6 +96,7 @@ import com.liferay.portal.kernel.transaction.TransactionInvokerUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -180,6 +182,31 @@ public class LayoutStagedModelDataHandler
 
 	@Override
 	public String getDisplayName(Layout layout) {
+		try {
+			List<Layout> ancestorFolders = layout.getAncestors();
+
+			StringBundler sb = new StringBundler(
+				4 * ancestorFolders.size() + 1);
+
+			Collections.reverse(ancestorFolders);
+
+			for (Layout ancestorFolder : ancestorFolders) {
+				sb.append(ancestorFolder.getNameCurrentValue());
+				sb.append(StringPool.SPACE);
+				sb.append(StringPool.GREATER_THAN);
+				sb.append(StringPool.SPACE);
+			}
+
+			sb.append(layout.getNameCurrentValue());
+
+			return sb.toString();
+		}
+		catch (PortalException pe) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(pe, pe);
+			}
+		}
+
 		return layout.getNameCurrentValue();
 	}
 
@@ -187,14 +214,11 @@ public class LayoutStagedModelDataHandler
 	public Map<String, String> getReferenceAttributes(
 		PortletDataContext portletDataContext, Layout layout) {
 
-		Map<String, String> referenceAttributes = new HashMap<>();
-
-		referenceAttributes.put(
-			"layout-id", String.valueOf(layout.getLayoutId()));
-		referenceAttributes.put(
-			"private-layout", String.valueOf(layout.isPrivateLayout()));
-
-		return referenceAttributes;
+		return HashMapBuilder.put(
+			"layout-id", String.valueOf(layout.getLayoutId())
+		).put(
+			"private-layout", String.valueOf(layout.isPrivateLayout())
+		).build();
 	}
 
 	@Override
@@ -749,20 +773,27 @@ public class LayoutStagedModelDataHandler
 
 		if (existingLayout == null) {
 			try {
-				final long finalParentLayoutId = parentLayoutId;
+				int priority = layout.getPriority();
 
-				int priority = TransactionInvokerUtil.invoke(
-					_transactionConfig,
-					new Callable<Integer>() {
+				if (!ExportImportThreadLocal.
+						isInitialLayoutStagingInProcess()) {
 
-						@Override
-						public Integer call() throws Exception {
-							return _layoutLocalServiceHelper.getNextPriority(
-								groupId, privateLayout, finalParentLayoutId,
-								null, -1);
-						}
+					final long finalParentLayoutId = parentLayoutId;
 
-					});
+					priority = TransactionInvokerUtil.invoke(
+						_transactionConfig,
+						new Callable<Integer>() {
+
+							@Override
+							public Integer call() throws Exception {
+								return _layoutLocalServiceHelper.
+									getNextPriority(
+										groupId, privateLayout,
+										finalParentLayoutId, null, -1);
+							}
+
+						});
+				}
 
 				importedLayout.setPriority(priority);
 			}
@@ -1370,6 +1401,13 @@ public class LayoutStagedModelDataHandler
 			PortletDataContext portletDataContext, Layout layout,
 			Layout importedLayout)
 		throws Exception {
+
+		if (!Objects.equals(layout.getType(), LayoutConstants.TYPE_CONTENT) &&
+			!Objects.equals(
+				layout.getType(), LayoutConstants.TYPE_ASSET_DISPLAY)) {
+
+			return;
+		}
 
 		importFragmentEntryLinks(portletDataContext, layout, importedLayout);
 
@@ -2031,6 +2069,13 @@ public class LayoutStagedModelDataHandler
 	private void _exportLayoutPageTemplateStructure(
 			PortletDataContext portletDataContext, Layout layout)
 		throws PortletDataException {
+
+		if (!Objects.equals(layout.getType(), LayoutConstants.TYPE_CONTENT) &&
+			!Objects.equals(
+				layout.getType(), LayoutConstants.TYPE_ASSET_DISPLAY)) {
+
+			return;
+		}
 
 		List<FragmentEntryLink> fragmentEntryLinks =
 			_fragmentEntryLinkLocalService.getFragmentEntryLinks(

@@ -68,7 +68,7 @@ public class Option {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The option's label.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String label;
 
@@ -96,7 +96,7 @@ public class Option {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The internal value of the field option.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String value;
 
@@ -159,6 +159,12 @@ public class Option {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.Option",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -12,13 +12,16 @@
  * details.
  */
 
-import {convertToFormData, makeFetch} from './fetch.es';
 import {debounce} from 'frontend-js-web';
+
+import {convertToFormData, makeFetch} from './fetch.es';
 import {PagesVisitor} from './visitors.es';
 
 const EVALUATOR_URL =
 	themeDisplay.getPathContext() +
 	'/o/dynamic-data-mapping-form-context-provider/';
+
+let controller = null;
 
 const doEvaluate = debounce((fieldName, evaluatorContext, callback) => {
 	const {
@@ -27,6 +30,14 @@ const doEvaluate = debounce((fieldName, evaluatorContext, callback) => {
 		pages,
 		portletNamespace
 	} = evaluatorContext;
+
+	if (controller) {
+		controller.abort();
+	}
+
+	if (window.AbortController) {
+		controller = new AbortController();
+	}
 
 	makeFetch({
 		body: convertToFormData({
@@ -40,29 +51,38 @@ const doEvaluate = debounce((fieldName, evaluatorContext, callback) => {
 			}),
 			trigger: fieldName
 		}),
+		signal: controller && controller.signal,
 		url: EVALUATOR_URL
-	}).then(newPages => {
-		const mergedPages = mergePages(
-			defaultLanguageId,
-			editingLanguageId,
-			newPages,
-			pages
-		);
+	})
+		.then(newPages => {
+			const mergedPages = mergePages(
+				defaultLanguageId,
+				editingLanguageId,
+				newPages,
+				pages
+			);
 
-		callback(mergedPages);
-	});
+			callback(null, mergedPages);
+		})
+		.catch(error => callback(error));
 }, 300);
 
 export const evaluate = (fieldName, evaluatorContext) => {
-	return new Promise(resolve => {
-		doEvaluate(fieldName, evaluatorContext, pages => resolve(pages));
+	return new Promise((resolve, reject) => {
+		doEvaluate(fieldName, evaluatorContext, (error, pages) => {
+			if (error) {
+				return reject(error);
+			}
+
+			resolve(pages);
+		});
 	});
 };
 
 export const mergeFieldOptions = (field, newField) => {
 	let newValue = {...newField.value};
 
-	for (const languageId in newValue) {
+	Object.keys(newValue).forEach(languageId => {
 		newValue = {
 			...newValue,
 			[languageId]: newValue[languageId].map(option => {
@@ -76,7 +96,7 @@ export const mergeFieldOptions = (field, newField) => {
 				};
 			})
 		};
-	}
+	});
 
 	return newValue;
 };

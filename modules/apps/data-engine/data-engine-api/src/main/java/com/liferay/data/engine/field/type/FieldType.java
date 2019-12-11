@@ -23,8 +23,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author Marcela Cunha
+ * @author     Marcela Cunha
+ * @deprecated As of Athanasius (7.3.x), with no direct replacement
  */
+@Deprecated
 public interface FieldType {
 
 	public SPIDataDefinitionField deserialize(

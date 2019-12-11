@@ -157,6 +157,11 @@ public class WikiPageIndexer
 	}
 
 	@Override
+	public boolean isVisibleRelatedEntry(long classPK, int status) {
+		return true;
+	}
+
+	@Override
 	public void postProcessContextBooleanFilter(
 			BooleanFilter contextBooleanFilter, SearchContext searchContext)
 		throws Exception {

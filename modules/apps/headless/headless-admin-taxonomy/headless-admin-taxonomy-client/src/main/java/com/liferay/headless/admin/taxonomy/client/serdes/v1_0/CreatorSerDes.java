@@ -67,6 +67,20 @@ public class CreatorSerDes {
 			sb.append("\"");
 		}
 
+		if (creator.getContentType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"contentType\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(creator.getContentType()));
+
+			sb.append("\"");
+		}
+
 		if (creator.getFamilyName() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -173,6 +187,13 @@ public class CreatorSerDes {
 				"additionalName", String.valueOf(creator.getAdditionalName()));
 		}
 
+		if (creator.getContentType() == null) {
+			map.put("contentType", null);
+		}
+		else {
+			map.put("contentType", String.valueOf(creator.getContentType()));
+		}
+
 		if (creator.getFamilyName() == null) {
 			map.put("familyName", null);
 		}
@@ -240,6 +261,11 @@ public class CreatorSerDes {
 					creator.setAdditionalName((String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "contentType")) {
+				if (jsonParserFieldValue != null) {
+					creator.setContentType((String)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "familyName")) {
 				if (jsonParserFieldValue != null) {
 					creator.setFamilyName((String)jsonParserFieldValue);
@@ -281,9 +307,11 @@ public class CreatorSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

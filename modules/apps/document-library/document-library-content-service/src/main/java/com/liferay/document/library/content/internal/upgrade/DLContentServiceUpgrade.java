@@ -15,6 +15,7 @@
 package com.liferay.document.library.content.internal.upgrade;
 
 import com.liferay.document.library.content.internal.upgrade.v1_0_0.UpgradeClassNames;
+import com.liferay.portal.kernel.upgrade.UpgradeCTModel;
 import com.liferay.portal.kernel.upgrade.UpgradeMVCCVersion;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
@@ -23,7 +24,7 @@ import org.osgi.service.component.annotations.Component;
 /**
  * @author Alejandro Tardín
  */
-@Component(immediate = true, service = UpgradeStepRegistrator.class)
+@Component(service = UpgradeStepRegistrator.class)
 public class DLContentServiceUpgrade implements UpgradeStepRegistrator {
 
 	@Override
@@ -40,6 +41,7 @@ public class DLContentServiceUpgrade implements UpgradeStepRegistrator {
 				}
 
 			});
+		registry.register("1.1.0", "1.2.0", new UpgradeCTModel("DLContent"));
 	}
 
 }

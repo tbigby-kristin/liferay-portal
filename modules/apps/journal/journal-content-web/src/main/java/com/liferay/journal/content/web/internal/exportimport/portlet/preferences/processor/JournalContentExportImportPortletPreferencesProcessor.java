@@ -75,18 +75,14 @@ public class JournalContentExportImportPortletPreferencesProcessor
 
 	@Override
 	public List<Capability> getExportCapabilities() {
-		return ListUtil.toList(
-			new Capability[] {
-				_journalContentMetadataExporterImporterCapability
-			});
+		return ListUtil.fromArray(
+			_journalContentMetadataExporterImporterCapability);
 	}
 
 	@Override
 	public List<Capability> getImportCapabilities() {
-		return ListUtil.toList(
-			new Capability[] {
-				_journalContentMetadataExporterImporterCapability, _capability
-			});
+		return ListUtil.fromArray(
+			_journalContentMetadataExporterImporterCapability, _capability);
 	}
 
 	@Override

@@ -14,51 +14,31 @@
 
 package com.liferay.data.engine.rest.internal.renderer.v1_0;
 
-import com.liferay.data.engine.field.type.FieldType;
-import com.liferay.data.engine.field.type.FieldTypeTracker;
-import com.liferay.data.engine.field.type.util.LocalizedValueUtil;
 import com.liferay.data.engine.renderer.DataLayoutRenderer;
 import com.liferay.data.engine.renderer.DataLayoutRendererContext;
-import com.liferay.data.engine.rest.dto.v1_0.DataDefinition;
-import com.liferay.data.engine.rest.dto.v1_0.DataDefinitionField;
-import com.liferay.data.engine.rest.dto.v1_0.DataLayout;
-import com.liferay.data.engine.rest.dto.v1_0.DataLayoutColumn;
-import com.liferay.data.engine.rest.dto.v1_0.DataLayoutPage;
-import com.liferay.data.engine.rest.dto.v1_0.DataLayoutRow;
-import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataDefinitionFieldUtil;
-import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataDefinitionUtil;
-import com.liferay.data.engine.rest.internal.dto.v1_0.util.DataLayoutUtil;
-import com.liferay.data.engine.rest.internal.field.type.v1_0.FieldSetFieldType;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
+import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderingContext;
+import com.liferay.dynamic.data.mapping.io.DDMFormDeserializer;
+import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeRequest;
+import com.liferay.dynamic.data.mapping.io.DDMFormDeserializerDeserializeResponse;
+import com.liferay.dynamic.data.mapping.model.DDMForm;
+import com.liferay.dynamic.data.mapping.model.DDMFormField;
+import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMStructureLayout;
 import com.liferay.dynamic.data.mapping.model.DDMStructureVersion;
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
+import com.liferay.dynamic.data.mapping.model.UnlocalizedValue;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLayoutLocalService;
 import com.liferay.dynamic.data.mapping.service.DDMStructureVersionLocalService;
-import com.liferay.frontend.js.loader.modules.extender.npm.NPMResolver;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
-import com.liferay.portal.kernel.servlet.taglib.DynamicIncludeUtil;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.template.soy.renderer.ComponentDescriptor;
-import com.liferay.portal.template.soy.renderer.SoyComponentRenderer;
+import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
+import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.Portal;
 
-import java.io.Writer;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -82,280 +62,125 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 			_ddmStructureVersionLocalService.getDDMStructureVersion(
 				ddmStructureLayout.getStructureVersionId());
 
-		return _render(
-			DataDefinitionUtil.toDataDefinition(
-				ddmStructureVersion.getStructure(), _fieldTypeTracker),
-			DataLayoutUtil.toDataLayout(ddmStructureLayout.getDefinition()),
-			dataLayoutRendererContext);
+		DDMStructure ddmStructure = ddmStructureVersion.getStructure();
+
+		DDMFormDeserializerDeserializeRequest.Builder builder =
+			DDMFormDeserializerDeserializeRequest.Builder.newBuilder(
+				ddmStructure.getDefinition());
+
+		DDMFormDeserializerDeserializeResponse
+			ddmFormDeserializerDeserializeResponse =
+				_ddmFormDeserializer.deserialize(builder.build());
+
+		return _ddmFormRenderer.render(
+			ddmFormDeserializerDeserializeResponse.getDDMForm(),
+			ddmStructureLayout.getDDMFormLayout(),
+			_toDDMFormRenderingContext(
+				dataLayoutRendererContext,
+				ddmFormDeserializerDeserializeResponse.getDDMForm()));
 	}
 
-	private Object _createDataDefinitionFieldContext(
-		DataDefinitionField dataDefinitionField,
-		FieldTypeTracker fieldTypeTracker,
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
+	private DDMFormFieldValue _createDDMFormFieldValue(
+		Map<String, Object> dataRecordValues, DDMFormField ddmFormField,
+		Locale locale) {
 
-		FieldType fieldType = fieldTypeTracker.getFieldType(
-			dataDefinitionField.getFieldType());
+		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
 
-		if (fieldType instanceof FieldSetFieldType) {
-			Map<String, Object> customProperties =
-				dataDefinitionField.getCustomProperties();
+		String name = ddmFormField.getName();
 
-			DataDefinitionField[] nestedDataDefinitionFields =
-				(DataDefinitionField[])customProperties.get("nestedFields");
+		ddmFormFieldValue.setName(name);
 
-			customProperties.put(
-				"nestedFields",
-				Stream.of(
-					nestedDataDefinitionFields
-				).map(
-					nestedDataDefinitionField ->
-						_createDataDefinitionFieldContext(
-							nestedDataDefinitionField, fieldTypeTracker,
-							httpServletRequest, httpServletResponse)
-				).collect(
-					Collectors.toList()
-				));
+		if (dataRecordValues == null) {
+			return ddmFormFieldValue;
 		}
 
-		return fieldType.includeContext(
-			httpServletRequest, httpServletResponse,
-			DataDefinitionFieldUtil.toSPIDataDefinitionField(
-				dataDefinitionField));
-	}
+		Object value = dataRecordValues.get(name);
 
-	private List<Object> _createDataDefinitionFieldContexts(
-		Map<String, DataDefinitionField> dataDefinitionFields,
-		String[] fieldNames, FieldTypeTracker fieldTypeTracker,
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
+		if (value != null) {
+			if (value instanceof Object[]) {
+				JSONArray jsonArray = JSONUtil.putAll((Object[])value);
 
-		return Stream.of(
-			fieldNames
-		).map(
-			fieldName -> _createDataDefinitionFieldContext(
-				dataDefinitionFields.get(fieldName), fieldTypeTracker,
-				httpServletRequest, httpServletResponse)
-		).collect(
-			Collectors.toList()
-		);
-	}
-
-	private List<Object> _createDataLayoutColumnContexts(
-		Map<String, DataDefinitionField> dataDefinitionFields,
-		DataLayoutColumn[] dataLayoutColumns, FieldTypeTracker fieldTypeTracker,
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
-
-		return Stream.of(
-			dataLayoutColumns
-		).map(
-			dataLayoutColumn -> new HashMap() {
-				{
-					put(
-						"fields",
-						_createDataDefinitionFieldContexts(
-							dataDefinitionFields,
-							dataLayoutColumn.getFieldNames(), fieldTypeTracker,
-							httpServletRequest, httpServletResponse));
-					put("size", dataLayoutColumn.getColumnSize());
-				}
+				value = jsonArray.toString();
 			}
-		).collect(
-			Collectors.toList()
-		);
-	}
 
-	private List<Object> _createDataLayoutPageContexts(
-		Map<String, DataDefinitionField> dataDefinitionFields,
-		DataLayoutPage[] dataLayoutPages, FieldTypeTracker fieldTypeTracker,
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
+			if (ddmFormField.isLocalizable()) {
+				LocalizedValue localizedValue = new LocalizedValue();
 
-		return Stream.of(
-			dataLayoutPages
-		).map(
-			dataLayoutPage -> new HashMap() {
-				{
-					put(
-						"description",
-						GetterUtil.getString(
-							LocalizedValueUtil.getLocalizedValue(
-								httpServletRequest.getLocale(),
-								dataLayoutPage.getDescription())));
-					put(
-						"rows",
-						_createDataLayoutRowContexts(
-							dataDefinitionFields,
-							dataLayoutPage.getDataLayoutRows(),
-							fieldTypeTracker, httpServletRequest,
-							httpServletResponse));
-					put(
-						"title",
-						GetterUtil.getString(
-							LocalizedValueUtil.getLocalizedValue(
-								httpServletRequest.getLocale(),
-								dataLayoutPage.getTitle())));
-				}
+				localizedValue.addString(locale, String.valueOf(value));
+
+				ddmFormFieldValue.setValue(localizedValue);
 			}
-		).collect(
-			Collectors.toList()
-		);
-	}
-
-	private List<Object> _createDataLayoutRowContexts(
-		Map<String, DataDefinitionField> dataDefinitionFields,
-		DataLayoutRow[] dataLayoutRows, FieldTypeTracker fieldTypeTracker,
-		HttpServletRequest httpServletRequest,
-		HttpServletResponse httpServletResponse) {
-
-		return Stream.of(
-			dataLayoutRows
-		).map(
-			dataLayoutRow -> new HashMap() {
-				{
-					put(
-						"columns",
-						_createDataLayoutColumnContexts(
-							dataDefinitionFields,
-							dataLayoutRow.getDataLayoutColumns(),
-							fieldTypeTracker, httpServletRequest,
-							httpServletResponse));
-				}
+			else {
+				ddmFormFieldValue.setValue(
+					new UnlocalizedValue(String.valueOf(value)));
 			}
-		).collect(
-			Collectors.toList()
-		);
-	}
-
-	private Map<String, DataDefinitionField> _getDataDefinitionFieldsMap(
-		DataDefinition dataDefinition, Map<String, Object> dataRecordValues) {
-
-		List<DataDefinitionField> dataDefinitionFields = Arrays.asList(
-			dataDefinition.getDataDefinitionFields());
-
-		Stream<DataDefinitionField> stream = dataDefinitionFields.stream();
-
-		return stream.collect(
-			Collectors.toMap(
-				dataDefinitionField -> dataDefinitionField.getName(),
-				definitionField -> {
-					if (MapUtil.isEmpty(dataRecordValues)) {
-						return definitionField;
-					}
-
-					Map<String, Object> customProperties =
-						definitionField.getCustomProperties();
-
-					customProperties.put(
-						"value",
-						dataRecordValues.get(definitionField.getName()));
-
-					return definitionField;
-				}));
-	}
-
-	private Set<String> _getDependencies() {
-		Collection<FieldType> fieldTypes = _fieldTypeTracker.getFieldTypes();
-
-		Stream<FieldType> stream = fieldTypes.stream();
-
-		return stream.filter(
-			this::_hasJavascriptModule
-		).map(
-			this::_resolveFieldTypeModule
-		).collect(
-			Collectors.toSet()
-		);
-	}
-
-	private String _getJavaScriptModule(String moduleName) {
-		if (Validator.isNull(moduleName)) {
-			return StringPool.BLANK;
 		}
 
-		return _npmResolver.resolveModuleName(moduleName);
+		if (ListUtil.isNotEmpty(ddmFormField.getNestedDDMFormFields())) {
+			for (DDMFormField nestedDDMFormField :
+					ddmFormField.getNestedDDMFormFields()) {
+
+				ddmFormFieldValue.addNestedDDMFormFieldValue(
+					_createDDMFormFieldValue(
+						dataRecordValues, nestedDDMFormField, locale));
+			}
+		}
+
+		return ddmFormFieldValue;
 	}
 
-	private String _getSpriteMap(HttpServletRequest httpServletRequest) {
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
+	private DDMFormRenderingContext _toDDMFormRenderingContext(
+		DataLayoutRendererContext dataLayoutRendererContext, DDMForm ddmForm) {
 
-		String pathThemeImages = themeDisplay.getPathThemeImages();
+		DDMFormRenderingContext ddmFormRenderingContext =
+			new DDMFormRenderingContext();
 
-		return pathThemeImages.concat("/clay/icons.svg");
+		ddmFormRenderingContext.setContainerId(
+			dataLayoutRendererContext.getContainerId());
+		ddmFormRenderingContext.setDDMFormValues(
+			_toDDMFormValues(
+				dataLayoutRendererContext.getDataRecordValues(), ddmForm,
+				_portal.getLocale(
+					dataLayoutRendererContext.getHttpServletRequest())));
+		ddmFormRenderingContext.setHttpServletRequest(
+			dataLayoutRendererContext.getHttpServletRequest());
+		ddmFormRenderingContext.setHttpServletResponse(
+			dataLayoutRendererContext.getHttpServletResponse());
+		ddmFormRenderingContext.setLocale(
+			_portal.getLocale(
+				dataLayoutRendererContext.getHttpServletRequest()));
+		ddmFormRenderingContext.setPortletNamespace(
+			dataLayoutRendererContext.getPortletNamespace());
+		ddmFormRenderingContext.setShowSubmitButton(false);
+
+		return ddmFormRenderingContext;
 	}
 
-	private boolean _hasJavascriptModule(FieldType fieldType) {
-		Map<String, Object> fieldTypeProperties =
-			_fieldTypeTracker.getFieldTypeProperties(fieldType.getName());
+	private DDMFormValues _toDDMFormValues(
+		Map<String, Object> dataRecordValues, DDMForm ddmForm, Locale locale) {
 
-		return fieldTypeProperties.containsKey(
-			"data.engine.field.type.js.module");
+		Map<String, DDMFormField> ddmFormFields = ddmForm.getDDMFormFieldsMap(
+			true);
+
+		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
+
+		ddmFormValues.addAvailableLocale(locale);
+		ddmFormValues.setDefaultLocale(locale);
+
+		for (Map.Entry<String, DDMFormField> entry : ddmFormFields.entrySet()) {
+			ddmFormValues.addDDMFormFieldValue(
+				_createDDMFormFieldValue(
+					dataRecordValues, entry.getValue(), locale));
+		}
+
+		return ddmFormValues;
 	}
 
-	private String _render(
-			DataDefinition dataDefinition, DataLayout dataLayout,
-			DataLayoutRendererContext dataLayoutRendererContext)
-		throws Exception {
+	@Reference(target = "(ddm.form.deserializer.type=json)")
+	private DDMFormDeserializer _ddmFormDeserializer;
 
-		Writer writer = new UnsyncStringWriter();
-
-		_soyComponentRenderer.renderSoyComponent(
-			dataLayoutRendererContext.getHttpServletRequest(), writer,
-			new ComponentDescriptor(
-				_TEMPLATE_NAMESPACE,
-				_npmResolver.resolveModuleName(_MODULE_NAME),
-				dataLayoutRendererContext.getContainerId(), _getDependencies()),
-			new HashMap() {
-				{
-					put(
-						"pages",
-						_createDataLayoutPageContexts(
-							_getDataDefinitionFieldsMap(
-								dataDefinition,
-								dataLayoutRendererContext.
-									getDataRecordValues()),
-							dataLayout.getDataLayoutPages(), _fieldTypeTracker,
-							dataLayoutRendererContext.getHttpServletRequest(),
-							dataLayoutRendererContext.
-								getHttpServletResponse()));
-					put(
-						"paginationMode",
-						GetterUtil.getString(
-							dataLayout.getPaginationMode(), "single-page"));
-					put(
-						"portletNamespace",
-						dataLayoutRendererContext.getPortletNamespace());
-					put("showSubmitButton", false);
-					put(
-						"spritemap",
-						_getSpriteMap(
-							dataLayoutRendererContext.getHttpServletRequest()));
-				}
-			});
-
-		DynamicIncludeUtil.include(
-			dataLayoutRendererContext.getHttpServletRequest(),
-			dataLayoutRendererContext.getHttpServletResponse(),
-			DDMFormRenderer.class.getName() + "#formRendered", true);
-
-		return writer.toString();
-	}
-
-	private String _resolveFieldTypeModule(FieldType fieldType) {
-		return _getJavaScriptModule(
-			MapUtil.getString(
-				_fieldTypeTracker.getFieldTypeProperties(fieldType.getName()),
-				"data.engine.field.type.js.module"));
-	}
-
-	private static final String _MODULE_NAME =
-		"dynamic-data-mapping-form-renderer/js/containers/Form/Form.es";
-
-	private static final String _TEMPLATE_NAMESPACE = "FormRenderer.render";
+	@Reference
+	private DDMFormRenderer _ddmFormRenderer;
 
 	@Reference
 	private DDMStructureLayoutLocalService _ddmStructureLayoutLocalService;
@@ -364,12 +189,6 @@ public class DataLayoutRendererImpl implements DataLayoutRenderer {
 	private DDMStructureVersionLocalService _ddmStructureVersionLocalService;
 
 	@Reference
-	private FieldTypeTracker _fieldTypeTracker;
-
-	@Reference
-	private NPMResolver _npmResolver;
-
-	@Reference
-	private SoyComponentRenderer _soyComponentRenderer;
+	private Portal _portal;
 
 }

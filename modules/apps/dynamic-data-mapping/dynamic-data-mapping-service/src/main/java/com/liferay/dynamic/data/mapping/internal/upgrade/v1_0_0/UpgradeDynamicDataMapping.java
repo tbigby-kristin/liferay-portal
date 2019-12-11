@@ -83,6 +83,7 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -92,6 +93,7 @@ import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -110,8 +112,11 @@ import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.Node;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
+import com.liferay.view.count.service.ViewCountEntryLocalService;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -140,7 +145,8 @@ import java.util.regex.Pattern;
 public class UpgradeDynamicDataMapping extends UpgradeProcess {
 
 	public UpgradeDynamicDataMapping(
-		AssetEntryLocalService assetEntryLocalService, DDM ddm,
+		AssetEntryLocalService assetEntryLocalService,
+		ClassNameLocalService classNameLocalService, DDM ddm,
 		DDMFormDeserializer ddmFormJSONDeserializer,
 		DDMFormDeserializer ddmFormXSDDeserializer,
 		DDMFormLayoutSerializer ddmFormLayoutSerializer,
@@ -156,9 +162,10 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 		ResourceActions resourceActions,
 		ResourceLocalService resourceLocalService,
 		ResourcePermissionLocalService resourcePermissionLocalService,
-		Store store) {
+		Store store, ViewCountEntryLocalService viewCountEntryLocalService) {
 
 		_assetEntryLocalService = assetEntryLocalService;
+		_classNameLocalService = classNameLocalService;
 		_ddm = ddm;
 		_ddmFormJSONDeserializer = ddmFormJSONDeserializer;
 		_ddmFormXSDDeserializer = ddmFormXSDDeserializer;
@@ -175,6 +182,7 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 		_resourceLocalService = resourceLocalService;
 		_resourcePermissionLocalService = resourcePermissionLocalService;
 		_store = store;
+		_viewCountEntryLocalService = viewCountEntryLocalService;
 
 		_dlFolderModelPermissions = ModelPermissionsFactory.create(
 			_DLFOLDER_GROUP_PERMISSIONS, _DLFOLDER_GUEST_PERMISSIONS);
@@ -379,9 +387,11 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 						}
 					}
 
-					_ddmForms.put(structureId, ddmForm);
+					DDMForm updatedDDMForm = updateDDMFormFields(ddmForm);
 
-					return ddmForm;
+					_ddmForms.put(structureId, updatedDDMForm);
+
+					return updatedDDMForm;
 				}
 			}
 
@@ -1245,8 +1255,6 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 
 				DDMForm ddmForm = getDDMForm(structureId);
 
-				ddmForm = updateDDMFormFields(ddmForm);
-
 				populateStructureInvalidDDMFormFieldNamesMap(
 					structureId, ddmForm);
 
@@ -1536,15 +1544,14 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 						try (ResultSet rs2 = ps2.executeQuery()) {
 							if (rs2.next()) {
 								long companyId = rs2.getLong("companyId");
-								String xml = rs2.getString("data_");
+
+								String xml = renameInvalidDDMFormFieldNames(
+									structureId, rs2.getString("data_"));
 
 								DDMFormValues ddmFormValues = getDDMFormValues(
 									companyId, ddmForm, xml);
 
 								String content = toJSON(ddmFormValues);
-
-								content = renameInvalidDDMFormFieldNames(
-									structureId, content);
 
 								ps3.setString(1, content);
 
@@ -1680,6 +1687,7 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 		Pattern.compile(_INVALID_FIELD_NAME_CHARS_REGEX);
 
 	private final AssetEntryLocalService _assetEntryLocalService;
+	private final ClassNameLocalService _classNameLocalService;
 	private final DDM _ddm;
 	private long _ddmContentClassNameId;
 	private final DDMFormDeserializer _ddmFormJSONDeserializer;
@@ -1711,6 +1719,7 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 		new HashMap<>();
 	private final Map<Long, Long> _templateResourceClassNameIds =
 		new HashMap<>();
+	private final ViewCountEntryLocalService _viewCountEntryLocalService;
 
 	private static class DateDDMFormFieldValueTransformer
 		implements DDMFormFieldValueTransformer {
@@ -2353,9 +2362,13 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 			assetEntry.setHeight(height);
 			assetEntry.setWidth(width);
 			assetEntry.setPriority(priority);
-			assetEntry.setViewCount(viewCount);
 
 			_assetEntryLocalService.updateAssetEntry(assetEntry);
+
+			_viewCountEntryLocalService.incrementViewCount(
+				companyId,
+				_classNameLocalService.getClassNameId(AssetEntry.class),
+				entryId, viewCount);
 		}
 
 		protected long addDDMDLFolder() throws Exception {
@@ -2414,12 +2427,16 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 			dlFileEntry.setFileEntryTypeId(fileEntryTypeId);
 			dlFileEntry.setVersion(version);
 			dlFileEntry.setSize(size);
-			dlFileEntry.setReadCount(readCount);
 			dlFileEntry.setSmallImageId(smallImageId);
 			dlFileEntry.setLargeImageId(largeImageId);
 			dlFileEntry.setCustom1ImageId(custom1ImageId);
 			dlFileEntry.setCustom2ImageId(custom2ImageId);
 			dlFileEntry.setManualCheckInRequired(manualCheckInRequired);
+
+			_viewCountEntryLocalService.incrementViewCount(
+				dlFileEntry.getCompanyId(),
+				_classNameLocalService.getClassNameId(DLFileEntry.class),
+				dlFileEntry.getFileEntryId(), readCount);
 
 			return dlFileEntry;
 		}
@@ -2565,10 +2582,12 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 			return entryVersionFolderId;
 		}
 
-		protected File fetchFile(String filePath) throws PortalException {
+		protected File fetchFile(String filePath) throws Exception {
 			try {
-				return _store.getFile(
-					_companyId, CompanyConstants.SYSTEM, filePath);
+				return FileUtil.createTempFile(
+					_store.getFileAsStream(
+						_companyId, CompanyConstants.SYSTEM, filePath,
+						StringPool.BLANK));
 			}
 			catch (PortalException pe) {
 				_log.error(
@@ -2695,7 +2714,13 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 
 				// File
 
-				_store.addFile(_companyId, dlFolderId, name, file);
+				try (InputStream is = new FileInputStream(file)) {
+					_store.addFile(
+						_companyId, dlFolderId, name, Store.VERSION_DEFAULT,
+						is);
+				}
+
+				file.delete();
 
 				return fileEntryUuid;
 			}

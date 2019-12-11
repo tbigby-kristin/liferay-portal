@@ -44,14 +44,34 @@ public class LayoutSEOEntryServiceWrapper
 
 	@Override
 	public com.liferay.layout.seo.model.LayoutSEOEntry updateLayoutSEOEntry(
-			long groupId, boolean privateLayout, long layoutId, boolean enabled,
+			long groupId, boolean privateLayout, long layoutId,
+			boolean canonicalURLEnabled,
+			java.util.Map<java.util.Locale, String> canonicalURLMap,
+			boolean openGraphDescriptionEnabled,
+			java.util.Map<java.util.Locale, String> openGraphDescriptionMap,
+			long openGraphImageFileEntryId, boolean openGraphTitleEnabled,
+			java.util.Map<java.util.Locale, String> openGraphTitleMap,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _layoutSEOEntryService.updateLayoutSEOEntry(
+			groupId, privateLayout, layoutId, canonicalURLEnabled,
+			canonicalURLMap, openGraphDescriptionEnabled,
+			openGraphDescriptionMap, openGraphImageFileEntryId,
+			openGraphTitleEnabled, openGraphTitleMap, serviceContext);
+	}
+
+	@Override
+	public com.liferay.layout.seo.model.LayoutSEOEntry updateLayoutSEOEntry(
+			long groupId, boolean privateLayout, long layoutId,
+			boolean enabledCanonicalURLMap,
 			java.util.Map<java.util.Locale, String> canonicalURLMap,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _layoutSEOEntryService.updateLayoutSEOEntry(
-			groupId, privateLayout, layoutId, enabled, canonicalURLMap,
-			serviceContext);
+			groupId, privateLayout, layoutId, enabledCanonicalURLMap,
+			canonicalURLMap, serviceContext);
 	}
 
 	@Override

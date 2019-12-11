@@ -62,6 +62,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.BundleTracker;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
@@ -263,8 +264,7 @@ public class NPMRegistryImpl implements NPMRegistry {
 
 	@Activate
 	protected void activate(
-			BundleContext bundleContext, Map<String, Object> properties)
-		throws Exception {
+		BundleContext bundleContext, Map<String, Object> properties) {
 
 		_bundleContext = bundleContext;
 
@@ -285,8 +285,65 @@ public class NPMRegistryImpl implements NPMRegistry {
 		Details details = ConfigurableUtil.createConfigurable(
 			Details.class, properties);
 
-		_serviceTracker = ServiceTrackerFactory.open(
-			bundleContext,
+		_applyVersioning = details.applyVersioning();
+
+		_serviceTracker = _openServiceTracker();
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_serviceTracker.close();
+
+		_bundleTracker.close();
+	}
+
+	@Modified
+	protected void modified(Map<String, Object> properties) {
+		Details details = ConfigurableUtil.createConfigurable(
+			Details.class, properties);
+
+		if (details.applyVersioning() != _applyVersioning) {
+			_applyVersioning = details.applyVersioning();
+
+			_serviceTracker.close();
+
+			_serviceTracker = _openServiceTracker();
+		}
+	}
+
+	private JSONObject _getPackageJSONObject(Bundle bundle) {
+		try {
+			URL url = bundle.getEntry("package.json");
+
+			if (url == null) {
+				return null;
+			}
+
+			String content;
+
+			try {
+				content = StringUtil.read(url.openStream());
+			}
+			catch (IOException ioe) {
+				return null;
+			}
+
+			if (content == null) {
+				return null;
+			}
+
+			return _jsonFactory.createJSONObject(content);
+		}
+		catch (Exception e) {
+			return null;
+		}
+	}
+
+	private ServiceTracker<ServletContext, JSConfigGeneratorPackage>
+		_openServiceTracker() {
+
+		return ServiceTrackerFactory.open(
+			_bundleContext,
 			"(&(objectClass=" + ServletContext.class.getName() +
 				")(osgi.web.contextpath=*))",
 			new ServiceTrackerCustomizer
@@ -306,8 +363,7 @@ public class NPMRegistryImpl implements NPMRegistry {
 
 					JSConfigGeneratorPackage jsConfigGeneratorPackage =
 						new JSConfigGeneratorPackage(
-							details.applyVersioning(),
-							serviceReference.getBundle(),
+							_applyVersioning, serviceReference.getBundle(),
 							(String)serviceReference.getProperty(
 								"osgi.web.contextpath"));
 
@@ -337,41 +393,6 @@ public class NPMRegistryImpl implements NPMRegistry {
 				}
 
 			});
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		_serviceTracker.close();
-
-		_bundleTracker.close();
-	}
-
-	private JSONObject _getPackageJSONObject(Bundle bundle) {
-		try {
-			URL url = bundle.getEntry("package.json");
-
-			if (url == null) {
-				return null;
-			}
-
-			String content;
-
-			try {
-				content = StringUtil.read(url.openStream());
-			}
-			catch (IOException ioe) {
-				return null;
-			}
-
-			if (content == null) {
-				return null;
-			}
-
-			return _jsonFactory.createJSONObject(content);
-		}
-		catch (Exception e) {
-			return null;
-		}
 	}
 
 	private void _processLegacyBridges(Bundle bundle) {
@@ -466,6 +487,7 @@ public class NPMRegistryImpl implements NPMRegistry {
 			NPMRegistryImpl.class.getName() + "._activationThreadLocal",
 			() -> Boolean.FALSE);
 
+	private Boolean _applyVersioning;
 	private BundleContext _bundleContext;
 	private BundleTracker<JSBundle> _bundleTracker;
 	private final Map<String, JSPackage> _dependencyJSPackages =

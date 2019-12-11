@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -110,6 +111,7 @@ public class DirectoryWatcher extends Thread implements BundleListener
     public final static String FRAGMENT_SCOPE = "felix.fileinstall.fragmentRefreshScope";
     public final static String DISABLE_NIO2 = "felix.fileinstall.disableNio2";
     public final static String SUBDIR_MODE = "felix.fileinstall.subdir.mode";
+    public final static String WEB_START_LEVEL = "felix.fileinstall.web.start.level";
 
     public final static String SCOPE_NONE = "none";
     public final static String SCOPE_MANAGED = "managed";
@@ -140,6 +142,7 @@ public class DirectoryWatcher extends Thread implements BundleListener
     String optionalScope;
     boolean disableNio2;
     int frameworkStartLevel;
+    int webStartLevel;
 
     // Map of all installed artifacts
     final Map<File, Artifact> currentManagedArtifacts = new HashMap<File, Artifact>();
@@ -188,6 +191,7 @@ public class DirectoryWatcher extends Thread implements BundleListener
         fragmentScope = properties.get(FRAGMENT_SCOPE);
         optionalScope = properties.get(OPTIONAL_SCOPE);
         disableNio2 = getBoolean(properties, DISABLE_NIO2, false);
+        webStartLevel = getInt(properties, WEB_START_LEVEL, startLevel);
         this.context.addBundleListener(this);
 
         if (disableNio2) {
@@ -820,14 +824,23 @@ public class DirectoryWatcher extends Thread implements BundleListener
             // /tmp/foo and /tmp//foo differently.
             String location = bundle.getLocation();
             String path = null;
-            if (location != null && location.contains(watchedDirPath)) {
-                URI uri;
-                try {
-                    uri = new URI(bundle.getLocation()).normalize();
-                } catch (URISyntaxException e) {
-                    // Let's try to interpret the location as a file path
-                    uri = new File(location).toURI().normalize();
-                }
+
+			URI uri = null;
+
+			try {
+				uri = new URI(location).normalize();
+			} catch (URISyntaxException e) {
+				// Let's try to interpret the location as a file path
+				uri = new File(location).toURI().normalize();
+			}
+
+			String locationPath = uri.getPath();
+
+			if (locationPath == null) {
+				continue;
+			}
+
+            if (location != null && locationPath.contains(watchedDirPath)) {
                 if (uri.isOpaque() && uri.getSchemeSpecificPart() != null) {
                     // blueprint:file:/tmp/foo/baa.jar -> file:/tmp/foo/baa.jar
                     // blueprint:mvn:foo.baa/baa/0.0.1 -> mvn:foo.baa/baa/0.0.1
@@ -995,6 +1008,18 @@ public class DirectoryWatcher extends Thread implements BundleListener
         String bundleLocation, BufferedInputStream is, long checksum, AtomicBoolean modified)
         throws IOException, BundleException
     {
+		Bundle bundle = context.getBundle(bundleLocation);
+
+		if ((bundle != null) &&
+			(Util.loadChecksum(bundle, context) != checksum)) {
+
+			bundle.update(is);
+
+			Util.storeChecksum(bundle, checksum, context);
+
+			return bundle;
+		}
+
         JarInputStream jar = null;
         try {
             is.mark(256 * 1024);
@@ -1042,9 +1067,18 @@ public class DirectoryWatcher extends Thread implements BundleListener
             Util.storeChecksum(b, checksum, context);
             modified.set(true);
 
+            Dictionary<String, String> headers = b.getHeaders("");
+
+            String header = headers.get("Web-ContextPath");
+
+            BundleStartLevel bundleStartLevel = b.adapt(BundleStartLevel.class);
+
             // Set default start level at install time, the user can override it if he wants
-            if (startLevel != 0) {
-                b.adapt(BundleStartLevel.class).setStartLevel(startLevel);
+            if (header != null) {
+                bundleStartLevel.setStartLevel(webStartLevel);
+            }
+            else if (startLevel != 0) {
+                bundleStartLevel.setStartLevel(startLevel);
             }
 
             return b;

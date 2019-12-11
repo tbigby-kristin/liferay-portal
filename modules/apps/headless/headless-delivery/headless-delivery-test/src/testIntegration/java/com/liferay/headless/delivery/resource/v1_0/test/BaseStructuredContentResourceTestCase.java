@@ -856,7 +856,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 					{
 						put("page", 1);
 						put("pageSize", 2);
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 					}
 				},
 				graphQLFields.toArray(new GraphQLField[0])));
@@ -1039,8 +1039,8 @@ public abstract class BaseStructuredContentResourceTestCase {
 			structuredContentResource.
 				getStructuredContentFolderStructuredContentsPage(
 					testGetStructuredContentFolderStructuredContentsPage_getStructuredContentFolderId(),
-					RandomTestUtil.randomString(), null, Pagination.of(1, 2),
-					null);
+					null, RandomTestUtil.randomString(), null,
+					Pagination.of(1, 2), null);
 
 		Assert.assertEquals(0, page.getTotalCount());
 
@@ -1058,7 +1058,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 			page =
 				structuredContentResource.
 					getStructuredContentFolderStructuredContentsPage(
-						irrelevantStructuredContentFolderId, null, null,
+						irrelevantStructuredContentFolderId, null, null, null,
 						Pagination.of(1, 2), null);
 
 			Assert.assertEquals(1, page.getTotalCount());
@@ -1080,8 +1080,8 @@ public abstract class BaseStructuredContentResourceTestCase {
 		page =
 			structuredContentResource.
 				getStructuredContentFolderStructuredContentsPage(
-					structuredContentFolderId, null, null, Pagination.of(1, 2),
-					null);
+					structuredContentFolderId, null, null, null,
+					Pagination.of(1, 2), null);
 
 		Assert.assertEquals(2, page.getTotalCount());
 
@@ -1121,7 +1121,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 			Page<StructuredContent> page =
 				structuredContentResource.
 					getStructuredContentFolderStructuredContentsPage(
-						structuredContentFolderId, null,
+						structuredContentFolderId, null, null,
 						getFilterString(
 							entityField, "between", structuredContent1),
 						Pagination.of(1, 2), null);
@@ -1159,7 +1159,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 			Page<StructuredContent> page =
 				structuredContentResource.
 					getStructuredContentFolderStructuredContentsPage(
-						structuredContentFolderId, null,
+						structuredContentFolderId, null, null,
 						getFilterString(entityField, "eq", structuredContent1),
 						Pagination.of(1, 2), null);
 
@@ -1191,8 +1191,8 @@ public abstract class BaseStructuredContentResourceTestCase {
 		Page<StructuredContent> page1 =
 			structuredContentResource.
 				getStructuredContentFolderStructuredContentsPage(
-					structuredContentFolderId, null, null, Pagination.of(1, 2),
-					null);
+					structuredContentFolderId, null, null, null,
+					Pagination.of(1, 2), null);
 
 		List<StructuredContent> structuredContents1 =
 			(List<StructuredContent>)page1.getItems();
@@ -1203,8 +1203,8 @@ public abstract class BaseStructuredContentResourceTestCase {
 		Page<StructuredContent> page2 =
 			structuredContentResource.
 				getStructuredContentFolderStructuredContentsPage(
-					structuredContentFolderId, null, null, Pagination.of(2, 2),
-					null);
+					structuredContentFolderId, null, null, null,
+					Pagination.of(2, 2), null);
 
 		Assert.assertEquals(3, page2.getTotalCount());
 
@@ -1217,8 +1217,8 @@ public abstract class BaseStructuredContentResourceTestCase {
 		Page<StructuredContent> page3 =
 			structuredContentResource.
 				getStructuredContentFolderStructuredContentsPage(
-					structuredContentFolderId, null, null, Pagination.of(1, 3),
-					null);
+					structuredContentFolderId, null, null, null,
+					Pagination.of(1, 3), null);
 
 		assertEqualsIgnoringOrder(
 			Arrays.asList(
@@ -1321,7 +1321,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 			Page<StructuredContent> ascPage =
 				structuredContentResource.
 					getStructuredContentFolderStructuredContentsPage(
-						structuredContentFolderId, null, null,
+						structuredContentFolderId, null, null, null,
 						Pagination.of(1, 2), entityField.getName() + ":asc");
 
 			assertEquals(
@@ -1331,7 +1331,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 			Page<StructuredContent> descPage =
 				structuredContentResource.
 					getStructuredContentFolderStructuredContentsPage(
-						structuredContentFolderId, null, null,
+						structuredContentFolderId, null, null, null,
 						Pagination.of(1, 2), entityField.getName() + ":desc");
 
 			assertEquals(
@@ -1389,6 +1389,57 @@ public abstract class BaseStructuredContentResourceTestCase {
 			postStructuredContentFolderStructuredContent(
 				testGetStructuredContentFolderStructuredContentsPage_getStructuredContentFolderId(),
 				structuredContent);
+	}
+
+	@Test
+	public void testPutStructuredContentSubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		StructuredContent structuredContent =
+			testPutStructuredContentSubscribe_addStructuredContent();
+
+		assertHttpResponseStatusCode(
+			204,
+			structuredContentResource.putStructuredContentSubscribeHttpResponse(
+				structuredContent.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			structuredContentResource.putStructuredContentSubscribeHttpResponse(
+				0L));
+	}
+
+	protected StructuredContent
+			testPutStructuredContentSubscribe_addStructuredContent()
+		throws Exception {
+
+		return structuredContentResource.postSiteStructuredContent(
+			testGroup.getGroupId(), randomStructuredContent());
+	}
+
+	@Test
+	public void testPutStructuredContentUnsubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		StructuredContent structuredContent =
+			testPutStructuredContentUnsubscribe_addStructuredContent();
+
+		assertHttpResponseStatusCode(
+			204,
+			structuredContentResource.
+				putStructuredContentUnsubscribeHttpResponse(
+					structuredContent.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			structuredContentResource.
+				putStructuredContentUnsubscribeHttpResponse(0L));
+	}
+
+	protected StructuredContent
+			testPutStructuredContentUnsubscribe_addStructuredContent()
+		throws Exception {
+
+		return structuredContentResource.postSiteStructuredContent(
+			testGroup.getGroupId(), randomStructuredContent());
 	}
 
 	@Test
@@ -1818,6 +1869,24 @@ public abstract class BaseStructuredContentResourceTestCase {
 				sb.append(", ");
 			}
 
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				sb.append(additionalAssertFieldName);
+				sb.append(": ");
+
+				Object value = structuredContent.getSubscribed();
+
+				if (value instanceof String) {
+					sb.append("\"");
+					sb.append(value);
+					sb.append("\"");
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append(", ");
+			}
+
 			if (Objects.equals("title", additionalAssertFieldName)) {
 				sb.append(additionalAssertFieldName);
 				sb.append(": ");
@@ -1867,7 +1936,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 				"createSiteStructuredContent",
 				new HashMap<String, Object>() {
 					{
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 						put("structuredContent", sb.toString());
 					}
 				},
@@ -2102,6 +2171,14 @@ public abstract class BaseStructuredContentResourceTestCase {
 
 			if (Objects.equals("renderedContents", additionalAssertFieldName)) {
 				if (structuredContent.getRenderedContents() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				if (structuredContent.getSubscribed() == null) {
 					valid = false;
 				}
 
@@ -2469,6 +2546,17 @@ public abstract class BaseStructuredContentResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("subscribed", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						structuredContent1.getSubscribed(),
+						structuredContent2.getSubscribed())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
 					"taxonomyCategories", additionalAssertFieldName)) {
 
@@ -2682,6 +2770,17 @@ public abstract class BaseStructuredContentResourceTestCase {
 				if (!Objects.deepEquals(
 						structuredContent.getNumberOfComments(),
 						jsonObject.getInt("numberOfComments"))) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("subscribed", fieldName)) {
+				if (!Objects.deepEquals(
+						structuredContent.getSubscribed(),
+						jsonObject.getBoolean("subscribed"))) {
 
 					return false;
 				}
@@ -2955,6 +3054,11 @@ public abstract class BaseStructuredContentResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("subscribed")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("taxonomyCategories")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -3020,6 +3124,7 @@ public abstract class BaseStructuredContentResourceTestCase {
 				key = RandomTestUtil.randomString();
 				numberOfComments = RandomTestUtil.randomInt();
 				siteId = testGroup.getGroupId();
+				subscribed = RandomTestUtil.randomBoolean();
 				title = RandomTestUtil.randomString();
 				uuid = RandomTestUtil.randomString();
 			}

@@ -12,13 +12,23 @@
  * details.
  */
 
-import moment from 'moment';
-import React from 'react';
-import {Link} from 'react-router-dom';
+import ClayButton from '@clayui/button';
 import ClayLabel from '@clayui/label';
+import ClayList from '@clayui/list';
+import {Context} from '@clayui/modal';
+import moment from 'moment';
+import React, {useContext} from 'react';
+import {Link} from 'react-router-dom';
+
+import {AppContext} from '../../AppContext.es';
 import Button from '../../components/button/Button.es';
 import ListView from '../../components/list-view/ListView.es';
-import {confirmDelete} from '../../utils/client.es';
+import {confirmDelete, updateItem} from '../../utils/client.es';
+
+const DEPLOYMENT_ACTION = {
+	deploy: Liferay.Language.get('deploy'),
+	undeploy: Liferay.Language.get('undeploy')
+};
 
 const DEPLOYMENT_STATUS = {
 	deployed: Liferay.Language.get('deployed'),
@@ -47,9 +57,90 @@ const concatTypes = types => {
 	}, '');
 };
 
+const deploy = (item, deploy, resolve, reject) => {
+	updateItem(
+		`/o/app-builder/v1.0/apps/${item.id}/deployment`,
+		{},
+		{deploymentAction: deploy ? 'deploy' : 'undeploy'}
+	)
+		.then(() => resolve(true))
+		.catch(error => reject(error));
+};
+
+const isDeployed = item => item.status.toLowerCase() === 'deployed';
+
+const showUndeployModal = (item, resolve, reject, undeployModalContext) => {
+	const [state, dispatch] = undeployModalContext;
+
+	dispatch({
+		payload: {
+			body: (
+				<>
+					<p>{Liferay.Language.get('undeploy-warning')}</p>
+					<ClayList>
+						<ClayList.Header>
+							{Liferay.Language.get('app')}
+						</ClayList.Header>
+						<ClayList.Item flex>
+							<ClayList.ItemField expand>
+								<span>
+									<b>{Liferay.Language.get('name')}:</b>{' '}
+									{item.name.en_US}
+								</span>
+								<span>
+									<b>
+										{Liferay.Language.get('deployed-as')}:
+									</b>{' '}
+									{concatTypes(
+										item.appDeployments.map(
+											deployment => deployment.type
+										)
+									)}
+								</span>
+								<span>
+									<b>
+										{Liferay.Language.get('modified-date')}:
+									</b>{' '}
+									{item.dateModified}
+								</span>
+							</ClayList.ItemField>
+						</ClayList.Item>
+					</ClayList>
+				</>
+			),
+			footer: [
+				<></>,
+				<></>,
+				<ClayButton.Group key={0} spaced>
+					<ClayButton
+						displayType="secondary"
+						key={1}
+						onClick={state.onClose}
+					>
+						{Liferay.Language.get('cancel')}
+					</ClayButton>
+					<ClayButton
+						key={2}
+						onClick={() => {
+							state.onClose();
+							deploy(item, false, resolve, reject);
+						}}
+					>
+						{DEPLOYMENT_ACTION.undeploy}
+					</ClayButton>
+				</ClayButton.Group>
+			],
+			header: DEPLOYMENT_ACTION.undeploy,
+			size: 'lg',
+			status: 'warning'
+		},
+		type: 1
+	});
+};
+
 const COLUMNS = [
 	{
-		key: 'name',
+		key: 'nameLabel',
 		sortable: true,
 		value: Liferay.Language.get('name')
 	},
@@ -69,7 +160,7 @@ const COLUMNS = [
 		value: Liferay.Language.get('modified-date')
 	},
 	{
-		key: 'status',
+		key: 'statusLabel',
 		value: Liferay.Language.get('status')
 	}
 ];
@@ -80,6 +171,46 @@ export default ({
 		url
 	}
 }) => {
+	const {getStandaloneURL} = useContext(AppContext);
+	const undeployModalContext = useContext(Context);
+
+	const ACTIONS = [
+		{
+			action: item =>
+				new Promise((resolve, reject) => {
+					if (isDeployed(item)) {
+						showUndeployModal(
+							item,
+							resolve,
+							reject,
+							undeployModalContext
+						);
+					} else {
+						deploy(item, true, resolve, reject);
+					}
+				}),
+			name: item =>
+				isDeployed(item)
+					? DEPLOYMENT_ACTION.undeploy
+					: DEPLOYMENT_ACTION.deploy
+		},
+		{
+			action: item =>
+				Promise.resolve(
+					window.open(getStandaloneURL(item.id), '_blank')
+				),
+			name: Liferay.Language.get('open-standalone-app'),
+			show: item =>
+				item.appDeployments.some(
+					deployment => deployment.type === 'standalone'
+				)
+		},
+		{
+			action: confirmDelete('/o/app-builder/v1.0/apps/'),
+			name: Liferay.Language.get('delete')
+		}
+	];
+
 	const EMPTY_STATE = {
 		button: () => (
 			<Button displayType="secondary" href={`${url}/deploy`}>
@@ -94,12 +225,7 @@ export default ({
 
 	return (
 		<ListView
-			actions={[
-				{
-					action: confirmDelete('/o/app-builder/v1.0/apps/'),
-					name: Liferay.Language.get('delete')
-				}
-			]}
+			actions={ACTIONS}
 			addButton={() => (
 				<Button
 					className="nav-btn nav-btn-monospaced navbar-breakpoint-down-d-none"
@@ -113,23 +239,19 @@ export default ({
 			endpoint={`/o/app-builder/v1.0/data-definitions/${dataDefinitionId}/apps`}
 		>
 			{item => ({
+				...item,
 				dateCreated: moment(item.dateCreated).fromNow(),
 				dateModified: moment(item.dateModified).fromNow(),
-				id: item.id,
-				name: (
+				nameLabel: (
 					<Link
 						to={`/custom-object/${dataDefinitionId}/apps/${item.id}`}
 					>
 						{item.name.en_US}
 					</Link>
 				),
-				status: (
+				statusLabel: (
 					<ClayLabel
-						displayType={
-							item.status.toLowerCase() === 'deployed'
-								? 'success'
-								: 'secondary'
-						}
+						displayType={isDeployed(item) ? 'success' : 'secondary'}
 					>
 						{DEPLOYMENT_STATUS[item.status.toLowerCase()]}
 					</ClayLabel>

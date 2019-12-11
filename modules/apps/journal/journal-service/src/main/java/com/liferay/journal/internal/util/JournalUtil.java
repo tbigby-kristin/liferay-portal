@@ -19,6 +19,7 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.journal.configuration.JournalServiceConfiguration;
+import com.liferay.journal.constants.JournalPortletKeys;
 import com.liferay.journal.internal.transformer.JournalTransformer;
 import com.liferay.journal.internal.transformer.JournalTransformerListenerRegistryUtil;
 import com.liferay.journal.model.JournalArticle;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.portlet.PortletRequestModel;
@@ -73,6 +75,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
@@ -203,6 +206,42 @@ public class JournalUtil {
 			rootElement, tokens,
 			JournalStructureConstants.RESERVED_ARTICLE_AUTHOR_JOB_TITLE,
 			userJobTitle);
+	}
+
+	public static String getJournalControlPanelLink(
+		long folderId, long groupId,
+		LiferayPortletResponse liferayPortletResponse) {
+
+		if (liferayPortletResponse != null) {
+			PortletURL portletURL = liferayPortletResponse.createRenderURL();
+
+			portletURL.setParameter("groupId", String.valueOf(groupId));
+			portletURL.setParameter("folderId", String.valueOf(folderId));
+
+			return portletURL.toString();
+		}
+
+		try {
+			String portletId = PortletProviderUtil.getPortletId(
+				JournalArticle.class.getName(), PortletProvider.Action.EDIT);
+
+			String articleURL = PortalUtil.getControlPanelFullURL(
+				groupId, portletId, null);
+
+			String namespace = PortalUtil.getPortletNamespace(
+				JournalPortletKeys.JOURNAL);
+
+			articleURL = HttpUtil.addParameter(
+				articleURL, namespace + "groupId", groupId);
+
+			return HttpUtil.addParameter(
+				articleURL, namespace + "folderId", folderId);
+		}
+		catch (PortalException pe) {
+			_log.error(pe, pe);
+		}
+
+		return StringPool.BLANK;
 	}
 
 	public static String getJournalControlPanelLink(
@@ -762,10 +801,11 @@ public class JournalUtil {
 
 		String layoutSetFriendlyUrl = themeDisplay.getI18nPath();
 
-		String virtualHostname = layoutSet.getVirtualHostname();
+		TreeMap<String, String> virtualHostnames =
+			layoutSet.getVirtualHostnames();
 
-		if (Validator.isNull(virtualHostname) ||
-			!virtualHostname.equals(themeDisplay.getServerName())) {
+		if (virtualHostnames.isEmpty() ||
+			!virtualHostnames.containsKey(themeDisplay.getServerName())) {
 
 			layoutSetFriendlyUrl = friendlyUrlCurrent + group.getFriendlyURL();
 		}
@@ -838,10 +878,11 @@ public class JournalUtil {
 
 		String layoutSetFriendlyUrl = themeDisplayModel.getI18nPath();
 
-		String virtualHostname = layoutSet.getVirtualHostname();
+		TreeMap<String, String> virtualHostnames =
+			layoutSet.getVirtualHostnames();
 
-		if (Validator.isNull(virtualHostname) ||
-			!virtualHostname.equals(themeDisplayModel.getServerName())) {
+		if (virtualHostnames.isEmpty() ||
+			!virtualHostnames.containsKey(themeDisplayModel.getServerName())) {
 
 			layoutSetFriendlyUrl = friendlyUrlCurrent + group.getFriendlyURL();
 		}

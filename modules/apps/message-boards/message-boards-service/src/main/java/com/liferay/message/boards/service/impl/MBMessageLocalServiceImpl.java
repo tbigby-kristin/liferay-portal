@@ -96,6 +96,7 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.EscapableLocalizableFunction;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -117,7 +118,6 @@ import com.liferay.portal.util.LayoutURLUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.social.kernel.model.SocialActivityConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
-import com.liferay.trash.kernel.util.TrashUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -129,7 +129,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -308,15 +307,15 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		body = getBody(subject, body, format);
 
-		Map<String, Object> options = new HashMap<>();
-
 		boolean discussion = false;
 
 		if (categoryId == MBCategoryConstants.DISCUSSION_CATEGORY_ID) {
 			discussion = true;
 		}
 
-		options.put("discussion", discussion);
+		Map<String, Object> options = HashMapBuilder.<String, Object>put(
+			"discussion", discussion
+		).build();
 
 		body = SanitizerUtil.sanitize(
 			user.getCompanyId(), groupId, userId, MBMessage.class.getName(),
@@ -394,6 +393,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 		message.setThreadId(thread.getThreadId());
 		message.setRootMessageId(thread.getRootMessageId());
 		message.setParentMessageId(parentMessageId);
+		message.setTreePath(message.buildTreePath());
 		message.setBody(body);
 		message.setFormat(format);
 		message.setAnonymous(anonymous);
@@ -728,9 +728,12 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 				else if (childrenMessages.size() == 1) {
 					MBMessage childMessage = childrenMessages.get(0);
 
+					long defaultParentMessageId =
+						MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID;
+
 					childMessage.setRootMessageId(childMessage.getMessageId());
-					childMessage.setParentMessageId(
-						MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID);
+					childMessage.setParentMessageId(defaultParentMessageId);
+					childMessage.setTreePath(childMessage.buildTreePath());
 
 					mbMessagePersistence.update(childMessage);
 
@@ -765,6 +768,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 					for (MBMessage childMessage : childrenMessages) {
 						childMessage.setParentMessageId(
 							message.getParentMessageId());
+						childMessage.setTreePath(childMessage.buildTreePath());
 
 						mbMessagePersistence.update(childMessage);
 					}
@@ -1347,15 +1351,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 		return mbMessagePersistence.findByC_C_S(classNameId, classPK, status);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public List<MBMessage> getNoAssetMessages() {
-		return mbMessageFinder.findByNoAssets();
-	}
-
 	@Override
 	public int getPositionInThread(long messageId) throws PortalException {
 		MBMessage message = mbMessagePersistence.findByPrimaryKey(messageId);
@@ -1407,45 +1402,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 		}
 
 		return count;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getRootDiscussionMessages(String, long, int)}
-	 */
-	@Deprecated
-	@Override
-	public List<MBMessage> getRootMessages(
-			String className, long classPK, int status)
-		throws PortalException {
-
-		return getRootDiscussionMessages(className, classPK, status);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getRootDiscussionMessages(String, long, int, int, int)}
-	 */
-	@Deprecated
-	@Override
-	public List<MBMessage> getRootMessages(
-			String className, long classPK, int status, int start, int end)
-		throws PortalException {
-
-		return getRootDiscussionMessages(
-			className, classPK, status, start, end);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getRootDiscussionMessagesCount(String, long, int)}
-	 */
-	@Deprecated
-	@Override
-	public int getRootMessagesCount(
-		String className, long classPK, int status) {
-
-		return getRootDiscussionMessagesCount(className, classPK, status);
 	}
 
 	@Override
@@ -1739,78 +1695,6 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 				message.getGroupId(), userId, MBMessage.class.getName(),
 				message.getMessageId(), MBConstants.SERVICE_NAME,
 				folder.getFolderId(), inputStreamOVPs);
-		}
-
-		return message;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link #updateMessage(long,
-	 *             long, String, String, List, double, boolean, ServiceContext)}
-	 */
-	@Deprecated
-	@Override
-	public MBMessage updateMessage(
-			long userId, long messageId, String subject, String body,
-			List<ObjectValuePair<String, InputStream>> inputStreamOVPs,
-			List<String> existingFiles, double priority, boolean allowPingbacks,
-			ServiceContext serviceContext)
-		throws PortalException {
-
-		// Message
-
-		MBMessage message = _updateMessage(
-			userId, messageId, subject, body, priority, allowPingbacks,
-			serviceContext);
-
-		// Attachments
-
-		if ((inputStreamOVPs != null) || (existingFiles != null)) {
-			if (ListUtil.isNotEmpty(inputStreamOVPs) ||
-				ListUtil.isNotEmpty(existingFiles)) {
-
-				List<FileEntry> fileEntries =
-					message.getAttachmentsFileEntries();
-
-				for (FileEntry fileEntry : fileEntries) {
-					String fileEntryId = String.valueOf(
-						fileEntry.getFileEntryId());
-
-					if ((existingFiles != null) &&
-						!existingFiles.contains(fileEntryId)) {
-
-						if (!TrashUtil.isTrashEnabled(message.getGroupId())) {
-							deleteMessageAttachment(
-								messageId, fileEntry.getTitle());
-						}
-						else {
-							moveMessageAttachmentToTrash(
-								userId, messageId, fileEntry.getTitle());
-						}
-					}
-				}
-
-				Folder folder = message.addAttachmentsFolder();
-
-				PortletFileRepositoryUtil.addPortletFileEntries(
-					message.getGroupId(), userId, MBMessage.class.getName(),
-					message.getMessageId(), MBConstants.SERVICE_NAME,
-					folder.getFolderId(), inputStreamOVPs);
-			}
-			else {
-				if (TrashUtil.isTrashEnabled(message.getGroupId())) {
-					List<FileEntry> fileEntries =
-						message.getAttachmentsFileEntries();
-
-					for (FileEntry fileEntry : fileEntries) {
-						moveMessageAttachmentToTrash(
-							userId, messageId, fileEntry.getTitle());
-					}
-				}
-				else {
-					deleteMessageAttachments(message.getMessageId());
-				}
-			}
 		}
 
 		return message;
@@ -2461,11 +2345,11 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 			long userId, MBMessage message, ServiceContext serviceContext)
 		throws PortalException {
 
-		Map<String, Serializable> workflowContext = new HashMap<>();
-
-		workflowContext.put(
-			WorkflowConstants.CONTEXT_URL,
-			getMessageURL(message, serviceContext));
+		Map<String, Serializable> workflowContext =
+			HashMapBuilder.<String, Serializable>put(
+				WorkflowConstants.CONTEXT_URL,
+				getMessageURL(message, serviceContext)
+			).build();
 
 		WorkflowHandlerRegistryUtil.startWorkflowInstance(
 			message.getCompanyId(), message.getGroupId(), userId,
@@ -2699,6 +2583,7 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 		String oldSubject = message.getSubject();
 
 		Date modifiedDate = serviceContext.getModifiedDate(null);
+
 		subject = ModelHintsUtil.trimString(
 			MBMessage.class.getName(), "subject", subject);
 
@@ -2706,9 +2591,9 @@ public class MBMessageLocalServiceImpl extends MBMessageLocalServiceBaseImpl {
 
 		body = getBody(subject, body, message.getFormat());
 
-		Map<String, Object> options = new HashMap<>();
-
-		options.put("discussion", message.isDiscussion());
+		Map<String, Object> options = HashMapBuilder.<String, Object>put(
+			"discussion", message.isDiscussion()
+		).build();
 
 		body = SanitizerUtil.sanitize(
 			message.getCompanyId(), message.getGroupId(), userId,

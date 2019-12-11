@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -81,7 +82,7 @@ public class DDMFormFieldOptionsFactoryImpl
 			(List<Map<String, String>>)ddmFormFieldRenderingContext.getProperty(
 				"options");
 
-		if (options == null) {
+		if (ListUtil.isEmpty(options)) {
 			if (dataSourceType.equals("from-autofill")) {
 				return ddmFormFieldOptions;
 			}

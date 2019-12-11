@@ -4,12 +4,12 @@ definition {
 		var key_pageName = "${pageName}";
 		var count = "0";
 
-		while ((!("${count}" == "3")) && (IsElementNotPresent(locator1 = "Home#PAGE_ACTIVE"))) {
+		while (("${count}" != "3") && (IsElementNotPresent(locator1 = "Home#PAGE_ACTIVE"))) {
 			AssertClick.assertPartialTextClickAt(
 				locator1 = "Home#PAGE",
 				value1 = "${pageName}");
 
-			var count = MathUtil.sum("${count}", "1");
+			var count = ${count} + 1;
 		}
 
 		AssertVisible(locator1 = "Home#PAGE_ACTIVE");
@@ -162,12 +162,6 @@ definition {
 			siteNameURL = "${siteName}");
 
 		Navigator._gotoPage(pageName = "${pageName}");
-	}
-
-	macro gotoSEOPanel {
-		Navigator.gotoNavTab(navTab = "SEO");
-
-		Panel.expandPanel(panel = "SEO");
 	}
 
 	macro gotoSitePage {

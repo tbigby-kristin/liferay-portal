@@ -27,7 +27,6 @@ dependencies {
 	compile group: "com.liferay.portal", name: "com.liferay.util.java", version: "default"
 	compile group: "javax.portlet", name: "portlet-api", transitive: false, version: "3.0.1"
 	compile project(":apps:asset:asset-entry-rel-service")
-	compile project(":apps:asset:asset-tag-stats-service")
 	compile project(":apps:blogs:blogs-api")
 	compile project(":apps:blogs:blogs-service")
 	compile project(":apps:document-library:document-library-api")
@@ -36,20 +35,35 @@ dependencies {
 	compile project(":apps:dynamic-data-mapping:dynamic-data-mapping-api")
 	compile project(":apps:dynamic-data-mapping:dynamic-data-mapping-service")
 	compile project(":apps:dynamic-data-mapping:dynamic-data-mapping-web")
+	compile project(":apps:fragment:fragment-api")
+	compile project(":apps:fragment:fragment-service")
 	compile project(":apps:friendly-url:friendly-url-api")
 	compile project(":apps:friendly-url:friendly-url-service")
+	compile project(":apps:hello-world:hello-world-web")
 	compile project(":apps:journal:journal-api")
 	compile project(":apps:journal:journal-service")
+	compile project(":apps:layout:layout-api")
+	compile project(":apps:layout:layout-page-template-api")
+	compile project(":apps:layout:layout-page-template-service")
+	compile project(":apps:login:login-web")
 	compile project(":apps:message-boards:message-boards-api")
 	compile project(":apps:message-boards:message-boards-service")
 	compile project(":apps:subscription:subscription-api")
 	compile project(":apps:subscription:subscription-service")
+	compile project(":apps:view-count:view-count-api")
+	compile project(":apps:view-count:view-count-service")
 	compile project(":apps:wiki:wiki-api")
 	compile project(":apps:wiki:wiki-service")
+
+	compileInclude group: "com.liferay.commerce", name: "com.liferay.commerce.currency.api", version: "2.0.0"
+	compileInclude group: "com.liferay.commerce", name: "com.liferay.commerce.currency.service", version: "1.0.13"
+	compileInclude group: "com.liferay.commerce", name: "com.liferay.commerce.product.api", version: "10.0.0"
+	compileInclude group: "com.liferay.commerce", name: "com.liferay.commerce.product.service", version: "2.0.0"
 
 	compileOnly group: "com.liferay", name: "org.freemarker", version: "2.3.23.LIFERAY-PATCHED-4"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel", version: "default"
+	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-reflect")
 	compileOnly project(":core:petra:petra-string")
 
@@ -81,26 +95,34 @@ writeReleases {
 	doLast {
 		File releasesTxtFile = new File(processResources.destinationDir, "com/liferay/portal/tools/sample/sql/builder/dependencies/releases.txt")
 
-		releasesTxtFile.withWriter("UTF-8") {
-			Writer writer ->
+		List<String> lines = []
 
-			configurations.compile.each {
-				println "Adding release information from ${it} into ${releasesTxtFile}"
+		(configurations.compile + configurations.compileInclude).each {
+			JarFile jarFile = new JarFile(it)
 
-				JarFile jarFile = new JarFile(it)
+			Attributes mainAttributes = jarFile.manifest.mainAttributes
 
-				Attributes mainAttributes = jarFile.manifest.mainAttributes
+			String schemaVersion = mainAttributes.getValue("Liferay-Require-SchemaVersion")
 
-				String schemaVersion = mainAttributes.getValue("Liferay-Require-SchemaVersion")
-
-				if (!schemaVersion) {
-					return
-				}
-
-				String symbolicName = mainAttributes.getValue("Bundle-SymbolicName")
-
-				writer.writeLine "${symbolicName}:${schemaVersion}"
+			if (!schemaVersion) {
+				return
 			}
+
+			logger.lifecycle "Adding release information from {} into {}.", it, releasesTxtFile
+
+			String symbolicName = mainAttributes.getValue("Bundle-SymbolicName")
+
+			lines.add("${symbolicName}:${schemaVersion}")
 		}
+
+		lines.sort()
+
+		if (!releasesTxtFile.exists()) {
+			mkdir releasesTxtFile.getParentFile()
+
+			releasesTxtFile.createNewFile()
+		}
+
+		releasesTxtFile.setText lines.join('\n'), "UTF-8"
 	}
 }

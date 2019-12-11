@@ -14,20 +14,19 @@
 
 package com.liferay.portal.search.elasticsearch7.internal.connection;
 
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.util.PropsTestUtil;
-import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.search.elasticsearch7.configuration.OperationMode;
-
-import java.net.InetSocketAddress;
 
 import java.util.HashMap;
 import java.util.List;
 
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.transport.TransportAddress;
+import org.apache.http.HttpHost;
+
+import org.elasticsearch.client.Node;
+import org.elasticsearch.client.RestClient;
+import org.elasticsearch.client.RestHighLevelClient;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,23 +42,19 @@ public class RemoteElasticsearchConnectionTest {
 		_remoteElasticsearchConnection = new RemoteElasticsearchConnection();
 
 		_remoteElasticsearchConnection.props = PropsTestUtil.setProps(
-			new HashMap<String, Object>() {
-				{
-					put(
-						PropsKeys.DNS_SECURITY_ADDRESS_TIMEOUT_SECONDS,
-						String.valueOf(2));
-					put(
-						PropsKeys.DNS_SECURITY_THREAD_LIMIT,
-						String.valueOf(10));
-				}
-			});
+			HashMapBuilder.<String, Object>put(
+				PropsKeys.DNS_SECURITY_ADDRESS_TIMEOUT_SECONDS,
+				String.valueOf(2)
+			).put(
+				PropsKeys.DNS_SECURITY_THREAD_LIMIT, String.valueOf(10)
+			).build());
 	}
 
 	@Test
 	public void testModifyConnected() {
-		HashMap<String, Object> properties = new HashMap<>();
-
-		properties.put("operationMode", OperationMode.REMOTE.name());
+		HashMap<String, Object> properties = HashMapBuilder.<String, Object>put(
+			"operationMode", OperationMode.REMOTE.name()
+		).build();
 
 		_remoteElasticsearchConnection.activate(properties);
 
@@ -69,79 +64,46 @@ public class RemoteElasticsearchConnectionTest {
 
 		Assert.assertTrue(_remoteElasticsearchConnection.isConnected());
 
-		assertTransportAddress("localhost", 9300);
+		assertNetworkHostAddress("localhost", 9200);
 
-		properties.put("transportAddresses", "127.0.0.1:9999");
-
-		_remoteElasticsearchConnection.modified(properties);
-
-		Assert.assertTrue(_remoteElasticsearchConnection.isConnected());
-
-		assertTransportAddress("127.0.0.1", 9999);
-	}
-
-	@Test
-	public void testModifyConnectedWithInvalidPropertiesThenValidProperties() {
-		HashMap<String, Object> properties = new HashMap<>();
-
-		properties.put("operationMode", OperationMode.REMOTE.name());
-
-		_remoteElasticsearchConnection.activate(properties);
-
-		_remoteElasticsearchConnection.connect();
-
-		properties.put(
-			"additionalConfigurations",
-			StringBundler.concat(
-				StringPool.OPEN_CURLY_BRACE, RandomTestUtil.randomString(),
-				StringPool.CLOSE_CURLY_BRACE));
-
-		try {
-			_remoteElasticsearchConnection.modified(properties);
-
-			Assert.fail();
-		}
-		catch (NullPointerException npe) {
-		}
-
-		Assert.assertFalse(_remoteElasticsearchConnection.isConnected());
-
-		properties.replace("additionalConfigurations", StringPool.BLANK);
+		properties.put("networkHostAddresses", "127.0.0.1:9999");
 
 		_remoteElasticsearchConnection.modified(properties);
 
 		Assert.assertTrue(_remoteElasticsearchConnection.isConnected());
+
+		assertNetworkHostAddress("127.0.0.1", 9999);
 	}
 
 	@Test
 	public void testModifyUnconnected() {
 		Assert.assertFalse(_remoteElasticsearchConnection.isConnected());
 
-		HashMap<String, Object> properties = new HashMap<>();
-
-		properties.put("operationMode", OperationMode.REMOTE.name());
+		HashMap<String, Object> properties = HashMapBuilder.<String, Object>put(
+			"operationMode", OperationMode.REMOTE.name()
+		).build();
 
 		_remoteElasticsearchConnection.modified(properties);
 
 		Assert.assertTrue(_remoteElasticsearchConnection.isConnected());
 	}
 
-	protected void assertTransportAddress(String hostString, int port) {
-		TransportClient transportClient =
-			(TransportClient)_remoteElasticsearchConnection.getClient();
+	protected void assertNetworkHostAddress(String hostString, int port) {
+		RestHighLevelClient restHighLevelClient =
+			_remoteElasticsearchConnection.getRestHighLevelClient();
 
-		List<TransportAddress> transportAddresses =
-			transportClient.transportAddresses();
+		RestClient restClient = restHighLevelClient.getLowLevelClient();
 
-		Assert.assertEquals(
-			transportAddresses.toString(), 1, transportAddresses.size());
+		List<Node> nodes = restClient.getNodes();
 
-		TransportAddress transportAddress = transportAddresses.get(0);
+		Assert.assertEquals(nodes.toString(), 1, nodes.size());
 
-		InetSocketAddress inetSocketAddress = transportAddress.address();
+		Node node = nodes.get(0);
 
-		Assert.assertEquals(hostString, inetSocketAddress.getHostString());
-		Assert.assertEquals(port, inetSocketAddress.getPort());
+		HttpHost httpHost = node.getHost();
+
+		Assert.assertEquals(hostString, httpHost.getHostName());
+		Assert.assertEquals(port, httpHost.getPort());
 	}
 
 	private RemoteElasticsearchConnection _remoteElasticsearchConnection;

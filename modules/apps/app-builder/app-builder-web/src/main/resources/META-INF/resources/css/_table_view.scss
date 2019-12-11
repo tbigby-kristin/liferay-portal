@@ -1,43 +1,187 @@
-.empty-drop-zone {
-	background: #f7f8f9;
-	border: 2px dashed #a7a9bc;
-	border-radius: 4px;
-	box-sizing: border-box;
-	color: #a7a9bc;
-	line-height: 57px;
-	text-align: center;
+.app-builder-table-view {
+	.app-builder-sidebar {
+		margin-top: $upperToolbarHeight;
 
-	&.target-droppable {
-		animation-direction: alternate;
-		animation-duration: 0.7s;
-		animation-iteration-count: infinite;
-		animation-name: drop-color;
-		animation-timing-function: $animation;
-		background-color: #2e5aac;
-		border-color: #0b5fff;
-		color: #0b5fff;
-	}
+		.sidebar-header {
+			padding-bottom: 1rem;
 
-	&.target-over {
-		border-color: #0b5fff;
-		border-style: solid;
+			&.table-view-filters-sidebar-header {
+				border-bottom: 1px solid #e7e7ed;
+			}
 
-		p {
-			visibility: hidden;
+			.btn-monospaced {
+				width: 3rem;
+			}
+
+			.field-type {
+				border-width: 0;
+				cursor: inherit;
+				padding: 0;
+
+				&:hover {
+					border-color: transparent;
+					box-shadow: none;
+					transform: none;
+				}
+
+				.app-builder-field-sticker {
+					height: 2.5rem;
+					width: 2.5rem;
+				}
+
+				.list-group-title {
+					font-size: 1rem;
+				}
+
+				.list-group-subtitle {
+					font-size: 0.75rem;
+				}
+			}
+		}
+
+		.sidebar-body {
+			padding-top: 0;
+
+			.table-view-filters-header {
+				margin-bottom: 0;
+			}
+
+			.table-view-filters-list:not(.single-field) .table-view-filter {
+				border-bottom: 1px solid #e7e7ed;
+				padding: 1.5rem 0;
+			}
+		}
+
+		.multiple-select-filter-trigger {
+			align-items: center;
+			background-color: #f1f2f5;
+			border-color: #e7e7ed;
+			color: #272833;
+			display: flex;
+			font-weight: normal;
+			text-align: left;
+			width: 100%;
+
+			.multiple-select-filter-values {
+				flex-grow: 1;
+			}
+
+			&.empty {
+				color: #6b6c7e;
+			}
 		}
 	}
 
-	@keyframes drop-color {
-		0% {
-			background-color: #f0f5ff;
-		}
+	.app-builder-sidebar-content {
+		padding-top: 1.5rem;
+	}
 
-		100% {
-			background-color: rgba(179, 205, 255, 0.3);
+	.column-drop-zone-right {
+		border-right-width: 2px;
+		position: absolute;
+
+		&.target-over {
+			border-right-color: #0b5fff;
+			border-right-style: solid;
 		}
 	}
-}
 
-.table-view-container {
-	margin-top: 20px;
+	.column-drop-zone-left {
+		border-left-width: 2px;
+		position: absolute;
+
+		&.target-over {
+			border-left-color: #0b5fff;
+			border-left-style: solid;
+		}
+	}
+
+	.column-overlay {
+		border: 1px solid #0b5fff;
+		pointer-events: none;
+		position: absolute;
+
+		&.selected {
+			border-width: 2px;
+
+			header {
+				left: -2px;
+				top: -28px;
+			}
+		}
+
+		header {
+			background-color: #0b5fff;
+			border: 2px solid #0b5fff;
+			border-radius: 4px 4px 0 0;
+			color: white;
+			left: -1px;
+			line-height: 20px;
+			padding: 0 8px;
+			pointer-events: all;
+			position: absolute;
+			top: -27px;
+			z-index: 50;
+
+			.btn {
+				color: white;
+				height: 20px;
+				line-height: 12px;
+				padding: 0;
+				width: 20px;
+			}
+
+			label {
+				color: white;
+				margin-bottom: 0;
+				margin-right: 5px;
+			}
+		}
+	}
+
+	.empty-drop-zone {
+		background: #f7f8f9;
+		border: 2px dashed #a7a9bc;
+		border-radius: 4px;
+		box-sizing: border-box;
+		color: #a7a9bc;
+		line-height: 1rem;
+		padding: 2rem 1rem;
+		text-align: center;
+
+		&.target-droppable {
+			animation-direction: alternate;
+			animation-duration: 0.7s;
+			animation-iteration-count: infinite;
+			animation-name: drop-color;
+			animation-timing-function: $animation;
+			background-color: #2e5aac;
+			border-color: #0b5fff;
+			color: #0b5fff;
+		}
+
+		&.target-over {
+			border-color: #0b5fff;
+			border-style: solid;
+
+			p {
+				visibility: hidden;
+			}
+		}
+
+		@keyframes drop-color {
+			0% {
+				background-color: #f0f5ff;
+			}
+
+			100% {
+				background-color: rgba(179, 205, 255, 0.3);
+			}
+		}
+	}
+
+	.empty-drop-zone-header {
+		border-bottom: 1px solid #e7e7ed;
+		margin: 1.5rem -1.5rem;
+	}
 }

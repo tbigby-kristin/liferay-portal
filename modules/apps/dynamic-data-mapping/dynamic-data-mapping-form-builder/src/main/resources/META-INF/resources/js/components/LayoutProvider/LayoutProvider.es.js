@@ -13,16 +13,19 @@
  */
 
 import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
-import Component from 'metal-jsx';
-import {Config} from 'metal-state';
-import {getFieldProperties} from '../../util/fieldSupport.es';
-import {pageStructure, ruleStructure} from '../../util/config.es';
+import handlePaginationItemClicked from 'dynamic-data-mapping-form-renderer/js/store/actions/handlePaginationItemClicked.es';
+import handlePaginationNextClicked from 'dynamic-data-mapping-form-renderer/js/store/actions/handlePaginationNextClicked.es';
+import handlePaginationPreviousClicked from 'dynamic-data-mapping-form-renderer/js/store/actions/handlePaginationPreviousClicked.es';
 import {
 	PagesVisitor,
 	RulesVisitor
 } from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
-import {setLocalizedValue} from '../../util/i18n.es';
+import Component from 'metal-jsx';
+import {Config} from 'metal-state';
 
+import {pageStructure, ruleStructure} from '../../util/config.es';
+import {getFieldProperties} from '../../util/fieldSupport.es';
+import {setLocalizedValue} from '../../util/i18n.es';
 import handleColumnResized from './handlers/columnResizedHandler.es';
 import handleFieldAdded from './handlers/fieldAddedHandler.es';
 import handleFieldBlurred from './handlers/fieldBlurredHandler.es';
@@ -33,9 +36,7 @@ import handleFieldEdited from './handlers/fieldEditedHandler.es';
 import handleFieldMoved from './handlers/fieldMovedHandler.es';
 import handleFieldSetAdded from './handlers/fieldSetAddedHandler.es';
 import handleLanguageIdDeleted from './handlers/languageIdDeletedHandler.es';
-import handlePaginationItemClicked from 'dynamic-data-mapping-form-renderer/js/store/actions/handlePaginationItemClicked.es';
-import handlePaginationNextClicked from 'dynamic-data-mapping-form-renderer/js/store/actions/handlePaginationNextClicked.es';
-import handlePaginationPreviousClicked from 'dynamic-data-mapping-form-renderer/js/store/actions/handlePaginationPreviousClicked.es';
+import {generateFieldName} from './util/fields.es';
 
 /**
  * LayoutProvider listens to your children's events to
@@ -137,7 +138,7 @@ class LayoutProvider extends Component {
 		return settingsVisitor.mapFields(field => {
 			let value = field.value;
 
-			if (field.localizable) {
+			if (field.localizable && field.localizedValue) {
 				let localizedValue = field.localizedValue[editingLanguageId];
 
 				if (localizedValue === undefined) {
@@ -162,7 +163,7 @@ class LayoutProvider extends Component {
 				defaultLanguageId,
 				editingLanguageId,
 				localizedValue: {
-					...field.localizedValue,
+					...(field.localizedValue || {}),
 					[editingLanguageId]: value
 				},
 				value
@@ -258,8 +259,8 @@ class LayoutProvider extends Component {
 		const {
 			children,
 			defaultLanguageId,
-			fieldActions,
 			editingLanguageId,
+			fieldActions,
 			spritemap
 		} = this.props;
 		const {
@@ -303,6 +304,14 @@ class LayoutProvider extends Component {
 				label: Liferay.Language.get('delete')
 			}
 		];
+	}
+
+	_fieldNameGeneratorValueFn() {
+		return (desiredName, currentName) => {
+			const {pages} = this.state;
+
+			return generateFieldName(pages, desiredName, currentName);
+		};
 	}
 
 	_handleActivePageUpdated(activePage) {
@@ -364,24 +373,11 @@ class LayoutProvider extends Component {
 	}
 
 	_handleFieldDuplicated(event) {
-		const {defaultLanguageId} = this.props;
-
-		this.setState(
-			handleFieldDuplicated(this.state, defaultLanguageId, event)
-		);
+		this.setState(handleFieldDuplicated(this.props, this.state, event));
 	}
 
 	_handleFieldEdited(properties) {
-		const {defaultLanguageId, editingLanguageId} = this.props;
-
-		this.setState(
-			handleFieldEdited(
-				this.state,
-				defaultLanguageId,
-				editingLanguageId,
-				properties
-			)
-		);
+		this.setState(handleFieldEdited(this.props, this.state, properties));
 	}
 
 	_handleFieldMoved(event) {
@@ -601,7 +597,7 @@ class LayoutProvider extends Component {
 						});
 					};
 
-					for (const languageId in field.value) {
+					Object.keys(field.value).forEach(languageId => {
 						field = {
 							...field,
 							value: {
@@ -609,7 +605,7 @@ class LayoutProvider extends Component {
 								[languageId]: getOptions(languageId, field)
 							}
 						};
-					}
+					});
 				}
 
 				return field;
@@ -664,6 +660,15 @@ LayoutProvider.PROPS = {
 	 */
 
 	fieldActions: Config.array().valueFn('_fieldActionsValueFn'),
+
+	/**
+	 * @default _fieldNameGeneratorValueFn
+	 * @instance
+	 * @memberof LayoutProvider
+	 * @type {?function}
+	 */
+
+	fieldNameGenerator: Config.func().valueFn('_fieldNameGeneratorValueFn'),
 
 	/**
 	 * @default undefined

@@ -33,6 +33,22 @@
 	<td></td>
 	<td></td>
 </tr>
+<!--CREATE_NEW_CONTENT_FORM-->
+<tr>
+	<td>CONTENT_NAME_FIELD</td>
+	<td>//div[contains(@class,'form-group') and label[contains(.,'${key_fieldName}')]]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_VALUE_FIELD</td>
+	<td>//div[h3[contains(.,'Content Value')]]//input</td>
+	<td></td>
+</tr>
+<tr>
+	<td>STRUCTURE_FIELD_SELECT</td>
+	<td>//div[contains(.,'Structure Field')]//select</td>
+	<td></td>
+</tr>
 <!--FRAGMENT_SIDEBAR-->
 <tr>
 	<td>FRAGMENT_SIDEBAR</td>
@@ -136,22 +152,17 @@
 </tr>
 <tr>
 	<td>FRAGMENT_SIDEBAR_COLLECTION_PANEL</td>
-	<td>//div[contains(@class,'fragments-editor-sidebar-section')]//a[normalize-space()='${key_collectionName}']</td>
+	<td>//button[normalize-space()='${key_collectionName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_SIDEBAR_COLLECTION_PANEL_COLLAPSED</td>
-	<td>//div[contains(@class,'fragments-editor-sidebar-section')]//a[contains(@class,'collapsed')][normalize-space()='${key_collectionName}']</td>
+	<td>//button[@aria-expanded='false'][normalize-space()='${key_collectionName}']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>FRAGMENT_SIDEBAR_COLLECTION_PANEL_EXPANDED</td>
-	<td>//div[contains(@class,'fragments-editor-sidebar-section')]//a[@aria-expanded='true'][normalize-space()='${key_collectionName}']</td>
-	<td></td>
-</tr>
-<tr>
-	<td>FRAGMENT_SIDEBAR_ADD_FRAGMENT_BUTTON</td>
-	<td>//button[@data-item-name='${key_fragmentName}']</td>
+	<td>//button[@aria-expanded='true'][normalize-space()='${key_collectionName}']</td>
 	<td></td>
 </tr>
 <tr>
@@ -181,7 +192,7 @@
 </tr>
 <tr>
 	<td>FRAGMENT_SIDEBAR_SHOW_RESOLVED_COMMENTS_CHECKBOX_UNCHECKED</td>
-	<td>//label[contains(.,'Show Resolved Comments')]/input[@value='false']</td>
+	<td>//label/input[@type='checkbox']</td>
 	<td></td>
 </tr>
 <tr>
@@ -192,6 +203,11 @@
 <tr>
 	<td>FRAGMENT_SIDEBAR_TAB_BUTTON_ACTIVE</td>
 	<td>//button[@data-title='${key_tabName}'][contains(@class,'active')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>FRAGMENT_SIDEBAR_TITLE</td>
+	<td>//h1[contains(@class,'fragments-editor-sidebar-section__title') and contains(.,'${key_sidebarButton}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -216,6 +232,16 @@
 	<td></td>
 </tr>
 <tr>
+	<td>CONTENT_PAGE_IMAGE_CONTENT</td>
+	<td>//section[@class='bg-']//div[contains(@style,'${key_imageFileName}')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>CONTENT_PAGE_TEXT_CONTENT</td>
+	<td>//section[@class='bg-']//p | //section[@class='bg-']//div[contains(@class,'asset-summary')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -233,7 +259,7 @@
 </tr>
 <tr>
 	<td>EXPERIENCE_SELECT_ITEM</td>
-	<td>//span[contains(@class,'truncate-text')]/strong[contains(.,'${key_experienceName}')]</td>
+	<td>//span[contains(@class,'text-truncate')]/strong[contains(.,'${key_experienceName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -243,7 +269,7 @@
 </tr>
 <tr>
 	<td>EXPERIENCE_NAME</td>
-	<td>//input[@name='experienceName']</td>
+	<td>//input[contains(@id,'segmentsExperienceName')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -279,13 +305,28 @@
 </tr>
 <!--EDITABLE_FIELD_TOOLBAR-->
 <tr>
+	<td>EDITABLE_FIELD_TOOLBAR_DUPLICATE_BUTTON</td>
+	<td>//button[@data-title='Duplicate Fragment']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDITABLE_FIELD_TOOLBAR_EDIT_BUTTON</td>
 	<td>//button[@data-title='Edit']</td>
 	<td></td>
 </tr>
 <tr>
+	<td>EDITABLE_FIELD_TOOLBAR_CONFIGURATION_BUTTON</td>
+	<td>//button[@data-title='Fragment Configuration']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>EDITABLE_FIELD_TOOLBAR_LINK_BUTTON</td>
 	<td>//button[@data-title='Link']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>EDITABLE_FIELD_TOOLBAR_MAP_ASSET_SELECT_POPUP_BUTTON</td>
+	<td>//div[contains(@class,'asset-select')]//button</td>
 	<td></td>
 </tr>
 <tr>
@@ -299,14 +340,19 @@
 	<td></td>
 </tr>
 <tr>
+	<td>EDITABLE_FIELD_TOOLBAR_LAYOUT_BACKGROUND_IMAGE_BUTTON</td>
+	<td>//button[@data-panel-id='layout_background_image']</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
 </tr>
 <!--SECTION_BUILDER-->
 <tr>
-	<td>SECTION_BUILDER_BASIC_COMPONENTS_FRAGMENT</td>
-	<td>//div[contains(@class,'fragments-editor-sidebar-section__elements-panel-grid')]//div[contains(@data-item-name,'${fragmentName}')]</td>
+	<td>SECTION_BUILDER_FRAGMENTS</td>
+	<td>//div[contains(@data-item-name,'${fragmentName}')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -342,7 +388,7 @@
 </tr>
 <tr>
 	<td>WIDGETS_ADD_PORTLET_DRAG_LINK</td>
-	<td>//div[contains(@data-drag-source-label,'${key_portletName}') and contains(@class,'drag-source')]</td>
+	<td>//button[contains(@data-drag-source-label,'${key_portletName}') and contains(@class,'drag-source')]</td>
 	<td></td>
 </tr>
 <tr>

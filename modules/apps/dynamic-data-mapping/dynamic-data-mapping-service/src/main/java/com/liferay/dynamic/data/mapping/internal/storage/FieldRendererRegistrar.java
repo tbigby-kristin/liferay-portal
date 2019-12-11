@@ -20,8 +20,7 @@ import com.liferay.dynamic.data.mapping.storage.FieldRendererFactory;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.service.LayoutService;
-
-import java.util.HashMap;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -35,29 +34,28 @@ import org.osgi.service.component.annotations.Reference;
 public class FieldRendererRegistrar {
 
 	@Activate
-	public void activate() {
+	protected void activate() {
 		_fieldRendererFactory.setFieldRenderers(
-			new HashMap<String, FieldRenderer>() {
-				{
-					put("date", new DateFieldRenderer(_language));
-					put(
-						"document-library",
-						new DocumentLibraryFieldRenderer(
-							_dlAppService, _jsonFactory, _language));
-					put(
-						"geolocation",
-						new GeolocationFieldRenderer(_jsonFactory, _language));
-					put(
-						"link-to-page",
-						new LinkToPageFieldRenderer(
-							_jsonFactory, _language, _layoutService));
-					put("string", new StringFieldRenderer(_jsonFactory));
-				}
-			});
+			HashMapBuilder.<String, FieldRenderer>put(
+				"date", new DateFieldRenderer(_language)
+			).put(
+				"document-library",
+				new DocumentLibraryFieldRenderer(
+					_dlAppService, _jsonFactory, _language)
+			).put(
+				"geolocation",
+				new GeolocationFieldRenderer(_jsonFactory, _language)
+			).put(
+				"link-to-page",
+				new LinkToPageFieldRenderer(
+					_jsonFactory, _language, _layoutService)
+			).put(
+				"string", new StringFieldRenderer(_jsonFactory)
+			).build());
 	}
 
 	@Deactivate
-	public void deactivate() {
+	protected void deactivate() {
 		_fieldRendererFactory.setFieldRenderers(null);
 	}
 

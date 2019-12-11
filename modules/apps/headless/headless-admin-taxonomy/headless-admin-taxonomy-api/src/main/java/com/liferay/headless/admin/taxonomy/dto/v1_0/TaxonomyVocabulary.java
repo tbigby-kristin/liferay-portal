@@ -38,6 +38,7 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -90,6 +91,7 @@ public class TaxonomyVocabulary {
 	@Schema(
 		description = "A list of asset types that can be associated with this vocabulary."
 	)
+	@Valid
 	public AssetType[] getAssetTypes() {
 		return assetTypes;
 	}
@@ -113,7 +115,9 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of asset types that can be associated with this vocabulary."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected AssetType[] assetTypes;
 
@@ -143,11 +147,14 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A list of languages the vocabulary has a translation for."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String[] availableLanguages;
 
 	@Schema(description = "The vocabulary's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -171,7 +178,7 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The vocabulary's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
@@ -199,7 +206,7 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The vocabulary's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -227,7 +234,9 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The vocabulary's most recent modification date."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -255,7 +264,7 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The vocabulary's text description.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String description;
 
@@ -281,7 +290,7 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The vocabulary's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -307,7 +316,7 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The vocabulary's name.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	@NotEmpty
 	protected String name;
@@ -342,7 +351,9 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The number of categories that directly depend on this vocabulary."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfTaxonomyCategories;
 
@@ -372,13 +383,16 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which this vocabulary is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
 
 	@Schema(
 		description = "A write-only property that specifies the vocabulary's default permissions."
 	)
+	@Valid
 	public ViewableBy getViewableBy() {
 		return viewableBy;
 	}
@@ -411,7 +425,9 @@ public class TaxonomyVocabulary {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "A write-only property that specifies the vocabulary's default permissions."
+	)
 	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	protected ViewableBy viewableBy;
 
@@ -603,6 +619,12 @@ public class TaxonomyVocabulary {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.taxonomy.dto.v1_0.TaxonomyVocabulary",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

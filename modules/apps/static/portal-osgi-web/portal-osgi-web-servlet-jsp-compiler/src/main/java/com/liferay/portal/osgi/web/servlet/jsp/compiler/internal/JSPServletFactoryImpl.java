@@ -19,6 +19,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.osgi.web.servlet.JSPServletFactory;
 import com.liferay.portal.util.PropsValues;
@@ -27,10 +28,8 @@ import java.io.File;
 
 import java.net.URL;
 
-import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Enumeration;
-import java.util.List;
 
 import javax.servlet.Servlet;
 
@@ -51,8 +50,13 @@ import org.osgi.util.tracker.BundleTrackerCustomizer;
 @Component(immediate = true, service = JSPServletFactory.class)
 public class JSPServletFactoryImpl implements JSPServletFactory {
 
+	@Override
+	public Servlet createJSPServlet() {
+		return new JspServlet();
+	}
+
 	@Activate
-	public void activate(BundleContext bundleContext) {
+	protected void activate(BundleContext bundleContext) {
 		_bundleTracker = new BundleTracker<>(
 			bundleContext, Bundle.RESOLVED,
 			new JspFragmentBundleTrackerCustomizer(bundleContext));
@@ -60,13 +64,8 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 		_bundleTracker.open();
 	}
 
-	@Override
-	public Servlet createJSPServlet() {
-		return new JspServlet();
-	}
-
 	@Deactivate
-	public void deactivate() {
+	protected void deactivate() {
 		_bundleTracker.close();
 	}
 
@@ -95,7 +94,7 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 			}
 
 			Enumeration<URL> enumeration = bundle.findEntries(
-				_DIR_NAME_RESOURCES, "*.jsp", true);
+				_DIR_NAME_RESOURCES, "*.jsp*", true);
 
 			if (enumeration == null) {
 				return null;
@@ -116,28 +115,7 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 					StringUtil.unquote(StringUtil.trim(versionParts[1])));
 			}
 
-			List<String> paths = new ArrayList<>();
-
-			while (enumeration.hasMoreElements()) {
-				URL url = enumeration.nextElement();
-
-				String pathString = url.getPath();
-
-				pathString = pathString.substring(
-					_DIR_NAME_RESOURCES.length() + 1, pathString.length() - 4);
-
-				pathString = StringUtil.replace(
-					pathString, CharPool.UNDERLINE, "_005f");
-
-				paths.add(
-					"/org/apache/jsp/".concat(
-						pathString
-					).concat(
-						"_jsp.class"
-					));
-			}
-
-			Tracked tracked = new Tracked(symbolicName, versionRange, paths);
+			Tracked tracked = new Tracked(symbolicName, versionRange);
 
 			_deleteJSPServletClasses(tracked);
 
@@ -188,11 +166,7 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 						"Deleting JSP class files from ".concat(scratchDir));
 				}
 
-				for (String path : tracked._paths) {
-					File file = new File(scratchDir, path);
-
-					file.delete();
-				}
+				FileUtil.deltree(new File(scratchDir));
 			}
 		}
 
@@ -213,16 +187,11 @@ public class JSPServletFactoryImpl implements JSPServletFactory {
 			return false;
 		}
 
-		private Tracked(
-			String symbolicName, VersionRange versionRange,
-			List<String> paths) {
-
+		private Tracked(String symbolicName, VersionRange versionRange) {
 			_symbolicName = symbolicName;
 			_versionRange = versionRange;
-			_paths = paths;
 		}
 
-		private final List<String> _paths;
 		private final String _symbolicName;
 		private final VersionRange _versionRange;
 

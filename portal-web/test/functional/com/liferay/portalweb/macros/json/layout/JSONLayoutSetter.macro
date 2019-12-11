@@ -8,6 +8,14 @@ definition {
 		return "${column}";
 	}
 
+	macro setFriendlyURL {
+		if (!(isSet(friendlyURL))) {
+			var friendlyURL = "";
+		}
+
+		return "${friendlyURL}";
+	}
+
 	macro setGroupId {
 		JSONUtil2._exclusiveOrCheck(
 			A = "${groupName}",
@@ -20,7 +28,7 @@ definition {
 		else if (isSet(groupKey)) {
 			var site = JSONLayoutSetter.setSite(site = "${site}");
 
-			var groupId = JSONGroupAPI._getGroupIdByGroupKey(groupKey = "${groupKey}", site = "${site}");
+			var groupId = JSONGroupAPI._getGroupIdByGroupKey(groupKey = "${groupKey}", site = "${site}", parentGroupName = "${parentGroupName}", grandParentGroupName = "${grandParentGroupName}");
 		}
 
 		return "${groupId}";
@@ -61,6 +69,18 @@ definition {
 		}
 
 		return "${privateLayout}";
+	}
+
+	macro setServiceContext {
+		if (!(isSet(serviceContext))) {
+			var serviceContext = JSONServiceContextUtil.setServiceContext(
+				addGuestPermissions = "true",
+				assetCategoryIds = "${assetCategoryIds}",
+				assetTagNames = "${assetTagNames}",
+				workflowAction = "${workflowAction}");
+		}
+
+		return "${serviceContext}";
 	}
 
 	macro setSite {

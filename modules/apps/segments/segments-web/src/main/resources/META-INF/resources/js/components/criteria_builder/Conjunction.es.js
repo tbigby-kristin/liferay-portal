@@ -13,65 +13,87 @@
  */
 
 import ClayButton from '@clayui/button';
+import ClayDropdown from '@clayui/drop-down';
+import ClayIcon from '@clayui/icon';
 import getCN from 'classnames';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, {useState, useEffect} from 'react';
+
 import {conjunctionShape} from '../../utils/types.es';
 
-class Conjunction extends React.Component {
-	static propTypes = {
-		className: PropTypes.string,
-		conjunctionName: PropTypes.string.isRequired,
-		editing: PropTypes.bool.isRequired,
-		onClick: PropTypes.func,
-		supportedConjunctions: PropTypes.arrayOf(conjunctionShape)
-	};
+function Conjunction({
+	className,
+	conjunctionName,
+	editing,
+	onSelect,
+	supportedConjunctions = []
+}) {
+	const [active, setActive] = useState(false);
 
-	_getConjunctionLabel(conjunctionName, conjunctions) {
-		const conjunction = conjunctions.find(
-			({name}) => name === conjunctionName
+	const classnames = getCN(
+		{
+			'conjunction-button': editing,
+			'conjunction-label': !editing
+		},
+		className
+	);
+
+	const [activeLabel, setActiveLabel] = useState(null);
+	useEffect(() => {
+		const selectedConjunction = supportedConjunctions.find(
+			c => c.name === conjunctionName
 		);
 
-		return conjunction ? conjunction.label : undefined;
+		setActiveLabel(selectedConjunction.label);
+	}, [conjunctionName, supportedConjunctions]);
+
+	function _handleItemClick(conjunctionName) {
+		setActive(false);
+
+		onSelect(conjunctionName);
 	}
 
-	render() {
-		const {
-			className,
-			conjunctionName,
-			editing,
-			onClick,
-			supportedConjunctions
-		} = this.props;
-
-		const classnames = getCN(
-			{
-				'btn-sm conjunction-button': editing,
-				'conjunction-label': !editing
-			},
-			className
-		);
-
-		return editing ? (
-			<ClayButton
-				className={classnames}
-				displayType="secondary"
-				onClick={onClick}
-			>
-				{this._getConjunctionLabel(
-					conjunctionName,
-					supportedConjunctions
-				)}
-			</ClayButton>
-		) : (
-			<div className={classnames}>
-				{this._getConjunctionLabel(
-					conjunctionName,
-					supportedConjunctions
-				)}
-			</div>
-		);
-	}
+	return editing ? (
+		<ClayDropdown
+			active={active}
+			className={classnames}
+			onActiveChange={setActive}
+			trigger={
+				<ClayButton
+					className="text-capitalize"
+					displayType="secondary"
+					small
+				>
+					{activeLabel}
+					<ClayIcon className="ml-2" symbol="caret-bottom" />
+				</ClayButton>
+			}
+		>
+			<ClayDropdown.ItemList>
+				{supportedConjunctions.map(conjunction => {
+					return (
+						<ClayDropdown.Item
+							className="text-capitalize"
+							key={conjunction.name}
+							onClick={() => _handleItemClick(conjunction.name)}
+						>
+							{conjunction.label}
+						</ClayDropdown.Item>
+					);
+				})}
+			</ClayDropdown.ItemList>
+		</ClayDropdown>
+	) : (
+		<div className={classnames}>{activeLabel}</div>
+	);
 }
+
+Conjunction.propTypes = {
+	className: PropTypes.string,
+	conjunctionName: PropTypes.string.isRequired,
+	editing: PropTypes.bool.isRequired,
+	onSelect: PropTypes.func.isRequired,
+	supportedConjunctions: PropTypes.arrayOf(conjunctionShape)
+};
 
 export default Conjunction;

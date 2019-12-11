@@ -29,6 +29,7 @@
 	{@param? tip: string}
 	{@param? tooltip: string}
 	{@param? valid: bool}
+	{@param? value: string}
 	{@param? visible: bool}
 
 	{call FieldBase.render}
@@ -51,7 +52,7 @@
 				{param placeholder: $placeholder /}
 				{param predefinedValue: $predefinedValue /}
 				{param readOnly: $readOnly /}
-				{param value: $_value /}
+				{param value: isNonnull($_value) ? $_value : $value /}
 			{/call}
 		{/param}
 		{param displayErrors: $displayErrors /}
@@ -129,21 +130,25 @@
 		<textarea {$attributes}>{$inputValue}</textarea>
 	{elseif ($displayStyle == 'singleline' and $readOnly) or not($autocompleteEnabled)}
 		<input {$attributes}>
-	{elseif $autocompleteEnabled and isNonnull($options) and length($options) > 0}
-		{call ClayAutocomplete.render}
-			{param dataSource: $options /}
-			{param events: [
-				'itemSelected': $_handleAutocompleteSelected,
-				'inputOnFocus': $_handleAutocompleteFieldFocused,
-				'inputOnBlur': $_handleAutocompleteFieldBlurred,
-				'inputChange': $_handleAutocompleteFieldChanged,
-				'filteredItemsChanged': $_handleAutocompleteFilteredItemsChanged
-			] /}
-			{param filteredItems: $filteredItems /}
-			{param ref: 'autocomplete'/}
-			{param inputValue: $value /}
-			{param inputName: $name /}
-		{/call}
+	{elseif $autocompleteEnabled and isNonnull($options)}
+		{if length($options) == 0}
+			<input {$attributes}>
+		{else}
+			{call ClayAutocomplete.render}
+				{param dataSource: $options /}
+				{param events: [
+					'itemSelected': $_handleAutocompleteSelected,
+					'inputOnFocus': $_handleAutocompleteFieldFocused,
+					'inputOnBlur': $_handleAutocompleteFieldBlurred,
+					'inputChange': $_handleAutocompleteFieldChanged,
+					'filteredItemsChanged': $_handleAutocompleteFilteredItemsChanged
+				] /}
+				{param filteredItems: $filteredItems /}
+				{param ref: 'autocomplete'/}
+				{param inputValue: $value /}
+				{param inputName: $name /}
+			{/call}
+		{/if}
 	{/if}
 
 {/template}

@@ -27,7 +27,7 @@ definition {
 				userLoginEmailAddress = "test@liferay.com",
 				userLoginFullName = "Test Test");
 
-			User.tearDownCP();
+			JSONUser.tearDownNonAdminUsers();
 
 			UserGroup.tearDownCP();
 
@@ -55,6 +55,11 @@ definition {
 			menuItem = "Manage",
 			rowEntry = "Site Template Name");
 
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Page Templates");
+
 		NavItem.gotoPageTemplates();
 
 		PageTemplatesAdmin.addCollection(collectionName = "Page Template Collection");
@@ -81,6 +86,11 @@ definition {
 			panel = "Site Administration",
 			portlet = "Pages");
 
+		ProductMenu.gotoPortlet(
+			category = "Site Builder",
+			panel = "Site Administration",
+			portlet = "Page Templates");
+
 		NavItem.gotoPageTemplates();
 
 		Navigator.gotoNavNested(navNested = "Page Template Collection");
@@ -93,6 +103,8 @@ definition {
 	@description = "This is a use case for LPS-51432 and LPS-95113."
 	@priority = "4"
 	test AdminCanNotAddASubpageOfAChildPageLinkedToSiteTemplatePage {
+		property test.name.skip.portal.instance = "SitetemplatesUsecase#AdminCanNotAddASubpageOfAChildPageLinkedToSiteTemplatePage";
+
 		ProductMenu.gotoPortlet(
 			category = "Sites",
 			panel = "Control Panel",
@@ -755,12 +767,9 @@ definition {
 			locator1 = "TextInput#FRIENDLY_URL",
 			value1 = "/hello");
 
-		ProductMenu.gotoPortlet(
-			category = "Publishing",
-			panel = "Site Administration",
-			portlet = "Export");
-
-		LAR.exportSiteCP(larFileName = "Export");
+		LAR.exportSiteCP(
+			larFileName = "Export",
+			siteScopeName = "Export");
 
 		var larFileName = LAR.getLarFileName();
 

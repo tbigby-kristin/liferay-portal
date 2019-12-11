@@ -81,10 +81,10 @@ public class GenericServletResponse extends HttpServletResponseWrapper {
 	}
 
 	@Override
-	public void setContentType(String type) {
-		super.setContentType(type);
+	public void setContentType(String contentType) {
+		super.setContentType(contentType);
 
-		_contentType = type;
+		_contentType = contentType;
 	}
 
 	private long _contentLength;

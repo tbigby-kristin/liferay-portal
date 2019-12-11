@@ -22,23 +22,11 @@ export {default as AOP} from './liferay/aop/AOP.es';
 
 export {cancelDebounce, debounce} from './liferay/debounce/debounce.es';
 
-// Compat API
-
-export {default as Modal} from './liferay/compat/modal/Modal.es';
-export {default as Slider} from './liferay/compat/slider/Slider.es';
-export {default as Treeview} from './liferay/compat/treeview/Treeview.es';
-
 // Form API
 
 export {
 	default as objectToFormData
 } from './liferay/util/form/object_to_form_data.es.js';
-
-// KeyboardFocus API
-
-export {
-	default as KeyboardFocusManager
-} from './liferay/keyboard-focus/KeyboardFocusManager.es';
 
 // Liferay API
 
@@ -53,7 +41,7 @@ export {default as PortletBase} from './liferay/PortletBase.es';
 // Modal API
 
 export {
-	openSimpleInputModal
+	default as openSimpleInputModal
 } from './liferay/modal/commands/OpenSimpleInputModal.es';
 
 // PortletURL API

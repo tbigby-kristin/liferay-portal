@@ -28,6 +28,7 @@ String appBuilderRootElementId = renderResponse.getNamespace() + "-app-builder-r
 	Map<String, Object> data = new HashMap<>();
 
 	data.put("basePortletURL", basePortletURL);
+	data.put("pathFriendlyURLPublic", PortalUtil.getPathFriendlyURLPublic());
 	%>
 
 	<react:component

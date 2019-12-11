@@ -117,6 +117,8 @@ public class ShareEntryMVCActionCommand extends BaseMVCActionCommand {
 					return null;
 				});
 
+			hideDefaultSuccessMessage(actionRequest);
+
 			JSONObject jsonObject = JSONUtil.put(
 				"successMessage",
 				LanguageUtil.get(

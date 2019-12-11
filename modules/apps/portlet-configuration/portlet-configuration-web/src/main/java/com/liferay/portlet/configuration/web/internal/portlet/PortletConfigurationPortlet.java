@@ -55,6 +55,7 @@ import com.liferay.portal.kernel.settings.SettingsFactoryUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.AggregateResourceBundle;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -772,11 +773,10 @@ public class PortletConfigurationPortlet extends MVCPortlet {
 				scopeLayoutUuid, layout.getGroupId(), layout.isPrivateLayout());
 
 			if (!scopeLayout.hasScopeGroup()) {
-				Map<Locale, String> nameMap = new HashMap<>();
-
-				String name = String.valueOf(scopeLayout.getPlid());
-
-				nameMap.put(LocaleUtil.getDefault(), name);
+				Map<Locale, String> nameMap = HashMapBuilder.put(
+					LocaleUtil.getDefault(),
+					String.valueOf(scopeLayout.getPlid())
+				).build();
 
 				_groupLocalService.addGroup(
 					themeDisplay.getUserId(),

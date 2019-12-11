@@ -18,6 +18,7 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.petra.lang.HashUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,7 +34,7 @@ import java.util.Date;
  * @generated
  */
 public class AssetEntryCacheModel
-	implements CacheModel<AssetEntry>, Externalizable {
+	implements CacheModel<AssetEntry>, Externalizable, MVCCModel {
 
 	@Override
 	public boolean equals(Object obj) {
@@ -47,7 +48,9 @@ public class AssetEntryCacheModel
 
 		AssetEntryCacheModel assetEntryCacheModel = (AssetEntryCacheModel)obj;
 
-		if (entryId == assetEntryCacheModel.entryId) {
+		if ((entryId == assetEntryCacheModel.entryId) &&
+			(mvccVersion == assetEntryCacheModel.mvccVersion)) {
+
 			return true;
 		}
 
@@ -56,14 +59,30 @@ public class AssetEntryCacheModel
 
 	@Override
 	public int hashCode() {
-		return HashUtil.hash(0, entryId);
+		int hashCode = HashUtil.hash(0, entryId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
 	}
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(55);
+		StringBundler sb = new StringBundler(57);
 
-		sb.append("{entryId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ctCollectionId=");
+		sb.append(ctCollectionId);
+		sb.append(", entryId=");
 		sb.append(entryId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -115,8 +134,6 @@ public class AssetEntryCacheModel
 		sb.append(width);
 		sb.append(", priority=");
 		sb.append(priority);
-		sb.append(", viewCount=");
-		sb.append(viewCount);
 		sb.append("}");
 
 		return sb.toString();
@@ -126,6 +143,8 @@ public class AssetEntryCacheModel
 	public AssetEntry toEntityModel() {
 		AssetEntryImpl assetEntryImpl = new AssetEntryImpl();
 
+		assetEntryImpl.setMvccVersion(mvccVersion);
+		assetEntryImpl.setCtCollectionId(ctCollectionId);
 		assetEntryImpl.setEntryId(entryId);
 		assetEntryImpl.setGroupId(groupId);
 		assetEntryImpl.setCompanyId(companyId);
@@ -239,7 +258,6 @@ public class AssetEntryCacheModel
 		assetEntryImpl.setHeight(height);
 		assetEntryImpl.setWidth(width);
 		assetEntryImpl.setPriority(priority);
-		assetEntryImpl.setViewCount(viewCount);
 
 		assetEntryImpl.resetOriginalValues();
 
@@ -248,6 +266,10 @@ public class AssetEntryCacheModel
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
+		ctCollectionId = objectInput.readLong();
+
 		entryId = objectInput.readLong();
 
 		groupId = objectInput.readLong();
@@ -285,12 +307,14 @@ public class AssetEntryCacheModel
 		width = objectInput.readInt();
 
 		priority = objectInput.readDouble();
-
-		viewCount = objectInput.readInt();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput) throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
+		objectOutput.writeLong(ctCollectionId);
+
 		objectOutput.writeLong(entryId);
 
 		objectOutput.writeLong(groupId);
@@ -377,10 +401,10 @@ public class AssetEntryCacheModel
 		objectOutput.writeInt(width);
 
 		objectOutput.writeDouble(priority);
-
-		objectOutput.writeInt(viewCount);
 	}
 
+	public long mvccVersion;
+	public long ctCollectionId;
 	public long entryId;
 	public long groupId;
 	public long companyId;
@@ -407,6 +431,5 @@ public class AssetEntryCacheModel
 	public int height;
 	public int width;
 	public double priority;
-	public int viewCount;
 
 }

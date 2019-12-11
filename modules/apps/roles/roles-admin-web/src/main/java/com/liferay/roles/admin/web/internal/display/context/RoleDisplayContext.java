@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.service.RoleServiceUtil;
 import com.liferay.portal.kernel.service.permission.RolePermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -36,7 +37,6 @@ import com.liferay.roles.admin.web.internal.role.type.contributor.RoleTypeContri
 import com.liferay.roles.admin.web.internal.role.type.contributor.util.RoleTypeContributorRetrieverUtil;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -275,8 +275,6 @@ public class RoleDisplayContext {
 
 		Role role = RoleServiceUtil.fetchRole(roleId);
 
-		Map<String, String> tabsURLs = new HashMap<>();
-
 		PortletURL assignMembersURL = _renderResponse.createRenderURL();
 
 		assignMembersURL.setParameter("mvcPath", "/edit_role_assignments.jsp");
@@ -284,8 +282,6 @@ public class RoleDisplayContext {
 		assignMembersURL.setParameter("redirect", backURL);
 		assignMembersURL.setParameter(
 			"roleId", String.valueOf(role.getRoleId()));
-
-		tabsURLs.put("assignees", assignMembersURL.toString());
 
 		PortletURL definePermissionsURL = _renderResponse.createRenderURL();
 
@@ -297,8 +293,6 @@ public class RoleDisplayContext {
 		definePermissionsURL.setParameter(
 			"roleId", String.valueOf(role.getRoleId()));
 
-		tabsURLs.put("define-permissions", definePermissionsURL.toString());
-
 		PortletURL editRoleURL = _renderResponse.createRenderURL();
 
 		editRoleURL.setParameter("mvcPath", "/edit_role.jsp");
@@ -306,13 +300,17 @@ public class RoleDisplayContext {
 		editRoleURL.setParameter("redirect", backURL);
 		editRoleURL.setParameter("roleId", String.valueOf(role.getRoleId()));
 
-		tabsURLs.put("details", editRoleURL.toString());
-
-		return tabsURLs;
+		return HashMapBuilder.put(
+			"assignees", assignMembersURL.toString()
+		).put(
+			"define-permissions", definePermissionsURL.toString()
+		).put(
+			"details", editRoleURL.toString()
+		).build();
 	}
 
 	private static final String[] _ASSIGNEE_TYPE_NAMES = {
-		"users", "sites", "organizations", "user-groups"
+		"users", "sites", "organizations", "user-groups", "segments"
 	};
 
 	private final RoleTypeContributor _currentRoleTypeContributor;

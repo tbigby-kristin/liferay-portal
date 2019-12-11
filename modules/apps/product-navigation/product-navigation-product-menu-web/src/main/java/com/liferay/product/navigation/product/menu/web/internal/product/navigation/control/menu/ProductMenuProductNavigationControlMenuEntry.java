@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.SessionClicks;
@@ -34,14 +35,13 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.product.navigation.control.menu.BaseProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
 import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
-import com.liferay.product.navigation.product.menu.web.internal.constants.ProductNavigationProductMenuPortletKeys;
+import com.liferay.product.navigation.product.menu.constants.ProductNavigationProductMenuPortletKeys;
 import com.liferay.taglib.portletext.RuntimeTag;
 import com.liferay.taglib.servlet.PageContextFactoryUtil;
 
 import java.io.IOException;
 import java.io.Writer;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -102,17 +102,15 @@ public class ProductMenuProductNavigationControlMenuEntry
 			HttpServletResponse httpServletResponse)
 		throws IOException {
 
-		Map<String, String> values = new HashMap<>();
-
-		String portletNamespace = _portal.getPortletNamespace(
-			ProductNavigationProductMenuPortletKeys.
-				PRODUCT_NAVIGATION_PRODUCT_MENU);
-
-		values.put("portletNamespace", portletNamespace);
-
-		values.put(
+		Map<String, String> values = HashMapBuilder.put(
+			"portletNamespace",
+			_portal.getPortletNamespace(
+				ProductNavigationProductMenuPortletKeys.
+					PRODUCT_NAVIGATION_PRODUCT_MENU)
+		).put(
 			"title",
-			HtmlUtil.escape(LanguageUtil.get(httpServletRequest, "menu")));
+			HtmlUtil.escape(LanguageUtil.get(httpServletRequest, "menu"))
+		).build();
 
 		String productMenuState = SessionClicks.get(
 			httpServletRequest,
@@ -202,6 +200,10 @@ public class ProductMenuProductNavigationControlMenuEntry
 				"com.liferay.product.navigation.product.menu.web_" +
 					"productMenuState",
 				"closed");
+
+			if (Objects.equals(productMenuState, "open")) {
+				productMenuState += StringPool.SPACE + "product-menu-open";
+			}
 
 			jspWriter.write(productMenuState);
 

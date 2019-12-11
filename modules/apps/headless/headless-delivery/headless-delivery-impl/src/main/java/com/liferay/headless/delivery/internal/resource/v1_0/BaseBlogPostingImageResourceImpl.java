@@ -116,7 +116,7 @@ public abstract class BaseBlogPostingImageResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's blog post images. Results can be paginated, filtered, searched, and sorted."
+		description = "Retrieves the site's blog post images. Results can be paginated, filtered, searched, and sorted."
 	)
 	@Parameters(
 		value = {

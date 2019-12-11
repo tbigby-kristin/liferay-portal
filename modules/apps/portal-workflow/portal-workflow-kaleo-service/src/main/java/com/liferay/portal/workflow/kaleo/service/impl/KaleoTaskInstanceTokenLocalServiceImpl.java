@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
@@ -58,12 +59,10 @@ import com.liferay.portal.workflow.kaleo.service.persistence.KaleoTaskInstanceTo
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -283,6 +282,24 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 
 		_kaleoTaskFormInstanceLocalService.
 			deleteKaleoInstanceKaleoTaskFormInstances(kaleoInstanceId);
+	}
+
+	@Override
+	public KaleoTaskInstanceToken deleteKaleoTaskInstanceToken(
+			long kaleoTaskInstanceTokenId)
+		throws PortalException {
+
+		KaleoTaskInstanceToken kaleoTaskInstanceToken =
+			kaleoTaskInstanceTokenPersistence.remove(kaleoTaskInstanceTokenId);
+
+		_kaleoTaskAssignmentInstanceLocalService.
+			deleteKaleoTaskAssignmentInstances(kaleoTaskInstanceToken);
+
+		_kaleoTaskFormInstanceLocalService.
+			deleteKaleoTaskInstanceTokenKaleoTaskFormInstances(
+				kaleoTaskInstanceTokenId);
+
+		return kaleoTaskInstanceToken;
 	}
 
 	@Override
@@ -817,10 +834,13 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 	protected Sort[] getSortsFromComparator(
 		OrderByComparator<KaleoTaskInstanceToken> orderByComparator) {
 
-		Stream<String> stream = Arrays.stream(
-			orderByComparator.getOrderByFields());
+		if (orderByComparator == null) {
+			return null;
+		}
 
-		return stream.map(
+		return Stream.of(
+			orderByComparator.getOrderByFields()
+		).map(
 			orderByFieldName -> {
 				String fieldName = _fieldNameOrderByCols.getOrDefault(
 					orderByFieldName, orderByFieldName);
@@ -853,54 +873,48 @@ public class KaleoTaskInstanceTokenLocalServiceImpl
 		KaleoTaskInstanceTokenLocalServiceImpl.class);
 
 	private static final Map<String, String> _fieldNameOrderByCols =
-		new HashMap<String, String>() {
-			{
-				put(
-					"completed",
-					_getSortableFieldName(
-						KaleoTaskInstanceTokenField.COMPLETED, "String"));
-				put(
-					"completionDate",
-					_getSortableFieldName(
-						KaleoTaskInstanceTokenField.COMPLETION_DATE, "Number"));
-				put(
-					"createDate",
-					_getSortableFieldName(Field.CREATE_DATE, "Number"));
-				put(
-					"dueDate",
-					_getSortableFieldName(
-						KaleoTaskInstanceTokenField.DUE_DATE, "Number"));
-				put(
-					"kaleoTaskId",
-					_getSortableFieldName(
-						KaleoTaskInstanceTokenField.KALEO_TASK_ID, "Number"));
-				put(
-					"kaleoTaskInstanceTokenId",
-					_getSortableFieldName(
-						KaleoTaskInstanceTokenField.
-							KALEO_TASK_INSTANCE_TOKEN_ID,
-						"Number"));
-				put(
-					"modifiedDate",
-					_getSortableFieldName(Field.MODIFIED_DATE, "Number"));
-				put(
-					"name",
-					_getSortableFieldName(
-						KaleoTaskInstanceTokenField.TASK_NAME, "String"));
-				put("userId", _getSortableFieldName(Field.USER_ID, "Number"));
-			}
-		};
+		HashMapBuilder.put(
+			"completed",
+			_getSortableFieldName(
+				KaleoTaskInstanceTokenField.COMPLETED, "String")
+		).put(
+			"completionDate",
+			_getSortableFieldName(
+				KaleoTaskInstanceTokenField.COMPLETION_DATE, "Number")
+		).put(
+			"createDate", _getSortableFieldName(Field.CREATE_DATE, "Number")
+		).put(
+			"dueDate",
+			_getSortableFieldName(
+				KaleoTaskInstanceTokenField.DUE_DATE, "Number")
+		).put(
+			"kaleoTaskId",
+			_getSortableFieldName(
+				KaleoTaskInstanceTokenField.KALEO_TASK_ID, "Number")
+		).put(
+			"kaleoTaskInstanceTokenId",
+			_getSortableFieldName(
+				KaleoTaskInstanceTokenField.KALEO_TASK_INSTANCE_TOKEN_ID,
+				"Number")
+		).put(
+			"modifiedDate", _getSortableFieldName(Field.MODIFIED_DATE, "Number")
+		).put(
+			"name",
+			_getSortableFieldName(
+				KaleoTaskInstanceTokenField.TASK_NAME, "String")
+		).put(
+			"userId", _getSortableFieldName(Field.USER_ID, "Number")
+		).build();
 	private static final Map<String, Integer> _fieldNameSortTypes =
-		new HashMap<String, Integer>() {
-			{
-				put(Field.CREATE_DATE, Sort.LONG_TYPE);
-				put(Field.MODIFIED_DATE, Sort.LONG_TYPE);
-				put(
-					KaleoTaskInstanceTokenField.COMPLETION_DATE,
-					Sort.LONG_TYPE);
-				put(KaleoTaskInstanceTokenField.DUE_DATE, Sort.LONG_TYPE);
-			}
-		};
+		HashMapBuilder.put(
+			Field.CREATE_DATE, Sort.LONG_TYPE
+		).put(
+			Field.MODIFIED_DATE, Sort.LONG_TYPE
+		).put(
+			KaleoTaskInstanceTokenField.COMPLETION_DATE, Sort.LONG_TYPE
+		).put(
+			KaleoTaskInstanceTokenField.DUE_DATE, Sort.LONG_TYPE
+		).build();
 
 	@Reference
 	private KaleoTaskAssignmentInstanceLocalService

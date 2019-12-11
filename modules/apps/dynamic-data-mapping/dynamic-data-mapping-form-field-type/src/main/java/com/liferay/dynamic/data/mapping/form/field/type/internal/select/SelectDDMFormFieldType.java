@@ -28,7 +28,7 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"ddm.form.field.type.data.domain=list",
 		"ddm.form.field.type.description=select-field-type-description",
-		"ddm.form.field.type.display.order:Integer=3",
+		"ddm.form.field.type.display.order:Integer=2",
 		"ddm.form.field.type.group=basic", "ddm.form.field.type.icon=list",
 		"ddm.form.field.type.label=select-field-type-label",
 		"ddm.form.field.type.name=select"

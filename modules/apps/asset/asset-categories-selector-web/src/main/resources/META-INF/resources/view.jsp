@@ -17,18 +17,18 @@
 <%@ include file="/init.jsp" %>
 
 <%
-Map<String, Object> context = new HashMap<>();
-
-context.put("itemSelectorSaveEvent", HtmlUtil.escapeJS(assetCategoriesSelectorDisplayContext.getEventName()));
-context.put("multiSelection", !assetCategoriesSelectorDisplayContext.isSingleSelect());
-context.put("namespace", liferayPortletResponse.getNamespace());
-context.put("nodes", assetCategoriesSelectorDisplayContext.getCategoriesJSONArray());
-context.put("pathThemeImages", themeDisplay.getPathThemeImages());
-context.put("viewType", "tree");
+Map<String, Object> context = HashMapBuilder.<String, Object>put(
+	"itemSelectorSaveEvent", HtmlUtil.escapeJS(assetCategoriesSelectorDisplayContext.getEventName())
+).put(
+	"multiSelection", !assetCategoriesSelectorDisplayContext.isSingleSelect()
+).put(
+	"namespace", liferayPortletResponse.getNamespace()
+).put(
+	"nodes", assetCategoriesSelectorDisplayContext.getCategoriesJSONArray()
+).build();
 %>
 
-<soy:component-renderer
-	context="<%= context %>"
+<react:component
+	data="<%= context %>"
 	module="js/SelectCategory.es"
-	templateNamespace="com.liferay.asset.categories.selector.web.SelectCategory.render"
 />

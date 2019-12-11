@@ -81,16 +81,16 @@ public class DDMStructureVersionModelImpl
 	public static final String TABLE_NAME = "DDMStructureVersion";
 
 	public static final Object[][] TABLE_COLUMNS = {
-		{"mvccVersion", Types.BIGINT}, {"structureVersionId", Types.BIGINT},
-		{"groupId", Types.BIGINT}, {"companyId", Types.BIGINT},
-		{"userId", Types.BIGINT}, {"userName", Types.VARCHAR},
-		{"createDate", Types.TIMESTAMP}, {"structureId", Types.BIGINT},
-		{"version", Types.VARCHAR}, {"parentStructureId", Types.BIGINT},
-		{"name", Types.VARCHAR}, {"description", Types.CLOB},
-		{"definition", Types.CLOB}, {"storageType", Types.VARCHAR},
-		{"type_", Types.INTEGER}, {"status", Types.INTEGER},
-		{"statusByUserId", Types.BIGINT}, {"statusByUserName", Types.VARCHAR},
-		{"statusDate", Types.TIMESTAMP}
+		{"mvccVersion", Types.BIGINT}, {"ctCollectionId", Types.BIGINT},
+		{"structureVersionId", Types.BIGINT}, {"groupId", Types.BIGINT},
+		{"companyId", Types.BIGINT}, {"userId", Types.BIGINT},
+		{"userName", Types.VARCHAR}, {"createDate", Types.TIMESTAMP},
+		{"structureId", Types.BIGINT}, {"version", Types.VARCHAR},
+		{"parentStructureId", Types.BIGINT}, {"name", Types.VARCHAR},
+		{"description", Types.CLOB}, {"definition", Types.CLOB},
+		{"storageType", Types.VARCHAR}, {"type_", Types.INTEGER},
+		{"status", Types.INTEGER}, {"statusByUserId", Types.BIGINT},
+		{"statusByUserName", Types.VARCHAR}, {"statusDate", Types.TIMESTAMP}
 	};
 
 	public static final Map<String, Integer> TABLE_COLUMNS_MAP =
@@ -98,6 +98,7 @@ public class DDMStructureVersionModelImpl
 
 	static {
 		TABLE_COLUMNS_MAP.put("mvccVersion", Types.BIGINT);
+		TABLE_COLUMNS_MAP.put("ctCollectionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("structureVersionId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("groupId", Types.BIGINT);
 		TABLE_COLUMNS_MAP.put("companyId", Types.BIGINT);
@@ -119,7 +120,7 @@ public class DDMStructureVersionModelImpl
 	}
 
 	public static final String TABLE_SQL_CREATE =
-		"create table DDMStructureVersion (mvccVersion LONG default 0 not null,structureVersionId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,structureId LONG,version VARCHAR(75) null,parentStructureId LONG,name STRING null,description TEXT null,definition TEXT null,storageType VARCHAR(75) null,type_ INTEGER,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null)";
+		"create table DDMStructureVersion (mvccVersion LONG default 0 not null,ctCollectionId LONG default 0 not null,structureVersionId LONG not null,groupId LONG,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,structureId LONG,version VARCHAR(75) null,parentStructureId LONG,name STRING null,description TEXT null,definition TEXT null,storageType VARCHAR(75) null,type_ INTEGER,status INTEGER,statusByUserId LONG,statusByUserName VARCHAR(75) null,statusDate DATE null,primary key (structureVersionId, ctCollectionId))";
 
 	public static final String TABLE_SQL_DROP =
 		"drop table DDMStructureVersion";
@@ -168,6 +169,7 @@ public class DDMStructureVersionModelImpl
 		DDMStructureVersion model = new DDMStructureVersionImpl();
 
 		model.setMvccVersion(soapModel.getMvccVersion());
+		model.setCtCollectionId(soapModel.getCtCollectionId());
 		model.setStructureVersionId(soapModel.getStructureVersionId());
 		model.setGroupId(soapModel.getGroupId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -348,6 +350,12 @@ public class DDMStructureVersionModelImpl
 			(BiConsumer<DDMStructureVersion, Long>)
 				DDMStructureVersion::setMvccVersion);
 		attributeGetterFunctions.put(
+			"ctCollectionId", DDMStructureVersion::getCtCollectionId);
+		attributeSetterBiConsumers.put(
+			"ctCollectionId",
+			(BiConsumer<DDMStructureVersion, Long>)
+				DDMStructureVersion::setCtCollectionId);
+		attributeGetterFunctions.put(
 			"structureVersionId", DDMStructureVersion::getStructureVersionId);
 		attributeSetterBiConsumers.put(
 			"structureVersionId",
@@ -467,6 +475,17 @@ public class DDMStructureVersionModelImpl
 	@Override
 	public void setMvccVersion(long mvccVersion) {
 		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
+	public long getCtCollectionId() {
+		return _ctCollectionId;
+	}
+
+	@Override
+	public void setCtCollectionId(long ctCollectionId) {
+		_ctCollectionId = ctCollectionId;
 	}
 
 	@JSON
@@ -1162,6 +1181,7 @@ public class DDMStructureVersionModelImpl
 			new DDMStructureVersionImpl();
 
 		ddmStructureVersionImpl.setMvccVersion(getMvccVersion());
+		ddmStructureVersionImpl.setCtCollectionId(getCtCollectionId());
 		ddmStructureVersionImpl.setStructureVersionId(getStructureVersionId());
 		ddmStructureVersionImpl.setGroupId(getGroupId());
 		ddmStructureVersionImpl.setCompanyId(getCompanyId());
@@ -1266,6 +1286,8 @@ public class DDMStructureVersionModelImpl
 			new DDMStructureVersionCacheModel();
 
 		ddmStructureVersionCacheModel.mvccVersion = getMvccVersion();
+
+		ddmStructureVersionCacheModel.ctCollectionId = getCtCollectionId();
 
 		ddmStructureVersionCacheModel.structureVersionId =
 			getStructureVersionId();
@@ -1441,6 +1463,7 @@ public class DDMStructureVersionModelImpl
 	private static boolean _finderCacheEnabled;
 
 	private long _mvccVersion;
+	private long _ctCollectionId;
 	private long _structureVersionId;
 	private long _groupId;
 	private long _companyId;

@@ -30,11 +30,11 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portlet.asset.util.AssetVocabularySettingsHelper;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -81,15 +81,15 @@ public class AssetTestUtil {
 			long groupId, long vocabularyId, long parentCategoryId)
 		throws Exception {
 
-		Map<Locale, String> titleMap = new HashMap<>();
-
 		Locale locale = LocaleUtil.getSiteDefault();
 
-		titleMap.put(locale, RandomTestUtil.randomString());
+		Map<Locale, String> titleMap = HashMapBuilder.put(
+			locale, RandomTestUtil.randomString()
+		).build();
 
-		Map<Locale, String> descriptionMap = new HashMap<>();
-
-		descriptionMap.put(locale, RandomTestUtil.randomString());
+		Map<Locale, String> descriptionMap = HashMapBuilder.put(
+			locale, RandomTestUtil.randomString()
+		).build();
 
 		String[] categoryProperties = null;
 
@@ -132,15 +132,15 @@ public class AssetTestUtil {
 			long groupId, long classNameId, long classTypePK, boolean required)
 		throws Exception {
 
-		Map<Locale, String> titleMap = new HashMap<>();
-
 		Locale locale = LocaleUtil.getSiteDefault();
 
-		titleMap.put(locale, RandomTestUtil.randomString());
+		Map<Locale, String> titleMap = HashMapBuilder.put(
+			locale, RandomTestUtil.randomString()
+		).build();
 
-		Map<Locale, String> descriptionMap = new HashMap<>();
-
-		descriptionMap.put(locale, RandomTestUtil.randomString());
+		Map<Locale, String> descriptionMap = HashMapBuilder.put(
+			locale, RandomTestUtil.randomString()
+		).build();
 
 		AssetVocabularySettingsHelper vocabularySettingsHelper =
 			new AssetVocabularySettingsHelper();

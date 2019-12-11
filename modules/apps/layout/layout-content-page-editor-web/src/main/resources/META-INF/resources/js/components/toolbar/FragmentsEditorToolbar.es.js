@@ -13,15 +13,20 @@
  */
 
 import Component from 'metal-component';
-import {Config} from 'metal-state';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
+
+import 'clay-label';
 
 import './TranslationStatus.es';
+
 import './SegmentsExperienceSelector.es';
+
+import './ExperimentsLabel.es';
+import {TOGGLE_SIDEBAR} from '../../actions/actions.es';
 import getConnectedComponent from '../../store/ConnectedComponent.es';
 import {setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
 import templates from './FragmentsEditorToolbar.soy';
-import {TOGGLE_SIDEBAR} from '../../actions/actions.es';
 
 /**
  * FragmentsEditorToolbar
@@ -53,6 +58,22 @@ class FragmentsEditorToolbar extends Component {
 	 * @inheritdoc
 	 * @review
 	 */
+	syncLayoutData() {
+		this._checkPublishButtonState();
+	}
+
+	/**
+	 * @inheritdoc
+	 * @review
+	 */
+	syncLastSaveDate() {
+		this._checkPublishButtonState();
+	}
+
+	/**
+	 * @inheritdoc
+	 * @review
+	 */
 	created() {
 		this._handleWindowOffline = this._handleWindowOffline.bind(this);
 		this._updateOnlineStatus = this._updateOnlineStatus.bind(this);
@@ -68,6 +89,12 @@ class FragmentsEditorToolbar extends Component {
 	disposed() {
 		window.removeEventListener('offline', this._handleWindowOffline);
 		window.removeEventListener('online', this._updateOnlineStatus);
+	}
+
+	_checkPublishButtonState() {
+		requestAnimationFrame(() => {
+			this._publishButtonEnabled = this._online;
+		});
 	}
 
 	/**
@@ -147,7 +174,29 @@ FragmentsEditorToolbar.STATE = {
 	 */
 	_online: Config.bool()
 		.internal()
-		.value(true)
+		.value(true),
+
+	/**
+	 * If the publish button should be enabled
+	 * @default true
+	 * @instance
+	 * @memberof FragmentsEditorToolbar
+	 * @private
+	 * @review
+	 * @type {boolean}
+	 */
+	_publishButtonEnabled: Config.bool()
+		.internal()
+		.value(true),
+
+	/**
+	 * If the page is in Draft status
+	 * @instance
+	 * @memberof FragmentsEditorToolbar
+	 * @review
+	 * @type {boolean}
+	 */
+	draft: Config.bool()
 };
 
 const ConnectedFragmentsEditorToolbar = getConnectedComponent(
@@ -156,8 +205,11 @@ const ConnectedFragmentsEditorToolbar = getConnectedComponent(
 		'classPK',
 		'discardDraftRedirectURL',
 		'discardDraftURL',
+		'hasUpdatePermissions',
 		'lastSaveDate',
+		'layoutData',
 		'portletNamespace',
+		'pageType',
 		'publishURL',
 		'redirectURL',
 		'savingChanges',

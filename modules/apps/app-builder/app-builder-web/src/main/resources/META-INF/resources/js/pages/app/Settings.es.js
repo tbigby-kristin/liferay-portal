@@ -13,18 +13,19 @@
  */
 
 import React, {useContext} from 'react';
+
+import ToggleSwitch from '../../components/toggle-switch/ToggleSwitch.es';
 import EditAppContext, {
 	ADD_DEPLOYMENT,
 	REMOVE_DEPLOYMENT
 } from './EditAppContext.es';
-import ToggleSwitch from '../../components/toggle-switch/ToggleSwitch.es';
 
 export default ({deploymentType, settings = () => <></>, subtitle, title}) => {
 	const {
+		dispatch,
 		state: {
 			app: {appDeployments}
-		},
-		dispatch
+		}
 	} = useContext(EditAppContext);
 
 	const checked = appDeployments.some(
@@ -33,7 +34,7 @@ export default ({deploymentType, settings = () => <></>, subtitle, title}) => {
 
 	return (
 		<>
-			<div className="autofit-row pl-4 pr-4 mb-3">
+			<div className="autofit-row mb-3 pl-4 pr-4">
 				<div className="autofit-col-expand">
 					<section className="autofit-section">
 						<h3>{title}</h3>

@@ -14,6 +14,7 @@
 
 import 'clay-button';
 import {PortletBase, fetch} from 'frontend-js-web';
+
 import 'frontend-js-web/liferay/compat/modal/Modal.es';
 import Soy from 'metal-soy';
 import {Config} from 'metal-state';
@@ -108,6 +109,7 @@ class Flags extends PortletBase {
 
 		const formData = new FormData();
 
+		// eslint-disable-next-line no-unused-vars
 		for (const name in this.formData) {
 			formData.append(name, this.formData[name]);
 		}

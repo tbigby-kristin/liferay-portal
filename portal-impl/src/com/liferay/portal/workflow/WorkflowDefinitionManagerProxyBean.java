@@ -36,19 +36,6 @@ import java.util.List;
 public class WorkflowDefinitionManagerProxyBean
 	extends BaseProxyBean implements WorkflowDefinitionManager {
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #deployWorkflowDefinition(long, long, String, String,
-	 *             byte[])}
-	 */
-	@Deprecated
-	@Override
-	public WorkflowDefinition deployWorkflowDefinition(
-		long companyId, long userId, String title, byte[] bytes) {
-
-		throw new UnsupportedOperationException();
-	}
-
 	@Override
 	public WorkflowDefinition deployWorkflowDefinition(
 		long companyId, long userId, String title, String name, byte[] bytes) {
@@ -56,11 +43,20 @@ public class WorkflowDefinitionManagerProxyBean
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getActiveWorkflowDefinitionsCount(long)}
+	 */
+	@Deprecated
 	@Override
 	public int getActiveWorkflowDefinitionCount(long companyId) {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public int getActiveWorkflowDefinitionCount(long companyId, String name) {
 		throw new UnsupportedOperationException();
@@ -82,15 +78,8 @@ public class WorkflowDefinitionManagerProxyBean
 		throw new UnsupportedOperationException();
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getLatestWorkflowDefinition(long, String)}
-	 */
-	@Deprecated
 	@Override
-	public WorkflowDefinition getLatestKaleoDefinition(
-		long companyId, String name) {
-
+	public int getActiveWorkflowDefinitionsCount(long companyId) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -110,22 +99,40 @@ public class WorkflowDefinitionManagerProxyBean
 	}
 
 	@Override
+	public int getLatestWorkflowDefinitionsCount(long companyId) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public WorkflowDefinition getWorkflowDefinition(
 		long companyId, String name, int version) {
 
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public int getWorkflowDefinitionCount(long companyId) {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), replaced by {@link
+	 *             #getWorkflowDefinitionsCount(long, String)}
+	 */
+	@Deprecated
 	@Override
 	public int getWorkflowDefinitionCount(long companyId, String name) {
 		throw new UnsupportedOperationException();
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public List<WorkflowDefinition> getWorkflowDefinitions(
 		long companyId, int start, int end,
@@ -139,6 +146,11 @@ public class WorkflowDefinitionManagerProxyBean
 		long companyId, String name, int start, int end,
 		OrderByComparator<WorkflowDefinition> orderByComparator) {
 
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public int getWorkflowDefinitionsCount(long companyId, String name) {
 		throw new UnsupportedOperationException();
 	}
 

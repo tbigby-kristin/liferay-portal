@@ -197,6 +197,11 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 				knowledgeBaseArticle.getSiteId());
 		}
 
+		if (knowledgeBaseArticle.getSubscribed() != null) {
+			existingKnowledgeBaseArticle.setSubscribed(
+				knowledgeBaseArticle.getSubscribed());
+		}
+
 		if (knowledgeBaseArticle.getTaxonomyCategoryIds() != null) {
 			existingKnowledgeBaseArticle.setTaxonomyCategoryIds(
 				knowledgeBaseArticle.getTaxonomyCategoryIds());
@@ -351,6 +356,48 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 	/**
 	 * Invoke this method with the command line:
 	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseArticleId")
+		}
+	)
+	@Path("/knowledge-base-articles/{knowledgeBaseArticleId}/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "KnowledgeBaseArticle")})
+	public void putKnowledgeBaseArticleSubscribe(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("knowledgeBaseArticleId") Long knowledgeBaseArticleId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-articles/{knowledgeBaseArticleId}/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(
+		value = {
+			@Parameter(in = ParameterIn.PATH, name = "knowledgeBaseArticleId")
+		}
+	)
+	@Path("/knowledge-base-articles/{knowledgeBaseArticleId}/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "KnowledgeBaseArticle")})
+	public void putKnowledgeBaseArticleUnsubscribe(
+			@NotNull @Parameter(hidden = true)
+			@PathParam("knowledgeBaseArticleId") Long knowledgeBaseArticleId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
 	 * curl -X 'GET' 'http://localhost:8080/o/headless-delivery/v1.0/knowledge-base-articles/{parentKnowledgeBaseArticleId}/knowledge-base-articles'  -u 'test@liferay.com:test'
 	 */
 	@Override
@@ -363,6 +410,7 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 			@Parameter(
 				in = ParameterIn.PATH, name = "parentKnowledgeBaseArticleId"
 			),
+			@Parameter(in = ParameterIn.QUERY, name = "flatten"),
 			@Parameter(in = ParameterIn.QUERY, name = "search"),
 			@Parameter(in = ParameterIn.QUERY, name = "filter"),
 			@Parameter(in = ParameterIn.QUERY, name = "page"),
@@ -380,6 +428,8 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 				@NotNull @Parameter(hidden = true)
 				@PathParam("parentKnowledgeBaseArticleId") Long
 					parentKnowledgeBaseArticleId,
+				@Parameter(hidden = true) @QueryParam("flatten") Boolean
+					flatten,
 				@Parameter(hidden = true) @QueryParam("search") String search,
 				@Context Filter filter, @Context Pagination pagination,
 				@Context Sort[] sorts)
@@ -499,7 +549,7 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 	@Override
 	@GET
 	@Operation(
-		description = "Retrieves the Site's knowledge base articles. Results can be paginated, filtered, searched, flattened, and sorted."
+		description = "Retrieves the site's knowledge base articles. Results can be paginated, filtered, searched, flattened, and sorted."
 	)
 	@Parameters(
 		value = {
@@ -545,6 +595,38 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 		throws Exception {
 
 		return new KnowledgeBaseArticle();
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/knowledge-base-articles/subscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
+	@Path("/sites/{siteId}/knowledge-base-articles/subscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "KnowledgeBaseArticle")})
+	public void putSiteKnowledgeBaseArticleSubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId)
+		throws Exception {
+	}
+
+	/**
+	 * Invoke this method with the command line:
+	 *
+	 * curl -X 'PUT' 'http://localhost:8080/o/headless-delivery/v1.0/sites/{siteId}/knowledge-base-articles/unsubscribe'  -u 'test@liferay.com:test'
+	 */
+	@Override
+	@PUT
+	@Parameters(value = {@Parameter(in = ParameterIn.PATH, name = "siteId")})
+	@Path("/sites/{siteId}/knowledge-base-articles/unsubscribe")
+	@Produces("application/json")
+	@Tags(value = {@Tag(name = "KnowledgeBaseArticle")})
+	public void putSiteKnowledgeBaseArticleUnsubscribe(
+			@NotNull @Parameter(hidden = true) @PathParam("siteId") Long siteId)
+		throws Exception {
 	}
 
 	public void setContextAcceptLanguage(AcceptLanguage contextAcceptLanguage) {

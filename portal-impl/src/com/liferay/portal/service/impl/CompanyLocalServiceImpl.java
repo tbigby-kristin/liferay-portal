@@ -62,8 +62,6 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineHelperUtil;
 import com.liferay.portal.kernel.search.SearchException;
-import com.liferay.portal.kernel.search.facet.Facet;
-import com.liferay.portal.kernel.search.facet.ScopeFacet;
 import com.liferay.portal.kernel.search.facet.faceted.searcher.FacetedSearcher;
 import com.liferay.portal.kernel.search.facet.faceted.searcher.FacetedSearcherManagerUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -81,6 +79,7 @@ import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
+import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -100,6 +99,8 @@ import com.liferay.registry.ServiceTrackerCustomizer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.net.IDN;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -564,6 +565,11 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 		VirtualHost virtualHost = virtualHostPersistence.fetchByHostname(
 			virtualHostname);
 
+		if ((virtualHost == null) && virtualHostname.contains("xn--")) {
+			virtualHost = virtualHostPersistence.fetchByHostname(
+				IDN.toUnicode(virtualHostname));
+		}
+
 		if ((virtualHost == null) || (virtualHost.getLayoutSetId() != 0)) {
 			return null;
 		}
@@ -659,6 +665,11 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 
 			VirtualHost virtualHost = virtualHostPersistence.findByHostname(
 				virtualHostname);
+
+			if ((virtualHost == null) && virtualHostname.contains("xn--")) {
+				virtualHost = virtualHostPersistence.findByHostname(
+					IDN.toUnicode(virtualHostname));
+			}
 
 			if (virtualHost.getLayoutSetId() != 0) {
 				throw new CompanyVirtualHostException(
@@ -1216,18 +1227,6 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 	protected void addAssetEntriesFacet(SearchContext searchContext) {
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x)
-	 */
-	@Deprecated
-	protected void addScopeFacet(SearchContext searchContext) {
-		Facet scopeFacet = new ScopeFacet(searchContext);
-
-		scopeFacet.setStatic(true);
-
-		searchContext.addFacet(scopeFacet);
-	}
-
 	protected Company checkLogo(long companyId) throws PortalException {
 		Company company = companyPersistence.findByPrimaryKey(companyId);
 
@@ -1542,8 +1541,11 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 				virtualHostname);
 
 			if (virtualHost == null) {
-				virtualHostLocalService.updateVirtualHost(
-					companyId, 0, virtualHostname);
+				virtualHostLocalService.updateVirtualHosts(
+					companyId, 0,
+					TreeMapBuilder.put(
+						virtualHostname, StringPool.BLANK
+					).build());
 			}
 			else {
 				if ((virtualHost.getCompanyId() != companyId) ||
@@ -1554,11 +1556,13 @@ public class CompanyLocalServiceImpl extends CompanyLocalServiceBaseImpl {
 			}
 		}
 		else {
-			VirtualHost virtualHost = virtualHostPersistence.fetchByC_L(
+			List<VirtualHost> virtualHosts = virtualHostPersistence.findByC_L(
 				companyId, 0);
 
-			if (virtualHost != null) {
-				virtualHostPersistence.remove(virtualHost);
+			if (!virtualHosts.isEmpty()) {
+				for (VirtualHost virtualHost : virtualHosts) {
+					virtualHostPersistence.remove(virtualHost);
+				}
 			}
 		}
 

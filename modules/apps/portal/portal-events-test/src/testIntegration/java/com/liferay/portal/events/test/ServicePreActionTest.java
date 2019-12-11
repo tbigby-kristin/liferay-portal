@@ -19,6 +19,7 @@ import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.portal.events.ServicePreAction;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
@@ -219,16 +221,30 @@ public class ServicePreActionTest {
 				ActionKeys.VIEW);
 		}
 
-		if (signedIn) {
-			_user = UserTestUtil.addUser();
-		}
-		else {
-			_user = _portal.initUser(_request);
-		}
+		try {
+			if (signedIn) {
+				_user = UserTestUtil.addUser();
+			}
+			else {
+				_user = _portal.initUser(_request);
+			}
 
-		_request.setAttribute(WebKeys.USER, _user);
+			_request.setAttribute(WebKeys.USER, _user);
 
-		_servicePreAction.run(_request, _response);
+			_servicePreAction.run(_request, _response);
+		}
+		finally {
+			if (!hasGuestViewPermission) {
+				ResourceAction resourceAction =
+					_resourceActionLocalService.getResourceAction(
+						Layout.class.getName(), ActionKeys.VIEW);
+
+				_resourcePermissionLocalService.addResourcePermissions(
+					Layout.class.getName(), RoleConstants.GUEST,
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					resourceAction.getBitwiseValue());
+			}
+		}
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)_request.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -247,6 +263,9 @@ public class ServicePreActionTest {
 
 	private final MockHttpServletRequest _request =
 		new MockHttpServletRequest();
+
+	@Inject
+	private ResourceActionLocalService _resourceActionLocalService;
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;

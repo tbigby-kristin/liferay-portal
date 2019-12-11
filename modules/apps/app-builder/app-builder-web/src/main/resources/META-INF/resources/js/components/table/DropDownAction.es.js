@@ -33,7 +33,7 @@ export default ({action: {action, name}, item, setActive}) => {
 				}
 			}}
 		>
-			{name}
+			{typeof name === 'function' ? name(item) : name}
 		</Item>
 	);
 };

@@ -36,6 +36,7 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -52,6 +53,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Keyword {
 
 	@Schema(description = "The keyword's creator.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -75,7 +77,7 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The keyword's creator.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
@@ -103,7 +105,7 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The keyword's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -131,7 +133,7 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The keyword's most recent modification date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -157,7 +159,7 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The keyword's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -187,7 +189,9 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The number of times this keyword has been used with other assets."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer keywordUsageCount;
 
@@ -213,7 +217,7 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The keyword's name.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	@NotEmpty
 	protected String name;
@@ -242,7 +246,9 @@ public class Keyword {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The ID of the site to which this keyword is scoped."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long siteId;
 
@@ -362,6 +368,12 @@ public class Keyword {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.taxonomy.dto.v1_0.Keyword",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

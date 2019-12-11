@@ -13,29 +13,29 @@
  */
 
 import Component from 'metal-component';
-import {Config} from 'metal-state';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
 
 import './FloatingToolbarLayoutBackgroundImagePanelDelegateTemplate.soy';
+import {ADD_MAPPED_INFO_ITEM} from '../../../actions/actions.es';
+import {updateRowConfigAction} from '../../../actions/updateRowConfig.es';
+import {getConnectedComponent} from '../../../store/ConnectedComponent.es';
 import {
-	MAPPING_SOURCE_TYPE_IDS,
-	COMPATIBLE_TYPES
-} from '../../../utils/constants';
-import {encodeAssetId} from '../../../utils/FragmentsEditorIdUtils.es';
+	openItemSelector,
+	openImageSelector
+} from '../../../utils/FragmentsEditorDialogUtils';
 import {
 	getAssetMappingFields,
 	getStructureMappingFields
 } from '../../../utils/FragmentsEditorFetchUtils.es';
-import {getConnectedComponent} from '../../../store/ConnectedComponent.es';
 import {getMappingSourceTypes} from '../../../utils/FragmentsEditorGetUtils.es';
-import {
-	openAssetBrowser,
-	openImageSelector
-} from '../../../utils/FragmentsEditorDialogUtils';
+import {encodeAssetId} from '../../../utils/FragmentsEditorIdUtils.es';
 import {setIn} from '../../../utils/FragmentsEditorUpdateUtils.es';
+import {
+	MAPPING_SOURCE_TYPE_IDS,
+	COMPATIBLE_TYPES
+} from '../../../utils/constants';
 import templates from './FloatingToolbarLayoutBackgroundImagePanel.soy';
-import {ADD_MAPPED_ASSET_ENTRY} from '../../../actions/actions.es';
-import {updateRowConfigAction} from '../../../actions/updateRowConfig.es';
 
 const IMAGE_SOURCE_TYPE_IDS = {
 	content: 'content_mapping',
@@ -113,8 +113,8 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 
 		nextState = setIn(
 			nextState,
-			['mappedAssetEntries'],
-			nextState.mappedAssetEntries.map(encodeAssetId)
+			['mappedInfoItems'],
+			nextState.mappedInfoItems.map(encodeAssetId)
 		);
 
 		nextState = setIn(
@@ -140,23 +140,23 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 		}
 
 		if (
-			nextState.mappedAssetEntries &&
-			nextState._selectedAssetEntry &&
-			nextState._selectedAssetEntry.classNameId &&
-			nextState._selectedAssetEntry.classPK
+			nextState.mappedInfoItems &&
+			nextState._selectedInfoItem &&
+			nextState._selectedInfoItem.classNameId &&
+			nextState._selectedInfoItem.classPK
 		) {
-			const mappedAssetEntry = nextState.mappedAssetEntries.find(
-				assetEntry =>
-					nextState._selectedAssetEntry.classNameId ===
-						assetEntry.classNameId &&
-					nextState._selectedAssetEntry.classPK === assetEntry.classPK
+			const mappedInfoItem = nextState.mappedInfoItems.find(
+				infoItem =>
+					nextState._selectedInfoItem.classNameId ===
+						infoItem.classNameId &&
+					nextState._selectedInfoItem.classPK === infoItem.classPK
 			);
 
-			if (mappedAssetEntry) {
+			if (mappedInfoItem) {
 				nextState = setIn(
 					nextState,
 					['item', 'config', 'title'],
-					mappedAssetEntry.title
+					mappedInfoItem.title
 				);
 			}
 		}
@@ -174,8 +174,8 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 			if (this.item.config.backgroundImage) {
 				const {backgroundImage} = this.item.config;
 
-				this._selectedAssetEntry.classNameId = this.item.config.backgroundImage.classNameId;
-				this._selectedAssetEntry.classPK = this.item.config.backgroundImage.classPK;
+				this._selectedInfoItem.classNameId = this.item.config.backgroundImage.classNameId;
+				this._selectedInfoItem.classPK = this.item.config.backgroundImage.classPK;
 
 				this._selectedImageSourceTypeId =
 					backgroundImage.classNameId || backgroundImage.mappedField
@@ -265,23 +265,12 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 	}
 
 	/**
-	 * @param {MouseEvent} event
 	 * @private
 	 * @review
 	 */
-	_handleAssetBrowserLinkClick(event) {
-		const {
-			assetBrowserUrl,
-			assetBrowserWindowTitle
-		} = event.delegateTarget.dataset;
-
-		openAssetBrowser({
-			assetBrowserURL: assetBrowserUrl,
-			callback: selectedAssetEntry => {
-				this._selectAssetEntry(selectedAssetEntry);
-			},
-			eventName: `${this.portletNamespace}selectAsset`,
-			modalTitle: assetBrowserWindowTitle
+	_handleAssetBrowserLinkClick() {
+		openItemSelector(selectedInfoItem => {
+			this._selectInfoItem(selectedInfoItem);
 		});
 	}
 
@@ -290,10 +279,10 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 	 * @private
 	 * @review
 	 */
-	_handleAssetEntryLinkClick(event) {
+	_handleInfoItemLinkClick(event) {
 		const data = event.delegateTarget.dataset;
 
-		this._selectAssetEntry({
+		this._selectInfoItem({
 			classNameId: data.classNameId,
 			classPK: data.classPk
 		});
@@ -317,11 +306,7 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 	 * @review
 	 */
 	_handleSelectButtonClick() {
-		openImageSelector({
-			callback: image => this._updateRowBackgroundImage(image),
-			imageSelectorURL: this.imageSelectorURL,
-			portletNamespace: this.portletNamespace
-		});
+		openImageSelector(image => this._updateRowBackgroundImage(image));
 	}
 
 	/**
@@ -390,12 +375,12 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 		} else if (
 			this._selectedMappingSourceTypeId ===
 				MAPPING_SOURCE_TYPE_IDS.content &&
-			this._selectedAssetEntry.classNameId &&
-			this._selectedAssetEntry.classPK
+			this._selectedInfoItem.classNameId &&
+			this._selectedInfoItem.classPK
 		) {
 			promise = getAssetMappingFields(
-				this._selectedAssetEntry.classNameId,
-				this._selectedAssetEntry.classPK
+				this._selectedInfoItem.classNameId,
+				this._selectedInfoItem.classPK
 			);
 		}
 
@@ -412,20 +397,19 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 	}
 
 	/**
-	 * @param {object} assetEntry
-	 * @param {string} assetEntry.classNameId
-	 * @param {string} assetEntry.classPK
+	 * @param {object} infoItem
+	 * @param {string} infoItem.classNameId
+	 * @param {string} infoItem.classPK
 	 * @private
 	 * @review
 	 */
-	_selectAssetEntry(assetEntry) {
-		this._selectedAssetEntry = assetEntry;
+	_selectInfoItem(infoItem) {
+		this._selectedInfoItem = infoItem;
 
-		this.store.dispatch(
-			Object.assign({}, this._selectedAssetEntry, {
-				type: ADD_MAPPED_ASSET_ENTRY
-			})
-		);
+		this.store.dispatch({
+			...this._selectedInfoItem,
+			type: ADD_MAPPED_INFO_ITEM
+		});
 
 		this._loadFields();
 	}
@@ -440,8 +424,8 @@ class FloatingToolbarLayoutBackgroundImagePanel extends Component {
 			this._selectedMappingSourceTypeId ===
 			MAPPING_SOURCE_TYPE_IDS.content
 				? {
-						classNameId: this._selectedAssetEntry.classNameId,
-						classPK: this._selectedAssetEntry.classPK,
+						classNameId: this._selectedInfoItem.classNameId,
+						classPK: this._selectedInfoItem.classPK,
 						fieldId
 				  }
 				: {mappedField: fieldId};
@@ -503,9 +487,9 @@ FloatingToolbarLayoutBackgroundImagePanel.STATE = {
 	 * @review
 	 * @type {string}
 	 */
-	_selectedAssetEntry: Config.object()
-		.internal()
-		.value({}),
+	_selectedImageSourceTypeId: Config.oneOf(
+		Object.values(IMAGE_SOURCE_TYPE_IDS)
+	).internal(),
 
 	/**
 	 * @default undefined
@@ -513,9 +497,9 @@ FloatingToolbarLayoutBackgroundImagePanel.STATE = {
 	 * @review
 	 * @type {string}
 	 */
-	_selectedImageSourceTypeId: Config.oneOf(
-		Object.values(IMAGE_SOURCE_TYPE_IDS)
-	).internal(),
+	_selectedInfoItem: Config.object()
+		.internal()
+		.value({}),
 
 	/**
 	 * @default undefined
@@ -546,14 +530,7 @@ FloatingToolbarLayoutBackgroundImagePanel.STATE = {
 
 const ConnectedFloatingToolbarLayoutBackgroundImagePanel = getConnectedComponent(
 	FloatingToolbarLayoutBackgroundImagePanel,
-	[
-		'assetBrowserLinks',
-		'imageSelectorURL',
-		'mappedAssetEntries',
-		'mappingFieldsURL',
-		'portletNamespace',
-		'selectedMappingTypes'
-	]
+	['mappedInfoItems', 'mappingFieldsURL', 'selectedMappingTypes']
 );
 
 Soy.register(ConnectedFloatingToolbarLayoutBackgroundImagePanel, templates);

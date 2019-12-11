@@ -18,7 +18,6 @@ import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.exportimport.configuration.ExportImportServiceConfiguration;
 import com.liferay.exportimport.constants.ExportImportBackgroundTaskContextMapConstants;
 import com.liferay.exportimport.kernel.lar.DefaultConfigurationPortletDataHandler;
-import com.liferay.exportimport.kernel.lar.ExportImportDateUtil;
 import com.liferay.exportimport.kernel.lar.ExportImportHelper;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.lar.ManifestSummary;
@@ -73,14 +72,13 @@ import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.SystemEventLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
-import com.liferay.portal.kernel.util.DateRange;
 import com.liferay.portal.kernel.util.Digester;
 import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LongWrapper;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -106,7 +104,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -118,7 +115,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Stream;
 
-import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 
 import org.osgi.service.component.annotations.Activate;
@@ -163,21 +159,6 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		}
 
 		return layoutIdMap;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), moved to {@link
-	 *             ExportImportDateUtil#getCalendar(PortletRequest, String,
-	 *             boolean)}
-	 */
-	@Deprecated
-	@Override
-	public Calendar getCalendar(
-		PortletRequest portletRequest, String paramPrefix,
-		boolean timeZoneSensitive) {
-
-		return ExportImportDateUtil.getCalendar(
-			portletRequest, paramPrefix, timeZoneSensitive);
 	}
 
 	@Override
@@ -233,34 +214,6 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		return dataSiteLevelPortlets;
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), moved to {@link
-	 *             ExportImportDateUtil#getDateRange(PortletRequest, long,
-	 *             boolean, long, String, String)}
-	 */
-	@Deprecated
-	@Override
-	public DateRange getDateRange(
-			PortletRequest portletRequest, long groupId, boolean privateLayout,
-			long plid, String portletId, String defaultRange)
-		throws Exception {
-
-		return ExportImportDateUtil.getDateRange(
-			portletRequest, groupId, privateLayout, plid, portletId,
-			defaultRange);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public Layout getExportableLayout(ThemeDisplay themeDisplay)
-		throws PortalException {
-
-		return themeDisplay.getLayout();
-	}
-
 	@Override
 	public String getExportableRootPortletId(long companyId, String portletId)
 		throws Exception {
@@ -273,46 +226,6 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		}
 
 		return PortletIdCodec.decodePortletName(portletId);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getExportPortletControlsMap(long, String, Map)}
-	 */
-	@Deprecated
-	@Override
-	public boolean[] getExportPortletControls(
-			long companyId, String portletId,
-			Map<String, String[]> parameterMap)
-		throws Exception {
-
-		return getExportPortletControls(
-			companyId, portletId, parameterMap, "layout-set");
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getExportPortletControlsMap(long, String, Map, String)}
-	 */
-	@Deprecated
-	@Override
-	public boolean[] getExportPortletControls(
-			long companyId, String portletId,
-			Map<String, String[]> parameterMap, String type)
-		throws Exception {
-
-		Map<String, Boolean> exportPortletControlsMap =
-			getExportPortletControlsMap(
-				companyId, portletId, parameterMap, type);
-
-		return new boolean[] {
-			exportPortletControlsMap.get(
-				PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS),
-			exportPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_DATA),
-			exportPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_SETUP),
-			exportPortletControlsMap.get(
-				PortletDataHandlerKeys.PORTLET_USER_PREFERENCES)
-		};
 	}
 
 	@Override
@@ -331,63 +244,16 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			Map<String, String[]> parameterMap, String type)
 		throws Exception {
 
-		Map<String, Boolean> exportPortletControlsMap = new HashMap<>();
-
-		boolean exportPortletData = getExportPortletData(
-			companyId, portletId, parameterMap);
-
-		exportPortletControlsMap.put(
-			PortletDataHandlerKeys.PORTLET_DATA, exportPortletData);
+		Map<String, Boolean> exportPortletControlsMap = HashMapBuilder.put(
+			PortletDataHandlerKeys.PORTLET_DATA,
+			getExportPortletData(companyId, portletId, parameterMap)
+		).build();
 
 		exportPortletControlsMap.putAll(
 			getExportPortletSetupControlsMap(
 				companyId, portletId, parameterMap, type));
 
 		return exportPortletControlsMap;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getImportPortletControlsMap(long, String, Map, Element,
-	 *             ManifestSummary)}
-	 */
-	@Deprecated
-	@Override
-	public boolean[] getImportPortletControls(
-			long companyId, String portletId,
-			Map<String, String[]> parameterMap, Element portletDataElement)
-		throws Exception {
-
-		return getImportPortletControls(
-			companyId, portletId, parameterMap, portletDataElement, null);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getImportPortletControlsMap(long, String, Map, Element,
-	 *             ManifestSummary)}
-	 */
-	@Deprecated
-	@Override
-	public boolean[] getImportPortletControls(
-			long companyId, String portletId,
-			Map<String, String[]> parameterMap, Element portletDataElement,
-			ManifestSummary manifestSummary)
-		throws Exception {
-
-		Map<String, Boolean> importPortletControlsMap =
-			getImportPortletControlsMap(
-				companyId, portletId, parameterMap, portletDataElement,
-				manifestSummary);
-
-		return new boolean[] {
-			importPortletControlsMap.get(
-				PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS),
-			importPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_DATA),
-			importPortletControlsMap.get(PortletDataHandlerKeys.PORTLET_SETUP),
-			importPortletControlsMap.get(
-				PortletDataHandlerKeys.PORTLET_USER_PREFERENCES)
-		};
 	}
 
 	@Override
@@ -397,13 +263,11 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 			ManifestSummary manifestSummary)
 		throws Exception {
 
-		boolean importCurPortletData = getImportPortletData(
-			companyId, portletId, parameterMap, portletDataElement);
-
-		Map<String, Boolean> importPortletControlsMap = new HashMap<>();
-
-		importPortletControlsMap.put(
-			PortletDataHandlerKeys.PORTLET_DATA, importCurPortletData);
+		Map<String, Boolean> importPortletControlsMap = HashMapBuilder.put(
+			PortletDataHandlerKeys.PORTLET_DATA,
+			getImportPortletData(
+				companyId, portletId, parameterMap, portletDataElement)
+		).build();
 
 		importPortletControlsMap.putAll(
 			getImportPortletSetupControlsMap(
@@ -598,35 +462,6 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		String fileName = _getZipWriterFileName(String.valueOf(groupId));
 
 		return getZipWriter(fileName);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #getManifestSummary(PortletDataContext)}
-	 */
-	@Deprecated
-	@Override
-	public ManifestSummary getManifestSummary(
-			long userId, long groupId, Map<String, String[]> parameterMap,
-			File file)
-		throws Exception {
-
-		final Group group = _groupLocalService.getGroup(groupId);
-		String userIdStrategy = MapUtil.getString(
-			parameterMap, PortletDataHandlerKeys.USER_ID_STRATEGY);
-		ZipReader zipReader = ZipReaderFactoryUtil.getZipReader(file);
-
-		PortletDataContext portletDataContext =
-			_portletDataContextFactory.createImportPortletDataContext(
-				group.getCompanyId(), groupId, parameterMap,
-				getUserIdStrategy(userId, userIdStrategy), zipReader);
-
-		try {
-			return getManifestSummary(portletDataContext);
-		}
-		finally {
-			zipReader.close();
-		}
 	}
 
 	@Override
@@ -997,240 +832,6 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		}
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.exportimport.content.processor.ExportImportContentProcessor#replaceExportContentReferences(
-	 *             PortletDataContext, StagedModel, String, boolean, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportContentReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, Element entityElement,
-			String content, boolean exportReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.exportimport.content.processor.ExportImportContentProcessor#replaceExportContentReferences(
-	 *             PortletDataContext, StagedModel, String, boolean, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportContentReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content,
-			boolean exportReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.exportimport.content.processor.ExportImportContentProcessor#replaceExportContentReferences(
-	 *             PortletDataContext, StagedModel, String, boolean, boolean)}
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportContentReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content,
-			boolean exportReferencedContent, boolean escapeContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportDLReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, Element entityElement,
-			String content, boolean exportReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportDLReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content,
-			boolean exportReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportLayoutReferences(
-			PortletDataContext portletDataContext, String content)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportLayoutReferences(
-			PortletDataContext portletDataContext, String content,
-			boolean exportReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportLinksToLayouts(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, Element entityElement,
-			String content, boolean exportReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceExportLinksToLayouts(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.exportimport.content.processor.ExportImportContentProcessor#replaceImportContentReferences(
-	 *             PortletDataContext, StagedModel, String)}
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportContentReferences(
-			PortletDataContext portletDataContext, Element entityElement,
-			String content, boolean importReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             com.liferay.exportimport.content.processor.ExportImportContentProcessor#replaceImportContentReferences(
-	 *             PortletDataContext, StagedModel, String)}
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportContentReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportDLReferences(
-			PortletDataContext portletDataContext, Element entityElement,
-			String content, boolean importReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportDLReferences(
-			PortletDataContext portletDataContext,
-			StagedModel entityStagedModel, String content)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportLayoutReferences(
-			PortletDataContext portletDataContext, String content)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportLayoutReferences(
-			PortletDataContext portletDataContext, String content,
-			boolean importReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportLinksToLayouts(
-			PortletDataContext portletDataContext, String content)
-		throws Exception {
-
-		return content;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	@Override
-	public String replaceImportLinksToLayouts(
-			PortletDataContext portletDataContext, String content,
-			boolean importReferencedContent)
-		throws Exception {
-
-		return content;
-	}
-
 	@Override
 	public void setPortletScope(
 		PortletDataContext portletDataContext, Element portletElement) {
@@ -1357,80 +958,6 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		}
 		catch (Exception e) {
 			_log.error(e, e);
-		}
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), see {@link
-	 *             DefaultConfigurationPortletDataHandler#updateExportPortletPreferencesClassPKs(
-	 *             PortletDataContext, Portlet, PortletPreferences, String,
-	 *             String)}
-	 */
-	@Deprecated
-	@Override
-	public void updateExportPortletPreferencesClassPKs(
-			PortletDataContext portletDataContext, Portlet portlet,
-			PortletPreferences portletPreferences, String key, String className)
-		throws Exception {
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #updateExportPortletPreferencesClassPKs(PortletDataContext,
-	 *             Portlet, PortletPreferences, String, String)}
-	 */
-	@Deprecated
-	@Override
-	public void updateExportPortletPreferencesClassPKs(
-			PortletDataContext portletDataContext, Portlet portlet,
-			PortletPreferences portletPreferences, String key, String className,
-			Element rootElement)
-		throws Exception {
-
-		updateExportPortletPreferencesClassPKs(
-			portletDataContext, portlet, portletPreferences, key, className);
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), see {@link
-	 *             DefaultConfigurationPortletDataHandler#updateImportPortletPreferencesClassPKs(
-	 *             PortletDataContext, PortletPreferences, String, Class, long)}
-	 */
-	@Deprecated
-	@Override
-	public void updateImportPortletPreferencesClassPKs(
-			PortletDataContext portletDataContext,
-			PortletPreferences portletPreferences, String key, Class<?> clazz,
-			long companyGroupId)
-		throws Exception {
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), replaced by {@link
-	 *             #validateMissingReferences(PortletDataContext)}
-	 */
-	@Deprecated
-	@Override
-	public MissingReferences validateMissingReferences(
-			long userId, long groupId, Map<String, String[]> parameterMap,
-			File file)
-		throws Exception {
-
-		Group group = _groupLocalService.getGroup(groupId);
-		String userIdStrategy = MapUtil.getString(
-			parameterMap, PortletDataHandlerKeys.USER_ID_STRATEGY);
-		ZipReader zipReader = ZipReaderFactoryUtil.getZipReader(file);
-
-		PortletDataContext portletDataContext =
-			_portletDataContextFactory.createImportPortletDataContext(
-				group.getCompanyId(), groupId, parameterMap,
-				getUserIdStrategy(userId, userIdStrategy), zipReader);
-
-		try {
-			return validateMissingReferences(portletDataContext);
-		}
-		finally {
-			zipReader.close();
 		}
 	}
 
@@ -1938,20 +1465,17 @@ public class ExportImportHelperImpl implements ExportImportHelper {
 		boolean portletArchivedSetups, boolean portletConfiguration,
 		boolean portletSetup, boolean portletUserPreferences) {
 
-		Map<String, Boolean> portletSetupControlsMap = new HashMap<>();
-
-		portletSetupControlsMap.put(
+		return HashMapBuilder.put(
 			PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS,
-			portletArchivedSetups);
-		portletSetupControlsMap.put(
-			PortletDataHandlerKeys.PORTLET_CONFIGURATION, portletConfiguration);
-		portletSetupControlsMap.put(
-			PortletDataHandlerKeys.PORTLET_SETUP, portletSetup);
-		portletSetupControlsMap.put(
+			portletArchivedSetups
+		).put(
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION, portletConfiguration
+		).put(
+			PortletDataHandlerKeys.PORTLET_SETUP, portletSetup
+		).put(
 			PortletDataHandlerKeys.PORTLET_USER_PREFERENCES,
-			portletUserPreferences);
-
-		return portletSetupControlsMap;
+			portletUserPreferences
+		).build();
 	}
 
 	private Map<String, Boolean> _createRootPortletSetupControlsMap(

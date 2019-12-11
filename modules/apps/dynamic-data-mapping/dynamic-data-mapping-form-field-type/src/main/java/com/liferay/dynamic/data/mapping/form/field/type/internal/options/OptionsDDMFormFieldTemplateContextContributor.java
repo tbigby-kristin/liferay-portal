@@ -20,9 +20,9 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.render.DDMFormFieldRenderingContext;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -46,23 +46,19 @@ public class OptionsDDMFormFieldTemplateContextContributor
 		DDMFormField ddmFormField,
 		DDMFormFieldRenderingContext ddmFormFieldRenderingContext) {
 
-		Map<String, Object> parameters = new HashMap<>();
-
-		parameters.put(
+		return HashMapBuilder.<String, Object>put(
 			"allowEmptyOptions",
-			GetterUtil.getBoolean(
-				ddmFormField.getProperty("allowEmptyOptions")));
-
-		DDMForm ddmForm = ddmFormField.getDDMForm();
-
-		parameters.put(
+			GetterUtil.getBoolean(ddmFormField.getProperty("allowEmptyOptions"))
+		).put(
 			"defaultLanguageId",
-			LocaleUtil.toLanguageId(ddmForm.getDefaultLocale()));
+			() -> {
+				DDMForm ddmForm = ddmFormField.getDDMForm();
 
-		parameters.put(
-			"value", getValue(ddmFormField, ddmFormFieldRenderingContext));
-
-		return parameters;
+				return LocaleUtil.toLanguageId(ddmForm.getDefaultLocale());
+			}
+		).put(
+			"value", getValue(ddmFormField, ddmFormFieldRenderingContext)
+		).build();
 	}
 
 	protected Map<String, Object> getValue(

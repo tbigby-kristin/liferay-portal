@@ -20,6 +20,7 @@
 String redirect = ParamUtil.getString(request, "redirect");
 
 String modelResource = ParamUtil.getString(request, "modelResource");
+
 String modelResourceName = ResourceActionsUtil.getModelResource(request, modelResource);
 
 ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.getCompanyId(), modelResource);
@@ -132,7 +133,10 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "view-at
 			var columnIds = form.querySelector('#<portlet:namespace />columnIds');
 
 			if (columnIds) {
-				var checkedIds = Liferay.Util.listCheckedExcept(form, '<portlet:namespace />allRowIds');
+				var checkedIds = Liferay.Util.listCheckedExcept(
+					form,
+					'<portlet:namespace />allRowIds'
+				);
 
 				columnIds.setAttribute('value', checkedIds);
 

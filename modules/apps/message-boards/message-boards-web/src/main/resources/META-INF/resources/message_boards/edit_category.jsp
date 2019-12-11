@@ -43,10 +43,8 @@ if (categoryId > 0) {
 	mailingList = MBMailingListLocalServiceUtil.fetchCategoryMailingList(scopeGroupId, categoryId);
 }
 
-if ((category == null) && (mailingList == null)) {
-	if (parentCategoryId > 0) {
-		mailingList = MBMailingListLocalServiceUtil.fetchCategoryMailingList(scopeGroupId, parentCategoryId);
-	}
+if ((category == null) && (mailingList == null) && (parentCategoryId > 0)) {
+	mailingList = MBMailingListLocalServiceUtil.fetchCategoryMailingList(scopeGroupId, parentCategoryId);
 }
 
 if (category != null) {
@@ -240,11 +238,18 @@ if (portletTitleBasedNavigation) {
 
 <aui:script>
 	function <portlet:namespace />saveCategory() {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '<%= (category == null) ? Constants.ADD : Constants.UPDATE %>';
+		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value =
+			'<%= (category == null) ? Constants.ADD : Constants.UPDATE %>';
 
 		submitForm(document.<portlet:namespace />fm);
 	}
 
-	Liferay.Util.toggleBoxes('<portlet:namespace />mailingListActive', '<portlet:namespace />mailingListSettings');
-	Liferay.Util.toggleBoxes('<portlet:namespace />outCustom', '<portlet:namespace />outCustomSettings');
+	Liferay.Util.toggleBoxes(
+		'<portlet:namespace />mailingListActive',
+		'<portlet:namespace />mailingListSettings'
+	);
+	Liferay.Util.toggleBoxes(
+		'<portlet:namespace />outCustom',
+		'<portlet:namespace />outCustomSettings'
+	);
 </aui:script>

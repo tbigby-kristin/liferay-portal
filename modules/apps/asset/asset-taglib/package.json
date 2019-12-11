@@ -1,11 +1,21 @@
 {
 	"dependencies": {
-		"clay-multi-select": "2.18.1",
+		"@clayui/button": "3.0.3",
+		"@clayui/data-provider": "3.0.4",
+		"@clayui/form": "3.2.1",
+		"@clayui/icon": "3.0.1",
+		"@clayui/multi-select": "3.2.0",
+		"classnames": "2.2.6",
+		"clay-multi-select": "2.19.0",
+		"frontend-js-react-web": "*",
 		"metal-component": "2.16.8",
 		"metal-dom": "2.16.8",
 		"metal-soy": "2.16.8",
-		"metal-state": "2.16.8"
+		"metal-state": "2.16.8",
+		"prop-types": "15.7.2",
+		"react": "16.9.0"
 	},
+	"main": "index.es.js",
 	"name": "asset-taglib",
 	"scripts": {
 		"build": "liferay-npm-scripts build",

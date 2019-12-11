@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -49,6 +51,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Comment {
 
 	@Schema(description = "The comment's author.")
+	@Valid
 	public Creator getCreator() {
 		return creator;
 	}
@@ -72,7 +75,7 @@ public class Comment {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The comment's author.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Creator creator;
 
@@ -100,7 +103,7 @@ public class Comment {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The comment's creation date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateCreated;
 
@@ -128,7 +131,7 @@ public class Comment {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The comment's latest modification date.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
 
@@ -154,7 +157,7 @@ public class Comment {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The comment's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -182,7 +185,7 @@ public class Comment {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The number of child comments on this comment.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Integer numberOfComments;
 
@@ -208,7 +211,7 @@ public class Comment {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The comment's text content.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String text;
 
@@ -318,6 +321,12 @@ public class Comment {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.Comment",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

@@ -17,6 +17,7 @@ package com.liferay.asset.categories.admin.web.internal.display.context;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.frontend.taglib.clay.servlet.taglib.display.context.SearchContainerManagementToolbarDisplayContext;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuUtil;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItem;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletProvider;
 import com.liferay.portal.kernel.portlet.PortletProviderUtil;
+import com.liferay.portal.kernel.portlet.PortletURLUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -107,46 +109,35 @@ public class AssetCategoriesManagementToolbarDisplayContext
 
 	@Override
 	public CreationMenu getCreationMenu() {
-		return new CreationMenu() {
-			{
-				addPrimaryDropdownItem(
-					dropdownItem -> {
-						PortletURL addCategoryURL =
-							liferayPortletResponse.createRenderURL();
+		return CreationMenuUtil.addPrimaryDropdownItem(
+			dropdownItem -> {
+				PortletURL addCategoryURL =
+					liferayPortletResponse.createRenderURL();
 
-						addCategoryURL.setParameter(
-							"mvcPath", "/edit_category.jsp");
+				addCategoryURL.setParameter("mvcPath", "/edit_category.jsp");
 
-						if (_assetCategoriesDisplayContext.getCategoryId() >
-								0) {
+				if (_assetCategoriesDisplayContext.getCategoryId() > 0) {
+					addCategoryURL.setParameter(
+						"parentCategoryId",
+						String.valueOf(
+							_assetCategoriesDisplayContext.getCategoryId()));
+				}
 
-							addCategoryURL.setParameter(
-								"parentCategoryId",
-								String.valueOf(
-									_assetCategoriesDisplayContext.
-										getCategoryId()));
-						}
+				addCategoryURL.setParameter(
+					"vocabularyId",
+					String.valueOf(
+						_assetCategoriesDisplayContext.getVocabularyId()));
 
-						addCategoryURL.setParameter(
-							"vocabularyId",
-							String.valueOf(
-								_assetCategoriesDisplayContext.
-									getVocabularyId()));
+				dropdownItem.setHref(addCategoryURL);
 
-						dropdownItem.setHref(addCategoryURL);
+				String label = "add-category";
 
-						String label = "add-category";
+				if (_assetCategoriesDisplayContext.getCategoryId() > 0) {
+					label = "add-subcategory";
+				}
 
-						if (_assetCategoriesDisplayContext.getCategoryId() >
-								0) {
-
-							label = "add-subcategory";
-						}
-
-						dropdownItem.setLabel(LanguageUtil.get(request, label));
-					});
-			}
-		};
+				dropdownItem.setLabel(LanguageUtil.get(request, label));
+			});
 	}
 
 	@Override
@@ -172,8 +163,21 @@ public class AssetCategoriesManagementToolbarDisplayContext
 		return new LabelItemList() {
 			{
 				add(
-					labelItem -> labelItem.setLabel(
-						category.getTitle(themeDisplay.getLocale())));
+					labelItem -> {
+						PortletURL removeLabelURL = PortletURLUtil.clone(
+							currentURLObj, liferayPortletResponse);
+
+						removeLabelURL.setParameter("navigation", (String)null);
+						removeLabelURL.setParameter("categoryId", "0");
+
+						labelItem.putData(
+							"removeLabelURL", removeLabelURL.toString());
+
+						labelItem.setCloseable(true);
+
+						labelItem.setLabel(
+							category.getTitle(themeDisplay.getLocale()));
+					});
 			}
 		};
 	}

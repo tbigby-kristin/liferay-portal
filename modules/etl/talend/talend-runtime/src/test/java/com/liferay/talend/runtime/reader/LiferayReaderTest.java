@@ -14,7 +14,7 @@
 
 package com.liferay.talend.runtime.reader;
 
-import com.liferay.talend.BaseTest;
+import com.liferay.talend.BaseTestCase;
 import com.liferay.talend.connection.LiferayConnectionProperties;
 import com.liferay.talend.resource.LiferayInputResourceProperties;
 import com.liferay.talend.runtime.LiferayFixedResponseContentSource;
@@ -24,6 +24,7 @@ import com.liferay.talend.tliferayoutput.Action;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
+import javax.json.JsonObject;
 import javax.json.JsonValue;
 
 import org.junit.Assert;
@@ -34,48 +35,52 @@ import org.talend.components.common.SchemaProperties;
 /**
  * @author Igor Beslic
  */
-public class LiferayReaderTest extends BaseTest {
+public class LiferayReaderTest extends BaseTestCase {
 
 	@Test(expected = NoSuchElementException.class)
 	public void testNoSuchElementException() throws Exception {
 		String endpoint =
 			"/v1.0/taxonomy-vocabularies/{id}/taxonomy-categories";
 
-		LiferayInputReader liferayInputReader = new LiferayInputReader(
-			null,
+		LiferayReader liferayReader = new LiferayReader(
 			new LiferayFixedResponseContentSource(
 				readObject("page_content.json")),
 			_getTLiferayInputProperties(
 				Action.Unavailable, _OAS_URL, endpoint));
 
-		liferayInputReader.start();
+		liferayReader.start();
 
-		liferayInputReader.advance();
+		liferayReader.advance();
 
-		liferayInputReader.getCurrentJsonValue();
+		liferayReader.getCurrentJsonValue();
 	}
 
 	@Test
 	public void testPaging() throws Exception {
 		String endpoint = "/v1.0/page-content/{id}/taxonomy-categories";
 
-		LiferayInputReader liferayInputReader = new LiferayInputReader(
-			null, new LiferayFixedResponseContentSource(),
+		LiferayReader liferayReader = new LiferayReader(
+			_getLiferayFixedResponseContentSource(),
 			_getTLiferayInputProperties(
 				Action.Unavailable, _OAS_URL, endpoint));
 
-		liferayInputReader.start();
+		liferayReader.start();
 
 		Assert.assertTrue(
 			"Liferay input reader advanced to next page",
-			liferayInputReader.advance());
+			liferayReader.advance());
 
-		Assert.assertNotNull(
-			"Current JSON value", liferayInputReader.getCurrentJsonValue());
+		JsonValue currentJsonValue = liferayReader.getCurrentJsonValue();
+
+		Assert.assertNotNull("Current JSON value", currentJsonValue);
+
+		JsonObject jsonObject = currentJsonValue.asJsonObject();
+
+		Assert.assertEquals("Item id value", 80350, jsonObject.getInt("id"));
 
 		Assert.assertFalse(
 			"Liferay input reader advanced to next page",
-			liferayInputReader.advance());
+			liferayReader.advance());
 	}
 
 	@Test
@@ -83,16 +88,15 @@ public class LiferayReaderTest extends BaseTest {
 		String endpoint =
 			"/v1.0/taxonomy-vocabularies/{id}/taxonomy-categories";
 
-		LiferayInputReader liferayInputReader = new LiferayInputReader(
-			null,
-			new LiferayFixedResponseContentSource(
+		LiferayReader liferayReader = new LiferayReader(
+			_getLiferayFixedResponseContentSource(
 				readObject("page_no_content.json")),
 			_getTLiferayInputProperties(
 				Action.Unavailable, _OAS_URL, endpoint));
 
 		Assert.assertFalse(
 			"Liferay input reader must not be initialized and advanced",
-			liferayInputReader.start());
+			liferayReader.start());
 	}
 
 	@Test
@@ -100,28 +104,44 @@ public class LiferayReaderTest extends BaseTest {
 		String endpoint =
 			"/v1.0/taxonomy-vocabularies/{id}/taxonomy-categories";
 
-		LiferayInputReader liferayInputReader = new LiferayInputReader(
-			null,
-			new LiferayFixedResponseContentSource(
+		LiferayReader liferayReader = new LiferayReader(
+			_getLiferayFixedResponseContentSource(
 				readObject("page_content.json")),
 			_getTLiferayInputProperties(
 				Action.Unavailable, _OAS_URL, endpoint));
 
 		Assert.assertTrue(
 			"Liferay input reader must be initialized and advanced",
-			liferayInputReader.start());
+			liferayReader.start());
 
-		JsonValue currentJsonValue = liferayInputReader.getCurrentJsonValue();
+		JsonValue currentJsonValue = liferayReader.getCurrentJsonValue();
 
 		Assert.assertNotNull("Current JSON value", currentJsonValue);
 
 		Assert.assertEquals(
 			"Subsequent reads with no advancing must return same JSON value",
-			currentJsonValue, liferayInputReader.getCurrentJsonValue());
+			currentJsonValue, liferayReader.getCurrentJsonValue());
 
 		Assert.assertFalse(
 			"Advance must not advance reader to next record",
-			liferayInputReader.advance());
+			liferayReader.advance());
+	}
+
+	private LiferayFixedResponseContentSource
+		_getLiferayFixedResponseContentSource() {
+
+		return _getLiferayFixedResponseContentSource(null);
+	}
+
+	private LiferayFixedResponseContentSource
+		_getLiferayFixedResponseContentSource(JsonObject jsonObject) {
+
+		LiferayFixedResponseContentSource liferayFixedResponseContentSource =
+			new LiferayFixedResponseContentSource(jsonObject);
+
+		liferayFixedResponseContentSource.setBaseTestCase(this);
+
+		return liferayFixedResponseContentSource;
 	}
 
 	private TLiferayInputProperties _getTLiferayInputProperties(

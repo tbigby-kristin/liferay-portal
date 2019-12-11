@@ -23,10 +23,10 @@ import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -95,21 +95,11 @@ public class InheritedFragmentManagementToolbarDisplayContext
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		Map<String, Object> componentContext = new HashMap<>();
-
 		ResourceURL exportFragmentEntriesURL =
 			liferayPortletResponse.createResourceURL();
 
 		exportFragmentEntriesURL.setResourceID(
 			"/fragment/export_fragment_entries");
-
-		componentContext.put(
-			"exportFragmentEntriesURL", exportFragmentEntriesURL.toString());
-
-		long fragmentCollectionId = ParamUtil.getLong(
-			liferayPortletRequest, "fragmentCollectionId");
-
-		componentContext.put("fragmentCollectionId", fragmentCollectionId);
 
 		PortletURL copyFragmentEntryURL =
 			liferayPortletResponse.createActionURL();
@@ -119,9 +109,6 @@ public class InheritedFragmentManagementToolbarDisplayContext
 		copyFragmentEntryURL.setParameter(
 			"redirect", themeDisplay.getURLCurrent());
 
-		componentContext.put(
-			"copyFragmentEntryURL", copyFragmentEntryURL.toString());
-
 		PortletURL selectFragmentCollectionURL =
 			liferayPortletResponse.createActionURL();
 
@@ -129,11 +116,17 @@ public class InheritedFragmentManagementToolbarDisplayContext
 			"mvcRenderCommandName", "/fragment/select_fragment_collection");
 		selectFragmentCollectionURL.setWindowState(LiferayWindowState.POP_UP);
 
-		componentContext.put(
+		return HashMapBuilder.<String, Object>put(
+			"copyFragmentEntryURL", copyFragmentEntryURL.toString()
+		).put(
+			"exportFragmentEntriesURL", exportFragmentEntriesURL.toString()
+		).put(
+			"fragmentCollectionId",
+			ParamUtil.getLong(liferayPortletRequest, "fragmentCollectionId")
+		).put(
 			"selectFragmentCollectionURL",
-			selectFragmentCollectionURL.toString());
-
-		return componentContext;
+			selectFragmentCollectionURL.toString()
+		).build();
 	}
 
 }

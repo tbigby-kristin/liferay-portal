@@ -12,35 +12,36 @@
  * details.
  */
 
-import AutoSave from './util/AutoSave.es';
 import ClayModal from 'clay-modal';
-import Component from 'metal-jsx';
-import compose from 'dynamic-data-mapping-form-renderer/js/util/compose.es';
-import core from 'metal';
-import dom from 'metal-dom';
-import LayoutProvider from 'dynamic-data-mapping-form-builder/js/components/LayoutProvider/LayoutProvider.es';
-import Sidebar from 'dynamic-data-mapping-form-builder/js/components/Sidebar/Sidebar.es';
-import Notifications from './util/Notifications.es';
-import PreviewButton from './components/PreviewButton/PreviewButton.es';
-import PublishButton from './components/PublishButton/PublishButton.es';
-import RuleBuilder from 'dynamic-data-mapping-form-builder/js/components/RuleBuilder/RuleBuilder.es';
-import ShareFormPopover from './components/ShareFormPopover/ShareFormPopover.es';
-import StateSyncronizer from './util/StateSyncronizer.es';
+import {FormBuilderBase} from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/FormBuilder.es';
 import withActionableFields from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/withActionableFields.es';
 import withEditablePageHeader from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/withEditablePageHeader.es';
 import withMoveableFields from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/withMoveableFields.es';
 import withMultiplePages from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/withMultiplePages.es';
 import withResizeableColumns from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/withResizeableColumns.es';
-import {Config} from 'metal-state';
-import {EventHandler} from 'metal-events';
-import {FormBuilderBase} from 'dynamic-data-mapping-form-builder/js/components/FormBuilder/FormBuilder.es';
+import LayoutProvider from 'dynamic-data-mapping-form-builder/js/components/LayoutProvider/LayoutProvider.es';
+import RuleBuilder from 'dynamic-data-mapping-form-builder/js/components/RuleBuilder/RuleBuilder.es';
+import Sidebar from 'dynamic-data-mapping-form-builder/js/components/Sidebar/Sidebar.es';
+import {pageStructure} from 'dynamic-data-mapping-form-builder/js/util/config.es';
 import {
 	isKeyInSet,
 	isModifyingKey
 } from 'dynamic-data-mapping-form-builder/js/util/dom.es';
-import {pageStructure} from 'dynamic-data-mapping-form-builder/js/util/config.es';
-import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
 import {sub} from 'dynamic-data-mapping-form-builder/js/util/strings.es';
+import compose from 'dynamic-data-mapping-form-renderer/js/util/compose.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+import core from 'metal';
+import dom from 'metal-dom';
+import {EventHandler} from 'metal-events';
+import Component from 'metal-jsx';
+import {Config} from 'metal-state';
+
+import PreviewButton from './components/PreviewButton/PreviewButton.es';
+import PublishButton from './components/PublishButton/PublishButton.es';
+import ShareFormPopover from './components/ShareFormPopover/ShareFormPopover.es';
+import AutoSave from './util/AutoSave.es';
+import Notifications from './util/Notifications.es';
+import StateSyncronizer from './util/StateSyncronizer.es';
 
 /**
  * Form.
@@ -83,74 +84,82 @@ class Form extends Component {
 
 				return editor;
 			}),
-			this._createEditor('descriptionEditor')
+			this._createEditor('descriptionEditor'),
+			Liferay.componentReady('translationManager')
 		];
-
-		dependencies.push(this._getTranslationManager());
 
 		if (this.isFormBuilderView()) {
 			dependencies.push(this._getSettingsDDMForm());
 		}
 
-		Promise.all(dependencies).then(results => {
-			const translationManager = results[2];
+		Promise.all(dependencies).then(
+			([
+				nameEditor,
+				descriptionEditor,
+				translationManager,
+				settingsDDMForm
+			]) => {
+				if (translationManager) {
+					this.props.defaultLanguageId = translationManager.get(
+						'defaultLocale'
+					);
 
-			if (translationManager) {
-				this.props.defaultLanguageId = translationManager.get(
-					'defaultLocale'
+					this.props.editingLanguageId = translationManager.get(
+						'editingLocale'
+					);
+
+					this._translationManagerHandles = [
+						translationManager.on('editingLocale', ({newValue}) => {
+							this.props.editingLanguageId = newValue;
+
+							if (
+								translationManager.get('defaultLocale') ===
+								newValue
+							) {
+								this.showAddButton();
+							} else {
+								this.hideAddButton();
+							}
+						}),
+						translationManager.on(
+							'availableLocales',
+							this.onAvailableLocalesRemoved.bind(this)
+						)
+					];
+				}
+
+				this._stateSyncronizer = new StateSyncronizer(
+					{
+						descriptionEditor,
+						localizedDescription,
+						localizedName,
+						nameEditor,
+						namespace,
+						paginationMode,
+						published,
+						settingsDDMForm,
+						store,
+						translationManager
+					},
+					this.element
 				);
-				this.props.editingLanguageId = translationManager.get(
-					'editingLocale'
+
+				this._autoSave = new AutoSave(
+					{
+						form: document.querySelector(`#${namespace}editForm`),
+						interval: Liferay.DDM.FormSettings.autosaveInterval,
+						namespace,
+						stateSyncronizer: this._stateSyncronizer,
+						url: Liferay.DDM.FormSettings.autosaveURL
+					},
+					this.element
 				);
 
-				translationManager.on('editingLocaleChange', event => {
-					this.props.editingLanguageId = event.newVal;
-
-					if (
-						translationManager.get('defaultLocale') === event.newVal
-					) {
-						this.showAddButton();
-					} else {
-						this.hideAddButton();
-					}
-				});
-
-				translationManager.on('deleteAvailableLocale', event => {
-					store.emit('languageIdDeleted', event);
-				});
+				this._eventHandler.add(
+					this._autoSave.on('autosaved', this._updateAutoSaveMessage)
+				);
 			}
-
-			this._stateSyncronizer = new StateSyncronizer(
-				{
-					descriptionEditor: results[1],
-					localizedDescription,
-					localizedName,
-					nameEditor: results[0],
-					namespace,
-					paginationMode,
-					published,
-					settingsDDMForm: results[3],
-					store,
-					translationManager
-				},
-				this.element
-			);
-
-			this._autoSave = new AutoSave(
-				{
-					form: document.querySelector(`#${namespace}editForm`),
-					interval: Liferay.DDM.FormSettings.autosaveInterval,
-					namespace,
-					stateSyncronizer: this._stateSyncronizer,
-					url: Liferay.DDM.FormSettings.autosaveURL
-				},
-				this.element
-			);
-
-			this._eventHandler.add(
-				this._autoSave.on('autosaved', this._updateAutoSaveMessage)
-			);
-		});
+		);
 
 		this._eventHandler.add(
 			dom.on(
@@ -203,7 +212,7 @@ class Form extends Component {
 			}
 		});
 
-		store.on('pagesChanged', ({prevVal, newVal}) => {
+		store.on('pagesChanged', ({newVal, prevVal}) => {
 			if (
 				newVal &&
 				prevVal &&
@@ -252,15 +261,21 @@ class Form extends Component {
 	}
 
 	disposed() {
-		super.disposed();
-
 		if (this._autoSave) {
 			this._autoSave.dispose();
+		}
+
+		if (this._stateSyncronizer) {
+			this._stateSyncronizer.dispose();
 		}
 
 		Notifications.closeAlert();
 
 		this._eventHandler.removeAllListeners();
+
+		if (this._translationManagerHandles) {
+			this._translationManagerHandles.forEach(handle => handle.detach());
+		}
 	}
 
 	hideAddButton() {
@@ -294,6 +309,24 @@ class Form extends Component {
 		const {ruleBuilderVisible} = this.state;
 
 		return ruleBuilderVisible && this.isFormBuilderView();
+	}
+
+	onAvailableLocalesRemoved({newValue, previousValue}) {
+		const {store} = this.refs;
+
+		const removedItems = new Map();
+
+		previousValue.forEach((value, key) => {
+			if (!newValue.has(key)) {
+				removedItems.set(key, value);
+			}
+		});
+
+		if (removedItems.size > 0) {
+			store.emit('languageIdDeleted', {
+				locale: removedItems.keys().next().value
+			});
+		}
 	}
 
 	openSidebar() {
@@ -388,9 +421,9 @@ class Form extends Component {
 					/>
 
 					<Sidebar
-						fieldSetDefinitionURL={fieldSetDefinitionURL}
 						defaultLanguageId={defaultLanguageId}
 						editingLanguageId={editingLanguageId}
+						fieldSetDefinitionURL={fieldSetDefinitionURL}
 						fieldSets={fieldSets}
 						fieldTypes={fieldTypes}
 						portletNamespace={namespace}
@@ -414,7 +447,7 @@ class Form extends Component {
 								}
 							/>
 							<button
-								class="btn ddm-button btn-default"
+								class="btn btn-secondary ddm-button"
 								data-onclick="_handleSaveButtonClicked"
 								ref="saveButton"
 							>
@@ -431,14 +464,14 @@ class Form extends Component {
 					{!this.isFormBuilderView() && (
 						<div class="button-holder ddm-form-builder-buttons">
 							<button
-								class="btn btn-primary ddm-button btn-default"
+								class="btn btn-primary ddm-button"
 								data-onclick="_handleSaveButtonClicked"
 								ref="saveFieldSetButton"
 							>
 								{saveButtonLabel}
 							</button>
 							<a
-								class="btn btn-cancel btn-default btn-link"
+								class="btn btn-cancel btn-link"
 								data-onclick="_handleCancelButtonClicked"
 								href={redirectURL}
 								ref="cancelFieldSetButton"
@@ -661,20 +694,6 @@ class Form extends Component {
 			promise = Promise.resolve(settingsDDMForm);
 		} else {
 			promise = Liferay.componentReady('settingsDDMForm');
-		}
-
-		return promise;
-	}
-
-	_getTranslationManager() {
-		let promise;
-
-		const translationManager = Liferay.component('translationManager');
-
-		if (translationManager) {
-			promise = Promise.resolve(translationManager);
-		} else {
-			promise = Liferay.componentReady('translationManager');
 		}
 
 		return promise;
@@ -903,7 +922,7 @@ class Form extends Component {
 		);
 	}
 
-	_updateAutoSaveMessage({savedAsDraft, modifiedDate}) {
+	_updateAutoSaveMessage({modifiedDate, savedAsDraft}) {
 		const {namespace} = this.props;
 
 		let message = '';

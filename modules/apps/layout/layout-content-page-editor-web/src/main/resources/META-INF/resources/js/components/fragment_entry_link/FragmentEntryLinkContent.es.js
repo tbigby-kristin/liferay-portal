@@ -12,22 +12,22 @@
  * details.
  */
 
-import {closest, globalEval} from 'metal-dom';
-import Component from 'metal-component';
-import {Config} from 'metal-state';
 import {isFunction, isObject} from 'metal';
+import Component from 'metal-component';
+import {closest, globalEval} from 'metal-dom';
 import Soy from 'metal-soy';
+import {Config} from 'metal-state';
 
+import {getConnectedComponent} from '../../store/ConnectedComponent.es';
+import {shouldUpdateOnChangeProperties} from '../../utils/FragmentsEditorComponentUtils.es';
+import {setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
 import {
 	BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR,
 	EDITABLE_FRAGMENT_ENTRY_PROCESSOR
 } from '../../utils/constants';
-import FragmentEditableField from './FragmentEditableField.es';
-import {setIn} from '../../utils/FragmentsEditorUpdateUtils.es';
-import {shouldUpdateOnChangeProperties} from '../../utils/FragmentsEditorComponentUtils.es';
-import templates from './FragmentEntryLinkContent.soy';
-import {getConnectedComponent} from '../../store/ConnectedComponent.es';
 import FragmentEditableBackgroundImage from './FragmentEditableBackgroundImage.es';
+import FragmentEditableField from './FragmentEditableField.es';
+import templates from './FragmentEntryLinkContent.soy';
 
 /**
  * Creates a Fragment Entry Link Content component.
@@ -85,8 +85,7 @@ class FragmentEntryLinkContent extends Component {
 			'content',
 			'languageId',
 			'segmentsExperienceId',
-			'selectedMappingTypes',
-			'showMapping'
+			'selectedMappingTypes'
 		]);
 	}
 
@@ -129,14 +128,6 @@ class FragmentEntryLinkContent extends Component {
 					editable.editableValues = editableValues;
 				});
 			}
-
-			this._update({
-				defaultLanguageId: this.defaultLanguageId,
-				defaultSegmentsExperienceId: this.defaultSegmentsExperienceId,
-				languageId: this.languageId,
-				segmentsExperienceId: this.segmentsExperienceId,
-				updateFunctions: []
-			});
 		}
 	}
 
@@ -181,7 +172,6 @@ class FragmentEntryLinkContent extends Component {
 				element,
 				fragmentEntryLinkId: this.fragmentEntryLinkId,
 				processor: BACKGROUND_IMAGE_FRAGMENT_ENTRY_PROCESSOR,
-				showMapping: this.showMapping,
 				store: this.store
 			});
 		});
@@ -220,7 +210,6 @@ class FragmentEntryLinkContent extends Component {
 				},
 
 				segmentsExperienceId: this.segmentsExperienceId,
-				showMapping: this.showMapping,
 				store: this.store,
 				type: editable.getAttribute('type')
 			});
@@ -274,63 +263,8 @@ class FragmentEntryLinkContent extends Component {
 
 			if (this.editableValues) {
 				this._createEditables();
-
-				this._update({
-					defaultLanguageId: this.defaultLanguageId,
-					defaultSegmentsExperienceId: this
-						.defaultSegmentsExperienceId,
-					languageId: this.languageId,
-					segmentsExperienceId: this.segmentsExperienceId,
-					updateFunctions: []
-				});
 			}
 		}
-	}
-
-	/**
-	 * Runs a set of update functions through the editable values inside this
-	 * fragment entry link.
-	 * @param {string} languageId The current language ID.
-	 * @param {string} defaultLanguageId The default language ID.
-	 * @param {Array<Function>} updateFunctions The set of update functions to
-	 * execute for each editable value.
-	 * @private
-	 */
-	_update({
-		defaultLanguageId,
-		defaultSegmentsExperienceId,
-		languageId,
-		segmentsExperienceId,
-		updateFunctions
-	}) {
-		const editableValues =
-			this.editableValues[EDITABLE_FRAGMENT_ENTRY_PROCESSOR] || {};
-
-		Object.keys(editableValues).forEach(editableId => {
-			const editableValue = editableValues[editableId];
-			const segmentedEditableValue =
-				(segmentsExperienceId && editableValue[segmentsExperienceId]) ||
-				editableValue[defaultSegmentsExperienceId];
-
-			const defaultSegmentedEditableValue =
-				editableValue[defaultSegmentsExperienceId];
-
-			const defaultValue =
-				(segmentedEditableValue &&
-					segmentedEditableValue[defaultLanguageId]) ||
-				(segmentedEditableValue &&
-					segmentedEditableValue.defaultValue) ||
-				(defaultSegmentedEditableValue &&
-					defaultSegmentedEditableValue[defaultLanguageId]) ||
-				editableValue.defaultValue;
-			const mappedField = editableValue.mappedField || '';
-			const value =
-				segmentedEditableValue && segmentedEditableValue[languageId];
-
-			updateFunctions.forEach(updateFunction =>
-				updateFunction(editableId, value, defaultValue, mappedField)
-			);
-		});
 	}
 }
 
@@ -372,16 +306,7 @@ FragmentEntryLinkContent.STATE = {
 	 * @memberOf FragmentEntryLinkContent
 	 * @type {!string}
 	 */
-	fragmentEntryLinkId: Config.string().required(),
-
-	/**
-	 * If <code>true</code>, the asset mapping is enabled.
-	 * @default false
-	 * @instance
-	 * @memberOf FragmentEntryLink
-	 * @type {boolean}
-	 */
-	showMapping: Config.bool().value(false)
+	fragmentEntryLinkId: Config.string().required()
 };
 
 const ConnectedFragmentEntryLinkContent = getConnectedComponent(

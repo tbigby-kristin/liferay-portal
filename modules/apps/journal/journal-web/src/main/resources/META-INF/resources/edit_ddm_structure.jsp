@@ -50,6 +50,7 @@ if (ddmStructure != null) {
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 	<aui:input name="ddmStructureId" type="hidden" value="<%= journalEditDDMStructuresDisplayContext.getDDMStructureId() %>" />
 	<aui:input name="definition" type="hidden" />
+	<aui:input name="indexable" type="hidden" value="<%= journalEditDDMStructuresDisplayContext.isStructureFieldIndexableEnable() %>" />
 
 	<aui:model-context bean="<%= ddmStructure %>" model="<%= DDMStructure.class %>" />
 
@@ -173,7 +174,13 @@ if (ddmStructure != null) {
 					</div>
 				</c:if>
 
-				<%@ include file="/form_builder.jspf" %>
+				<c:choose>
+					<c:when test="<%= journalDisplayContext.useDataEngineEditor() %>">
+					</c:when>
+					<c:otherwise>
+						<%@ include file="/ddm_form_builder.jspf" %>
+					</c:otherwise>
+				</c:choose>
 			</div>
 		</div>
 	</div>
@@ -189,24 +196,29 @@ if (ddmStructure != null) {
 				},
 				eventName: '<portlet:namespace />selectDDMStructure',
 				id: '<portlet:namespace />selectDDMStructure',
-				title: '<%= UnicodeLanguageUtil.get(request, "select-structure") %>',
-				uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="mvcPath" value="/select_ddm_structure.jsp" /><portlet:param name="classPK" value="<%= String.valueOf(journalEditDDMStructuresDisplayContext.getDDMStructureId()) %>" /></portlet:renderURL>'
+				title:
+					'<%= UnicodeLanguageUtil.get(request, "select-structure") %>',
+				uri:
+					'<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="mvcPath" value="/select_ddm_structure.jsp" /><portlet:param name="classPK" value="<%= String.valueOf(journalEditDDMStructuresDisplayContext.getDDMStructureId()) %>" /></portlet:renderURL>'
 			},
 			function(event) {
 				var form = document.<portlet:namespace />fm;
 
-				Liferay.Util.setFormValues(
+				Liferay.Util.setFormValues(form, {
+					parentDDMStructureId: event.ddmstructureid,
+					parentDDMStructureName: Liferay.Util.unescape(event.name)
+				});
+
+				var removeParentDDMStructureButton = Liferay.Util.getFormElement(
 					form,
-					{
-						parentDDMStructureId: event.ddmstructureid,
-						parentDDMStructureName: Liferay.Util.unescape(event.name)
-					}
+					'removeParentDDMStructureButton'
 				);
 
-				var removeParentDDMStructureButton = Liferay.Util.getFormElement(form, 'removeParentDDMStructureButton');
-
 				if (removeParentDDMStructureButton) {
-					Liferay.Util.toggleDisabled(removeParentDDMStructureButton, false);
+					Liferay.Util.toggleDisabled(
+						removeParentDDMStructureButton,
+						false
+					);
 				}
 			}
 		);
@@ -215,15 +227,15 @@ if (ddmStructure != null) {
 	function <portlet:namespace />removeParentDDMStructure() {
 		var form = document.<portlet:namespace />fm;
 
-		Liferay.Util.setFormValues(
-			form,
-			{
-				parentDDMStructureId: '',
-				parentDDMStructureName: ''
-			}
-		);
+		Liferay.Util.setFormValues(form, {
+			parentDDMStructureId: '',
+			parentDDMStructureName: ''
+		});
 
-		var removeParentDDMStructureButton = Liferay.Util.getFormElement(form, 'removeParentDDMStructureButton');
+		var removeParentDDMStructureButton = Liferay.Util.getFormElement(
+			form,
+			'removeParentDDMStructureButton'
+		);
 
 		if (removeParentDDMStructureButton) {
 			Liferay.Util.toggleDisabled(removeParentDDMStructureButton, true);
@@ -231,35 +243,42 @@ if (ddmStructure != null) {
 	}
 
 	function <portlet:namespace />saveDDMStructure() {
-		Liferay.Util.postForm(
-			document.<portlet:namespace />fm,
-			{
-				data: {
-					definition: <portlet:namespace />formBuilder.getContentValue()
-				}
+		Liferay.Util.postForm(document.<portlet:namespace />fm, {
+			data: {
+				definition: <portlet:namespace />formBuilder.getContentValue()
 			}
-		);
+		});
 	}
 
-	var contextualSidebarButton = document.getElementById('<portlet:namespace />contextualSidebarButton');
-	var contextualSidebarContainer = document.getElementById('<portlet:namespace />contextualSidebarContainer');
+	var contextualSidebarButton = document.getElementById(
+		'<portlet:namespace />contextualSidebarButton'
+	);
+	var contextualSidebarContainer = document.getElementById(
+		'<portlet:namespace />contextualSidebarContainer'
+	);
 
-	if (contextualSidebarContainer && (window.innerWidth > Liferay.BREAKPOINTS.PHONE)) {
+	if (
+		contextualSidebarContainer &&
+		window.innerWidth > Liferay.BREAKPOINTS.PHONE
+	) {
 		contextualSidebarContainer.classList.add('contextual-sidebar-visible');
 	}
 
 	if (contextualSidebarButton) {
-		contextualSidebarButton.addEventListener(
-			'click',
-			function(event) {
-				if (contextualSidebarContainer.classList.contains('contextual-sidebar-visible')) {
-					contextualSidebarContainer.classList.remove('contextual-sidebar-visible');
-
-				}
-				else {
-					contextualSidebarContainer.classList.add('contextual-sidebar-visible');
-				}
+		contextualSidebarButton.addEventListener('click', function(event) {
+			if (
+				contextualSidebarContainer.classList.contains(
+					'contextual-sidebar-visible'
+				)
+			) {
+				contextualSidebarContainer.classList.remove(
+					'contextual-sidebar-visible'
+				);
+			} else {
+				contextualSidebarContainer.classList.add(
+					'contextual-sidebar-visible'
+				);
 			}
-		);
+		});
 	}
 </aui:script>

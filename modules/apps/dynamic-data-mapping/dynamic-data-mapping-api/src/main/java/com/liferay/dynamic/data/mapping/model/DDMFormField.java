@@ -15,6 +15,9 @@
 package com.liferay.dynamic.data.mapping.model;
 
 import com.liferay.petra.lang.HashUtil;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -141,7 +144,7 @@ public class DDMFormField implements Serializable {
 		DDMFormFieldOptions ddmFormFieldOptions =
 			(DDMFormFieldOptions)_properties.get("options");
 
-		String dataSourceType = (String)_properties.get("dataSourceType");
+		String dataSourceType = getDataSourceType();
 
 		if ((ddmFormFieldOptions != null) &&
 			Validator.isNotNull(dataSourceType) &&
@@ -155,14 +158,6 @@ public class DDMFormField implements Serializable {
 		}
 
 		return ddmFormFieldOptions;
-	}
-
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public List<DDMFormFieldRule> getDDMFormFieldRules() {
-		return _ddmFormFieldRules;
 	}
 
 	public DDMFormFieldValidation getDDMFormFieldValidation() {
@@ -312,14 +307,6 @@ public class DDMFormField implements Serializable {
 		_properties.put("options", ddmFormFieldOptions);
 	}
 
-	/**
-	 * @deprecated As of Judson (7.1.x), with no direct replacement
-	 */
-	@Deprecated
-	public void setDDMFormFieldRules(List<DDMFormFieldRule> ddmFormFieldRules) {
-		_ddmFormFieldRules = ddmFormFieldRules;
-	}
-
 	public void setDDMFormFieldValidation(
 		DDMFormFieldValidation ddmFormFieldValidation) {
 
@@ -394,8 +381,31 @@ public class DDMFormField implements Serializable {
 		_properties.put("visibilityExpression", visibilityExpression);
 	}
 
+	protected String getDataSourceType() {
+		Object dataSourceType = _properties.get("dataSourceType");
+
+		if (dataSourceType instanceof JSONArray) {
+			JSONArray jsonArray = (JSONArray)dataSourceType;
+
+			return jsonArray.getString(0);
+		}
+		else if (dataSourceType instanceof String) {
+			try {
+				JSONArray jsonArray = JSONFactoryUtil.createJSONArray(
+					(String)dataSourceType);
+
+				return jsonArray.getString(0);
+			}
+			catch (Exception e) {
+				return (String)dataSourceType;
+			}
+		}
+
+		return StringPool.BLANK;
+	}
+
 	private DDMForm _ddmForm;
-	private List<DDMFormFieldRule> _ddmFormFieldRules;
+	private final List<DDMFormFieldRule> _ddmFormFieldRules;
 	private List<DDMFormField> _nestedDDMFormFields;
 	private final Map<String, Object> _properties;
 

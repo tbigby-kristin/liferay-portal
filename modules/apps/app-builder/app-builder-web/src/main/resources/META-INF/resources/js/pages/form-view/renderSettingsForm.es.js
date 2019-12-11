@@ -17,7 +17,15 @@ import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.
 
 const spritemap = `${Liferay.ThemeDisplay.getPathThemeImages()}/lexicon/icons.svg`;
 
-const UNIMPLIMENTED_PROPERTIES = ['indexType', 'validation'];
+const UNIMPLIMENTED_PROPERTIES = [
+	'fieldNamespace',
+	'indexType',
+	'localizable',
+	'readOnly',
+	'type',
+	'validation',
+	'visibilityExpression'
+];
 
 export const getFilteredSettingsContext = settingsContext => {
 	const visitor = new PagesVisitor(settingsContext.pages);
@@ -27,32 +35,50 @@ export const getFilteredSettingsContext = settingsContext => {
 		pages: visitor.mapColumns(column => {
 			return {
 				...column,
-				fields: column.fields.filter(
-					({fieldName}) =>
-						UNIMPLIMENTED_PROPERTIES.indexOf(fieldName) === -1
-				)
+				fields: column.fields
+					.filter(
+						({fieldName}) =>
+							UNIMPLIMENTED_PROPERTIES.indexOf(fieldName) === -1
+					)
+					.map(field => {
+						if (field.fieldName === 'dataSourceType') {
+							field = {
+								...field,
+								predefinedValue: '["manual"]',
+								readOnly: true
+							};
+						}
+
+						return {
+							...field,
+							defaultLanguageId: themeDisplay.getLanguageId(),
+							editingLanguageId: themeDisplay.getLanguageId()
+						};
+					})
 			};
 		})
 	};
 };
 
-export default ({dataLayoutBuilder, settingsContext}, container) => {
+export default ({dispatchEvent, settingsContext}, container) => {
 	const handleFieldBlurred = ({fieldInstance, value}) => {
-		const {fieldName} = fieldInstance;
+		if (fieldInstance && !fieldInstance.isDisposed()) {
+			const {fieldName} = fieldInstance;
 
-		dataLayoutBuilder.dispatch('fieldBlurred', {
-			editingLanguageId: 'en_US',
-			propertyName: fieldName,
-			propertyValue: value
-		});
+			dispatchEvent('fieldBlurred', {
+				editingLanguageId: themeDisplay.getLanguageId(),
+				propertyName: fieldName,
+				propertyValue: value
+			});
+		}
 	};
 
 	const handleFieldEdited = ({fieldInstance, value}) => {
 		if (fieldInstance && !fieldInstance.isDisposed()) {
 			const {fieldName} = fieldInstance;
 
-			dataLayoutBuilder.dispatch('fieldEdited', {
-				editingLanguageId: 'en_US',
+			dispatchEvent('fieldEdited', {
+				editingLanguageId: themeDisplay.getLanguageId(),
 				propertyName: fieldName,
 				propertyValue: value
 			});
@@ -60,22 +86,12 @@ export default ({dataLayoutBuilder, settingsContext}, container) => {
 	};
 
 	const handleFormAttached = function() {
-		const firstInput = container.querySelector('input');
-
-		if (firstInput && !container.contains(document.activeElement)) {
-			firstInput.focus();
-
-			if (firstInput.select) {
-				firstInput.select();
-			}
-		}
-
 		this.evaluate();
 	};
 
 	return new Form(
 		{
-			...getFilteredSettingsContext(settingsContext),
+			...settingsContext,
 			editable: true,
 			events: {
 				attached: handleFormAttached,

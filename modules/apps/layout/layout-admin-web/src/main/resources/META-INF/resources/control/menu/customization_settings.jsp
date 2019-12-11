@@ -26,7 +26,7 @@ Map<String, Object> data = new HashMap<>();
 data.put("qa-id", "customizations");
 %>
 
-<li class="active control-menu-link control-menu-nav-item customization-link visible-xs">
+<li class="active control-menu-link control-menu-nav-item customization-link d-block d-sm-none">
 	<liferay-ui:icon
 		data="<%= data %>"
 		icon="pencil"
@@ -41,7 +41,7 @@ data.put("qa-id", "customizations");
 <li class="control-menu-nav-item" id="<%= portletNamespace %>customizationBar">
 	<div class="control-menu-level-2">
 		<div class="container-fluid container-fluid-max-xl">
-			<div class="control-menu-level-2-heading visible-xs">
+			<div class="control-menu-level-2-heading d-block d-sm-none">
 				<liferay-ui:message key="customization-options" />
 
 				<button aria-label="<%= LanguageUtil.get(request, "close") %>" class="close" id="<%= portletNamespace %>closeCustomizationOptions" type="button">
@@ -92,18 +92,13 @@ data.put("qa-id", "customizations");
 					</li>
 
 					<aui:script use="liferay-layout-customization-settings">
-						var layoutCustomizationSettings = new Liferay.LayoutCustomizationSettings(
-							{
-								namespace: '<%= portletNamespace %>'
-							}
-						);
+						var layoutCustomizationSettings = new Liferay.LayoutCustomizationSettings({
+							namespace: '<%= portletNamespace %>'
+						});
 
-						Liferay.once(
-							'screenLoad',
-							function() {
-								layoutCustomizationSettings.destroy();
-							}
-						);
+						Liferay.once('screenLoad', function() {
+							layoutCustomizationSettings.destroy();
+						});
 					</aui:script>
 				</c:if>
 
@@ -132,7 +127,7 @@ data.put("qa-id", "customizations");
 				String toggleCustomizationViewURL = HttpUtil.addParameter(toggleCustomizationViewPortletURL.toString(), "customized_view", !layoutTypePortlet.isCustomizedView());
 				%>
 
-				<li class="control-menu-nav-item hidden-xs">
+				<li class="control-menu-nav-item d-none d-sm-block">
 					<liferay-ui:icon-menu
 						direction="left-side"
 						icon="<%= StringPool.BLANK %>"
@@ -153,8 +148,8 @@ data.put("qa-id", "customizations");
 						</c:if>
 					</liferay-ui:icon-menu>
 				</li>
-				<li class="control-menu-nav-item visible-xs">
-					<div class="btn-group dropdown">
+				<li class="control-menu-nav-item d-block d-sm-none">
+					<div class="btn-group btn-group-item dropdown">
 						<aui:a cssClass="btn btn-primary" href="<%= toggleCustomizationViewURL %>" label="<%= toggleCustomizedViewMessage %>" />
 
 						<c:if test="<%= layoutTypePortlet.isCustomizedView() %>">
@@ -166,7 +161,7 @@ data.put("qa-id", "customizations");
 
 							<ul class="dropdown-menu" role="menu">
 								<li>
-									<aui:a href="<%= resetCustomizationsViewURLString %>" label="reset-my-customizations" />
+									<aui:a cssClass="dropdown-item" href="<%= resetCustomizationsViewURLString %>" label="reset-my-customizations" />
 								</li>
 							</ul>
 						</c:if>
@@ -174,27 +169,27 @@ data.put("qa-id", "customizations");
 				</li>
 
 				<aui:script require="metal-dom/src/dom as dom">
-					var closeCustomizationOptions = document.getElementById('<%= portletNamespace %>closeCustomizationOptions');
-					var controlMenu = document.querySelector('#<%= portletNamespace %>customizationBar .control-menu-level-2');
+					var closeCustomizationOptions = document.getElementById(
+						'<%= portletNamespace %>closeCustomizationOptions'
+					);
+					var controlMenu = document.querySelector(
+						'#<%= portletNamespace %>customizationBar .control-menu-level-2'
+					);
 
 					if (closeCustomizationOptions && controlMenu) {
-						closeCustomizationOptions.addEventListener(
-							'click',
-							function(event) {
-								dom.toggleClasses(controlMenu, 'open');
-							}
-						);
+						closeCustomizationOptions.addEventListener('click', function(event) {
+							dom.toggleClasses(controlMenu, 'open');
+						});
 					}
 
-					var customizationButton = document.getElementById('<%= portletNamespace %>customizationButton');
+					var customizationButton = document.getElementById(
+						'<%= portletNamespace %>customizationButton'
+					);
 
 					if (customizationButton && controlMenu) {
-						customizationButton.addEventListener(
-							'click',
-							function(event) {
-								dom.toggleClasses(controlMenu, 'open');
-							}
-						);
+						customizationButton.addEventListener('click', function(event) {
+							dom.toggleClasses(controlMenu, 'open');
+						});
 					}
 				</aui:script>
 			</ul>

@@ -17,6 +17,7 @@ package com.liferay.portal.tools.service.builder;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.xml.Dom4jUtil;
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.dao.db.IndexMetadata;
 import com.liferay.portal.kernel.dao.db.IndexMetadataFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -32,6 +33,7 @@ import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ClearThreadLocalUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -661,7 +663,7 @@ public class ServiceBuilder {
 			_packagePath = packagePath;
 
 			if (Validator.isNull(_uadDirName)) {
-				_uadDirName = _apiDirName.replace("-api/", "-uad/");
+				_uadDirName = StringUtil.replace(_apiDirName, "-api/", "-uad/");
 			}
 
 			_autoImportDefaultReferences = GetterUtil.getBoolean(
@@ -670,6 +672,8 @@ public class ServiceBuilder {
 			_autoNamespaceTables = GetterUtil.getBoolean(
 				rootElement.attributeValue("auto-namespace-tables"),
 				_autoNamespaceTables);
+			_changeTrackingEnabled = GetterUtil.getBoolean(
+				rootElement.attributeValue("change-tracking-enabled"));
 
 			String dependencyInjector = rootElement.attributeValue(
 				"dependency-injector");
@@ -874,6 +878,8 @@ public class ServiceBuilder {
 
 							_removeServiceSoap(entity);
 						}
+
+						_createCTServiceImpl(entity);
 
 						if (entity.isUADEnabled()) {
 							_createBaseUADAnonymizer(entity);
@@ -1694,13 +1700,22 @@ public class ServiceBuilder {
 			methodName.equals("deactivate") || methodName.equals("destroy") ||
 			methodName.equals("equals") ||
 			methodName.equals("getAopInterfaces") ||
-			methodName.equals("getClass") || methodName.equals("getService") ||
+			methodName.equals("getCTColumnNames") ||
+			methodName.equals("getCTPersistence") ||
+			methodName.equals("getClass") ||
+			methodName.equals("getModelClass") ||
+			methodName.equals("getService") ||
+			methodName.equals("getTableColumnsMap") ||
+			methodName.equals("getTableName") ||
+			methodName.equals("getUniqueIndexColumnNames") ||
 			methodName.equals("getWrappedService") ||
 			methodName.equals("hashCode") || methodName.equals("notify") ||
 			methodName.equals("notifyAll") ||
 			methodName.equals("setAopProxy") ||
 			methodName.equals("setWrappedService") ||
-			methodName.equals("toString") || methodName.equals("wait")) {
+			methodName.equals("toString") ||
+			methodName.equals("updateWithUnsafeFunction") ||
+			methodName.equals("wait")) {
 
 			return false;
 		}
@@ -1926,6 +1941,16 @@ public class ServiceBuilder {
 	public boolean isVersionGTE_7_2_0() {
 		if (_dtdVersion.isLaterVersionThan("7.2.0") ||
 			_dtdVersion.isSameVersionAs("7.2.0")) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isVersionGTE_7_3_0() {
+		if (_dtdVersion.isLaterVersionThan("7.3.0") ||
+			_dtdVersion.isSameVersionAs("7.3.0")) {
 
 			return true;
 		}
@@ -2252,6 +2277,31 @@ public class ServiceBuilder {
 
 			_write(blobModelFile, content, _modifiedFileNames);
 		}
+	}
+
+	private void _createCTServiceImpl(Entity entity) throws Exception {
+		File file = new File(
+			StringBundler.concat(
+				_outputPath, "/service/impl/", entity.getName(),
+				"CTServiceImpl.java"));
+
+		if (!entity.isChangeTrackingEnabled() || entity.hasLocalService()) {
+			if (file.exists()) {
+				System.out.println("Removing " + file);
+
+				file.delete();
+			}
+
+			return;
+		}
+
+		Map<String, Object> context = _getContext();
+
+		context.put("entity", entity);
+
+		String content = _processTemplate(_tplCTServiceImpl, context);
+
+		_write(file, content, _modifiedFileNames);
 	}
 
 	private void _createEJBPK(Entity entity) throws Exception {
@@ -3667,6 +3717,9 @@ public class ServiceBuilder {
 				continue;
 			}
 
+			List<IndexMetadata> indexMetadatas = indexMetadatasMap.get(
+				entity.getTable());
+
 			List<EntityFinder> entityFinders = entity.getEntityFinders();
 
 			for (EntityFinder entityFinder : entityFinders) {
@@ -3689,6 +3742,31 @@ public class ServiceBuilder {
 
 				if (dbNames.isEmpty()) {
 					continue;
+				}
+
+				if (entity.isChangeTrackingEnabled() &&
+					!dbNames.contains("ctCollectionId")) {
+
+					if (indexMetadatas != null) {
+						Iterator<IndexMetadata> iterator =
+							indexMetadatas.iterator();
+
+						while (iterator.hasNext()) {
+							IndexMetadata indexMetadata = iterator.next();
+
+							if (indexMetadata.isUnique() &&
+								dbNames.equals(
+									Arrays.asList(
+										indexMetadata.getColumnNames()))) {
+
+								iterator.remove();
+
+								break;
+							}
+						}
+					}
+
+					dbNames.add("ctCollectionId");
 				}
 
 				IndexMetadata indexMetadata =
@@ -4398,28 +4476,44 @@ public class ServiceBuilder {
 	}
 
 	private Map<String, Object> _getContext() throws TemplateModelException {
-		BeansWrapper beansWrapper = BeansWrapper.getDefaultInstance();
+		Map<String, Object> context = HashMapBuilder.<String, Object>put(
+			"apiPackagePath", _apiPackagePath
+		).put(
+			"author", _author
+		).put(
+			"beanLocatorUtil", _beanLocatorUtil
+		).put(
+			"dependencyInjectorDS", _dependencyInjectorDS
+		).put(
+			"modelHintsUtil", ModelHintsUtil.getModelHints()
+		).put(
+			"osgiModule", _osgiModule
+		).put(
+			"packagePath", _packagePath
+		).put(
+			"pluginName", _pluginName
+		).put(
+			"portletShortName", _portletShortName
+		).put(
+			"propsUtil", _propsUtil
+		).put(
+			"serviceBuilder", this
+		).put(
+			"stringUtil", StringUtil_IW.getInstance()
+		).put(
+			"textFormatter",
+			() -> {
+				BeansWrapper beansWrapper = BeansWrapper.getDefaultInstance();
 
-		TemplateHashModel staticModels = beansWrapper.getStaticModels();
+				TemplateHashModel staticModels = beansWrapper.getStaticModels();
 
-		Map<String, Object> context = new HashMap<>();
+				return staticModels.get(TextFormatter.class.getName());
+			}
+		).put(
+			"validator", Validator_IW.getInstance()
+		).build();
 
-		context.put("apiPackagePath", _apiPackagePath);
-		context.put("author", _author);
-		context.put("beanLocatorUtil", _beanLocatorUtil);
-		context.put("dependencyInjectorDS", _dependencyInjectorDS);
-		context.put("modelHintsUtil", ModelHintsUtil.getModelHints());
-		context.put("osgiModule", _osgiModule);
-		context.put("packagePath", _packagePath);
-		context.put("pluginName", _pluginName);
-		context.put("portletShortName", _portletShortName);
-		context.put("propsUtil", _propsUtil);
-		context.put("serviceBuilder", this);
-		context.put("stringUtil", StringUtil_IW.getInstance());
 		//context.put("system", staticModels.get("java.lang.System"));
-		context.put(
-			"textFormatter", staticModels.get(TextFormatter.class.getName()));
-		context.put("validator", Validator_IW.getInstance());
 
 		return context;
 	}
@@ -4765,7 +4859,9 @@ public class ServiceBuilder {
 			if (entityColumn.isPrimary()) {
 				sb.append(" not null");
 
-				if (!entity.hasCompoundPK()) {
+				if (!entity.hasCompoundPK() &&
+					!entity.isChangeTrackingEnabled()) {
+
 					sb.append(" primary key");
 				}
 			}
@@ -4779,12 +4875,18 @@ public class ServiceBuilder {
 				sb.append(" IDENTITY");
 			}
 
+			if (entity.isChangeTrackingEnabled() &&
+				Objects.equals(entityColumn.getName(), "ctCollectionId")) {
+
+				sb.append(" default 0 not null");
+			}
+
 			if (Objects.equals(entityColumn.getName(), "mvccVersion")) {
 				sb.append(" default 0 not null");
 			}
 
 			if (((i + 1) != databaseRegularEntityColumns.size()) ||
-				entity.hasCompoundPK()) {
+				entity.hasCompoundPK() || entity.isChangeTrackingEnabled()) {
 
 				sb.append(",");
 			}
@@ -4792,7 +4894,7 @@ public class ServiceBuilder {
 			sb.append("\n");
 		}
 
-		if (entity.hasCompoundPK()) {
+		if (entity.hasCompoundPK() || entity.isChangeTrackingEnabled()) {
 			sb.append("\tprimary key (");
 
 			List<EntityColumn> pkEntityColumns = entity.getPKEntityColumns();
@@ -4805,6 +4907,10 @@ public class ServiceBuilder {
 				if ((j + 1) != pkEntityColumns.size()) {
 					sb.append(", ");
 				}
+			}
+
+			if (entity.isChangeTrackingEnabled()) {
+				sb.append(", ctCollectionId");
 			}
 
 			sb.append(")\n");
@@ -5268,7 +5374,7 @@ public class ServiceBuilder {
 
 		String version = path.toString();
 
-		version = version.replace('_', '.');
+		version = StringUtil.replace(version, '_', '.');
 		version = version.substring(1);
 
 		return Version.getInstance(version);
@@ -5295,7 +5401,9 @@ public class ServiceBuilder {
 
 		String absoluteFileName = _normalize(absolutePath.toString());
 
-		if (absoluteFileName.contains("/modules/private/apps/")) {
+		if (absoluteFileName.contains("/modules/dxp/apps/") ||
+			absoluteFileName.contains("/modules/private/apps/")) {
+
 			return true;
 		}
 
@@ -5312,7 +5420,9 @@ public class ServiceBuilder {
 				if (properties.containsKey("project.path.prefix")) {
 					String s = properties.getProperty("project.path.prefix");
 
-					if (s.startsWith(":private:apps")) {
+					if (s.startsWith(":dxp:apps") ||
+						s.startsWith(":private:apps")) {
+
 						return true;
 					}
 
@@ -5570,6 +5680,9 @@ public class ServiceBuilder {
 		String txManager = entityElement.attributeValue("tx-manager");
 		boolean cacheEnabled = GetterUtil.getBoolean(
 			entityElement.attributeValue("cache-enabled"), true);
+		boolean changeTrackingEnabled = GetterUtil.getBoolean(
+			entityElement.attributeValue("change-tracking-enabled"),
+			_changeTrackingEnabled);
 
 		boolean mvccEnabled = GetterUtil.getBoolean(
 			entityElement.attributeValue("mvcc-enabled"), _mvccEnabled);
@@ -5640,7 +5753,20 @@ public class ServiceBuilder {
 		if (mvccEnabled && !columnElements.isEmpty()) {
 			Element columnElement = DocumentHelper.createElement("column");
 
+			columnElement.addAttribute(
+				"change-tracking-resolution-type", "CONTROL");
 			columnElement.addAttribute("name", "mvccVersion");
+			columnElement.addAttribute("type", "long");
+
+			derivedColumnElements.add(columnElement);
+		}
+
+		if (changeTrackingEnabled) {
+			Element columnElement = DocumentHelper.createElement("column");
+
+			columnElement.addAttribute(
+				"change-tracking-resolution-type", "CONTROL");
+			columnElement.addAttribute("name", "ctCollectionId");
 			columnElement.addAttribute("type", "long");
 
 			derivedColumnElements.add(columnElement);
@@ -5746,6 +5872,27 @@ public class ServiceBuilder {
 				columnElement.attributeValue("localized"));
 			boolean colJsonEnabled = GetterUtil.getBoolean(
 				columnElement.attributeValue("json-enabled"), jsonEnabled);
+
+			String changeTrackingResolutionType = "STRICT";
+
+			if (primary) {
+				changeTrackingResolutionType = "PK";
+			}
+			else if (columnName.equals("modifiedDate") &&
+					 columnType.equals("Date")) {
+
+				changeTrackingResolutionType = "IGNORE";
+			}
+
+			changeTrackingResolutionType = StringUtil.toUpperCase(
+				GetterUtil.getString(
+					columnElement.attributeValue(
+						"change-tracking-resolution-type"),
+					changeTrackingResolutionType));
+
+			CTColumnResolutionType ctColumnResolutionType =
+				CTColumnResolutionType.valueOf(changeTrackingResolutionType);
+
 			boolean containerModel = GetterUtil.getBoolean(
 				columnElement.attributeValue("container-model"));
 			boolean parentContainerModel = GetterUtil.getBoolean(
@@ -5769,8 +5916,8 @@ public class ServiceBuilder {
 				columnName, columnDBName, columnType, primary, accessor,
 				filterPrimary, columnEntityName, mappingTableName, idType,
 				idParam, convertNull, lazy, localized, colJsonEnabled,
-				containerModel, parentContainerModel, uadAnonymizeFieldName,
-				uadNonanonymizable);
+				ctColumnResolutionType, containerModel, parentContainerModel,
+				uadAnonymizeFieldName, uadNonanonymizable);
 
 			if (primary) {
 				if (!columnType.equals("int") && !columnType.equals("long") &&
@@ -6160,20 +6307,77 @@ public class ServiceBuilder {
 			humanName, tableName, alias, uuid, uuidAccessor,
 			externalReferenceCode, localService, remoteService, persistence,
 			persistenceClassName, finderClassName, dataSource, sessionFactory,
-			txManager, cacheEnabled, dynamicUpdateEnabled, jsonEnabled,
-			mvccEnabled, trashEnabled, uadApplicationName, uadAutoDelete,
-			uadOutputPath, uadPackagePath, deprecated, pkEntityColumns,
-			regularEntityColumns, blobEntityColumns, collectionEntityColumns,
-			entityColumns, entityOrder, entityFinders, referenceEntities,
+			txManager, cacheEnabled, changeTrackingEnabled,
+			dynamicUpdateEnabled, jsonEnabled, mvccEnabled, trashEnabled,
+			uadApplicationName, uadAutoDelete, uadOutputPath, uadPackagePath,
+			deprecated, pkEntityColumns, regularEntityColumns,
+			blobEntityColumns, collectionEntityColumns, entityColumns,
+			entityOrder, entityFinders, referenceEntities,
 			unresolvedReferenceEntityNames, txRequiredMethodNames,
 			resourceActionModel);
+
+		if (changeTrackingEnabled) {
+			if (!mvccEnabled) {
+				throw new ServiceBuilderException(
+					"MVCC must be enabled to use change tracking for " +
+						entityName);
+			}
+
+			if (entity.isHierarchicalTree()) {
+				throw new ServiceBuilderException(
+					"Change tracking with hierarchical tree is not supported " +
+						"for " + entityName);
+			}
+
+			if (pkEntityColumns.size() > 1) {
+				throw new ServiceBuilderException(
+					"Compound primary key with change tracked columns is not " +
+						"supported for " + entityName);
+			}
+
+			EntityColumn pkEntityColumn = pkEntityColumns.get(0);
+
+			if (!Objects.equals("long", pkEntityColumn.getType())) {
+				throw new ServiceBuilderException(
+					"Primary key must be of type long to enable change " +
+						"tracking for " + entityName);
+			}
+
+			if (pkEntityColumn.getCTColumnResolutionType() !=
+					CTColumnResolutionType.PK) {
+
+				throw new ServiceBuilderException(
+					StringBundler.concat(
+						"Illegal change-tracking-resolution-type ",
+						String.valueOf(
+							pkEntityColumn.getCTColumnResolutionType()),
+						" for entity ", entityName, " on column ",
+						pkEntityColumn.getName()));
+			}
+
+			for (EntityFinder entityFinder : entityFinders) {
+				for (EntityColumn entityColumn :
+						entityFinder.getEntityColumns()) {
+
+					if (entityColumn.isChangeTrackingMerge()) {
+						throw new ServiceBuilderException(
+							StringBundler.concat(
+								"Illegal change-tracking-resolution-type ",
+								String.valueOf(
+									entityColumn.getCTColumnResolutionType()),
+								" for entity ", entityName, " on column ",
+								pkEntityColumn.getName()));
+					}
+				}
+			}
+		}
 
 		_entities.add(entity);
 
 		if (entity.isUADEnabled()) {
 			if (!_uadApplicationEntities.containsKey(uadApplicationName)) {
 				_uadApplicationEntities.put(
-					uadApplicationName, ListUtil.toList(entity));
+					uadApplicationName, ListUtil.fromArray(entity));
 			}
 			else {
 				List<Entity> uadApplicationEntities =
@@ -6200,8 +6404,8 @@ public class ServiceBuilder {
 		if (versioned) {
 			EntityColumn headEntityColumn = new EntityColumn(
 				"head", "head", "boolean", false, false, false, null, null,
-				null, null, true, false, false, false, false, false, null,
-				false);
+				null, null, true, false, false, false,
+				CTColumnResolutionType.STRICT, false, false, null, false);
 
 			headEntityColumn.setComparator("=");
 			headEntityColumn.setFinderPath(true);
@@ -7228,6 +7432,7 @@ public class ServiceBuilder {
 	private boolean _build;
 	private long _buildNumber;
 	private boolean _buildNumberIncrement;
+	private boolean _changeTrackingEnabled;
 	private boolean _commercialPlugin;
 	private Properties _compatProperties;
 	private String _currentTplName;
@@ -7271,6 +7476,7 @@ public class ServiceBuilder {
 	private String _tplBaseUADDisplay = _TPL_ROOT + "base_uad_display.ftl";
 	private String _tplBaseUADExporter = _TPL_ROOT + "base_uad_exporter.ftl";
 	private String _tplBlobModel = _TPL_ROOT + "blob_model.ftl";
+	private String _tplCTServiceImpl = _TPL_ROOT + "ct_service_impl.ftl";
 	private String _tplEjbPK = _TPL_ROOT + "ejb_pk.ftl";
 	private String _tplException = _TPL_ROOT + "exception.ftl";
 	private String _tplExtendedModel = _TPL_ROOT + "extended_model.ftl";

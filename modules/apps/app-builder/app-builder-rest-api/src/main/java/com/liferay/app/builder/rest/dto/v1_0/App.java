@@ -36,6 +36,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -49,6 +51,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class App {
 
 	@Schema
+	@Valid
 	public AppDeployment[] getAppDeployments() {
 		return appDeployments;
 	}
@@ -244,6 +247,7 @@ public class App {
 	protected Long id;
 
 	@Schema
+	@Valid
 	public Map<String, Object> getName() {
 		return name;
 	}
@@ -521,6 +525,12 @@ public class App {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.app.builder.rest.dto.v1_0.App",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

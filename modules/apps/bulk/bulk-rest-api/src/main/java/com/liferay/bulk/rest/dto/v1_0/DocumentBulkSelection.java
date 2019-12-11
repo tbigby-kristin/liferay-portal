@@ -32,6 +32,8 @@ import java.util.Set;
 
 import javax.annotation.Generated;
 
+import javax.validation.Valid;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -73,6 +75,7 @@ public class DocumentBulkSelection {
 	protected String[] documentIds;
 
 	@Schema
+	@Valid
 	public SelectionScope getSelectionScope() {
 		return selectionScope;
 	}
@@ -167,6 +170,12 @@ public class DocumentBulkSelection {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.bulk.rest.dto.v1_0.DocumentBulkSelection",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

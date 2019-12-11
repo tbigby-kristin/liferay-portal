@@ -24,9 +24,12 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Miguel Pastor
- * @author László Csontos
+ * @author     Miguel Pastor
+ * @author     László Csontos
+ * @deprecated As of Mueller (7.2.x), replaced by {@link
+ *             com.liferay.portal.kernel.dao.db.BaseDBTestCase}
  */
+@Deprecated
 public abstract class BaseDBTestCase {
 
 	@Test

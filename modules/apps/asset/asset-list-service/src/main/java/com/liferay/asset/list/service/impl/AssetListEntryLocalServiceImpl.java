@@ -87,7 +87,7 @@ public class AssetListEntryLocalServiceImpl
 
 		assetListEntryPersistence.update(assetListEntry);
 
-		// Asset list segments entry rel
+		// Asset list entry segments entry rel
 
 		AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel =
 			_assetListEntrySegmentsEntryRelLocalService.
@@ -159,7 +159,7 @@ public class AssetListEntryLocalServiceImpl
 			assetListEntry.getUserId(), AssetListEntry.class.getName(),
 			assetListEntry.getPrimaryKey(), false, true, true);
 
-		// Asset list segments entry rel
+		// Asset list entry segments entry rel
 
 		if (!ExportImportThreadLocal.isImportInProcess()) {
 			_assetListEntrySegmentsEntryRelLocalService.
@@ -222,7 +222,7 @@ public class AssetListEntryLocalServiceImpl
 
 		assetListEntryPersistence.update(assetListEntry);
 
-		// Asset list segments entry rel
+		// Asset list entry segments entry rel
 
 		_assetListEntryAssetEntryRelLocalService.
 			deleteAssetListEntryAssetEntryRel(
@@ -320,7 +320,7 @@ public class AssetListEntryLocalServiceImpl
 
 		assetListEntryPersistence.update(assetListEntry);
 
-		// Asset list segments entry rel
+		// Asset list entry asset entry rel
 
 		_assetListEntryAssetEntryRelLocalService.
 			moveAssetListEntryAssetEntryRel(
@@ -342,7 +342,7 @@ public class AssetListEntryLocalServiceImpl
 
 		assetListEntryPersistence.update(assetListEntry);
 
-		// Asset list segments entry rel
+		// Asset list entry segments entry rel
 
 		AssetListEntrySegmentsEntryRel assetListEntrySegmentsEntryRel =
 			_assetListEntrySegmentsEntryRelLocalService.

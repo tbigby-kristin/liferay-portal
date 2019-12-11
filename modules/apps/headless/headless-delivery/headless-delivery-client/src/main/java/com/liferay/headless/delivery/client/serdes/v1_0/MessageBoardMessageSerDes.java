@@ -299,6 +299,16 @@ public class MessageBoardMessageSerDes {
 			sb.append(messageBoardMessage.getSiteId());
 		}
 
+		if (messageBoardMessage.getSubscribed() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"subscribed\": ");
+
+			sb.append(messageBoardMessage.getSubscribed());
+		}
+
 		if (messageBoardMessage.getViewableBy() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -477,6 +487,15 @@ public class MessageBoardMessageSerDes {
 			map.put("siteId", String.valueOf(messageBoardMessage.getSiteId()));
 		}
 
+		if (messageBoardMessage.getSubscribed() == null) {
+			map.put("subscribed", null);
+		}
+		else {
+			map.put(
+				"subscribed",
+				String.valueOf(messageBoardMessage.getSubscribed()));
+		}
+
 		if (messageBoardMessage.getViewableBy() == null) {
 			map.put("viewableBy", null);
 		}
@@ -629,6 +648,12 @@ public class MessageBoardMessageSerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "subscribed")) {
+				if (jsonParserFieldValue != null) {
+					messageBoardMessage.setSubscribed(
+						(Boolean)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "viewableBy")) {
 				if (jsonParserFieldValue != null) {
 					messageBoardMessage.setViewableBy(
@@ -647,9 +672,11 @@ public class MessageBoardMessageSerDes {
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);
 
-		string = string.replace("\\", "\\\\");
+		for (String[] strings : BaseJSONParser.JSON_ESCAPE_STRINGS) {
+			string = string.replace(strings[0], strings[1]);
+		}
 
-		return string.replace("\"", "\\\"");
+		return string;
 	}
 
 	private static String _toJSON(Map<String, ?> map) {

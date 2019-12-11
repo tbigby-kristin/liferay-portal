@@ -12,36 +12,118 @@
  * details.
  */
 
+import ClayButton from '@clayui/button';
 import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
-import React, {useContext} from 'react';
+import openToast from 'frontend-js-web/liferay/toast/commands/OpenToast.es';
+import React, {useContext, useEffect, useCallback, useState} from 'react';
+
 import {AppContext} from '../../AppContext.es';
 import Button from '../../components/button/Button.es';
-import {addItem} from '../../utils/client.es';
+import {ControlMenuBase} from '../../components/control-menu/ControlMenu.es';
+import {addItem, updateItem} from '../../utils/client.es';
 
-export default ({dataDefinitionId, editEntryContainerElementId}) => {
+export const EditEntry = ({
+	dataDefinitionId,
+	dataRecordId,
+	ddmForm,
+	redirect
+}) => {
 	const {basePortletURL} = useContext(AppContext);
 
-	const onCancel = () => {
-		Liferay.Util.navigate(basePortletURL);
-	};
+	const onCancel = useCallback(() => {
+		if (redirect) {
+			Liferay.Util.navigate(redirect);
+		} else {
+			Liferay.Util.navigate(basePortletURL);
+		}
+	}, [basePortletURL, redirect]);
 
-	const onSave = () => {
-		const {pages} = Liferay.component(editEntryContainerElementId);
+	const onSave = useCallback(() => {
+		const {pages} = ddmForm;
 		const visitor = new PagesVisitor(pages);
 
-		const dataRecords = {
-			dataRecordValues: {}
-		};
+		ddmForm.validate().then(validForm => {
+			if (!validForm) {
+				return;
+			}
 
-		visitor.mapFields(({fieldName, value}) => {
-			dataRecords.dataRecordValues[fieldName] = value;
+			const dataRecord = {
+				dataRecordValues: {}
+			};
+
+			visitor.mapFields(({fieldName, value}) => {
+				dataRecord.dataRecordValues[fieldName] = value;
+			});
+
+			const openSuccessToast = isNew => {
+				const message = isNew
+					? Liferay.Language.get('an-entry-was-added')
+					: Liferay.Language.get('an-entry-was-updated');
+
+				openToast({
+					message,
+					title: Liferay.Language.get('success'),
+					type: 'success'
+				});
+			};
+
+			if (dataRecordId !== '0') {
+				updateItem(
+					`/o/data-engine/v1.0/data-records/${dataRecordId}`,
+					dataRecord
+				).then(() => {
+					openSuccessToast(false);
+					onCancel();
+				});
+			} else {
+				addItem(
+					`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-records`,
+					dataRecord
+				).then(() => {
+					openSuccessToast(true);
+					onCancel();
+				});
+			}
 		});
+	}, [dataDefinitionId, dataRecordId, ddmForm, onCancel]);
 
-		addItem(
-			`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-records`,
-			dataRecords
-		).then(onCancel);
-	};
+	useEffect(() => {
+		const formNode = ddmForm.getFormNode();
+		const onSubmit = () => onSave();
 
-	return <Button onClick={onSave}>{Liferay.Language.get('save')}</Button>;
+		formNode.addEventListener('submit', onSubmit);
+
+		return () => formNode.removeEventListener('submit', onSubmit);
+	}, [ddmForm, onSave]);
+
+	return (
+		<>
+			<ControlMenuBase
+				backURL={redirect ? redirect : `${basePortletURL}/#/`}
+				title={
+					dataRecordId !== '0'
+						? Liferay.Language.get('edit-entry')
+						: Liferay.Language.get('add-entry')
+				}
+				url={location.href}
+			/>
+
+			<ClayButton.Group className="app-builder-form-buttons" spaced>
+				<Button onClick={onSave}>{Liferay.Language.get('save')}</Button>
+				<Button displayType="secondary" onClick={onCancel}>
+					{Liferay.Language.get('cancel')}
+				</Button>
+			</ClayButton.Group>
+		</>
+	);
+};
+
+export default ({editEntryContainerElementId, ...props}) => {
+	const [ddmForm, setDDMForm] = useState();
+
+	if (!ddmForm) {
+		Liferay.componentReady(editEntryContainerElementId).then(setDDMForm);
+	}
+
+	return ddmForm ? <EditEntry ddmForm={ddmForm} {...props} /> : null;
 };

@@ -133,12 +133,12 @@ public class AssetDisplayPageStagedModelDataHandler
 					portletDataContext, importedAssetDisplayPageEntry);
 		}
 		else {
+			importedAssetDisplayPageEntry.setMvccVersion(
+				existingAssetDisplayPageEntry.getMvccVersion());
 			importedAssetDisplayPageEntry.setAssetDisplayPageEntryId(
 				existingAssetDisplayPageEntry.getAssetDisplayPageEntryId());
 			importedAssetDisplayPageEntry.setClassPK(
 				existingAssetDisplayPageEntry.getClassPK());
-			importedAssetDisplayPageEntry.setLayoutPageTemplateEntryId(
-				existingAssetDisplayPageEntry.getLayoutPageTemplateEntryId());
 
 			importedAssetDisplayPageEntry =
 				_stagedModelRepository.updateStagedModel(

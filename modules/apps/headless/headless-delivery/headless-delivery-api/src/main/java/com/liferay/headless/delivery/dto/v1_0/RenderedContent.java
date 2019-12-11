@@ -68,7 +68,7 @@ public class RenderedContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "An absolute URL to the rendered content.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String renderedContentURL;
 
@@ -98,7 +98,9 @@ public class RenderedContent {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(
+		description = "The name of the template used to render the content."
+	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected String templateName;
 
@@ -161,6 +163,12 @@ public class RenderedContent {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.delivery.dto.v1_0.RenderedContent",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

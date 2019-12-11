@@ -14,8 +14,11 @@
 
 package com.liferay.data.engine.field.type.util;
 
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 
@@ -24,12 +27,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Leonardo Barros
  */
 public class LocalizedValueUtil {
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public static Object getLocalizedValue(
 		Locale locale, Map<String, Object> localizedValues) {
 
@@ -40,6 +50,10 @@ public class LocalizedValueUtil {
 		return localizedValues.get(LocaleUtil.toLanguageId(locale));
 	}
 
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public static <V> JSONObject toJSONObject(Map<String, V> map) {
 		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
@@ -72,6 +86,28 @@ public class LocalizedValueUtil {
 		return localeStringMap;
 	}
 
+	public static LocalizedValue toLocalizedValue(
+		Map<String, Object> localizedValues) {
+
+		if (localizedValues == null) {
+			return null;
+		}
+
+		LocalizedValue localizedValue = new LocalizedValue();
+
+		for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
+			localizedValue.addString(
+				LocaleUtil.fromLanguageId(entry.getKey()),
+				GetterUtil.getString(entry.getValue()));
+		}
+
+		return localizedValue;
+	}
+
+	/**
+	 * @deprecated As of Athanasius (7.3.x), with no direct replacement
+	 */
+	@Deprecated
 	public static <V> Map<String, V> toLocalizedValues(JSONObject jsonObject) {
 		if (jsonObject == null) {
 			return Collections.emptyMap();
@@ -88,6 +124,25 @@ public class LocalizedValueUtil {
 		}
 
 		return localizedValues;
+	}
+
+	public static Map<String, Object> toLocalizedValuesMap(
+		LocalizedValue localizedValue) {
+
+		if (localizedValue == null) {
+			return Collections.emptyMap();
+		}
+
+		Map<Locale, String> values = localizedValue.getValues();
+
+		Set<Map.Entry<Locale, String>> entrySet = values.entrySet();
+
+		Stream<Map.Entry<Locale, String>> stream = entrySet.stream();
+
+		return stream.collect(
+			Collectors.toMap(
+				entry -> LanguageUtil.getLanguageId(entry.getKey()),
+				entry -> entry.getValue()));
 	}
 
 	public static Map<String, Object> toStringObjectMap(

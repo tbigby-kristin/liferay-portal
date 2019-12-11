@@ -39,7 +39,8 @@ AssetEntry assetEntry = (AssetEntry)request.getAttribute("view.jsp-assetEntry");
 AssetRendererFactory<?> assetRendererFactory = (AssetRendererFactory<?>)request.getAttribute("view.jsp-assetRendererFactory");
 AssetRenderer<?> assetRenderer = (AssetRenderer<?>)request.getAttribute("view.jsp-assetRenderer");
 
-long previewAssetEntryId = ParamUtil.getLong(request, "previewAssetEntryId");
+long previewClassNameId = ParamUtil.getLong(request, "previewClassNameId");
+long previewClassPK = ParamUtil.getLong(request, "previewClassPK");
 
 boolean print = GetterUtil.getBoolean(request.getAttribute("view.jsp-print"));
 
@@ -49,21 +50,10 @@ assetEntry = assetPublisherDisplayContext.incrementViewCounter(assetEntry);
 
 String title = assetRenderer.getTitle(locale);
 
-PortletURL viewFullContentURL = renderResponse.createRenderURL();
-
-viewFullContentURL.setParameter("mvcPath", "/view_content.jsp");
-viewFullContentURL.setParameter("type", assetRendererFactory.getType());
+PortletURL viewFullContentURL = assetPublisherHelper.getBaseAssetViewURL(liferayPortletRequest, liferayPortletResponse, assetRenderer, assetEntry, assetPublisherDisplayContext.isAssetLinkBehaviorViewInPortlet());
 
 if (print) {
 	viewFullContentURL.setParameter("viewMode", Constants.PRINT);
-}
-
-if (Validator.isNotNull(assetRenderer.getUrlTitle())) {
-	if (assetRenderer.getGroupId() != scopeGroupId) {
-		viewFullContentURL.setParameter("groupId", String.valueOf(assetRenderer.getGroupId()));
-	}
-
-	viewFullContentURL.setParameter("urlTitle", assetRenderer.getUrlTitle());
 }
 
 String viewInContextURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, HttpUtil.setParameter(viewFullContentURL.toString(), "redirect", currentURL));
@@ -74,7 +64,7 @@ fragmentsEditorData.put("fragments-editor-item-id", PortalUtil.getClassNameId(as
 fragmentsEditorData.put("fragments-editor-item-type", "fragments-editor-mapped-item");
 %>
 
-<div class="asset-full-content clearfix mb-5 <%= assetPublisherDisplayContext.isDefaultAssetPublisher() ? "default-asset-publisher" : StringPool.BLANK %> <%= assetPublisherDisplayContext.isShowAssetTitle() ? "show-asset-title" : "no-title" %> <%= (previewAssetEntryId == assetEntry.getEntryId()) ? "p-1 preview-asset-entry" : StringPool.BLANK %>" <%= AUIUtil.buildData(fragmentsEditorData) %>>
+<div class="asset-full-content clearfix mb-5 <%= assetPublisherDisplayContext.isDefaultAssetPublisher() ? "default-asset-publisher" : StringPool.BLANK %> <%= assetPublisherDisplayContext.isShowAssetTitle() ? "show-asset-title" : "no-title" %> <%= ((previewClassNameId == assetEntry.getClassNameId()) && (previewClassPK == assetEntry.getClassPK())) ? "p-1 preview-asset-entry" : StringPool.BLANK %>" <%= AUIUtil.buildData(fragmentsEditorData) %>>
 	<div class="mb-2">
 		<c:if test="<%= assetPublisherDisplayContext.isShowAssetTitle() %>">
 			<h4 class="component-title">
@@ -327,7 +317,11 @@ fragmentsEditorData.put("fragments-editor-item-type", "fragments-editor-mapped-i
 
 							<aui:script>
 								function <portlet:namespace />printPage_<%= id %>() {
-									window.open('<%= printAssetURL %>', '', 'directories=0,height=480,left=80,location=1,menubar=1,resizable=1,scrollbars=yes,status=0,toolbar=0,top=180,width=640');
+									window.open(
+										'<%= printAssetURL %>',
+										'',
+										'directories=0,height=480,left=80,location=1,menubar=1,resizable=1,scrollbars=yes,status=0,toolbar=0,top=180,width=640'
+									);
 								}
 							</aui:script>
 						</c:otherwise>

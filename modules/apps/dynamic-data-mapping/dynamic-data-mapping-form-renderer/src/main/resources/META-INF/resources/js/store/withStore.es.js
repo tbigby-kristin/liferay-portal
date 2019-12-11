@@ -13,45 +13,48 @@
  */
 
 import dom from 'metal-dom';
+
+import {evaluate} from '../util/evaluation.es';
+import {PagesVisitor} from '../util/visitors.es';
 import handleActivePageUpdated from './actions/handleActivePageUpdated.es';
 import handleFieldBlurred from './actions/handleFieldBlurred.es';
 import handleFieldEdited from './actions/handleFieldEdited.es';
 import handleFieldFocused from './actions/handleFieldFocused.es';
 import handleFieldRemoved from './actions/handleFieldRemoved.es';
 import handleFieldRepeated from './actions/handleFieldRepeated.es';
-import handleFormSubmitted from './actions/handleFormSubmitted.es';
 import handlePaginationItemClicked from './actions/handlePaginationItemClicked.es';
 import handlePaginationNextClicked from './actions/handlePaginationNextClicked.es';
 import handlePaginationPreviousClicked from './actions/handlePaginationPreviousClicked.es';
-import {evaluate} from '../util/evaluation.es';
-import {PagesVisitor} from '../util/visitors.es';
 
 const _handleFieldEdited = function(properties) {
 	const {fieldInstance} = properties;
 	const {evaluable} = fieldInstance;
 	const evaluatorContext = this.getEvaluatorContext();
 
-	handleFieldEdited(evaluatorContext, properties).then(evaluatedPages => {
-		if (fieldInstance.isDisposed()) {
-			return;
-		}
-
-		this.setState(
-			{
-				pages: evaluatedPages
-			},
-			() => {
-				if (evaluable) {
-					this.emit('evaluated', evaluatedPages);
-				}
+	handleFieldEdited(evaluatorContext, properties)
+		.then(evaluatedPages => {
+			if (fieldInstance.isDisposed()) {
+				return;
 			}
-		);
-	});
+
+			this.setState(
+				{
+					pages: evaluatedPages
+				},
+				() => {
+					if (evaluable) {
+						this.emit('evaluated', evaluatedPages);
+					}
+				}
+			);
+		})
+		.catch(error => this.emit('evaluationError', error));
 };
 
 const _handleFieldBlurred = function(properties) {
 	const {fieldInstance} = properties;
 	const {pages} = this;
+	const dateNow = new Date();
 
 	handleFieldBlurred(pages, properties).then(blurredFieldPages => {
 		if (fieldInstance.isDisposed()) {
@@ -62,15 +65,31 @@ const _handleFieldBlurred = function(properties) {
 			pages: blurredFieldPages
 		});
 	});
+
+	Liferay.fire('ddmFieldBlur', {
+		fieldName: fieldInstance.fieldName,
+		focusDuration: dateNow - (this.fieldFocusDate || dateNow),
+		formId: this.getFormId(),
+		page: this.activePage
+	});
 };
 
 const _handleFieldFocused = function(properties) {
+	const {fieldInstance} = properties;
 	const {pages} = this;
+
+	this.fieldFocusDate = new Date();
 
 	handleFieldFocused(pages, properties).then(focusedFieldPages => {
 		this.setState({
 			pages: focusedFieldPages
 		});
+	});
+
+	Liferay.fire('ddmFieldFocus', {
+		fieldName: fieldInstance.fieldName,
+		formId: this.getFormId(),
+		page: this.activePage
 	});
 };
 
@@ -112,6 +131,12 @@ export default Component => {
 			}
 
 			Liferay.on('submitForm', this._handleLiferayFormSubmitted, this);
+
+			Liferay.fire('ddmFormPageShow', {
+				formId: this.getFormId(),
+				page: this.activePage,
+				title: this.pages[this.activePage].title
+			});
 		}
 
 		dispatch(event, payload) {
@@ -120,6 +145,25 @@ export default Component => {
 
 		evaluate() {
 			return evaluate(null, this.getEvaluatorContext());
+		}
+
+		validate() {
+			return this.evaluate().then(evaluatedPages => {
+				let validForm = true;
+				const visitor = new PagesVisitor(evaluatedPages);
+
+				visitor.mapFields(({valid}) => {
+					if (!valid) {
+						validForm = false;
+					}
+				});
+
+				if (!validForm) {
+					this.dispatch('pageValidationFailed', this.activePage);
+				}
+
+				return Promise.resolve(validForm);
+			});
 		}
 
 		getChildContext() {
@@ -145,6 +189,12 @@ export default Component => {
 				portletNamespace,
 				rules
 			};
+		}
+
+		getFormId() {
+			const form = this.getFormNode();
+
+			return form && form.dataset.ddmforminstanceid;
 		}
 
 		getFormNode() {
@@ -187,11 +237,13 @@ export default Component => {
 		_handleFormSubmitted(event) {
 			event.preventDefault();
 
-			handleFormSubmitted(this.getEvaluatorContext()).then(validForm => {
+			this.validate().then(validForm => {
 				if (validForm) {
 					Liferay.Util.submitForm(event.target);
-				} else {
-					this.dispatch('pageValidationFailed', this.activePage);
+
+					Liferay.fire('ddmFormSubmit', {
+						formId: this.getFormId()
+					});
 				}
 			});
 		}
@@ -234,6 +286,7 @@ export default Component => {
 			handlePaginationNextClicked(
 				{
 					activePage,
+					formId: this.getFormId(),
 					...this.getEvaluatorContext()
 				},
 				this.dispatch.bind(this)
@@ -246,6 +299,7 @@ export default Component => {
 			handlePaginationPreviousClicked(
 				{
 					activePage,
+					formId: this.getFormId(),
 					...this.getEvaluatorContext()
 				},
 				this.dispatch.bind(this)

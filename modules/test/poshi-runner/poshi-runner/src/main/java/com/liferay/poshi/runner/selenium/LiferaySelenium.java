@@ -180,8 +180,6 @@ public interface LiferaySelenium {
 
 	public String getBodyText();
 
-	public String getConfirmation();
-
 	public String getConfirmation(String value);
 
 	public int getElementHeight(String locator);
@@ -488,12 +486,8 @@ public interface LiferaySelenium {
 
 	public void waitForEditable(String locator) throws Exception;
 
-	public void waitForElementNotPresent(String locator) throws Exception;
-
 	public void waitForElementNotPresent(String locator, String throwException)
 		throws Exception;
-
-	public void waitForElementPresent(String locator) throws Exception;
 
 	public void waitForElementPresent(String locator, String throwException)
 		throws Exception;
@@ -509,8 +503,6 @@ public interface LiferaySelenium {
 	public void waitForNotText(String locator, String value) throws Exception;
 
 	public void waitForNotValue(String locator, String value) throws Exception;
-
-	public void waitForNotVisible(String locator) throws Exception;
 
 	public void waitForNotVisible(String locator, String throwException)
 		throws Exception;
@@ -543,8 +535,6 @@ public interface LiferaySelenium {
 	public void waitForTextPresent(String value) throws Exception;
 
 	public void waitForValue(String locator, String value) throws Exception;
-
-	public void waitForVisible(String locator) throws Exception;
 
 	public void waitForVisible(String locator, String throwException)
 		throws Exception;

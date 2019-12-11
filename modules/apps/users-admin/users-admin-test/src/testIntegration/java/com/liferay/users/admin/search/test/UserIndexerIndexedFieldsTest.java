@@ -37,6 +37,7 @@ import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.test.util.FieldValuesAssert;
 import com.liferay.portal.search.test.util.IndexedFieldsFixture;
@@ -47,7 +48,6 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.users.admin.test.util.search.UserSearchFixture;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -197,42 +197,60 @@ public class UserIndexerIndexedFieldsTest {
 	private Map<String, String> _expectedValues(User user) throws Exception {
 		String groupId = String.valueOf(user.getGroupIds()[0]);
 
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> map = HashMapBuilder.put(
+			Field.COMPANY_ID, String.valueOf(user.getCompanyId())
+		).put(
+			Field.ENTRY_CLASS_NAME, User.class.getName()
+		).put(
+			Field.ENTRY_CLASS_PK, String.valueOf(user.getUserId())
+		).put(
+			Field.GROUP_ID, groupId
+		).put(
+			Field.SCOPE_GROUP_ID, groupId
+		).put(
+			Field.STATUS, String.valueOf(user.getStatus())
+		).put(
+			Field.USER_ID, String.valueOf(user.getUserId())
+		).put(
+			Field.USER_NAME, StringUtil.toLowerCase(user.getFullName())
+		).put(
+			"defaultUser", String.valueOf(user.isDefaultUser())
+		).put(
+			"emailAddress", user.getEmailAddress()
+		).put(
+			"firstName", user.getFirstName()
+		).put(
+			"firstName_sortable", StringUtil.toLowerCase(user.getFirstName())
+		).put(
+			"fullName", user.getFullName()
+		).put(
+			"groupIds", groupId
+		).put(
+			"lastName", user.getLastName()
+		).put(
+			"lastName_sortable", StringUtil.toLowerCase(user.getLastName())
+		).put(
+			"organizationCount",
+			() -> {
+				long[] organizationIds = user.getOrganizationIds();
 
-		map.put(Field.COMPANY_ID, String.valueOf(user.getCompanyId()));
-		map.put(Field.ENTRY_CLASS_PK, String.valueOf(user.getUserId()));
-		map.put(Field.ENTRY_CLASS_NAME, User.class.getName());
-		map.put(Field.GROUP_ID, groupId);
-		map.put(Field.SCOPE_GROUP_ID, groupId);
-		map.put(Field.STATUS, String.valueOf(user.getStatus()));
-		map.put(Field.USER_ID, String.valueOf(user.getUserId()));
-		map.put(Field.USER_NAME, StringUtil.toLowerCase(user.getFullName()));
-		map.put("defaultUser", String.valueOf(user.isDefaultUser()));
-		map.put("emailAddress", user.getEmailAddress());
-		map.put("firstName", user.getFirstName());
-		map.put(
-			"firstName_sortable", StringUtil.toLowerCase(user.getFirstName()));
-		map.put("fullName", user.getFullName());
-		map.put("groupIds", groupId);
-		map.put("lastName", user.getLastName());
-		map.put(
-			"lastName_sortable", StringUtil.toLowerCase(user.getLastName()));
-
-		long[] organizationIds = user.getOrganizationIds();
-
-		map.put("organizationCount", String.valueOf(organizationIds.length));
-
-		map.put("roleIds", _getValues(user.getRoleIds()));
-		map.put("screenName", user.getScreenName());
-		map.put(
-			"screenName_sortable",
-			StringUtil.toLowerCase(user.getScreenName()));
+				return String.valueOf(organizationIds.length);
+			}
+		).put(
+			"roleIds", _getValues(user.getRoleIds())
+		).put(
+			"screenName", user.getScreenName()
+		).put(
+			"screenName_sortable", StringUtil.toLowerCase(user.getScreenName())
+		).build();
 
 		indexedFieldsFixture.populateUID(
 			User.class.getName(), user.getUserId(), map);
 
 		indexedFieldsFixture.populateDate(
 			Field.MODIFIED_DATE, user.getModifiedDate(), map);
+
+		indexedFieldsFixture.populateDate("birthDate", user.getBirthday(), map);
 
 		indexedFieldsFixture.populateRoleIdFields(
 			user.getCompanyId(), User.class.getName(), user.getUserId(),

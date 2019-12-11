@@ -40,7 +40,6 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ResourceBundleLoader;
 import com.liferay.portal.kernel.util.WebKeys;
 
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,7 +57,7 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
 /**
  * @author Iván Zaera
  */
-@Component(immediate = true, service = DLDisplayContextProvider.class)
+@Component(service = DLDisplayContextProvider.class)
 public class DLDisplayContextProviderImpl implements DLDisplayContextProvider {
 
 	@Override
@@ -218,21 +217,26 @@ public class DLDisplayContextProviderImpl implements DLDisplayContextProvider {
 		return dlViewFileVersionDisplayContext;
 	}
 
-	@Reference(unbind = "-")
-	public void setStorageEngine(StorageEngine storageEngine) {
-		_storageEngine = storageEngine;
-	}
-
 	@Activate
-	protected void activate(
-		BundleContext bundleContext, Map<String, Object> properties) {
-
+	protected void activate(BundleContext bundleContext) {
 		_dlDisplayContextFactories = ServiceTrackerListFactory.open(
 			bundleContext, DLDisplayContextFactory.class);
 
 		_dlPreviewRendererProviders =
 			ServiceTrackerMapFactory.openSingleValueMap(
-				bundleContext, DLPreviewRendererProvider.class, "content.type");
+				bundleContext, DLPreviewRendererProvider.class, null,
+				(serviceReference, emitter) -> {
+					DLPreviewRendererProvider dlPreviewRendererProvider =
+						bundleContext.getService(serviceReference);
+
+					for (String mimeType :
+							dlPreviewRendererProvider.getMimeTypes()) {
+
+						emitter.emit(mimeType);
+					}
+
+					bundleContext.ungetService(serviceReference);
+				});
 	}
 
 	@Deactivate
@@ -270,6 +274,7 @@ public class DLDisplayContextProviderImpl implements DLDisplayContextProvider {
 	)
 	private volatile ResourceBundleLoader _resourceBundleLoader;
 
+	@Reference
 	private StorageEngine _storageEngine;
 
 	@Reference(

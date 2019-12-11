@@ -18,8 +18,6 @@ import com.liferay.portal.search.elasticsearch7.internal.connection.Elasticsearc
 import com.liferay.portal.search.elasticsearch7.internal.search.engine.adapter.index.AnalyzeIndexRequestExecutorTest;
 import com.liferay.portal.search.engine.adapter.snapshot.GetSnapshotsRequest;
 
-import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsRequestBuilder;
-
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,20 +50,17 @@ public class GetSnapshotsRequestExecutorImplTest {
 		getSnapshotsRequest.setSnapshotNames("snapshot1", "snapshot2");
 		getSnapshotsRequest.setVerbose(true);
 
-		GetSnapshotsRequestExecutorImpl getSnapshotRepositoriesRequestImpl =
+		GetSnapshotsRequestExecutorImpl getSnapshotsRequestExecutorImpl =
 			new GetSnapshotsRequestExecutorImpl() {
 				{
 					setElasticsearchClientResolver(_elasticsearchFixture);
 				}
 			};
 
-		GetSnapshotsRequestBuilder getSnapshotsRequestBuilder =
-			getSnapshotRepositoriesRequestImpl.createGetSnapshotsRequest(
-				getSnapshotsRequest);
-
 		org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsRequest
 			elasticsearchGetSnapshotsRequest =
-				getSnapshotsRequestBuilder.request();
+				getSnapshotsRequestExecutorImpl.createGetSnapshotsRequest(
+					getSnapshotsRequest);
 
 		Assert.assertEquals(
 			getSnapshotsRequest.isIgnoreUnavailable(),

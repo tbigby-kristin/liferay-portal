@@ -12,11 +12,16 @@
  * details.
  */
 
+import ClayIcon from '@clayui/icon';
+import ClayLink from '@clayui/link';
 import React, {useContext, useState} from 'react';
 import {withRouter} from 'react-router-dom';
+
+import {AppContext} from '../../AppContext.es';
 import Button from '../../components/button/Button.es';
-import EditAppContext from './EditAppContext.es';
+import {ToastContext} from '../../components/toast/ToastContext.es';
 import {updateItem, addItem} from '../../utils/client.es';
+import EditAppContext from './EditAppContext.es';
 
 export default withRouter(
 	({
@@ -31,6 +36,9 @@ export default withRouter(
 			state: {app}
 		} = useContext(EditAppContext);
 
+		const {getStandaloneURL} = useContext(AppContext);
+		const {addToast} = useContext(ToastContext);
+
 		const [isDeploying, setDeploying] = useState(false);
 
 		const {
@@ -41,6 +49,39 @@ export default withRouter(
 			name: {en_US: appName}
 		} = app;
 
+		const getStandaloneLink = appId => {
+			const isStandalone = appDeployments.some(
+				deployment => deployment.type === 'standalone'
+			);
+
+			if (!isStandalone) {
+				return <></>;
+			}
+
+			const url = getStandaloneURL(appId);
+
+			return (
+				<ClayLink href={url} target="_blank">
+					{url} <ClayIcon symbol="shortcut" />
+				</ClayLink>
+			);
+		};
+
+		const addSuccessToast = appId => {
+			addToast({
+				displayType: 'success',
+				message: (
+					<>
+						{Liferay.Language.get(
+							'the-app-was-deployed-successfully'
+						)}{' '}
+						{getStandaloneLink(appId)}
+					</>
+				),
+				title: `${Liferay.Language.get('success')}:`
+			});
+		};
+
 		const onCancel = () => {
 			history.push(`/custom-object/${dataDefinitionId}/apps`);
 		};
@@ -50,6 +91,7 @@ export default withRouter(
 
 			if (appId) {
 				updateItem(`/o/app-builder/v1.0/apps/${appId}`, app)
+					.then(() => addSuccessToast(appId))
 					.then(onCancel)
 					.catch(() => setDeploying(false));
 			} else {
@@ -57,13 +99,14 @@ export default withRouter(
 					`/o/app-builder/v1.0/data-definitions/${dataDefinitionId}/apps`,
 					app
 				)
+					.then(app => addSuccessToast(app.id))
 					.then(onCancel)
 					.catch(() => setDeploying(false));
 			}
 		};
 
 		return (
-			<div className="card-footer bg-transparent">
+			<div className="bg-transparent card-footer">
 				<div className="autofit-row">
 					<div className="col-md-4">
 						<Button displayType="secondary" onClick={onCancel}>
@@ -106,7 +149,9 @@ export default withRouter(
 								displayType="primary"
 								onClick={onDeploy}
 							>
-								{Liferay.Language.get('deploy')}
+								{app.id
+									? Liferay.Language.get('save')
+									: Liferay.Language.get('deploy')}
 							</Button>
 						)}
 					</div>

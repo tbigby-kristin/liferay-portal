@@ -44,7 +44,9 @@ import com.liferay.dynamic.data.mapping.model.DDMFormField;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidation;
 import com.liferay.dynamic.data.mapping.model.DDMFormFieldValidationExpression;
 import com.liferay.dynamic.data.mapping.model.DDMFormRule;
+import com.liferay.dynamic.data.mapping.model.LocalizedValue;
 import com.liferay.dynamic.data.mapping.model.UnlocalizedValue;
+import com.liferay.dynamic.data.mapping.model.Value;
 import com.liferay.dynamic.data.mapping.storage.DDMFormFieldValue;
 import com.liferay.dynamic.data.mapping.storage.DDMFormValues;
 import com.liferay.dynamic.data.mapping.storage.FieldConstants;
@@ -60,6 +62,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -70,11 +73,13 @@ import com.liferay.registry.RegistryUtil;
 
 import java.math.BigDecimal;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -414,22 +419,6 @@ public class DDMFormEvaluatorHelperTest extends PowerMockito {
 		ddmFormValues.addDDMFormFieldValue(
 			DDMFormValuesTestUtil.createDDMFormFieldValue(
 				"field0_instanceId", "field0", new UnlocalizedValue("false")));
-
-		Map<String, DDMFormFieldValueAccessor<?>> ddmFormFieldValueAccessorMap =
-			new HashMap<>();
-
-		ddmFormFieldValueAccessorMap.put(
-			"checkbox",
-			new DefaultDDMFormFieldValueAccessor() {
-
-				@Override
-				public boolean isEmpty(
-					DDMFormFieldValue ddmFormFieldValue, Locale locale) {
-
-					return true;
-				}
-
-			});
 
 		DDMFormEvaluatorEvaluateResponse ddmFormEvaluatorEvaluateResponse =
 			doEvaluate(ddmForm, ddmFormValues);
@@ -802,6 +791,85 @@ public class DDMFormEvaluatorHelperTest extends PowerMockito {
 	}
 
 	@Test
+	public void testUpdateAndCalculateRuleWithRequiredFieldsAndUnavailableLocale()
+		throws Exception {
+
+		Set<Locale> availableLocales = DDMFormTestUtil.createAvailableLocales(
+			LocaleUtil.US);
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
+			availableLocales, LocaleUtil.US);
+
+		boolean localizable = true;
+		boolean repeatable = false;
+		boolean required = true;
+
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"field0", "field0", "numeric", FieldConstants.DOUBLE,
+				localizable, repeatable, required));
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"field1", "field1", "numeric", FieldConstants.DOUBLE,
+				localizable, repeatable, required));
+		ddmForm.addDDMFormField(
+			DDMFormTestUtil.createDDMFormField(
+				"field2", "field2", "numeric", FieldConstants.DOUBLE,
+				localizable, repeatable, required));
+
+		ddmForm.addDDMFormRule(
+			new DDMFormRule(
+				"getValue(\"field0\") > 0 && getValue(\"field1\") > 0",
+				"calculate(\"field2\", getValue(\"field0\") * " +
+					"getValue(\"field1\"))"));
+
+		DDMFormValues ddmFormValues = DDMFormValuesTestUtil.createDDMFormValues(
+			ddmForm);
+
+		LocalizedValue value0 = DDMFormValuesTestUtil.createLocalizedValue(
+			"5", LocaleUtil.US);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"field0_instanceId", "field0", value0));
+
+		LocalizedValue value1 = DDMFormValuesTestUtil.createLocalizedValue(
+			"2", LocaleUtil.US);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"field1_instanceId", "field1", value1));
+
+		LocalizedValue value2 = DDMFormValuesTestUtil.createLocalizedValue(
+			"0", LocaleUtil.US);
+
+		ddmFormValues.addDDMFormFieldValue(
+			DDMFormValuesTestUtil.createDDMFormFieldValue(
+				"field2_instanceId", "field2", value2));
+
+		doEvaluate(ddmForm, ddmFormValues, LocaleUtil.BRAZIL);
+
+		List<DDMFormFieldValue> evaluatedDDMFormFieldValues =
+			ddmFormValues.getDDMFormFieldValues();
+
+		Stream<DDMFormFieldValue> evaluatedDDMFormFieldValuesStream =
+			evaluatedDDMFormFieldValues.stream();
+
+		Optional<DDMFormFieldValue> actualDDMFormFieldValue =
+			evaluatedDDMFormFieldValuesStream.filter(
+				ddmFormFieldValue -> ddmFormFieldValue.getName(
+				).equals(
+					"field2"
+				)
+			).findFirst();
+
+		Value actualValue = actualDDMFormFieldValue.get(
+		).getValue();
+
+		Assert.assertEquals("10", actualValue.getString(LocaleUtil.US));
+	}
+
+	@Test
 	public void testValidationExpression() throws Exception {
 		DDMForm ddmForm = new DDMForm();
 
@@ -1151,35 +1219,33 @@ public class DDMFormEvaluatorHelperTest extends PowerMockito {
 			createDDMExpressionFunctionMap()
 		throws Exception {
 
-		Map<String, DDMExpressionFunctionFactory>
-			ddmExpressionFunctionFactoryMap = new HashMap<>();
-
-		ddmExpressionFunctionFactoryMap.put("all", createAllFunction());
-		ddmExpressionFunctionFactoryMap.put(
-			"belongsTo", createBelongsToRoleFunction());
-		ddmExpressionFunctionFactoryMap.put(
-			"between", new BetweenFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"calculate", new CalculateFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"contains", new ContainsFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"getValue", new GetValueFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"jumpPage", new JumpPageFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"setEnabled", new SetEnabledFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"setInvalid", new SetInvalidFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"setRequired", new SetRequiredFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"setValue", new SetValueFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put(
-			"setVisible", new SetVisibleFunctionFactory());
-		ddmExpressionFunctionFactoryMap.put("sum", new SumFunctionFactory());
-
-		return ddmExpressionFunctionFactoryMap;
+		return HashMapBuilder.<String, DDMExpressionFunctionFactory>put(
+			"all", createAllFunction()
+		).put(
+			"belongsTo", createBelongsToRoleFunction()
+		).put(
+			"between", new BetweenFunctionFactory()
+		).put(
+			"calculate", new CalculateFunctionFactory()
+		).put(
+			"contains", new ContainsFunctionFactory()
+		).put(
+			"getValue", new GetValueFunctionFactory()
+		).put(
+			"jumpPage", new JumpPageFunctionFactory()
+		).put(
+			"setEnabled", new SetEnabledFunctionFactory()
+		).put(
+			"setInvalid", new SetInvalidFunctionFactory()
+		).put(
+			"setRequired", new SetRequiredFunctionFactory()
+		).put(
+			"setValue", new SetValueFunctionFactory()
+		).put(
+			"setVisible", new SetVisibleFunctionFactory()
+		).put(
+			"sum", new SumFunctionFactory()
+		).build();
 	}
 
 	protected DDMFormField createDDMFormField(
@@ -1195,26 +1261,29 @@ public class DDMFormEvaluatorHelperTest extends PowerMockito {
 	protected Map<String, DDMFormFieldValueAccessor<?>>
 		createDDMFormFieldValueAccessorMap() {
 
-		Map<String, DDMFormFieldValueAccessor<?>> ddmFormFieldValueAccessorMap =
-			new HashMap<>();
-
-		ddmFormFieldValueAccessorMap.put(
-			"checkbox", new CheckboxDDMFormFieldValueAccessor());
-		ddmFormFieldValueAccessorMap.put(
-			"numeric", new NumericDDMFormFieldValueAccessor());
-		ddmFormFieldValueAccessorMap.put(
-			"text", new DefaultDDMFormFieldValueAccessor());
-
-		return ddmFormFieldValueAccessorMap;
+		return HashMapBuilder.<String, DDMFormFieldValueAccessor<?>>put(
+			"checkbox", new CheckboxDDMFormFieldValueAccessor()
+		).put(
+			"numeric", new NumericDDMFormFieldValueAccessor()
+		).put(
+			"text", new DefaultDDMFormFieldValueAccessor()
+		).build();
 	}
 
 	protected DDMFormEvaluatorEvaluateResponse doEvaluate(
 			DDMForm ddmForm, DDMFormValues ddmFormValues)
 		throws Exception {
 
+		return doEvaluate(ddmForm, ddmFormValues, LocaleUtil.US);
+	}
+
+	protected DDMFormEvaluatorEvaluateResponse doEvaluate(
+			DDMForm ddmForm, DDMFormValues ddmFormValues, Locale locale)
+		throws Exception {
+
 		DDMFormEvaluatorEvaluateRequest.Builder builder =
 			DDMFormEvaluatorEvaluateRequest.Builder.newBuilder(
-				ddmForm, ddmFormValues, LocaleUtil.US);
+				ddmForm, ddmFormValues, locale);
 
 		builder.withCompanyId(
 			1L

@@ -13,80 +13,39 @@
  */
 
 import classNames from 'classnames';
-import React, {useEffect, useState} from 'react';
-import DropZone from './DropZone.es';
+import React, {useState, useContext} from 'react';
+import {withRouter} from 'react-router-dom';
+
 import ControlMenu from '../../components/control-menu/ControlMenu.es';
 import DragLayer from '../../components/drag-and-drop/DragLayer.es';
-import FieldTypeList from '../../components/field-types/FieldTypeList.es';
 import {Loading} from '../../components/loading/Loading.es';
-import Sidebar from '../../components/sidebar/Sidebar.es';
 import UpperToolbar from '../../components/upper-toolbar/UpperToolbar.es';
-import {addItem, getItem, updateItem} from '../../utils/client.es';
+import {addItem, updateItem} from '../../utils/client.es';
+import DropZone from './DropZone.es';
+import EditTableViewContext, {
+	ADD_DATA_LIST_VIEW_FIELD,
+	REMOVE_DATA_LIST_VIEW_FIELD,
+	UPDATE_DATA_LIST_VIEW_NAME,
+	UPDATE_FOCUSED_COLUMN
+} from './EditTableViewContext.es';
+import EditTableViewContextProvider from './EditTableViewContextProvider.es';
+import TableViewSidebar from './TableViewSidebar.es';
 
-const EditTableView = ({
-	history,
-	match: {
-		params: {dataDefinitionId, dataListViewId}
-	}
-}) => {
-	const [state, setState] = useState({
-		dataDefinition: {
-			dataDefinitionFields: []
-		},
-		dataListView: {
-			fieldNames: [],
-			name: {
-				en_US: ''
-			}
-		}
-	});
-
-	const [isSidebarClosed, setSidebarClosed] = useState(false);
-	const handleSidebarToggle = closed => setSidebarClosed(closed);
-	const [keywords, setKeywords] = useState('');
+const EditTableView = withRouter(({history}) => {
+	const [{dataDefinition, dataListView}, dispatch] = useContext(
+		EditTableViewContext
+	);
 
 	let title = Liferay.Language.get('new-table-view');
 
-	if (dataListViewId) {
+	if (dataListView.id) {
 		title = Liferay.Language.get('edit-table-view');
 	}
-
-	const onAddColumn = fieldName => {
-		setState(prevState => ({
-			...prevState,
-			dataListView: {
-				...prevState.dataListView,
-				fieldNames: prevState.dataListView.fieldNames
-					? prevState.dataListView.fieldNames.concat(fieldName)
-					: [fieldName]
-			}
-		}));
-	};
 
 	const onInput = event => {
 		const name = event.target.value;
 
-		setState(prevState => ({
-			...prevState,
-			dataListView: {
-				...prevState.dataListView,
-				name: {
-					en_US: name
-				}
-			}
-		}));
-	};
-
-	const onRemoveColumn = column => {
-		setState(prevState => ({
-			...prevState,
-			dataListView: {
-				...prevState.dataListView,
-				fieldNames: prevState.dataListView.fieldNames.filter(
-					fieldName => fieldName != column
-				)
-			}
-		}));
+		dispatch({payload: {name}, type: UPDATE_DATA_LIST_VIEW_NAME});
 	};
 
 	const validate = () => {
@@ -111,67 +70,45 @@ const EditTableView = ({
 			return;
 		}
 
-		if (dataListViewId) {
+		if (dataListView.id) {
 			updateItem(
-				`/o/data-engine/v1.0/data-list-views/${dataListViewId}`,
+				`/o/data-engine/v1.0/data-list-views/${dataListView.id}`,
 				dataListView
 			).then(() => history.goBack());
 		} else {
 			addItem(
-				`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}/data-list-views`,
+				`/o/data-engine/v1.0/data-definitions/${dataDefinition.id}/data-list-views`,
 				dataListView
 			).then(() => history.goBack());
 		}
 	};
 
-	useEffect(() => {
-		const getDataDefinition = getItem(
-			`/o/data-engine/v1.0/data-definitions/${dataDefinitionId}`
-		);
-
-		if (dataListViewId) {
-			const getDataListView = getItem(
-				`/o/data-engine/v1.0/data-list-views/${dataListViewId}`
-			);
-
-			Promise.all([getDataDefinition, getDataListView]).then(
-				([dataDefinition, dataListView]) => {
-					setState(prevState => ({
-						...prevState,
-						dataDefinition: {
-							...prevState.dataDefinition,
-							...dataDefinition
-						},
-						dataListView: {
-							...prevState.dataListView,
-							...dataListView
-						}
-					}));
-				}
-			);
-		} else {
-			getDataDefinition.then(dataDefinition => {
-				setState(prevState => ({
-					...prevState,
-					dataDefinition: {
-						...prevState.dataDefinition,
-						...dataDefinition
-					}
-				}));
-			});
-		}
-	}, [dataDefinitionId, dataListViewId]);
-
-	const {dataDefinition, dataListView} = state;
-	const {dataDefinitionFields: availableFields} = dataDefinition;
+	const {dataDefinitionFields} = dataDefinition;
 
 	const {
-		name: {en_US: dataListViewName},
-		fieldNames: columns
+		fieldNames,
+		name: {en_US: dataListViewName}
 	} = dataListView;
 
+	const [isSidebarClosed, setSidebarClosed] = useState(false);
+
+	const onAddFieldName = (fieldName, index = 0) => {
+		dispatch({
+			payload: {fieldName, index},
+			type: ADD_DATA_LIST_VIEW_FIELD
+		});
+
+		dispatch({payload: {fieldName}, type: UPDATE_FOCUSED_COLUMN});
+	};
+
+	const onCloseSidebar = closed => setSidebarClosed(closed);
+
+	const onRemoveFieldName = fieldName => {
+		dispatch({payload: {fieldName}, type: REMOVE_DATA_LIST_VIEW_FIELD});
+	};
+
 	return (
-		<>
+		<div className="app-builder-table-view">
 			<ControlMenu backURL="../" title={title} />
 
 			<Loading isLoading={dataDefinition === null}>
@@ -210,27 +147,10 @@ const EditTableView = ({
 					</UpperToolbar>
 				</form>
 
-				<Sidebar onSearch={setKeywords} onToggle={handleSidebarToggle}>
-					<Sidebar.Body>
-						<Sidebar.Tab tabs={[Liferay.Language.get('columns')]} />
-
-						<Sidebar.TabContent>
-							<FieldTypeList
-								fieldTypes={availableFields.map(field => ({
-									description: field.fieldType,
-									disabled: columns.some(
-										column => column === field.name
-									),
-									icon: field.fieldType,
-									label: field.name,
-									name: field.fieldType
-								}))}
-								keywords={keywords}
-								onAddColumn={onAddColumn}
-							/>
-						</Sidebar.TabContent>
-					</Sidebar.Body>
-				</Sidebar>
+				<TableViewSidebar
+					onAddFieldName={onAddFieldName}
+					onClose={onCloseSidebar}
+				/>
 
 				<div
 					className={classNames('app-builder-sidebar-content', {
@@ -239,15 +159,25 @@ const EditTableView = ({
 				>
 					<div className="container table-view-container">
 						<DropZone
-							columns={columns}
-							onAddColumn={onAddColumn}
-							onRemoveColumn={onRemoveColumn}
+							fields={fieldNames.map(fieldName => ({
+								...dataDefinitionFields.find(
+									({name}) => name === fieldName
+								)
+							}))}
+							onAddFieldName={onAddFieldName}
+							onRemoveFieldName={onRemoveFieldName}
 						/>
 					</div>
 				</div>
 			</Loading>
-		</>
+		</div>
+	);
+});
+
+export default props => {
+	return (
+		<EditTableViewContextProvider>
+			<EditTableView {...props} />
+		</EditTableViewContextProvider>
 	);
 };
-
-export default EditTableView;

@@ -689,7 +689,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 					{
 						put("page", 1);
 						put("pageSize", 2);
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 					}
 				},
 				graphQLFields.toArray(new GraphQLField[0])));
@@ -752,6 +752,52 @@ public abstract class BaseBlogPostingResourceTestCase {
 				randomBlogPosting,
 				JSONFactoryUtil.createJSONObject(
 					JSONFactoryUtil.serialize(blogPosting))));
+	}
+
+	@Test
+	public void testPutSiteBlogPostingSubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		BlogPosting blogPosting =
+			testPutSiteBlogPostingSubscribe_addBlogPosting();
+
+		assertHttpResponseStatusCode(
+			204,
+			blogPostingResource.putSiteBlogPostingSubscribeHttpResponse(null));
+
+		assertHttpResponseStatusCode(
+			404,
+			blogPostingResource.putSiteBlogPostingSubscribeHttpResponse(null));
+	}
+
+	protected BlogPosting testPutSiteBlogPostingSubscribe_addBlogPosting()
+		throws Exception {
+
+		return blogPostingResource.postSiteBlogPosting(
+			testGroup.getGroupId(), randomBlogPosting());
+	}
+
+	@Test
+	public void testPutSiteBlogPostingUnsubscribe() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		BlogPosting blogPosting =
+			testPutSiteBlogPostingUnsubscribe_addBlogPosting();
+
+		assertHttpResponseStatusCode(
+			204,
+			blogPostingResource.putSiteBlogPostingUnsubscribeHttpResponse(
+				null));
+
+		assertHttpResponseStatusCode(
+			404,
+			blogPostingResource.putSiteBlogPostingUnsubscribeHttpResponse(
+				null));
+	}
+
+	protected BlogPosting testPutSiteBlogPostingUnsubscribe_addBlogPosting()
+		throws Exception {
+
+		return blogPostingResource.postSiteBlogPosting(
+			testGroup.getGroupId(), randomBlogPosting());
 	}
 
 	@Test
@@ -997,7 +1043,7 @@ public abstract class BaseBlogPostingResourceTestCase {
 				"createSiteBlogPosting",
 				new HashMap<String, Object>() {
 					{
-						put("siteId", testGroup.getGroupId());
+						put("siteKey", "\"" + testGroup.getGroupId() + "\"");
 						put("blogPosting", sb.toString());
 					}
 				},

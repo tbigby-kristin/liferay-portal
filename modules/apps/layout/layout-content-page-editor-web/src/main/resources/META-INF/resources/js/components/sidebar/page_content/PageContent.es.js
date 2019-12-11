@@ -15,16 +15,16 @@
 import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import classNames from 'classnames';
 import ClayLabel from '@clayui/label';
+import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import React, {useState} from 'react';
 
+import useSelector from '../../../store/hooks/useSelector.es';
 import {
 	EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
 	FRAGMENTS_EDITOR_ITEM_TYPES
 } from '../../../utils/constants';
-import useSelector from '../../../store/hooks/useSelector.es';
 
 const getEditableValues = (itemId, fragmentEntryLinks) => {
 	const [fragmentEntryLinkId, ...editableNameSplit] = itemId.split('-');
@@ -95,15 +95,15 @@ const PageContent = props => {
 				FRAGMENTS_EDITOR_ITEM_TYPES.mappedItem
 			}
 		>
-			<div className="d-flex py-3 pl-3 pr-2">
+			<div className="d-flex pl-3 pr-2 py-3">
 				<div className="autofit-col autofit-col-expand">
-					<strong className="list-group-title truncate-text">
+					<strong className="list-group-title text-truncate">
 						{props.title}
 					</strong>
 
-					<span className="text-secondary small">{props.name}</span>
+					<span className="small text-secondary">{props.name}</span>
 
-					<span className="text-secondary small">
+					<span className="small text-secondary">
 						{props.usagesCount === 1
 							? Liferay.Language.get('used-in-1-page')
 							: Liferay.Util.sub(
@@ -124,54 +124,56 @@ const PageContent = props => {
 					</div>
 				</div>
 
-				<ClayDropDown
-					active={active}
-					onActiveChange={setActive}
-					trigger={
-						<ClayButton
-							className="text-secondary btn-monospaced btn-sm"
-							displayType="unstyled"
-						>
-							<ClayIcon symbol="ellipsis-v" />
-						</ClayButton>
-					}
-				>
-					<ClayDropDown.ItemList>
-						{editURL && (
-							<ClayDropDown.Item href={editURL} key="editURL">
-								{Liferay.Language.get('edit')}
-							</ClayDropDown.Item>
-						)}
-
-						{permissionsURL && (
-							<ClayDropDown.Item
-								key="permissionsURL"
-								onClick={() =>
-									openWindow(
-										permissionsURL,
-										Liferay.Language.get('permissions')
-									)
-								}
+				{(editURL || permissionsURL || viewUsagesURL) && (
+					<ClayDropDown
+						active={active}
+						onActiveChange={setActive}
+						trigger={
+							<ClayButton
+								className="btn-monospaced btn-sm text-secondary"
+								displayType="unstyled"
 							>
-								{Liferay.Language.get('permissions')}
-							</ClayDropDown.Item>
-						)}
+								<ClayIcon symbol="ellipsis-v" />
+							</ClayButton>
+						}
+					>
+						<ClayDropDown.ItemList>
+							{editURL && (
+								<ClayDropDown.Item href={editURL} key="editURL">
+									{Liferay.Language.get('edit')}
+								</ClayDropDown.Item>
+							)}
 
-						{viewUsagesURL && (
-							<ClayDropDown.Item
-								key="viewUsagesURL"
-								onClick={() =>
-									openWindow(
-										viewUsagesURL,
-										Liferay.Language.get('view-usages')
-									)
-								}
-							>
-								{Liferay.Language.get('view-usages')}
-							</ClayDropDown.Item>
-						)}
-					</ClayDropDown.ItemList>
-				</ClayDropDown>
+							{permissionsURL && (
+								<ClayDropDown.Item
+									key="permissionsURL"
+									onClick={() =>
+										openWindow(
+											permissionsURL,
+											Liferay.Language.get('permissions')
+										)
+									}
+								>
+									{Liferay.Language.get('permissions')}
+								</ClayDropDown.Item>
+							)}
+
+							{viewUsagesURL && (
+								<ClayDropDown.Item
+									key="viewUsagesURL"
+									onClick={() =>
+										openWindow(
+											viewUsagesURL,
+											Liferay.Language.get('view-usages')
+										)
+									}
+								>
+									{Liferay.Language.get('view-usages')}
+								</ClayDropDown.Item>
+							)}
+						</ClayDropDown.ItemList>
+					</ClayDropDown>
+				)}
 			</div>
 		</li>
 	);

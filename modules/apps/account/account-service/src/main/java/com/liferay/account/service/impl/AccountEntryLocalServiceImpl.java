@@ -14,12 +14,15 @@
 
 package com.liferay.account.service.impl;
 
+import com.liferay.account.exception.AccountEntryDomainsException;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.base.AccountEntryLocalServiceBaseImpl;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
@@ -31,6 +34,8 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.users.admin.kernel.file.uploads.UserFileUploadsSettings;
 
 import java.util.List;
+
+import org.apache.commons.validator.routines.DomainValidator;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -67,7 +72,7 @@ public class AccountEntryLocalServiceImpl
 	@Override
 	public AccountEntry addAccountEntry(
 			long userId, long parentAccountEntryId, String name,
-			String description, byte[] logoBytes, int status)
+			String description, String[] domains, byte[] logoBytes, int status)
 		throws PortalException {
 
 		// Account entry
@@ -92,6 +97,10 @@ public class AccountEntryLocalServiceImpl
 
 		accountEntry.setDescription(description);
 
+		domains = _validateDomains(domains);
+
+		accountEntry.setDomains(StringUtil.merge(domains, StringPool.COMMA));
+
 		_portal.updateImageId(
 			accountEntry, true, logoBytes, "logoId",
 			_userFileUploadsSettings.getImageMaxSize(),
@@ -101,6 +110,16 @@ public class AccountEntryLocalServiceImpl
 		accountEntry.setStatus(status);
 
 		accountEntry = accountEntryPersistence.update(accountEntry);
+
+		// Group
+
+		groupLocalService.addGroup(
+			userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			AccountEntry.class.getName(), accountEntryId,
+			GroupConstants.DEFAULT_LIVE_GROUP_ID, getLocalizationMap(name),
+			null, GroupConstants.TYPE_SITE_PRIVATE, false,
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false, true,
+			null);
 
 		// Resources
 
@@ -145,6 +164,10 @@ public class AccountEntryLocalServiceImpl
 
 		accountEntry = super.deleteAccountEntry(accountEntry);
 
+		// Group
+
+		groupLocalService.deleteGroup(accountEntry.getAccountEntryGroup());
+
 		// Resources
 
 		resourceLocalService.deleteResource(
@@ -172,10 +195,15 @@ public class AccountEntryLocalServiceImpl
 	}
 
 	@Override
+	public int getAccountEntriesCount(long companyId, int status) {
+		return accountEntryPersistence.countByC_S(companyId, status);
+	}
+
+	@Override
 	public AccountEntry updateAccountEntry(
 			Long accountEntryId, long parentAccountEntryId, String name,
-			String description, boolean deleteLogo, byte[] logoBytes,
-			int status)
+			String description, boolean deleteLogo, String[] domains,
+			byte[] logoBytes, int status)
 		throws PortalException {
 
 		AccountEntry accountEntry = accountEntryPersistence.fetchByPrimaryKey(
@@ -184,6 +212,10 @@ public class AccountEntryLocalServiceImpl
 		accountEntry.setParentAccountEntryId(parentAccountEntryId);
 		accountEntry.setName(name);
 		accountEntry.setDescription(description);
+
+		domains = _validateDomains(domains);
+
+		accountEntry.setDomains(StringUtil.merge(domains, StringPool.COMMA));
 
 		_portal.updateImageId(
 			accountEntry, !deleteLogo, logoBytes, "logoId",
@@ -221,6 +253,22 @@ public class AccountEntryLocalServiceImpl
 		actionableDynamicQuery.setPerformActionMethod(performActionMethod);
 
 		actionableDynamicQuery.performActions();
+	}
+
+	private String[] _validateDomains(String[] domains) throws PortalException {
+		if (ArrayUtil.isEmpty(domains)) {
+			return domains;
+		}
+
+		DomainValidator domainValidator = DomainValidator.getInstance();
+
+		for (String domain : domains) {
+			if (!domainValidator.isValid(domain)) {
+				throw new AccountEntryDomainsException();
+			}
+		}
+
+		return ArrayUtil.distinct(domains);
 	}
 
 	@Reference

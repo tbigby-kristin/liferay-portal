@@ -66,7 +66,7 @@ public class ObjectReviewed {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The resource's ID.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Long id;
 
@@ -94,7 +94,7 @@ public class ObjectReviewed {
 		}
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The resource's type.")
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected String resourceType;
 
@@ -153,6 +153,12 @@ public class ObjectReviewed {
 
 		return sb.toString();
 	}
+
+	@Schema(
+		defaultValue = "com.liferay.headless.admin.workflow.dto.v1_0.ObjectReviewed",
+		name = "x-class-name"
+	)
+	public String xClassName;
 
 	private static String _escape(Object object) {
 		String string = String.valueOf(object);

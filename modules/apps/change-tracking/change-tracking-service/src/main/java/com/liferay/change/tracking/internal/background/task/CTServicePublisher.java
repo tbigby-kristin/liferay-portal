@@ -15,12 +15,13 @@
 package com.liferay.change.tracking.internal.background.task;
 
 import com.liferay.change.tracking.constants.CTConstants;
+import com.liferay.change.tracking.internal.CTRowUtil;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.service.CTEntryLocalService;
-import com.liferay.petra.lang.SafeClosable;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
-import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.dao.orm.common.SQLTransformer;
+import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
+import com.liferay.portal.kernel.dao.jdbc.CurrentConnectionUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.model.change.tracking.CTModel;
 import com.liferay.portal.kernel.service.change.tracking.CTService;
@@ -28,25 +29,36 @@ import com.liferay.portal.kernel.service.persistence.change.tracking.CTPersisten
 
 import java.io.Serializable;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Types;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Preston Crary
  */
-public class CTServicePublisher<T extends CTModel<T>> implements CTPublisher {
+public class CTServicePublisher<T extends CTModel<T>> {
 
 	public CTServicePublisher(
 		CTEntryLocalService ctEntryLocalService, CTService<T> ctService,
-		long sourceCTCollectionId, long targetCTCollectionId) {
+		long modelClassNameId, long sourceCTCollectionId,
+		long targetCTCollectionId) {
 
 		_ctEntryLocalService = ctEntryLocalService;
 		_ctService = ctService;
+		_modelClassNameId = modelClassNameId;
 		_sourceCTCollectionId = sourceCTCollectionId;
 		_targetCTCollectionId = targetCTCollectionId;
 	}
 
-	@Override
 	public void addCTEntry(CTEntry ctEntry) {
 		long modelClassPK = ctEntry.getModelClassPK();
 		int changeType = ctEntry.getChangeType();
@@ -74,109 +86,376 @@ public class CTServicePublisher<T extends CTModel<T>> implements CTPublisher {
 		}
 	}
 
-	@Override
-	public void publish() {
+	public void publish() throws Exception {
 		_ctService.updateWithUnsafeFunction(this::_publish);
 	}
 
-	private void _moveCTEntries(
-		CTPersistence<T> ctPersistence, Map<Serializable, CTEntry> ctEntries,
-		long fromCTCollectionId, long toCTCollectionId) {
+	private Void _publish(CTPersistence<T> ctPersistence) throws Exception {
+		String tableName = ctPersistence.getTableName();
 
-		try (SafeClosable safeClosable =
-				CTCollectionThreadLocal.setCTCollectionId(fromCTCollectionId)) {
+		Set<String> primaryKeyNames = ctPersistence.getCTColumnNames(
+			CTColumnResolutionType.PK);
 
-			Map<Serializable, T> ctModels = ctPersistence.fetchByPrimaryKeys(
-				ctEntries.keySet());
-
-			if ((ctEntries == _modificationCTEntries) &&
-				(ctEntries.size() != ctModels.size())) {
-
-				throw new SystemException(
-					StringBundler.concat(
-						"Size mismatch between ", ctEntries, " and ", ctModels,
-						" for ", _ctService.getModelClass()));
-			}
-
-			for (Map.Entry<Serializable, T> entry : ctModels.entrySet()) {
-				Serializable primaryKey = entry.getKey();
-
-				CTEntry ctEntry = ctEntries.get(primaryKey);
-
-				T ctModel = entry.getValue();
-
-				long mvccVersion = ctModel.getMvccVersion();
-
-				if ((fromCTCollectionId == _targetCTCollectionId) &&
-					(mvccVersion != ctEntry.getModelMvccVersion())) {
-
-					throw new SystemException(
-						StringBundler.concat(
-							"MVCC version mismatch between ", ctEntry, " and ",
-							ctModel, " for ", _ctService.getModelClass()));
-				}
-
-				ctModel.setCtCollectionId(toCTCollectionId);
-
-				ctModel = ctPersistence.updateCTModel(ctModel, true);
-
-				ctPersistence.clearCache(ctModel);
-
-				if (toCTCollectionId == _sourceCTCollectionId) {
-					ctEntry.setModelMvccVersion(mvccVersion + 1);
-
-					ctEntries.put(
-						primaryKey,
-						_ctEntryLocalService.updateCTEntry(ctEntry));
-				}
-			}
-
-			Session session = ctPersistence.getCurrentSession();
-
-			session.flush();
-			session.clear();
+		if (primaryKeyNames.size() != 1) {
+			throw new IllegalArgumentException(
+				StringBundler.concat(
+					"{tableName=", tableName, ", primaryKeyNames=",
+					primaryKeyNames, "}"));
 		}
-	}
 
-	private Void _publish(CTPersistence<T> ctPersistence) {
+		Iterator<String> iterator = primaryKeyNames.iterator();
+
+		String primaryKeyName = iterator.next();
 
 		// Order matters to avoid causing constraint violations
 
+		long tempCTCollectionId = -_sourceCTCollectionId;
+
+		Connection connection = CurrentConnectionUtil.getConnection(
+			ctPersistence.getDataSource());
+
+		if (_additionCTEntries != null) {
+			_updateCTCollectionId(
+				connection, tableName, primaryKeyName,
+				_additionCTEntries.values(), _sourceCTCollectionId,
+				tempCTCollectionId, false, false);
+		}
+
+		if (_modificationCTEntries != null) {
+			_updateCTCollectionId(
+				connection, tableName, primaryKeyName,
+				_modificationCTEntries.values(), _sourceCTCollectionId,
+				tempCTCollectionId, false, true);
+		}
+
 		if (_deletionCTEntries != null) {
-			_moveCTEntries(
-				ctPersistence, _deletionCTEntries, _targetCTCollectionId,
+			_updateCTCollectionId(
+				connection, tableName, primaryKeyName,
+				_deletionCTEntries.values(), _targetCTCollectionId,
+				_sourceCTCollectionId, true, true);
+
+			_updateModelMvccVersion(
+				connection, tableName, primaryKeyName, _deletionCTEntries,
 				_sourceCTCollectionId);
 		}
 
 		if (_modificationCTEntries != null) {
-			long tempCTCollectionId = -_sourceCTCollectionId;
+			int rowCount = _updateCTCollectionId(
+				connection, tableName, primaryKeyName,
+				_modificationCTEntries.values(), _targetCTCollectionId,
+				_sourceCTCollectionId, true, false);
 
-			_moveCTEntries(
-				ctPersistence, _modificationCTEntries, _sourceCTCollectionId,
-				tempCTCollectionId);
+			if (rowCount != _modificationCTEntries.size()) {
+				StringBundler sb = new StringBundler();
 
-			_moveCTEntries(
-				ctPersistence, _modificationCTEntries, _targetCTCollectionId,
+				sb.append("select t1.");
+				sb.append(primaryKeyName);
+				sb.append(" from ");
+				sb.append(tableName);
+				sb.append(" t1 inner join ");
+				sb.append(tableName);
+				sb.append(" t2 on t1.");
+				sb.append(primaryKeyName);
+				sb.append(" = t2.");
+				sb.append(primaryKeyName);
+				sb.append(" and t1.ctCollectionId = ");
+				sb.append(tempCTCollectionId);
+				sb.append(" and t2.ctCollectionId = ");
+				sb.append(_targetCTCollectionId);
+
+				Map<String, Integer> strictColumnsMap = new HashMap<>(
+					ctPersistence.getTableColumnsMap());
+
+				Set<String> strictColumnNames = strictColumnsMap.keySet();
+
+				strictColumnNames.retainAll(
+					ctPersistence.getCTColumnNames(
+						CTColumnResolutionType.STRICT));
+
+				Collection<Integer> strictColumnTypes =
+					strictColumnsMap.values();
+
+				if (!strictColumnTypes.contains(Types.BLOB)) {
+					sb.append(" and (");
+
+					for (Map.Entry<String, Integer> entry :
+							strictColumnsMap.entrySet()) {
+
+						String conflictColumnName = entry.getKey();
+
+						if (entry.getValue() == Types.CLOB) {
+							sb.append("CAST_CLOB_TEXT(t1.");
+							sb.append(conflictColumnName);
+							sb.append(") != CAST_CLOB_TEXT(t2.");
+							sb.append(conflictColumnName);
+							sb.append(")");
+						}
+						else {
+							sb.append("t1.");
+							sb.append(conflictColumnName);
+							sb.append(" != t2.");
+							sb.append(conflictColumnName);
+						}
+
+						sb.append(" or ");
+					}
+
+					sb.setStringAt(")", sb.index() - 1);
+				}
+
+				sb.append(" inner join CTEntry ctEntry on ");
+				sb.append("ctEntry.ctCollectionId = ");
+				sb.append(_sourceCTCollectionId);
+				sb.append(" and ctEntry.modelClassNameId = ");
+				sb.append(_modelClassNameId);
+				sb.append(" and ctEntry.modelClassPK = t2.");
+				sb.append(primaryKeyName);
+				sb.append(" and ctEntry.changeType = ");
+				sb.append(CTConstants.CT_CHANGE_TYPE_MODIFICATION);
+				sb.append(" and ctEntry.modelMvccVersion != t2.mvccVersion");
+
+				List<Long> conflictPrimaryKeys = new ArrayList<>();
+
+				try (PreparedStatement preparedStatement =
+						connection.prepareStatement(
+							SQLTransformer.transform(sb.toString()));
+					ResultSet resultSet = preparedStatement.executeQuery()) {
+
+					while (resultSet.next()) {
+						conflictPrimaryKeys.add(resultSet.getLong(1));
+					}
+				}
+
+				if (!conflictPrimaryKeys.isEmpty()) {
+					conflictPrimaryKeys.sort(null);
+
+					throw new SystemException(
+						StringBundler.concat(
+							"Unable to auto resolve publication conflict for ",
+							_ctService.getModelClass(), " with primary keys ",
+							conflictPrimaryKeys));
+				}
+
+				rowCount += _updateCTCollectionId(
+					connection, tableName, primaryKeyName,
+					_modificationCTEntries.values(), _targetCTCollectionId,
+					_sourceCTCollectionId, false, false);
+
+				if (rowCount != _modificationCTEntries.size()) {
+					throw new SystemException(
+						StringBundler.concat(
+							"Size mismatch expected ",
+							_modificationCTEntries.size(), " but was ",
+							rowCount));
+				}
+			}
+
+			_updateModelMvccVersion(
+				connection, tableName, primaryKeyName, _modificationCTEntries,
 				_sourceCTCollectionId);
-
-			_moveCTEntries(
-				ctPersistence, _modificationCTEntries, tempCTCollectionId,
-				_targetCTCollectionId);
 		}
 
 		if (_additionCTEntries != null) {
-			_moveCTEntries(
-				ctPersistence, _additionCTEntries, _sourceCTCollectionId,
+			_updateCTCollectionId(
+				connection, tableName, primaryKeyName,
+				_additionCTEntries.values(), tempCTCollectionId,
+				_targetCTCollectionId, false, false);
+
+			_updateModelMvccVersion(
+				connection, tableName, primaryKeyName, _additionCTEntries,
 				_targetCTCollectionId);
 		}
 
+		if (_modificationCTEntries != null) {
+			StringBundler sb = new StringBundler();
+
+			Map<String, Integer> tableColumnsMap =
+				ctPersistence.getTableColumnsMap();
+
+			sb.append("select ");
+
+			Set<String> ignoredColumnNames = ctPersistence.getCTColumnNames(
+				CTColumnResolutionType.IGNORE);
+
+			for (String name : tableColumnsMap.keySet()) {
+				if (name.equals("ctCollectionId")) {
+					sb.append(_targetCTCollectionId);
+					sb.append(" as ");
+				}
+				else if (ignoredColumnNames.contains(name)) {
+					sb.append("t2.");
+				}
+				else {
+					sb.append("t1.");
+				}
+
+				sb.append(name);
+				sb.append(", ");
+			}
+
+			sb.setStringAt(" from ", sb.index() - 1);
+
+			sb.append(tableName);
+			sb.append(" t1, ");
+			sb.append(tableName);
+			sb.append(" t2 where t1.");
+			sb.append(primaryKeyName);
+			sb.append(" = t2.");
+			sb.append(primaryKeyName);
+			sb.append(" and t1.ctCollectionId = ");
+			sb.append(tempCTCollectionId);
+			sb.append(" and t2.ctCollectionId = ");
+			sb.append(_sourceCTCollectionId);
+
+			CTRowUtil.copyCTRows(ctPersistence, connection, sb.toString());
+
+			sb.setIndex(0);
+
+			sb.append("delete from ");
+			sb.append(tableName);
+			sb.append(" where ctCollectionId = ");
+			sb.append(tempCTCollectionId);
+
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(sb.toString())) {
+
+				preparedStatement.executeUpdate();
+			}
+		}
+
+		if (_additionCTEntries != null) {
+			ctPersistence.clearCache(_additionCTEntries.keySet());
+		}
+
+		if (_deletionCTEntries != null) {
+			ctPersistence.clearCache(_deletionCTEntries.keySet());
+		}
+
+		if (_modificationCTEntries != null) {
+			ctPersistence.clearCache(_modificationCTEntries.keySet());
+		}
+
 		return null;
+	}
+
+	private int _updateCTCollectionId(
+			Connection connection, String tableName, String primaryKeyName,
+			Collection<CTEntry> ctEntries, long fromCTCollectionId,
+			long toCTCollectionId, boolean includeMvccVersion,
+			boolean checkRowCount)
+		throws Exception {
+
+		StringBundler sb = new StringBundler();
+
+		sb.append("update ");
+		sb.append(tableName);
+		sb.append(" set ctCollectionId = ");
+		sb.append(toCTCollectionId);
+		sb.append(" where ");
+		sb.append(tableName);
+		sb.append(".ctCollectionId = ");
+		sb.append(fromCTCollectionId);
+		sb.append(" and ");
+
+		if (includeMvccVersion) {
+			sb.append("(");
+
+			for (CTEntry ctEntry : ctEntries) {
+				sb.append("(");
+				sb.append(tableName);
+				sb.append(".");
+				sb.append(primaryKeyName);
+				sb.append(" = ");
+				sb.append(ctEntry.getModelClassPK());
+				sb.append(" and ");
+				sb.append(tableName);
+				sb.append(".mvccVersion = ");
+				sb.append(ctEntry.getModelMvccVersion());
+				sb.append(")");
+				sb.append(" or ");
+			}
+
+			sb.setStringAt(")", sb.index() - 1);
+		}
+		else {
+			sb.append(tableName);
+			sb.append(".");
+			sb.append(primaryKeyName);
+			sb.append(" in (");
+
+			for (CTEntry ctEntry : ctEntries) {
+				sb.append(ctEntry.getModelClassPK());
+				sb.append(", ");
+			}
+
+			sb.setStringAt(")", sb.index() - 1);
+		}
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				sb.toString())) {
+
+			int rowCount = preparedStatement.executeUpdate();
+
+			if (checkRowCount && (rowCount != ctEntries.size())) {
+				throw new SystemException(
+					StringBundler.concat(
+						"Size mismatch expected ", ctEntries.size(),
+						" but was ", rowCount));
+			}
+
+			return rowCount;
+		}
+	}
+
+	private void _updateModelMvccVersion(
+			Connection connection, String tableName, String primaryKeyName,
+			Map<Serializable, CTEntry> ctEntries, long ctCollectionId)
+		throws Exception {
+
+		StringBundler sb = new StringBundler();
+
+		sb.append("select ");
+		sb.append(primaryKeyName);
+		sb.append(", mvccVersion from ");
+		sb.append(tableName);
+		sb.append(" where ctCollectionId = ");
+		sb.append(ctCollectionId);
+		sb.append(" and ");
+		sb.append(primaryKeyName);
+		sb.append(" in (");
+
+		for (Serializable serializable : ctEntries.keySet()) {
+			sb.append((long)serializable);
+			sb.append(", ");
+		}
+
+		sb.setStringAt(")", sb.index() - 1);
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				sb.toString());
+			ResultSet resultSet = preparedStatement.executeQuery()) {
+
+			while (resultSet.next()) {
+				long pk = resultSet.getLong(1);
+				long mvccVersion = resultSet.getLong(2);
+
+				CTEntry ctEntry = ctEntries.get(pk);
+
+				if (mvccVersion != ctEntry.getModelMvccVersion()) {
+					ctEntry.setModifiedDate(ctEntry.getModifiedDate());
+					ctEntry.setModelMvccVersion(mvccVersion);
+
+					_ctEntryLocalService.updateCTEntry(ctEntry);
+				}
+			}
+		}
 	}
 
 	private Map<Serializable, CTEntry> _additionCTEntries;
 	private final CTEntryLocalService _ctEntryLocalService;
 	private final CTService<T> _ctService;
 	private Map<Serializable, CTEntry> _deletionCTEntries;
+	private final long _modelClassNameId;
 	private Map<Serializable, CTEntry> _modificationCTEntries;
 	private final long _sourceCTCollectionId;
 	private final long _targetCTCollectionId;

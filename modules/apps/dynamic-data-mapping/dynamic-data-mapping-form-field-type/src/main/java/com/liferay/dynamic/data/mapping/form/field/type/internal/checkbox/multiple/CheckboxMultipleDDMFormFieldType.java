@@ -28,7 +28,7 @@ import org.osgi.service.component.annotations.Component;
 	property = {
 		"ddm.form.field.type.data.domain=list",
 		"ddm.form.field.type.description=checkbox-multiple-field-type-description",
-		"ddm.form.field.type.display.order:Integer=7",
+		"ddm.form.field.type.display.order:Integer=4",
 		"ddm.form.field.type.group=basic",
 		"ddm.form.field.type.icon=select-from-list",
 		"ddm.form.field.type.label=checkbox-multiple-field-type-label",

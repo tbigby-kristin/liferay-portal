@@ -33,12 +33,14 @@ import com.liferay.portal.vulcan.internal.jaxrs.context.provider.CompanyContextP
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.FieldsQueryParamContextProvider;
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.FilterContextProvider;
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.PaginationContextProvider;
+import com.liferay.portal.vulcan.internal.jaxrs.context.provider.RestrictFieldsQueryParamContextProvider;
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.SortContextProvider;
 import com.liferay.portal.vulcan.internal.jaxrs.context.provider.UserContextProvider;
 import com.liferay.portal.vulcan.internal.jaxrs.context.resolver.ObjectMapperContextResolver;
 import com.liferay.portal.vulcan.internal.jaxrs.context.resolver.XmlMapperContextResolver;
 import com.liferay.portal.vulcan.internal.jaxrs.dynamic.feature.StatusDynamicFeature;
 import com.liferay.portal.vulcan.internal.jaxrs.exception.mapper.ExceptionMapper;
+import com.liferay.portal.vulcan.internal.jaxrs.exception.mapper.InvalidFilterExceptionMapper;
 import com.liferay.portal.vulcan.internal.jaxrs.exception.mapper.InvalidFormatExceptionMapper;
 import com.liferay.portal.vulcan.internal.jaxrs.exception.mapper.JsonMappingExceptionMapper;
 import com.liferay.portal.vulcan.internal.jaxrs.exception.mapper.JsonParseExceptionMapper;
@@ -64,6 +66,7 @@ import javax.ws.rs.core.FeatureContext;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
@@ -97,6 +100,7 @@ public class VulcanFeature implements Feature {
 		featureContext.register(JSONMessageBodyReader.class);
 		featureContext.register(JSONMessageBodyWriter.class);
 		featureContext.register(JsonParseExceptionMapper.class);
+		featureContext.register(InvalidFilterExceptionMapper.class);
 		featureContext.register(InvalidFormatExceptionMapper.class);
 		featureContext.register(LogContainerRequestFilter.class);
 		featureContext.register(MultipartBodyMessageBodyReader.class);
@@ -106,6 +110,7 @@ public class VulcanFeature implements Feature {
 		featureContext.register(PaginationContextProvider.class);
 		featureContext.register(PortalExceptionMapper.class);
 		featureContext.register(PrincipalExceptionMapper.class);
+		featureContext.register(RestrictFieldsQueryParamContextProvider.class);
 		featureContext.register(StatusDynamicFeature.class);
 		featureContext.register(TransactionContainerRequestFilter.class);
 		featureContext.register(UnrecognizedPropertyExceptionMapper.class);
@@ -123,8 +128,12 @@ public class VulcanFeature implements Feature {
 		featureContext.register(
 			new FilterContextProvider(
 				_expressionConvert, _filterParserProvider, _language, _portal));
-		featureContext.register(
-			new NestedFieldsWriterInterceptor(_bundleContext));
+
+		_nestedFieldsWriterInterceptor = new NestedFieldsWriterInterceptor(
+			_bundleContext);
+
+		featureContext.register(_nestedFieldsWriterInterceptor);
+
 		featureContext.register(
 			new SiteParamConverterProvider(_groupLocalService));
 
@@ -138,6 +147,13 @@ public class VulcanFeature implements Feature {
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		if (_nestedFieldsWriterInterceptor != null) {
+			_nestedFieldsWriterInterceptor.destroy();
+		}
 	}
 
 	private BundleContext _bundleContext;
@@ -155,6 +171,8 @@ public class VulcanFeature implements Feature {
 
 	@Reference
 	private Language _language;
+
+	private NestedFieldsWriterInterceptor _nestedFieldsWriterInterceptor;
 
 	@Reference
 	private Portal _portal;

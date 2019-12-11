@@ -28,7 +28,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.ClassedModel;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -43,7 +42,6 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.io.InputStream;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.ClassRule;
@@ -129,14 +127,6 @@ public class MBMessageSearchTest extends BaseSearchTestCase {
 	protected void addAttachment(ClassedModel classedModel) throws Exception {
 		MBMessage message = (MBMessage)classedModel;
 
-		List<FileEntry> fileEntries = message.getAttachmentsFileEntries();
-
-		List<String> existingFiles = new ArrayList<>();
-
-		for (FileEntry fileEntry : fileEntries) {
-			existingFiles.add(fileEntry.getTitle());
-		}
-
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
 				message.getGroupId(), TestPropsValues.getUserId());
@@ -147,8 +137,8 @@ public class MBMessageSearchTest extends BaseSearchTestCase {
 
 		MBMessageLocalServiceUtil.updateMessage(
 			TestPropsValues.getUserId(), message.getMessageId(),
-			getSearchKeywords(), getSearchKeywords(), inputStreamOVPs,
-			existingFiles, 0, false, serviceContext);
+			getSearchKeywords(), getSearchKeywords(), inputStreamOVPs, 0, false,
+			serviceContext);
 	}
 
 	@Override

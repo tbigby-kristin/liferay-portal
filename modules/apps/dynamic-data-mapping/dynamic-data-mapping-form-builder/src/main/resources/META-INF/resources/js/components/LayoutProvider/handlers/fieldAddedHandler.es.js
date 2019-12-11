@@ -13,17 +13,36 @@
  */
 
 import * as FormSupport from 'dynamic-data-mapping-form-renderer/js/components/FormRenderer/FormSupport.es';
+import {PagesVisitor} from 'dynamic-data-mapping-form-renderer/js/util/visitors.es';
+
 import {
 	generateInstanceId,
-	getFieldProperties
+	getFieldProperties,
+	normalizeSettingsContextPages
 } from '../../../util/fieldSupport.es';
-import {generateFieldName} from '../util/fields.es';
-import {normalizeSettingsContextPages} from '../../../util/fieldSupport.es';
 
 const handleFieldAdded = (props, state, event) => {
-	const {addedToPlaceholder, fieldType, indexes} = event;
-	const {defaultLanguageId, editingLanguageId, spritemap} = props;
-	const newFieldName = generateFieldName(state.pages, fieldType.label);
+	const {fieldType, indexes, skipFieldNameGeneration = false} = event;
+	const {
+		defaultLanguageId,
+		editingLanguageId,
+		fieldNameGenerator,
+		spritemap
+	} = props;
+	let newFieldName;
+
+	if (skipFieldNameGeneration) {
+		const {settingsContext} = fieldType;
+		const visitor = new PagesVisitor(settingsContext.pages);
+
+		visitor.mapFields(({fieldName, value}) => {
+			if (fieldName === 'name') {
+				newFieldName = value;
+			}
+		});
+	} else {
+		newFieldName = fieldNameGenerator(fieldType.label);
+	}
 
 	const focusedField = {
 		...fieldType,
@@ -42,8 +61,8 @@ const handleFieldAdded = (props, state, event) => {
 
 	const {fieldName, name, settingsContext} = focusedField;
 	const {pageIndex, rowIndex} = indexes;
-	let {pages} = state;
-	let {columnIndex} = indexes;
+	const {pages} = state;
+	const {columnIndex} = indexes;
 
 	const fieldProperties = {
 		...getFieldProperties(
@@ -58,12 +77,6 @@ const handleFieldAdded = (props, state, event) => {
 		spritemap,
 		type: fieldType.name
 	};
-
-	if (addedToPlaceholder) {
-		pages = FormSupport.addRow(pages, rowIndex, pageIndex);
-
-		columnIndex = 0;
-	}
 
 	return {
 		focusedField: {

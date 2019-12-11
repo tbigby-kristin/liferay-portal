@@ -48,6 +48,7 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestDataConstants;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -58,7 +59,6 @@ import com.liferay.registry.RegistryUtil;
 import java.io.Serializable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -111,17 +111,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {true, true, true});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {false, false, false});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray(true, true, true)
+			).put(
+				_ptLocale, ListUtil.fromArray(false, false, false)
+			).build();
 
 		Field booleanField = new Field(
 			structure.getStructureId(), "boolean", dataMap, _enLocale);
@@ -257,21 +252,18 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		Serializable date1 = getDateFieldValue(0, 1, 2013, _enLocale);
-		Serializable date2 = getDateFieldValue(0, 2, 2013, _enLocale);
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {date1, date2});
-
-		dataMap.put(_enLocale, enValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale,
+				ListUtil.fromArray(
+					getDateFieldValue(0, 1, 2013, _enLocale),
+					getDateFieldValue(0, 2, 2013, _enLocale))
+			).build();
 
 		Serializable date3 = getDateFieldValue(0, 3, 2013, _enLocale);
 		Serializable date4 = getDateFieldValue(0, 4, 2013, _enLocale);
 
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {date3, date4});
+		List<Serializable> ptValues = ListUtil.fromArray(date3, date4);
 
 		dataMap.put(_ptLocale, ptValues);
 
@@ -299,17 +291,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {1.1, 1.2, 1.3});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {2.1, 2.2, 2.3});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray(1.1, 1.2, 1.3)
+			).put(
+				_ptLocale, ListUtil.fromArray(2.1, 2.2, 2.3)
+			).build();
 
 		Field decimalField = new Field(
 			structure.getStructureId(), "decimal", dataMap, _enLocale);
@@ -343,8 +330,6 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
 		ServiceContext serviceContext =
 			ServiceContextTestUtil.getServiceContext(
 				TestPropsValues.getGroupId(), TestPropsValues.getUserId());
@@ -365,15 +350,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		String file2Value = getDocLibraryFieldValue(file2);
 
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {file1Value, file2Value});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {file1Value, file2Value});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray(file1Value, file2Value)
+			).put(
+				_ptLocale, ListUtil.fromArray(file1Value, file2Value)
+			).build();
 
 		Field documentLibraryField = new Field(
 			structure.getStructureId(), "doc_library", dataMap, _enLocale);
@@ -399,17 +381,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {1, 2, 3});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {3, 4, 5});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray(1, 2, 3)
+			).put(
+				_ptLocale, ListUtil.fromArray(3, 4, 5)
+			).build();
 
 		Field integerField = new Field(
 			structure.getStructureId(), "integer", dataMap, _enLocale);
@@ -436,19 +413,16 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {
-				"{\"layoutId\":\"1\",\"privateLayout\":false}"
-			});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {"{\"layoutId\":\"2\",\"privateLayout\":true}"});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale,
+				ListUtil.fromArray(
+					"{\"layoutId\":\"1\",\"privateLayout\":false}")
+			).put(
+				_ptLocale,
+				ListUtil.fromArray(
+					"{\"layoutId\":\"2\",\"privateLayout\":true}")
+			).build();
 
 		Field linkToPageField = new Field(
 			structure.getStructureId(), "link_to_page", dataMap, _enLocale);
@@ -473,17 +447,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {1, 1.5F, 2});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {3, 3.5F, 4});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray(1, 1.5F, 2)
+			).put(
+				_ptLocale, ListUtil.fromArray(3, 3.5F, 4)
+			).build();
 
 		Field numberField = new Field(
 			structure.getStructureId(), "number", dataMap, _enLocale);
@@ -509,17 +478,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {"value 1", "value 2"});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {"value 2", "value 3"});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray("value 1", "value 2")
+			).put(
+				_ptLocale, ListUtil.fromArray("value 2", "value 3")
+			).build();
 
 		Field radioField = new Field(
 			structure.getStructureId(), "radio", dataMap, _enLocale);
@@ -545,17 +509,13 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {"[\"value 1\",\"value 2\"]", "[\"value 3\"]"});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {"[\"value 2\"]", "[\"value 3\"]"});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale,
+				ListUtil.fromArray("[\"value 1\",\"value 2\"]", "[\"value 3\"]")
+			).put(
+				_ptLocale, ListUtil.fromArray("[\"value 2\"]", "[\"value 3\"]")
+			).build();
 
 		Field selectField = new Field(
 			structure.getStructureId(), "select", dataMap, _enLocale);
@@ -581,17 +541,12 @@ public class StorageAdapterTest extends BaseDDMServiceTestCase {
 
 		Fields fields = new Fields();
 
-		Map<Locale, List<Serializable>> dataMap = new HashMap<>();
-
-		List<Serializable> enValues = ListUtil.fromArray(
-			new Serializable[] {"one", "two", "three"});
-
-		dataMap.put(_enLocale, enValues);
-
-		List<Serializable> ptValues = ListUtil.fromArray(
-			new Serializable[] {"um", "dois", "tres"});
-
-		dataMap.put(_ptLocale, ptValues);
+		Map<Locale, List<Serializable>> dataMap =
+			HashMapBuilder.<Locale, List<Serializable>>put(
+				_enLocale, ListUtil.fromArray("one", "two", "three")
+			).put(
+				_ptLocale, ListUtil.fromArray("um", "dois", "tres")
+			).build();
 
 		Field textField = new Field(
 			structure.getStructureId(), "text", dataMap, _enLocale);

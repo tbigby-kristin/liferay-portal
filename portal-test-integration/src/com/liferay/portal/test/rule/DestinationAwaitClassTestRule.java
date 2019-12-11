@@ -61,6 +61,15 @@ public class DestinationAwaitClassTestRule
 			Destination destination = MessageBusUtil.getDestination(
 				destinationName);
 
+			if (destination == null) {
+				if (System.getenv("JENKINS_HOME") != null) {
+					throw new IllegalStateException(
+						destinationName + " is not available");
+				}
+
+				continue;
+			}
+
 			final CountDownLatch startCountDownLatch = new CountDownLatch(1);
 
 			final CountDownLatch endCountDownLatch = new CountDownLatch(1);

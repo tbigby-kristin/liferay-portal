@@ -30,6 +30,9 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.security.permission.InlineSQLHelper;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -53,6 +56,9 @@ public class KBFolderFinderImpl
 
 	public static final String FIND_A_BY_G_P =
 		KBFolderFinder.class.getName() + ".findA_ByG_P";
+
+	public static final String FIND_A_BY_G_P_VC =
+		KBFolderFinder.class.getName() + ".findA_ByG_P_VC";
 
 	public static final String FIND_F_BY_G_P =
 		KBFolderFinder.class.getName() + ".findF_ByG_P";
@@ -168,6 +174,18 @@ public class KBFolderFinderImpl
 		long groupId, long parentResourcePrimKey,
 		QueryDefinition<?> queryDefinition, boolean inlineSQLHelper) {
 
+		boolean orderByViewCount = false;
+
+		OrderByComparator<?> orderByComparator =
+			queryDefinition.getOrderByComparator();
+
+		if ((orderByComparator != null) &&
+			ArrayUtil.contains(
+				orderByComparator.getOrderByFields(), "viewCount")) {
+
+			orderByViewCount = true;
+		}
+
 		Session session = null;
 
 		try {
@@ -177,8 +195,16 @@ public class KBFolderFinderImpl
 
 			sb.append("SELECT * FROM (");
 
-			String sql = _customSQL.get(
-				getClass(), FIND_A_BY_G_P, queryDefinition);
+			String sql = null;
+
+			if (orderByViewCount) {
+				sql = _customSQL.get(
+					getClass(), FIND_A_BY_G_P_VC, queryDefinition);
+			}
+			else {
+				sql = _customSQL.get(
+					getClass(), FIND_A_BY_G_P, queryDefinition);
+			}
 
 			if (inlineSQLHelper) {
 				sql = _inlineSQLHelper.replacePermissionCheck(
@@ -202,8 +228,7 @@ public class KBFolderFinderImpl
 
 			sql = sb.toString();
 
-			sql = _customSQL.replaceOrderBy(
-				sql, queryDefinition.getOrderByComparator());
+			sql = _customSQL.replaceOrderBy(sql, orderByComparator);
 
 			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
@@ -215,6 +240,18 @@ public class KBFolderFinderImpl
 			q.addScalar("viewCount", Type.INTEGER);
 
 			QueryPos qPos = QueryPos.getInstance(q);
+
+			if (orderByViewCount) {
+				long classNameId = _classNameLocalService.getClassNameId(
+					KBArticle.class);
+
+				qPos.add(classNameId);
+				qPos.add(groupId);
+				qPos.add(parentResourcePrimKey);
+				qPos.add(true);
+				qPos.add(queryDefinition.getStatus());
+				qPos.add(classNameId);
+			}
 
 			qPos.add(groupId);
 			qPos.add(parentResourcePrimKey);
@@ -256,6 +293,9 @@ public class KBFolderFinderImpl
 			closeSession(session);
 		}
 	}
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
 
 	@Reference
 	private CustomSQL _customSQL;

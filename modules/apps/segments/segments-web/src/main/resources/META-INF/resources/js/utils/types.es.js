@@ -86,7 +86,7 @@ const initialContributorShape = PropTypes.shape({
 /**
  * A Contributor contains a set Criterias, Properties and identifiers.
  *
- * - conjuntionId: the value of the congunction
+ * - conjunctionId: the value of the congunction
  * - conjunctionInputId: an identifier for the back-fornt relationship
  * - criteriaMap: a Criteria frontend consumable
  * - entityName: an identifier for the back-front relationship
